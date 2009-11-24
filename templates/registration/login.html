@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block main %}
+<div class="main">
+
+<div id="login">
+{% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
+<form name="loginform" method="post" action="{% url glifestream.login.views.login %}">
+  <p>
+    <label>{% trans "Username" %}<br />
+      <input type="text" name="username" id="username" class="input" size="20" />
+    </label>
+  </p>
+  <p>
+    <label>{% trans "Password" %}<br />
+      <input type="password" name="password" id="password" class="input" size="20" />
+    </label>
+  </p>
+  <p class="rememberme">
+    <label>
+      <input type="checkbox" name="remember_me" value="1" /> {% trans "Remember Me" %}
+    </label>
+  </p>
+  <p class="submit">
+    <input type="submit" value="{% trans "Log In" %}" />
+    <input type="hidden" name="next" value="{{ next }}" />
+  </p>
+</form>
+</div>
+
+</div><!-- /main -->
+
+<script type="text/javascript">
+document.getElementById('username').focus ();
+</script>
+{% endblock main %}

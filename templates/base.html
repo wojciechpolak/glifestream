@@ -1,0 +1,66 @@
+{% load i18n media %}<!DOCTYPE html>
+<html>
+
+<head>
+  <title>{% firstof page.title "Lifestream" %}</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="keywords" content="lifestream">
+  <meta name="description" content="{{ page.description|safe }}">
+  <meta name="generator" content="gLifestream">
+  <meta name="robots" content="{{ page.robots }}">
+  <link rel="shortcut icon" href="{% static %}/favicon.ico" type="image/x-icon" />
+  <link rel="alternate" type="application/atom+xml" title="Webfeed" href="?format=atom">
+  <link rel="stylesheet" type="text/css" href="{% static %}/themes/{% firstof page.theme "default" %}/style.css">
+  <script type="text/javascript" src="{% static %}/js/jquery.js"></script>
+  <script type="text/javascript" src="{% static %}/js/glifestream.js"></script>
+</head>
+
+<body>
+<div id="main">
+
+<header id="head">
+  <nav id="navtop" class="tb">
+    {% if authed %}
+    <span class="text">{% trans "Hello" %} <b>{{ user.email }}</b></span> |
+    <a href="{% url index %}" title="{% trans "My private stream" %}">{% trans "Private" %}</a> |
+    <a href="{% url public %}" title="{% trans "My publicly visible stream" %}">{% trans "Public" %}</a> |
+    <a href="{% url tools %}">{% trans "Tools" %}</a> |
+    {% if user.is_staff %}<a href="{% url admin:index %}" target="_blank">{% trans "Admin" %}</a>{% endif %} |
+    <a href="{% url django.contrib.auth.views.logout %}">{% trans "Logout" %}</a>
+    {% else %}
+    <a href="{% url login.views.login %}" rel="nofollow">{% trans "Login" %}</a>
+    {% endif %}
+  </nav>
+  <h1 class="tb"><a href="{% url index %}" accesskey="1">{% trans "The Stream" %}</a></h1>
+</header>
+
+<aside id="sidebar">
+  <section id="about">
+    <h4>{% trans "About" %}</h4>
+{% include "user-about.html" %}
+  </section>
+{% block sidebar %}{% endblock sidebar %}
+</aside>
+
+{% block main %}{% endblock main %}
+
+<footer id="foot">
+  {% block copyright %}{% endblock copyright %}
+  <p id="poweredby">{% trans "Powered by" %} <a href="http://glifestream.org/">gLifestream</a>.
+  {% if page.themes_more %}<a href="#" id="change-theme">{% trans "Change theme" %}</a>.{% endif %}</p>
+</footer>
+
+{% include "user-scripts.js" %}
+
+<script type="text/javascript">
+var settings = {
+  baseurl: '{% url index %}',
+  maps_engine: '{{ page.maps_engine }}',
+  maps_key: '{{ page.maps_key }}',
+  themes: [{% for theme in page.themes %}'{{ theme }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
+};
+{% include "i18n.html" %}</script>
+
+</div><!-- /main -->
+</body>
+</html>

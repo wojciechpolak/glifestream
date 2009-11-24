@@ -1,0 +1,307 @@
+{% load i18n media %}<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Bookmarklet</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <link rel="stylesheet" type="text/css" href="{% static %}/themes/default/style.css">
+  <script type="text/javascript" src="{% static %}/js/jquery.js"></script>
+
+<style type="text/css">
+html, body, #bookmarklet { height: auto; }
+body { background: white; margin: 7px; }
+#bookmarklet { padding-top: 0; }
+#thumbnails { white-space: nowrap; overflow: hidden; }
+#thumbnails img { border: 1px solid #ccc; padding: 1px; margin-bottom: 8px; margin-right: 8px; vertical-align: middle; }
+#mtip { font-size: smaller; }
+td.button { padding-left: 4px; vertical-align: top; padding-top: 1px; }
+td.close { vertical-align: top; text-align: right; }
+textarea.blur, input.blur { color: #aaa; }
+textarea.content { padding: 2px; }
+.sharebox div.content textarea.content { height: 50px; width: 100%; }
+textarea.content.blur { color: #aaa; text-decoration: none; }
+div.content { margin-right: 6px; padding-top: 5px; padding-bottom: 5px; }
+</style>
+
+</head>
+<body>
+
+<div id="bookmarklet">
+  <div style="margin-bottom:8px">
+    <table style="width:100%">
+      <tr>
+	<td>{% trans "Share this web page at your Stream!" %}</td>
+	<td class="close">
+	  <a href="#" onclick="call_parent('close'); return false;">
+	    <img src="{% static %}/themes/default/icons/cancel.png" alt="Close" title="{% trans "Close" %}" width="16" height="16" />
+	  </a>
+	</td>
+      </tr>
+    </table>
+  </div>
+{% if authed %}
+  <div id="sharediv" class="sharebox" style="border-width:0">
+    <form id="bookmarkletform" action="{{ page.base_url }}/bookmarklet/post" method="post" target="_top">
+      <div class="field"></div>
+      <div class="content field">
+	<textarea id="content" name="content" class="content" rows="2" cols="40"></textarea>
+      </div>
+      <div id="thumbnails" style="display:none"></div>
+      <div class="actions">
+	<table style="width:100%">
+	  <tr>
+	    <td id="mtip">{% trans "Click on images to share them." %}</td>
+	    <td style="text-align:right; padding-left:5px;">
+	      {% trans "Class:" %} <select name="id">
+{% for srv in srvs %}		<option value="{{ srv.id }}">{{ srv.cls }}</option>
+{% endfor %}
+	      </select>
+	      <input type="submit" value="{% trans "Post" %}" style="font-weight:bold" />
+	      <span id="spinner" style="display:none"></span>
+	      <input type="hidden" name="from" value="bookmarklet" />
+ 	      <input type="hidden" name="link" value="" />
+	    </td>
+	  </tr>
+	</table>
+      </div>
+    </form>
+  </div>
+{% else %}
+  <input type="hidden" name="link" value="" />
+  <input type="hidden" name="content" id="content" value="" />
+  <p>In order to use this bookmarklet, please <a href="{{page.base_url }}{% url login.views.login %}" target="_top">log in</a>.</p>
+{% endif %}
+</div>
+
+<script type="text/javascript">
+//<![CDATA[
+
+/*
+ *  gLifestream Copyright (C) 2009 Wojciech Polak
+ *
+ *  This program is free software; you can redistribute it and/or modify it
+ *  under the terms of the GNU General Public License as published by the
+ *  Free Software Foundation; either version 3 of the License, or (at your
+ *  option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+$(document).ready (function () {
+  $('textarea.content').focus ();
+  $('#bookmarkletform').submit (bookmarklet_submit);
+  check_hash ();
+  setInterval (check_hash, 100);
+});
+
+function check_hash () {
+  var hash = location.href.split ('#')[1];
+  if (!hash || !hash.length) return;
+  var p = parse_params (hash);
+  location.replace (location.href.split ('#')[0] + '#');
+  var content = $('#content').get (0);
+  for (var i in p) {
+    var v = p[i];
+    switch (i) {
+    case 'title':
+      content.value += v;
+      break;
+    case 'selection':
+      if (v != '')
+	content.value += ': "' + $.trim (v.replace (/\n/g, ' ')) + '"'
+      break;
+    case 'url':
+      if (v[v.length - 1] == '#')
+	v = v.substring (0, v.length - 1);
+      content.value += ' ' + v;
+      $('input[name=link]').val (v);
+      break;
+    case 'image':
+      add_image (v, parseInt (p.w), parseInt (p.h), p.video);
+      break;
+    }
+  }
+}
+
+function parse_params (s) {
+  var h = {};
+  var a = s.split ('&');
+  for (var i in a) {
+    var kv = a[i].split ('=');
+    h[decodeURIComponent (kv[0])] = decodeURIComponent (kv[1]);
+  }
+  return h;
+}
+
+var thumbs_set = [];
+var thumbs_limit = 5;
+var thumb_height = 150;
+var thumb_width  = 400;
+
+function add_image (src, width, height, video) {
+  var thumbs_new = [];
+  for (var i = 0; i < thumbs_set.length; i++) {
+    if (thumbs_set[i].src != src)
+      thumbs_new.push (thumbs_set[i]);
+  }
+  if (thumbs_new.length == thumbs_limit)
+    thumbs_new.shift ();
+
+  thumbs_new.push ({
+    src: src,
+    width: width,
+    height: height,
+    video: video
+  });
+  thumbs_set = thumbs_new;
+  update_images ();
+}
+
+function update_images () {
+  var media = $('#thumbnails');
+  media.empty ();
+  if (thumbs_set.length > 0) {
+    var height_ratios = [];
+    var total_width = 0;
+    for (var i = 0; i < thumbs_set.length; i++) {
+      var image = thumbs_set[i];
+      var height_ratio = Math.min (1, thumb_height / image.height);
+      height_ratios.push (height_ratio);
+      total_width += Math.floor (height_ratio * image.width);
+    }
+    var width_ratio = Math.min (1, thumb_width / total_width);
+    for (var i = 0; i < thumbs_set.length; i++) {
+      media.append (create_thumbnail (thumbs_set[i], height_ratios[i],
+				      width_ratio));
+    }
+    media.show ();
+  }
+  else {
+    media.hide ();
+  }
+  update_framesize ();
+}
+
+function create_thumbnail (image, height_ratio, width_ratio) {
+  var thumb = document.createElement ('img');
+  if ((!image.height || !image.width) && !image.calledback) {
+    image.calledback = true;
+    thumb.onload = thumbnail_loaded;
+  }
+  var ratio = height_ratio * width_ratio;
+  thumb.src = image.src;
+  thumb.style.width  = Math.floor (ratio * image.width) + 'px';
+  thumb.style.height = Math.floor (ratio * image.height) + 'px';
+  thumb.style.cursor = 'pointer';
+  thumb.title = '{% trans "Click to remove" %}';
+  $(thumb).click (function (e) { remove_image (image); });
+  return thumb;
+}
+
+function thumbnail_loaded () {
+  for (var i = 0; i < thumbs_set.length; i++) {
+    var image = thumbs_set[i];
+    if (!image.height || !image.width) {
+      var loaded = $('#thumbnails img[src=' + image.src + ']:first');
+      if (loaded.length > 0) {
+	loaded = loaded[0];
+	image.width = loaded.width;
+	image.height = loaded.height;
+      }
+    }
+  }
+  update_images ();
+}
+
+function remove_image (image) {
+  var thumbs_new = [];
+  for (var i = 0; i < thumbs_set.length; i++) {
+    if (thumbs_set[i] != image)
+      thumbs_new.push (thumbs_set[i]);
+  }
+  thumbs_set = thumbs_new;
+  update_images ();
+}
+
+function update_framesize () {
+  call_parent ('frameh-' + (document.body.offsetHeight + 40));
+}
+
+function call_parent (msg) {
+  var url = $('input[name=link]').val().split ('#')[0] + '#GLSSHARE-' + msg;
+  try {
+    top.location.replace (url);
+  }
+  catch (e) {
+    top.location = url;
+  }
+}
+
+jQuery.fn.to_dict = function () {
+  var obj = this.serializeArray ();
+  var h = {};
+  for (var i = 0; i < obj.length; i++)
+    h[obj[i].name] = obj[i].value;
+  return h;
+};
+
+jQuery.fn.enable = function (bool) {
+  if (arguments.length && !bool)
+    this.attr ('disabled', 'disabled');
+  else
+    this.removeAttr ('disabled');
+  return this;
+};
+
+jQuery.fn.disable = function () {
+  this.enable (false);
+  return this;
+};
+
+function bookmarklet_submit () {
+  var form = $('#bookmarkletform');
+  var args = form.to_dict ();
+  if (!args.content || $('textarea.content').hasClass ('blur')) {
+    $('textarea.content').focus ();
+    return false;
+  }
+
+  args.next = '';
+  for (var i = 0; i < thumbs_set.length; i++) {
+    args['image' + i] = thumbs_set[i].src;
+    if (thumbs_set[i].video)
+      args['video' + i] = thumbs_set[i].video;
+  }
+  var submit = $('input[type=submit]');
+  submit.disable ();
+  $('#spinner').show ();
+  $.ajax ({ url: '{{ page.base_url }}/api/share',
+	data: $.param (args),
+	dataType: 'json',
+	type: 'POST',
+	success: function (r) {
+	  $('#spinner').hide ();
+	  submit.enable ();
+	  if (r.message) {
+	    alert (r.message);
+	  }
+	  else {
+	    if (r.close_msg)
+	      call_parent ('close-' + encodeURIComponent (r.close_msg).replace (/-/g, '%2d'));
+	    else
+	      call_parent ('close');
+	  }
+      }});
+  return false;
+}
+//]]>
+</script>
+
+</body>
+</html>

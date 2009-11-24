@@ -1,0 +1,435 @@
+#  gLifestream Copyright (C) 2009 Wojciech Polak
+#
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by the
+#  Free Software Foundation; either version 3 of the License, or (at your
+#  option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License along
+#  with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import time
+import datetime
+from django.conf import settings
+from django.core import urlresolvers
+from django.http import HttpResponse
+from django.http import HttpResponseForbidden
+from django.http import HttpResponseRedirect
+from django.http import HttpResponseNotFound
+from django.http import Http404
+from django.shortcuts import render_to_response
+from django.template.defaultfilters import fix_ampersands
+from django.template.defaultfilters import truncatewords
+from django.contrib.auth.decorators import login_required
+from django.utils.translation import ugettext as _
+from glifestream.stream.templatetags.gls_filters import gls_content
+from glifestream.stream.templatetags.gls_filters import gls_slugify
+from glifestream.stream.models import Service, Entry, Favorite, List
+from glifestream.stream import media
+from glifestream.utils.time import pn_month_start
+
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
+#from django.views.decorators.cache import cache_page
+#@cache_page (0)
+def index (request, **args):
+    page = {
+        'backtime': True,
+        'robots': 'index',
+        'public': False,
+        'site_url': settings.SITE_URL,
+        'base_url': settings.BASE_URL,
+        'taguri': settings.FEED_TAGURI,
+        'icon': settings.FEED_ICON,
+        'maps_engine': settings.MAPS_ENGINE,
+        'maps_key': settings.MAPS_KEY,
+    }
+    authed = request.user.is_authenticated ()
+    urlparams = []
+    entries_on_page = settings.ENTRIES_ON_PAGE
+    entries_orderby = 'date_published'
+
+    # Entries filter.
+    fs = { 'active': True }
+
+    # Filter by dates.
+    year = int (args.get ('year', 0))
+    month = int (args.get ('month', 0))
+    day = int (args.get ('day', 0))
+    if year: fs[entries_orderby + '__year'] = year
+    if month: fs[entries_orderby + '__month'] = month
+    if day: fs[entries_orderby + '__day'] = day
+    if year and month and day:
+        dt = datetime.date (year, month, day).strftime ('%Y/%m/%d')
+    elif year and month:
+        dt = datetime.date (year, month, 1)
+        prev, next = pn_month_start (dt)
+        page['month_nav']  = True
+        page['month_prev'] = prev.strftime ('%Y/%m')
+        page['month_next'] = next.strftime ('%Y/%m')
+        dt = dt.strftime ('%Y/%m')
+    elif year:
+        dt = datetime.date (year, 1, 1).strftime ('%Y')
+
+    if year:
+        page['backtime'] = False
+        page['title'] = dt
+        page['subtitle'] = _('You are currently browsing the archive for %s') % ('<b>'+dt+'</b>')
+        page['robots'] = 'noindex'
+
+    if page['backtime']:
+        entries = Entry.objects.order_by ('-' + entries_orderby)
+    else:
+        entries = Entry.objects.order_by (entries_orderby)
+
+    if not authed or 'public' in args:
+        fs['service__public'] = True
+        page['public'] = True
+
+    # Filter for favorites.
+    if 'favorites' in args:
+        if not authed:
+            return HttpResponseRedirect (settings.BASE_URL)
+        favs = Favorite.objects.filter (user__id=request.user.id)
+        page['favorites'] = True
+        page['title'] = _('Favorites')
+        page['subtitle'] = _('You are currently browsing your favorite entries')
+        fs['id__in'] = favs.values ('entry')
+
+    # Filter lists.
+    elif 'list' in args:
+        try:
+            services = List.objects.get (user__id=request.user.id,
+                                         slug=args['list']).services
+            fs['service__id__in'] = services.values ('id')
+            page['title'] = args['list']
+            page['subtitle'] = _('You are currently browsing entries from %s list only.') % ('<b>'+ args['list'] +'</b>')
+        except List.DoesNotExist:
+            if authed:
+                raise Http404
+
+    # Filter for exactly one given entry.
+    elif 'entry' in args:
+        fs['id__exact'] = int (args['entry'])
+        page['exactentry'] = True
+        if authed:
+            del fs['service__public']
+
+    # Filter by class type.
+    cls = request.GET.get ('class', 'all')
+    if cls != 'all':
+        fs['service__cls'] = cls
+        urlparams.append ('class=' + cls)
+        page['robots'] = 'noindex'
+        if 'subtitle' in page:
+            page['subtitle'] += ' <b>(%s)</b>' % cls.capitalize ()
+        else:
+            page['subtitle'] = _('You are currently browsing %s entries only.') % ('<b>'+ cls +'</b>')
+
+    # Filter by author name.
+    author = request.GET.get ('author', 'all')
+    if author != 'all':
+        fs['author_name'] = author
+        urlparams.append ('author=' + author)
+        page['robots'] = 'noindex'
+
+    # Filter by service type.
+    srvapi = request.GET.get ('service', 'all')
+    if srvapi != 'all':
+        fs['service__api'] = srvapi
+        urlparams.append ('service=' + srvapi)
+        page['robots'] = 'noindex'
+        if 'subtitle' in page:
+            page['subtitle'] += ' <b>(%s)</b>' % srvapi.capitalize ()
+        else:
+            page['subtitle'] = _('You are currently browsing entries from %s service only.') % ('<b>'+ srvapi.capitalize () +'</b>')
+
+    # Filter entries after specified timestamp 'start'.
+    after = False
+    start = request.GET.get ('start', False)
+    if start:
+        qs = fs.copy ()
+        dt = datetime.datetime.fromtimestamp (float (start))
+
+        if page['backtime']:
+            fs[entries_orderby + '__lte'] = dt
+            qs[entries_orderby + '__gt'] = fs[entries_orderby + '__lte']
+            q = Entry.objects.order_by (entries_orderby)
+        else:
+            fs[entries_orderby + '__gte'] = dt
+            qs[entries_orderby + '__lt'] = fs[entries_orderby + '__gte']
+            q = Entry.objects.order_by ('-' + entries_orderby)
+
+        q = q.filter (**qs)[0:entries_on_page].values (entries_orderby)
+        if len (q):
+            after = q[len (q) - 1][entries_orderby]
+            after = int (time.mktime (after.timetuple ()))
+        page['title'] = '%s' % str (dt)[0:-3]
+        page['robots'] = 'noindex'
+
+    entries = entries.filter (**fs)[0:entries_on_page + 1].select_related ()
+
+    if 'exactentry' in page and len (entries):
+        page['title'] = truncatewords (entries[0].title, 7)
+
+    # Time-based pagination.
+    num = len (entries)
+    if num > entries_on_page:
+        start = entries[num - 1].__getattribute__ (entries_orderby)
+        start = int (time.mktime (start.timetuple ()))
+    else:
+        start = False
+
+    entries = entries[0:entries_on_page]
+
+    # Build URL params for links.
+    if len (urlparams):
+        urlparams = '?' + reduce (lambda x, y: str (x) +'&'+ str (y),
+                                  urlparams, '')[1:] + '&'
+    else:
+        urlparams = '?'
+
+    if len (entries):
+        page['updated'] = entries[0].date_published
+    else:
+        page['updated'] = datetime.datetime.utcnow ()
+    page['urlparams'] = urlparams
+    page['start'] = start
+    page['after'] = after
+
+    if hasattr (settings, 'STREAM_TITLE'):
+        page_title = settings.STREAM_TITLE
+    else:
+        page_title = None
+
+    if 'title' in page:
+        if page_title:
+            page['title'] += ': ' + page_title
+        else:
+            page['title'] += ': Lifestream'
+    elif page_title:
+        page['title'] = page_title
+
+    if hasattr (settings, 'STREAM_DESCRIPTION'):
+        page['description'] = settings.STREAM_DESCRIPTION
+
+    # Set page theme.
+    page['themes'] = settings.THEMES
+    page['themes_more'] = True if len (settings.THEMES) > 1 else False
+    page['theme'] = __get_theme (request)
+
+    # Setup links.
+    for entry in entries:
+        entry.gls_link = '%s/%s' % (urlresolvers.reverse ('entry',
+                                                          args=[entry.id]),
+                                    gls_slugify (truncatewords(entry.title, 7)))
+        entry.gls_absolute_link = '%s%s' % (page['site_url'], entry.gls_link)
+
+    # Pickup right output format and finish.
+    format = request.GET.get ('format', 'html')
+    if format == 'atom':
+        return render_to_response ('stream.atom',
+                                   { 'entries': entries,
+                                     'page': page },
+                                   mimetype='application/atom+xml')
+    elif format == 'json':
+        return render_to_response ('stream.json',
+                                   { 'entries': entries,
+                                     'page': page },
+                                   mimetype='application/json')
+    else:
+        # Check which entry is already favorite.
+        if authed and not 'favorites' in args:
+            ents = [entry.id for entry in entries]
+            favs = Favorite.objects.filter (user__id=request.user.id,
+                                            entry__id__in=ents)
+            favs = [f.entry_id for f in favs]
+            for entry in entries:
+                if entry.id in favs:
+                    entry.fav = True
+                if entry.service.api in ('twitter', 'identica'):
+                    entry.sms = True
+
+        # Get lists.
+        lists = List.objects.filter (user__id=request.user.id).order_by ('name')
+
+        # Get archives.
+        archs = Entry.objects.dates ('date_published', 'month', order='DESC')
+
+        # List available classes.
+        fs = {}
+        if not authed or 'public' in args:
+            fs['public'] = True
+        classes = Service.objects.filter (**fs).order_by ('id').values ('api', 'cls')
+        classes.query.group_by = ['cls']
+
+        accept_lang = request.META.get ('HTTP_ACCEPT_LANGUAGE', '').split (',')
+        for i, lang in enumerate (accept_lang):
+            accept_lang[i] = lang.split (';')[0]
+        page['lang'] = accept_lang[0]
+
+        return render_to_response ('stream.html',
+                                   { 'classes': classes,
+                                     'entries': entries,
+                                     'lists': lists,
+                                     'archives': archs,
+                                     'page': page,
+                                     'authed': authed,
+                                     'user': request.user })
+
+@login_required
+def tools (request, **args):
+    authed = request.user.is_authenticated ()
+    page = {
+        'robots': 'noindex',
+        'base_url': settings.BASE_URL,
+        'theme': __get_theme (request),
+    }
+    return render_to_response ('tools.html',{ 'page': page, 'authed': authed,
+                                              'user': request.user })
+
+def page_not_found (request, **args):
+    from django.template import RequestContext, loader
+    page = {
+        'robots': 'noindex',
+        'base_url': settings.BASE_URL,
+        'theme': __get_theme (request),
+    }
+    t = loader.get_template ('404.html')
+    return HttpResponseNotFound (t.render (RequestContext (request, {'page': page})))
+
+
+def __get_theme (request):
+    gl_theme = request.COOKIES.get ('glifestream_theme', settings.THEMES[0])
+    if not gl_theme in settings.THEMES:
+        gl_theme = settings.THEMES[0]
+    return gl_theme
+
+#
+# XHR API
+#
+
+def api (request, **args):
+    cmd = args.get ('cmd', '')
+    entry = request.POST.get ('entry', None)
+
+    authed = request.user.is_authenticated ()
+    if not authed and cmd != 'getcontent':
+        return HttpResponseForbidden ()
+
+    if cmd == 'hide' and entry:
+        Entry.objects.filter (id=int(entry)).update (active=False)
+
+    elif cmd == 'unhide' and entry:
+        Entry.objects.filter (id=int(entry)).update (active=True)
+
+    elif cmd == 'gsc': # get selfposts classes
+        srvs = Service.objects.filter (api='selfposts').order_by ('cls')
+        srvs.query.group_by = ['cls']
+        srvs = srvs.values ('id', 'cls')
+        d = []
+        for s in srvs:
+            d.append ({ 'id': s['id'], 'cls': s['cls'] })
+        return HttpResponse (json.dumps (d), mimetype='application/json')
+
+    elif cmd == 'share':
+        from glifestream.apis import selfposts
+        id = request.POST.get ('id', None)
+        link = request.POST.get ('link', None)
+        content = request.POST.get ('content', '')
+        source = request.POST.get ('from', '')
+        images = []
+        for i in range (0, 5):
+            img = request.POST.get ('image' + str (i), None)
+            if img:
+                images.append (img)
+        entry = selfposts.API (False).add (content, id=id, link=link,
+                                           images=images, source=source)
+        if entry:
+            if source == 'bookmarklet':
+                d = {'close_msg': _("You've successfully shared this web page at your stream.")}
+                return HttpResponse (json.dumps (d),
+                                     mimetype='application/json')
+            else:
+                return render_to_response ('stream-pure.html',
+                                           { 'entries': (entry,),
+                                             'authed': authed })
+    elif cmd == 'reshare' and entry:
+        try:
+            entry = Entry.objects.get (id=int(entry))
+            if entry:
+                from glifestream.apis import selfposts
+                entry = selfposts.API (False).reshare (entry)
+                if entry:
+                    return render_to_response ('stream-pure.html',
+                                               { 'entries': (entry,),
+                                                 'authed': authed })
+        except Exception:
+            pass
+
+    elif cmd == 'favorite':
+        try:
+            entry = Entry.objects.get (id=int(entry))
+            if entry:
+                try:
+                    fav = Favorite.objects.get (user=request.user, entry=entry)
+                except Favorite.DoesNotExist:
+                    fav = Favorite (user=request.user, entry=entry)
+                    fav.save ()
+                    media.transform_to_local (entry)
+                    media.extract_and_register (entry)
+                    entry.save ()
+        except Exception:
+            pass
+
+    elif cmd == 'unfavorite':
+        try:
+            if entry:
+                entry = Entry.objects.get (id=int(entry))
+                if entry:
+                    Favorite.objects.get (user=request.user,
+                                          entry=entry).delete ()
+        except Exception:
+            pass
+
+    elif cmd == 'getcontent':
+        try:
+            if entry:
+                if not authed:
+                    entry = Entry.objects.get (id=int(entry),
+                                               service__public=True)
+                else:
+                    entry = Entry.objects.get (id=int(entry))
+                if entry:
+                    content = fix_ampersands (gls_content ('', entry))
+                    return HttpResponse (content)
+        except Exception:
+            pass
+
+    elif cmd == 'translate':
+        from glifestream.utils.translate import translate
+        try:
+            if entry:
+                entry = Entry.objects.get (id=int(entry))
+                if entry:
+                    accept_lang = request.META.get ('HTTP_ACCEPT_LANGUAGE',
+                                                    '').split (',')
+                    for i, lang in enumerate (accept_lang):
+                        accept_lang[i] = lang.split (';')[0]
+
+                    entry.content = translate (entry.content,
+                                               target=accept_lang[0])
+                    content = fix_ampersands (gls_content ('', entry))
+                    return HttpResponse (content)
+        except Exception:
+            pass
+
+    return HttpResponse ()
