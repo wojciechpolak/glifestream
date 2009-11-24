@@ -1,0 +1,38 @@
+[
+ {
+   "pk": 1,
+   "model": "stream.service",
+   "fields": {
+     "name": "SMS",
+     "api": "selfposts",
+     "cls": "sms",
+     "url": "",
+     "active": 1,
+     "public": 1,
+     "display": "content",
+     "link": "",
+     "etag": "",
+     "last_checked": null,
+     "last_modified": null,
+     "creds": ""
+   }
+ },
+ {
+   "pk": 2,
+   "model": "stream.service",
+   "fields": {
+     "name": "Links",
+     "api": "selfposts",
+     "cls": "links",
+     "url": "",
+     "active": 1,
+     "public": 1,
+     "display": "content",
+     "link": "",
+     "etag": "",
+     "last_checked": null,
+     "last_modified": null,
+     "creds": ""
+   }
+ }
+]

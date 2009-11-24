@@ -1,0 +1,27 @@
+{% load gls_filters %}({
+  "title": "{% firstof page.title "Lifestream" %}",
+  "updated": "{{ page.updated|gls_hdate }}",
+  "generator": "gLifestream",
+  "id": "{{ page.taguri }}",
+  "icon": "{{ page.icon }}",
+  "link": [
+    {"rel": "self", "type: "application/json", "href": "{{ page.site_url }}{% url index %}?format=json"},{% if page.start %}
+    {"rel": "previous", "type: "application/json", "href": "{{ page.site_url }}{% url index %}{{ page.urlparams }}start={{ page.start }}&format=json"},{% endif %}
+    {"rel": "alternate", "type: "text/html", "href": "{{ page.site_url }}{% url index %}"}
+  ],
+  "entries": [
+{% for entry in entries %}
+     {
+       "id": "{{ entry.guid }}",
+{% if entry.author_name %}       "author": {"name": "{{ entry.author_name|escapejs }}"{% if entry.author_email %}, "email": "{{ entry.author_email }}"{% endif %}{% if entry.author_uri %}, "uri": "{{ entry.author_uri }}"{% endif %}},{% endif %}
+       "updated": "{{ entry.date_published|gls_hdate }}",
+       "link": [{"rel": "alternate", "type: "text/html", "href": "{{ entry.gls_absolute_link }}"}{% if entry.link_image %}, {"rel": "image", "href": "{{ entry.link_image|gls_media }}"}{% endif %}],{% if entry.geolat and entry.geolng %}
+       "geolat": "{{ entry.geolat }}",
+       "geolng": "{{ entry.geolng }}",
+{% endif %}
+       "title": "{{ entry|gls_title:entry|escapejs }}",
+       "content": {% ifnotequal entry.service.display "title" %}"{{ entry|gls_content:entry|escapejs }}"{% else %}null{% endifnotequal %}
+     }{% if not forloop.last %},{% endif %}
+{% endfor %}
+  ]
+})

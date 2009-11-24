@@ -1,0 +1,12 @@
+TO DO:
+
+A lot of stuff! Some of them:
+
+* User-friendly settings page
+* Search functionality (via Sphinx)
+* Facebook support (apis/facebook.py)
+* PubSubHubBub support
+* OpenID
+* Comments (internal and external (Disqus or similar)).
+
+Help us by contributing new solutions and code!

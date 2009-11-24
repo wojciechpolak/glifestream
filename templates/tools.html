@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block main %}
+<section id="bookmarklet">
+  <h4>{% trans "Bookmarklet:" %}</h4>
+  <p>Click and drag <a href="javascript:void((function(){var%20e=document.createElement('script');e.setAttribute('type','text/javascript');e.setAttribute('src','{{ page.base_url }}/bookmarklet/js');document.body.appendChild(e)})())" onclick="return false;">{% trans "Share" %}</a> to your toolbar.</p>
+</section>
+{% endblock main %}

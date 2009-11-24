@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block sidebar %}
+  <nav>
+    <ul class="services">
+{% for cls in classes %}      <li><a href="{% if page.exactentry %}{% url index %}{% endif %}?class={% firstof cls.cls cls.api %}" class="e-{% firstof cls.cls cls.api %}" title="{{ cls.cls|capfirst }}" rel="nofollow"><span>{{ cls.cls|capfirst }}</span></a></li>
+{% endfor %}    </ul>
+    <div class="clear bpadding"></div>
+{% if authed %}
+    <ul class="links">
+      <li><a href="{% url favorites %}">{% trans "Favorite entries" %}</a></li>
+    </ul>
+{% if lists %}
+    <div class="lists">
+      <h4>{% trans "Lists" %}</h4>
+      <select>
+	<option value="">{% trans "Select List" %}</option>
+{% for list in lists %}        <option value="{{ list.name|slugify }}">{{ list.name }}</option>
+{% endfor %}
+      </select>
+    </div>
+{% endif %}
+{% endif %}
+    <div class="archives">
+      <h4>{% trans "Archives" %}</h4>
+      <select>
+	<option value="">{% trans "Select Month" %}</option>
+	{% for d in archives %}<option value="{{ d|date:"Y/m" }}">{{ d|date:"F Y" }}</option>{% endfor %}
+      </select>
+    </div>
+  </nav>
+{% endblock sidebar %}
+
+{% block main %}
+{% if authed %}
+<aside id="share">
+  <a href="#" id="ashare">{% trans "Add content" %}</a>
+  <fieldset style="display: none">
+    <h3><label for="status">{% trans "What's up?" %}</label></h3>
+    <div class="editor">
+      <textarea id="status" cols="40" rows="2" accesskey="u" autocomplete="off"></textarea>
+      <div>{% trans "Class:" %} <select id="status_class"></select>
+	<input id="post" type="button" value="{% trans "Post" %}">
+      </div>
+    </div>
+  </fieldset>
+</aside>
+{% endif %}
+<section id="stream" class="hfeed">
+{% if page.subtitle %}
+  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% url index %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow"> </a>{% endif %}</p>
+{% endif %}
+{% if page.after %}
+  <nav class="pagination-top">
+{% if page.backtime %}
+    <a href="{{ page.urlparams }}start={{ page.after }}" accesskey="p" class="prev">{% trans "newer entries" %}</a>
+{% else %}
+    <a href="{{ page.urlparams }}start={{ page.after }}" accesskey="p" class="prev">{% trans "older entries" %}</a>
+{% endif %}
+  </nav>
+{% endif %}
+{% include "stream-pure.html" %}
+{% if page.start %}
+  <nav class="pagination-bottom">
+{% if page.backtime %}
+  {% if page.after %}<a href="{{ page.urlparams }}start={{ page.after }}" class="prev">{% trans "newer entries" %}</a> |{% endif %}
+    <a href="{{ page.urlparams }}start={{ page.start }}" accesskey="n" class="next">{% trans "older entries" %}</a>
+{% else %}
+  {% if page.after %}<a href="{{ page.urlparams }}start={{ page.after }}" class="prev">{% trans "older entries" %}</a> |{% endif %}
+    <a href="{{ page.urlparams }}start={{ page.start }}" accesskey="n" class="next">{% trans "newer entries" %}</a>
+{% endif %}
+  </nav>
+{% endif %}
+
+</section>
+{% endblock main %}
+
+{% block copyright %}
+{% include "user-copyright.html" %}
+{% endblock copyright %}

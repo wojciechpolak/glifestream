@@ -1,0 +1,7 @@
+*.pyc
+*.pyo
+*.mo
+*~
+settings.py
+static/thumbs
+templates/user-*

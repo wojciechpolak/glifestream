@@ -1,0 +1,537 @@
+# Polish translations for gLifestream package.
+# Copyright (C) 2009 Wojciech Polak
+# This file is distributed under the same license as the gLifestream package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glifestream 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-11-23 17:42+0100\n"
+"PO-Revision-Date: 2009-11-21 14:18+0100\n"
+"Last-Translator: Wojciech Polak <polak@gnu.org>\n"
+"Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+
+#: apis/delicious.py:28
+#, python-format
+msgid "Bookmarked %s"
+msgstr "Link %s"
+
+#: apis/flickr.py:92
+msgid "Posted Photos"
+msgstr "Zdjęcia"
+
+#: apis/flickr.py:94
+msgid "Posted a Photo"
+msgstr "Zdjęcie"
+
+#: apis/greader.py:28
+#, python-format
+msgid "Shared %s"
+msgstr "Link %s"
+
+#: apis/lastfm.py:31
+#, python-format
+msgid "Listened to %s"
+msgstr "Utwór %s"
+
+#: apis/lastfm.py:35
+#, python-format
+msgid "Artist: %s"
+msgstr "Artysta: %s"
+
+#: apis/vimeo.py:153
+#, python-format
+msgid "Liked %s"
+msgstr "Wideo %s"
+
+#: apis/vimeo.py:155 apis/youtube.py:47
+#, python-format
+msgid "Published %s"
+msgstr "Wideo %s"
+
+#: apis/yelp.py:31
+#, python-format
+msgid "Reviewed %s"
+msgstr "Recenzja %s"
+
+#: apis/yelp.py:35
+msgid "more"
+msgstr "więcej"
+
+#: apis/youtube.py:41
+msgid "NO VIDEO"
+msgstr "BRAK WIDEO"
+
+#: apis/youtube.py:45
+#, python-format
+msgid "Favorited %s"
+msgstr "Wideo %s"
+
+#: bookmarklet/templates/frame.html:33
+msgid "Share this web page at your Stream!"
+msgstr "Podziel się tą stroną!"
+
+#: bookmarklet/templates/frame.html:36
+msgid "Close"
+msgstr "Zamknij"
+
+#: bookmarklet/templates/frame.html:53
+msgid "Click on images to share them."
+msgstr "Kliknij obrazki aby je dodać."
+
+#: bookmarklet/templates/frame.html:55 templates/stream.html:43
+msgid "Class:"
+msgstr "Klasa:"
+
+#: bookmarklet/templates/frame.html:59 templates/stream.html:44
+msgid "Post"
+msgstr "Publikuj"
+
+#: bookmarklet/templates/frame.html:202
+msgid "Click to remove"
+msgstr "Kliknij aby usunąć"
+
+#: login/forms.py:21 templates/registration/login.html:22
+msgid "Remember Me"
+msgstr "Zapamiętaj mnie"
+
+#: stream/admin.py:26
+msgid "Deactivate item"
+msgstr "Deaktywuj element"
+
+#: stream/admin.py:30
+msgid "Activate item"
+msgstr "Aktywuj element"
+
+#: stream/admin.py:40
+msgid "Additional, optional fields"
+msgstr "Dodatkowe, opcjonalne pola"
+
+#: stream/admin.py:43
+msgid "Fields updated automatically by gLifestream"
+msgstr "Pola aktualizowane automatycznie przez gLifestream"
+
+#: stream/admin.py:66 stream/admin.py:69
+msgid "Currently:"
+msgstr "Aktualnie:"
+
+#: stream/admin.py:66 stream/admin.py:69
+msgid "Change:"
+msgstr "Zmień:"
+
+#: stream/models.py:40
+msgid "API"
+msgstr "API"
+
+#: stream/models.py:42
+msgid "Custom CSS Class"
+msgstr "Wybrana klasa CSS"
+
+#: stream/models.py:44
+msgid "URL or Username"
+msgstr "URL lub nazwa użytkownika"
+
+#: stream/models.py:45
+msgid "Credentials"
+msgstr "Dane uwierzytelniające"
+
+#: stream/models.py:47
+msgid "Short name"
+msgstr "Nazwa skrócona"
+
+#: stream/models.py:48
+msgid "WWW Link"
+msgstr "Link WWW"
+
+#: stream/models.py:50
+msgid "Last modified"
+msgstr "Ostatnia modyfikacja"
+
+#: stream/models.py:52
+msgid "Last checked"
+msgstr "Ostatnio sprawdzane"
+
+#: stream/models.py:55
+msgid "Title and Contents"
+msgstr "Tytuł i treść"
+
+#: stream/models.py:56
+msgid "Contents only"
+msgstr "Tylko treść"
+
+#: stream/models.py:57
+msgid "Title only"
+msgstr "Tylko tytuł"
+
+#: stream/models.py:59
+msgid "Display entries'"
+msgstr "Wyświetlanie wpisów"
+
+#: stream/models.py:62 templates/base.html:26
+msgid "Public"
+msgstr "Publiczne"
+
+#: stream/models.py:63
+msgid "Public services are visible to anyone."
+msgstr "Publiczne serwisy są widziane przez wszystkich."
+
+#: stream/models.py:64 stream/models.py:109
+msgid "Active"
+msgstr "Aktywny"
+
+#: stream/models.py:65
+msgid "If not active, this service will not be further updated."
+msgstr "Nieaktywny nie będzie okresowo aktualizowany."
+
+#: stream/models.py:68 stream/models.py:82
+msgid "Service"
+msgstr "Serwis"
+
+#: stream/models.py:69
+msgid "Services"
+msgstr "Serwisy"
+
+#: stream/models.py:84
+msgid "Title"
+msgstr "Tytuł"
+
+#: stream/models.py:85
+msgid "Link"
+msgstr "Link"
+
+#: stream/models.py:86
+msgid "Image Link"
+msgstr "Link do obrazu"
+
+#: stream/models.py:87
+msgid "Contents"
+msgstr "Treść"
+
+#: stream/models.py:88
+msgid "Date published"
+msgstr "Data publikacji"
+
+#: stream/models.py:90
+msgid "Date updated"
+msgstr "Data aktualizacji"
+
+#: stream/models.py:95
+msgid "Author's Name"
+msgstr "Autor"
+
+#: stream/models.py:97
+msgid "Author's Email"
+msgstr "Email autora"
+
+#: stream/models.py:99
+msgid "Author's URI"
+msgstr "URI autora"
+
+#: stream/models.py:101
+msgid "Geo Latitude"
+msgstr "Szerokość geograficzna"
+
+#: stream/models.py:103
+msgid "Geo Longitude"
+msgstr "Długość geograficzna"
+
+#: stream/models.py:107
+msgid "Protected"
+msgstr "Chroniony"
+
+#: stream/models.py:108
+msgid "Protect from possible overwriting by next update."
+msgstr "Chroni przed możliwym nadpisaniem przy kolejnej aktualizacji."
+
+#: stream/models.py:110
+msgid "If not active, this entry will not be shown."
+msgstr "Nieaktywny, ten wpis nie będzie wyświetlany."
+
+#: stream/models.py:113 stream/models.py:128 stream/models.py:144
+msgid "Entry"
+msgstr "Wpis"
+
+#: stream/models.py:114
+msgid "Entries"
+msgstr "Wpisy"
+
+#: stream/models.py:130
+msgid "Type"
+msgstr "Typ"
+
+#: stream/models.py:134 stream/models.py:135
+msgid "Media"
+msgstr "Media"
+
+#: stream/models.py:149 templates/i18n.html:2 templates/stream-pure.html:37
+msgid "Favorite"
+msgstr "Lubię to"
+
+#: stream/models.py:150 stream/views.py:103
+msgid "Favorites"
+msgstr "Ulubione"
+
+#: stream/models.py:160
+msgid "Name"
+msgstr "Nazwa"
+
+#: stream/models.py:161
+msgid "Slug"
+msgstr "Slug"
+
+#: stream/models.py:166
+msgid "List"
+msgstr "Lista"
+
+#: stream/models.py:167 templates/stream.html:16
+msgid "Lists"
+msgstr "Listy"
+
+#: stream/views.py:85
+#, python-format
+msgid "You are currently browsing the archive for %s"
+msgstr "Aktualnie przeglądasz archiwum dla %s"
+
+#: stream/views.py:104
+msgid "You are currently browsing your favorite entries"
+msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
+
+#: stream/views.py:114
+#, python-format
+msgid "You are currently browsing entries from %s list only."
+msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
+
+#: stream/views.py:135
+#, python-format
+msgid "You are currently browsing %s entries only."
+msgstr "Aktualnie przeglądasz tylko %s."
+
+#: stream/views.py:153
+#, python-format
+msgid "You are currently browsing entries from %s service only."
+msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
+
+#: stream/views.py:358
+msgid "You've successfully shared this web page at your stream."
+msgstr "Strona została umieszczona na Twoim strumieniu."
+
+#: stream/templatetags/gls_filters.py:80
+msgid "show map"
+msgstr "pokaż na mapie"
+
+#: stream/templatetags/gls_filters.py:115
+msgid "Yesterday"
+msgstr "Wczoraj"
+
+#: stream/templatetags/gls_filters.py:117
+#, python-format
+msgid "%d days ago"
+msgstr "%d dni temu"
+
+#: stream/templatetags/gls_filters.py:120
+#, python-format
+msgid "%(count)d hour ago"
+msgid_plural "%(count)d hours ago"
+msgstr[0] "%(count)d godzinę temu"
+msgstr[1] "%(count)d godziny temu"
+msgstr[2] "%(count)d godzin temu"
+
+#: stream/templatetags/gls_filters.py:124
+#, python-format
+msgid "%(count)d minute ago"
+msgid_plural "%(count)d minutes ago"
+msgstr[0] "%(count)d minutę temu"
+msgstr[1] "%(count)d minuty temu"
+msgstr[2] "%(count)d minut temu"
+
+#: templates/base.html:24
+msgid "Hello"
+msgstr "Witaj"
+
+#: templates/base.html:25
+msgid "My private stream"
+msgstr "Mój prywatny strumień"
+
+#: templates/base.html:25
+msgid "Private"
+msgstr "Prywatne"
+
+#: templates/base.html:26
+msgid "My publicly visible stream"
+msgstr "Mój publicznie widziany strumień"
+
+#: templates/base.html:27
+msgid "Tools"
+msgstr "Narzędzia"
+
+#: templates/base.html:28
+msgid "Admin"
+msgstr "Admin"
+
+#: templates/base.html:29
+msgid "Logout"
+msgstr "Wyloguj"
+
+#: templates/base.html:31
+msgid "Login"
+msgstr "Zaloguj"
+
+#: templates/base.html:34
+msgid "The Stream"
+msgstr "Strumień"
+
+#: templates/base.html:39
+msgid "About"
+msgstr "O stronie"
+
+#: templates/base.html:49
+msgid "Powered by"
+msgstr "Zasilany przez"
+
+#: templates/base.html:50
+msgid "Change theme"
+msgstr "Zmień motyw"
+
+#: templates/i18n.html:3 templates/stream-pure.html:35
+msgid "Unfavorite"
+msgstr "Usuń z ulubionych"
+
+#: templates/i18n.html:4
+msgid "Unfavorite this entry before hiding it."
+msgstr "Przed ukryciem wpisu, usuń go z ulubionych."
+
+#: templates/i18n.html:5
+msgid "Entry hidden"
+msgstr "Wpis został ukryty"
+
+#: templates/i18n.html:6
+msgid "Undo"
+msgstr "Cofnij"
+
+#: templates/i18n.html:7
+msgid "Loading..."
+msgstr "Trwa ładowanie..."
+
+#: templates/i18n.html:8
+msgid "Click and Listen"
+msgstr "Kliknij i posłuchaj"
+
+#: templates/i18n.html:9 templates/stream-pure.html:44
+msgid "Share or bookmark this entry"
+msgstr "Podziel się tym wpisem z innymi"
+
+#: templates/i18n.html:10
+msgid "Reshare it at your stream"
+msgstr "Podziel się tym wpisem u siebie"
+
+#: templates/i18n.html:11
+msgid "or elsewhere:"
+msgstr "lub na:"
+
+#: templates/i18n.html:12
+msgid "Communication Error. Try again."
+msgstr "Błąd komunikacji. Spróbuj ponownie."
+
+#: templates/i18n.html:13
+msgid "You are about to re-share this entry at your stream. Confirm?"
+msgstr ""
+"Właśnie zamierzasz opublikować ten wpis na swoim strumieniu. Potwierdzasz?"
+
+#: templates/i18n.html:14
+msgid "Your browser does not support it."
+msgstr "Twoja przeglądarka tego nie obsługuje."
+
+#: templates/stream-pure.html:22
+msgid "Expand content"
+msgstr "Pokaż treść"
+
+#: templates/stream-pure.html:31
+msgid "Menu"
+msgstr "Menu"
+
+#: templates/stream-pure.html:33
+msgid "Reply"
+msgstr "Odpowiedz"
+
+#: templates/stream-pure.html:39
+msgid "Hide"
+msgstr "Ukryj"
+
+#: templates/stream-pure.html:40
+msgid "Translate"
+msgstr "Przetłumacz"
+
+#: templates/stream-pure.html:41
+msgid "Edit"
+msgstr "Edytuj"
+
+#: templates/stream-pure.html:44 templates/tools.html:7
+msgid "Share"
+msgstr "Podziel się"
+
+#: templates/stream-pure.html:49
+msgid "from"
+msgstr "z"
+
+#: templates/stream.html:12
+msgid "Favorite entries"
+msgstr "Ulubione wpisy"
+
+#: templates/stream.html:18
+msgid "Select List"
+msgstr "Wybierz listę"
+
+#: templates/stream.html:26
+msgid "Archives"
+msgstr "Archiwum"
+
+#: templates/stream.html:28
+msgid "Select Month"
+msgstr "Wybierz miesiąc"
+
+#: templates/stream.html:38
+msgid "Add content"
+msgstr "Dodaj wpis"
+
+#: templates/stream.html:40
+msgid "What's up?"
+msgstr "Co słychać?"
+
+#: templates/stream.html:52
+msgid "next month"
+msgstr "następny miesiąc"
+
+#: templates/stream.html:57 templates/stream.html.py:67
+#: templates/stream.html:71
+msgid "newer entries"
+msgstr "nowsze wpisy"
+
+#: templates/stream.html:59 templates/stream.html.py:68
+#: templates/stream.html:70
+msgid "older entries"
+msgstr "starsze wpisy"
+
+#: templates/tools.html:6
+msgid "Bookmarklet:"
+msgstr "Skryptozakładka:"
+
+#: templates/registration/login.html:8
+msgid "Invalid username or password"
+msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
+
+#: templates/registration/login.html:11
+msgid "Username"
+msgstr "Nazwa użytkownika"
+
+#: templates/registration/login.html:16
+msgid "Password"
+msgstr "Hasło"
+
+#: templates/registration/login.html:26
+msgid "Log In"
+msgstr "Zaloguj"
