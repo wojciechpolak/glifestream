@@ -582,7 +582,7 @@
 	innerHeight = window.innerHeight / 2;
       }
       else if (document.body.clientWidth) {
-	innerWidth  = document.body.clientWidth / 2;
+	innerWidth  = $(window).width () / 2;
 	innerHeight = $(window).height () / 2;
       }
       var wleft = innerWidth - (objWidth / 2);

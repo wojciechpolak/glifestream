@@ -315,6 +315,7 @@ img {
 .play-video {
   position: relative;
   margin-bottom: 10px;
+  overflow: hidden; /* IE and Opera */
 }
 .play-video img {
   display: block;
