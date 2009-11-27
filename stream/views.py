@@ -192,7 +192,7 @@ def index (request, **args):
 
     # Build URL params for links.
     if len (urlparams):
-        urlparams = '?' + reduce (lambda x, y: str (x) +'&'+ str (y),
+        urlparams = '?' + reduce (lambda x, y: unicode (x) +'&'+ unicode (y),
                                   urlparams, '')[1:] + '&'
     else:
         urlparams = '?'
