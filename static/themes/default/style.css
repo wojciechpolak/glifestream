@@ -312,9 +312,11 @@ img {
   margin-right: auto;
 }
 
+table.vc { border-spacing: 0; }
+table.vc td { padding: 0; }
+
 .play-video {
   position: relative;
-  margin-bottom: 10px;
   overflow: hidden; /* IE and Opera */
 }
 .play-video img {
@@ -341,9 +343,8 @@ img {
   cursor: pointer;
   top: 50%;
   left: 50%;
-  margin: -11px 0 0 -10px;
+  margin: -12px 0 0 -12px;
 }
-
 .stopbutton {
   background: transparent url(icons/stop.png) no-repeat top left;
   width: 29px;
@@ -352,7 +353,7 @@ img {
   cursor: pointer;
   top: 50%;
   left: 50%;
-  margin: -11px 0 0 -10px;
+  margin: -12px 0 0 -12px;
 }
 
 .player {
