@@ -54,7 +54,7 @@
     }
 
     $('.playbutton', this).removeClass ('playbutton').addClass ('stopbutton');
-    $(this).after ('<div class="player">' + embed + '</div>');
+    $VC (this).after ('<div class="player">' + embed + '</div>');
     $('a', this).blur ();
     scroll_to_element (this);
     return false;
@@ -64,10 +64,20 @@
     var a = parse_id (this.id);
     var type = a[0];
     var id = a[1];
-    $('.player', this.parentNode).remove ();
+    $('.player', $VC (this).parent ()).remove ();
     $('.stopbutton', this).removeClass ('stopbutton').addClass ('playbutton');
     $('a', this).blur ();
     return false;
+  }
+
+  /* find VC block */
+  function $VC (obj) {
+    if (obj.parentNode.tagName == 'TD') {
+      obj = obj.parentNode.parentNode.parentNode.parentNode;
+      if (obj.className == 'vc')
+	return $(obj);
+    }
+    return $(obj);
   }
 
   function play_audio () {

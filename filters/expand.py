@@ -124,7 +124,7 @@ def __sv_youtube (m):
     link   = 'http://www.youtube.com/watch?v=%s' % id
     imgurl = 'http://i.ytimg.com/vi/%s/default.jpg' % id
     imgurl = save_image (imgurl)
-    return '<div id="youtube-%s" class="play-video" style="width:120px;height:90px"><a href="%s" rel="nofollow"><img src="%s" width="120" height="90" alt="YouTube Video" /></a><div class="playbutton"></div></div>%s' % (id, link, imgurl, rest)
+    return '<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="120" height="90" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 def __sv_vimeo (m):
     from glifestream.apis import vimeo
@@ -133,7 +133,7 @@ def __sv_vimeo (m):
     imgurl = vimeo.get_thumbnail_url (id)
     if imgurl:
         imgurl = save_image (imgurl)
-        return '<div id="vimeo-%s" class="play-video" style="width:200px;height:150px"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="Vimeo Video" /></a><div class="playbutton"></div></div>' % (id, link, imgurl)
+        return '<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="Vimeo Video" /></a><div class="playbutton"></div></div></td></tr></table>' % (id, link, imgurl)
     else:
         return link
 
@@ -163,7 +163,7 @@ def __sv_dailymotion (m):
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'http://www.dailymotion.com/thumbnail/160x120/video/%s' % id
     imgurl = save_image (imgurl)
-    return '<div id="dailymotion-%s" class="play-video" style="width:160px;height:120px"><a href="%s" rel="nofollow"><img src="%s" width="160" height="120" alt="Dailymotion Video" /></a><div class="playbutton"></div></div>%s' % (id, link, imgurl, rest)
+    return '<table class="vc"><tr><td><div id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="160" height="120" alt="Dailymotion Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 def __sv_metacafe (m):
     link = strip_tags (m.group (0))
@@ -173,7 +173,7 @@ def __sv_metacafe (m):
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'http://www.metacafe.com/thumb/%s.jpg' % id
     imgurl = save_image (imgurl)
-    return '<div id="metacafe-%s" class="play-video" style="width:136px;height:81px"><a href="%s" rel="nofollow"><img src="%s" width="136" height="81" alt="Metacafe Video" /></a><div class="playbutton"></div></div>%s' % (id, link, imgurl, rest)
+    return '<table class="vc"><tr><td><div id="metacafe-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="136" height="81" alt="Metacafe Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 def __sv_googlevideo (m):
     link = strip_tags (m.group (0))
