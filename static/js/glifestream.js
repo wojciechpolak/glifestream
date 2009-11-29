@@ -263,9 +263,7 @@
       .each (function (i) {
 	  try {
 	    var id = this.href.substr (17);
-	    var img = $('img', this).get (0);
-	    var s = ' style="width:'+ img.width +'px; height:'+ img.height +'px"';
-	    $(this).wrap ('<div id="vimeo-'+ id +'" class="play-video"'+ s +'></div>');
+	    $(this).wrap ('<table class="vc"><tr><td><div id="vimeo-'+ id +'" class="play-video"></div></td></tr></table>');
 	    $(this).after ('<div class="playbutton"></div>');
 	  } catch (e) {}
 	});
@@ -273,9 +271,7 @@
       .each (function (i) {
 	  try {
 	    var id = this.href.substr (31);
-	    var img = $('img', this).get (0);
-	    var s = ' style="width:'+ img.width +'px; height:'+ img.height +'px"';
-	    $(this).wrap ('<div id="youtube-'+ id +'" class="play-video"'+ s +'></div>');
+	    $(this).wrap ('<table class="vc"><tr><td><div id="youtube-'+ id +'" class="play-video"></div></td></tr></table>');
 	    $(this).after ('<div class="playbutton"></div>');
 	  } catch (e) {}
 	});
