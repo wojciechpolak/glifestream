@@ -36,7 +36,7 @@ class API (webfeed.API):
                 tn['url'] = expand.save_image (tn['url'])
 
             e.link = e.link.replace ('&feature=youtube_gdata', '')
-            e.content = """<div id="youtube-%s" class="play-video" style="width:%spx;height:%spx"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>""" % (ent['yt_videoid'], tn['width'], tn['height'], e.link, tn['url'], tn['width'], tn['height'])
+            e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['yt_videoid'], e.link, tn['url'], tn['width'], tn['height'])
         else:
             e.content = ent.get ('yt_state', _('NO VIDEO'));
 
