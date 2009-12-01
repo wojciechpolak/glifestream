@@ -94,7 +94,7 @@ class API:
                 if self.service.public:
                     ent['video_thumbnail_medium'] = expand.save_image (ent['video_thumbnail_medium'])
 
-                e.content = """<div id="vimeo-%s" class="play-video" style="width:200px;height:150px"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div>""" % (ent['video_id'], e.link, ent['video_thumbnail_medium'], ent['video_title'])
+                e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['video_id'], e.link, ent['video_thumbnail_medium'], ent['video_title'])
 
                 try:
                     e.save ()
@@ -127,7 +127,7 @@ class API:
             if self.service.public:
                 ent['thumbnail_medium'] = expand.save_image (ent['thumbnail_medium'])
 
-            e.content = """<div id="vimeo-%s" class="play-video" style="width:200px;height:150px"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div>""" % (ent['id'], e.link, ent['thumbnail_medium'], ent['title'])
+            e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['id'], e.link, ent['thumbnail_medium'], ent['title'])
 
             try:
                 e.save ()
