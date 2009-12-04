@@ -85,32 +85,37 @@ def downscale_image (filename):
     except:
         pass
 
+def __gen_tai (link, img_src):
+    return '<div class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></div>' % (link, img_src)
+
 def __sp_twitpic (m):
-    url = 'http://%s/show/thumb/%s' % (m.group (2), m.group (3))
-    newurl = save_image (url)
-    return '<div class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></div>' % (m.group (0), newurl)
+    url = save_image ('http://%s/show/thumb/%s' % (m.group (2), m.group (3)))
+    return __gen_tai (m.group (0), url)
 
 def __sp_yfrog (m):
-    url = 'http://%s/%s.th.jpg' % (m.group (1), m.group (2))
-    newurl = save_image (url)
-    return '<div class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></div>' % (m.group (0), newurl)
+    url = save_image ('http://%s/%s.th.jpg' % (m.group (1), m.group (2)))
+    return __gen_tai (m.group (0), url)
+
+def __sp_brizzly (m):
+    url = save_image ('http://pics.brizzly.com/thumb_sm_%s.jpg' % (m.group (2)))
+    return __gen_tai (m.group (0), url)
 
 def __sp_imglog (m):
-    url = m.group (0)
-    newurl = save_image (url)
-    return '<div class="thumbnails"><img src="%s" alt="thumbnail" /></div>' % newurl
+    url = save_image (m.group (0))
+    return '<div class="thumbnails"><img src="%s" alt="thumbnail" /></div>' % url
 
-def shortpics (text):
+def shortpics (s):
     """Expand short picture-URLs."""
-    text = re.sub (r'http://(www\.)?(twitpic.com)/(\w+)',
-                   __sp_twitpic, text)
-    return re.sub (r'http://(yfrog.com)/(\w+)',
-                   __sp_yfrog, text)
+    s = re.sub (r'http://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
+    s = re.sub (r'http://(yfrog\.com)/(\w+)', __sp_yfrog, s)
+    s = re.sub (r'http://(www\.)?brizzly\.com/pic/(\w+)', __sp_brizzly, s)
+    return s
 
-def imgloc (text):
+def imgloc (s):
     """Convert image location to html img."""
-    text = re.sub (r'https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|png|gif)', __sp_imglog, text)
-    return text
+    s = re.sub (r'https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|png|gif)',
+                __sp_imglog, s)
+    return s
 
 #
 # Video services
@@ -280,12 +285,12 @@ def maplinks (s):
 #
 
 def shorts (s):
-    s = shortpics (s)
-    return shorturls (s)
+    s = shorturls (s)
+    return shortpics (s)
 
 def all (s):
-    s = shortpics (s)
     s = shorturls (s)
+    s = shortpics (s)
     s = audiolinks (s)
     s = videolinks (s)
     s = maplinks (s)
