@@ -282,10 +282,7 @@
 
   function open_sharing () {
     $('#share fieldset').slideDown ('normal', function () {
-	var status = $('#status');
-	status.focus (function () { document.onkeypress = null; });
-	status.blur (function () { document.onkeypress = kshortcuts; });
-	status.focus ();
+	$('#status').focus ();
 	if (!gsc_done)
 	  get_selfposts_classes ();
       });
@@ -551,6 +548,14 @@
 
       $('span.play-audio', stream).each (function () {
 	  this.title = _('Click and Listen');
+	});
+
+      $('#status, form input[type=text]').
+	focus (function () { document.onkeypress = null; }).
+	blur (function () { document.onkeypress = kshortcuts; });
+
+      $('form[name=searchform]').submit (function () {
+	  return ($('input[name=s]').val () == '') ? false : true;
 	});
 
       /* You may overwrite it in your user-scripts.js */

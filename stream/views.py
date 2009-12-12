@@ -27,11 +27,14 @@ from django.template.defaultfilters import fix_ampersands
 from django.template.defaultfilters import truncatewords
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as _
+from django.utils.html import escape
 from glifestream.stream.templatetags.gls_filters import gls_content
 from glifestream.stream.templatetags.gls_filters import gls_slugify
 from glifestream.stream.models import Service, Entry, Favorite, List
 from glifestream.stream import media
 from glifestream.utils.time import pn_month_start
+from glifestream.utils.translate import translate
+from glifestream.apis import selfposts
 
 try:
     import json
@@ -130,9 +133,9 @@ def index (request, **args):
         urlparams.append ('class=' + cls)
         page['robots'] = 'noindex'
         if 'subtitle' in page:
-            page['subtitle'] += ' <b>(%s)</b>' % cls.capitalize ()
+            page['subtitle'] += ' <b>(%s)</b>' % escape (cls.capitalize ())
         else:
-            page['subtitle'] = _('You are currently browsing %s entries only.') % ('<b>'+ cls +'</b>')
+            page['subtitle'] = _('You are currently browsing %s entries only.') % ('<b>'+ escape (cls) +'</b>')
 
     # Filter by author name.
     author = request.GET.get ('author', 'all')
@@ -148,9 +151,9 @@ def index (request, **args):
         urlparams.append ('service=' + srvapi)
         page['robots'] = 'noindex'
         if 'subtitle' in page:
-            page['subtitle'] += ' <b>(%s)</b>' % srvapi.capitalize ()
+            page['subtitle'] += ' <b>(%s)</b>' % escape (srvapi.capitalize ())
         else:
-            page['subtitle'] = _('You are currently browsing entries from %s service only.') % ('<b>'+ srvapi.capitalize () +'</b>')
+            page['subtitle'] = _('You are currently browsing entries from %s service only.') % ('<b>'+ escape (srvapi.capitalize ()) +'</b>')
 
     # Filter entries after specified timestamp 'start'.
     after = False
@@ -175,20 +178,53 @@ def index (request, **args):
         page['title'] = '%s' % str (dt)[0:-3]
         page['robots'] = 'noindex'
 
-    entries = entries.filter (**fs)[0:entries_on_page + 1].select_related ()
+    # Search/Query entries.
+    search_enable = getattr (settings, 'SEARCH_ENABLE', False)
+    search_engine = getattr (settings, 'SEARCH_ENGINE', 'sphinx')
+    search_query = request.GET.get ('s', '')
 
-    if 'exactentry' in page and len (entries):
-        page['title'] = truncatewords (entries[0].title, 7)
+    if search_query != '' and search_enable and search_engine == 'sphinx' and \
+       Entry.sphinx.query:
+        page['search'] = search_query
+        page['title'] = 'Search Results for %s' % escape (search_query)
+        page['subtitle'] = _('Your search for %s returned the following results.') % ('<b>'+ escape (search_query) +'</b>')
+        urlparams.append ('s=' + search_query)
+        sfs = {}
+        if page['public']: sfs['public'] = True
+        page_number = int (request.GET.get ('page', 1))
+        offset = (page_number - 1) * entries_on_page
 
-    # Time-based pagination.
-    num = len (entries)
-    if num > entries_on_page:
-        start = entries[num - 1].__getattribute__ (entries_orderby)
-        start = int (time.mktime (start.timetuple ()))
-    else:
+        try:
+            entries = Entry.sphinx.query (search_query).filter (**sfs).select_related ()
+
+            limit = offset + entries_on_page
+            if offset >= entries_on_page:
+                page['prevpage'] = page_number - 1
+            if limit < entries.count ():
+                page['nextpage'] = page_number + 1
+
+            entries = entries[offset:limit]
+        except:
+            entries = []
+
         start = False
 
-    entries = entries[0:entries_on_page]
+    # If not search, then normal query.
+    else:
+        entries = entries.filter (**fs)[0:entries_on_page + 1].select_related ()
+
+        if 'exactentry' in page and len (entries):
+            page['title'] = truncatewords (entries[0].title, 7)
+
+        # Time-based pagination.
+        num = len (entries)
+        if num > entries_on_page:
+            start = entries[num - 1].__getattribute__ (entries_orderby)
+            start = int (time.mktime (start.timetuple ()))
+        else:
+            start = False
+
+        entries = entries[0:entries_on_page]
 
     # Build URL params for links.
     if len (urlparams):
@@ -283,6 +319,7 @@ def index (request, **args):
                                      'archives': archs,
                                      'page': page,
                                      'authed': authed,
+                                     'has_search': search_enable,
                                      'user': request.user })
 
 @login_required
@@ -341,7 +378,6 @@ def api (request, **args):
         return HttpResponse (json.dumps (d), mimetype='application/json')
 
     elif cmd == 'share':
-        from glifestream.apis import selfposts
         id = request.POST.get ('id', None)
         link = request.POST.get ('link', None)
         content = request.POST.get ('content', '')
@@ -366,7 +402,6 @@ def api (request, **args):
         try:
             entry = Entry.objects.get (id=int(entry))
             if entry:
-                from glifestream.apis import selfposts
                 entry = selfposts.API (False).reshare (entry)
                 if entry:
                     return render_to_response ('stream-pure.html',
@@ -415,7 +450,6 @@ def api (request, **args):
             pass
 
     elif cmd == 'translate':
-        from glifestream.utils.translate import translate
         try:
             if entry:
                 entry = Entry.objects.get (id=int(entry))

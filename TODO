@@ -3,7 +3,6 @@ TO DO:
 A lot of stuff! Some of them:
 
 * User-friendly settings page
-* Search functionality (via Sphinx)
 * Facebook support (apis/facebook.py)
 * PubSubHubBub support
 * OpenID

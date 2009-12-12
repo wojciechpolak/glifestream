@@ -13,11 +13,20 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 from glifestream.utils.time import now
+
+try:
+    from djangosphinx.models import SphinxSearch
+except ImportError:
+    class SphinxSearch:
+        query = None
+        def __init__ (self, **va):
+            pass
 
 class Service (models.Model):
     API_CHOICES = (
@@ -108,6 +117,9 @@ class Entry (models.Model):
         help_text=_('Protect from possible overwriting by next update.'))
     active = models.BooleanField (_('Active'), default=True,
         help_text=_('If not active, this entry will not be shown.'))
+
+    sphinx = SphinxSearch (index=getattr (settings, 'SPHINX_INDEX_NAME',
+                                          'glifestream'))
 
     class Meta:
         verbose_name = _('Entry')
