@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-11-23 17:42+0100\n"
-"PO-Revision-Date: 2009-11-21 14:18+0100\n"
+"POT-Creation-Date: 2009-12-12 13:22+0100\n"
+"PO-Revision-Date: 2009-12-07 22:47+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -84,11 +84,11 @@ msgstr "Zamknij"
 msgid "Click on images to share them."
 msgstr "Kliknij obrazki aby je dodać."
 
-#: bookmarklet/templates/frame.html:55 templates/stream.html:43
+#: bookmarklet/templates/frame.html:55 templates/stream.html:50
 msgid "Class:"
 msgstr "Klasa:"
 
-#: bookmarklet/templates/frame.html:59 templates/stream.html:44
+#: bookmarklet/templates/frame.html:59 templates/stream.html:51
 msgid "Post"
 msgstr "Publikuj"
 
@@ -124,199 +124,204 @@ msgstr "Aktualnie:"
 msgid "Change:"
 msgstr "Zmień:"
 
-#: stream/models.py:40
+#: stream/models.py:49
 msgid "API"
 msgstr "API"
 
-#: stream/models.py:42
+#: stream/models.py:51
 msgid "Custom CSS Class"
 msgstr "Wybrana klasa CSS"
 
-#: stream/models.py:44
+#: stream/models.py:53
 msgid "URL or Username"
 msgstr "URL lub nazwa użytkownika"
 
-#: stream/models.py:45
+#: stream/models.py:54
 msgid "Credentials"
 msgstr "Dane uwierzytelniające"
 
-#: stream/models.py:47
+#: stream/models.py:56
 msgid "Short name"
 msgstr "Nazwa skrócona"
 
-#: stream/models.py:48
+#: stream/models.py:57
 msgid "WWW Link"
 msgstr "Link WWW"
 
-#: stream/models.py:50
+#: stream/models.py:59
 msgid "Last modified"
 msgstr "Ostatnia modyfikacja"
 
-#: stream/models.py:52
+#: stream/models.py:61
 msgid "Last checked"
 msgstr "Ostatnio sprawdzane"
 
-#: stream/models.py:55
+#: stream/models.py:64
 msgid "Title and Contents"
 msgstr "Tytuł i treść"
 
-#: stream/models.py:56
+#: stream/models.py:65
 msgid "Contents only"
 msgstr "Tylko treść"
 
-#: stream/models.py:57
+#: stream/models.py:66
 msgid "Title only"
 msgstr "Tylko tytuł"
 
-#: stream/models.py:59
+#: stream/models.py:68
 msgid "Display entries'"
 msgstr "Wyświetlanie wpisów"
 
-#: stream/models.py:62 templates/base.html:26
+#: stream/models.py:71 templates/base.html:26
 msgid "Public"
 msgstr "Publiczne"
 
-#: stream/models.py:63
+#: stream/models.py:72
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
 
-#: stream/models.py:64 stream/models.py:109
+#: stream/models.py:73 stream/models.py:118
 msgid "Active"
 msgstr "Aktywny"
 
-#: stream/models.py:65
+#: stream/models.py:74
 msgid "If not active, this service will not be further updated."
 msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 
-#: stream/models.py:68 stream/models.py:82
+#: stream/models.py:77 stream/models.py:91
 msgid "Service"
 msgstr "Serwis"
 
-#: stream/models.py:69
+#: stream/models.py:78
 msgid "Services"
 msgstr "Serwisy"
 
-#: stream/models.py:84
+#: stream/models.py:93
 msgid "Title"
 msgstr "Tytuł"
 
-#: stream/models.py:85
+#: stream/models.py:94
 msgid "Link"
 msgstr "Link"
 
-#: stream/models.py:86
+#: stream/models.py:95
 msgid "Image Link"
 msgstr "Link do obrazu"
 
-#: stream/models.py:87
+#: stream/models.py:96
 msgid "Contents"
 msgstr "Treść"
 
-#: stream/models.py:88
+#: stream/models.py:97
 msgid "Date published"
 msgstr "Data publikacji"
 
-#: stream/models.py:90
+#: stream/models.py:99
 msgid "Date updated"
 msgstr "Data aktualizacji"
 
-#: stream/models.py:95
+#: stream/models.py:104
 msgid "Author's Name"
 msgstr "Autor"
 
-#: stream/models.py:97
+#: stream/models.py:106
 msgid "Author's Email"
 msgstr "Email autora"
 
-#: stream/models.py:99
+#: stream/models.py:108
 msgid "Author's URI"
 msgstr "URI autora"
 
-#: stream/models.py:101
+#: stream/models.py:110
 msgid "Geo Latitude"
 msgstr "Szerokość geograficzna"
 
-#: stream/models.py:103
+#: stream/models.py:112
 msgid "Geo Longitude"
 msgstr "Długość geograficzna"
 
-#: stream/models.py:107
+#: stream/models.py:116
 msgid "Protected"
 msgstr "Chroniony"
 
-#: stream/models.py:108
+#: stream/models.py:117
 msgid "Protect from possible overwriting by next update."
 msgstr "Chroni przed możliwym nadpisaniem przy kolejnej aktualizacji."
 
-#: stream/models.py:110
+#: stream/models.py:119
 msgid "If not active, this entry will not be shown."
 msgstr "Nieaktywny, ten wpis nie będzie wyświetlany."
 
-#: stream/models.py:113 stream/models.py:128 stream/models.py:144
+#: stream/models.py:125 stream/models.py:140 stream/models.py:156
 msgid "Entry"
 msgstr "Wpis"
 
-#: stream/models.py:114
+#: stream/models.py:126
 msgid "Entries"
 msgstr "Wpisy"
 
-#: stream/models.py:130
+#: stream/models.py:142
 msgid "Type"
 msgstr "Typ"
 
-#: stream/models.py:134 stream/models.py:135
+#: stream/models.py:146 stream/models.py:147
 msgid "Media"
 msgstr "Media"
 
-#: stream/models.py:149 templates/i18n.html:2 templates/stream-pure.html:37
+#: stream/models.py:161 templates/i18n.html:2 templates/stream-pure.html:37
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:150 stream/views.py:103
+#: stream/models.py:162 stream/views.py:106
 msgid "Favorites"
 msgstr "Ulubione"
 
-#: stream/models.py:160
+#: stream/models.py:172
 msgid "Name"
 msgstr "Nazwa"
 
-#: stream/models.py:161
+#: stream/models.py:173
 msgid "Slug"
 msgstr "Slug"
 
-#: stream/models.py:166
+#: stream/models.py:178
 msgid "List"
 msgstr "Lista"
 
-#: stream/models.py:167 templates/stream.html:16
+#: stream/models.py:179 templates/stream.html:16
 msgid "Lists"
 msgstr "Listy"
 
-#: stream/views.py:85
+#: stream/views.py:88
 #, python-format
 msgid "You are currently browsing the archive for %s"
 msgstr "Aktualnie przeglądasz archiwum dla %s"
 
-#: stream/views.py:104
+#: stream/views.py:107
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:114
+#: stream/views.py:117
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:135
+#: stream/views.py:138
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:153
+#: stream/views.py:156
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:358
+#: stream/views.py:190
+#, python-format
+msgid "Your search for %s returned the following results."
+msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
+
+#: stream/views.py:394
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
@@ -494,27 +499,43 @@ msgstr "Archiwum"
 msgid "Select Month"
 msgstr "Wybierz miesiąc"
 
-#: templates/stream.html:38
+#: templates/stream.html:34
+msgid "Search this site"
+msgstr "Wyszukaj na tej stronie"
+
+#: templates/stream.html:36
+msgid "Search"
+msgstr "Szukaj"
+
+#: templates/stream.html:45
 msgid "Add content"
 msgstr "Dodaj wpis"
 
-#: templates/stream.html:40
+#: templates/stream.html:47
 msgid "What's up?"
 msgstr "Co słychać?"
 
-#: templates/stream.html:52
+#: templates/stream.html:59
 msgid "next month"
 msgstr "następny miesiąc"
 
-#: templates/stream.html:57 templates/stream.html.py:67
-#: templates/stream.html:71
+#: templates/stream.html:64 templates/stream.html.py:74
+#: templates/stream.html:78
 msgid "newer entries"
 msgstr "nowsze wpisy"
 
-#: templates/stream.html:59 templates/stream.html.py:68
-#: templates/stream.html:70
+#: templates/stream.html:66 templates/stream.html.py:75
+#: templates/stream.html:77
 msgid "older entries"
 msgstr "starsze wpisy"
+
+#: templates/stream.html:84
+msgid "previous page"
+msgstr "poprzednia strona"
+
+#: templates/stream.html:85
+msgid "next page"
+msgstr "następna strona"
 
 #: templates/tools.html:6
 msgid "Bookmarklet:"

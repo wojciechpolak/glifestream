@@ -29,6 +29,13 @@
 	{% for d in archives %}<option value="{{ d|date:"Y/m" }}">{{ d|date:"F Y" }}</option>{% endfor %}
       </select>
     </div>
+    {% if has_search %}<div class="search">
+      <form name="searchform" action="./" method="get">
+	<h4>{% trans "Search this site" %}</h4>
+	<input type="text" name="s" value="{{ page.search }}" />
+	<input type="submit" value="{% trans "Search" %}" />
+      </form>
+    </div>{% endif %}
   </nav>
 {% endblock sidebar %}
 
@@ -71,6 +78,13 @@
     <a href="{{ page.urlparams }}start={{ page.start }}" accesskey="n" class="next">{% trans "newer entries" %}</a>
 {% endif %}
   </nav>
+{% else %}
+{% if page.prevpage or page.nextpage %}
+  <nav class="pagination-bottom">
+    {% if page.prevpage %}<a href="{{ page.urlparams }}page={{ page.prevpage }}" accesskey="p" class="prev">{% trans "previous page" %}</a> |{% endif %}
+    {% if page.nextpage %}<a href="{{ page.urlparams }}page={{ page.nextpage }}" accesskey="n" class="next">{% trans "next page" %}</a>{% endif %}
+  </nav>
+{% endif %}
 {% endif %}
 
 </section>
