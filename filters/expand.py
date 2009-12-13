@@ -22,6 +22,7 @@ import tempfile
 import shutil
 from django.conf import settings
 from django.utils.html import strip_tags
+from glifestream.utils import oembed
 
 try:
     import Image
@@ -100,21 +101,30 @@ def __sp_brizzly (m):
     url = save_image ('http://pics.brizzly.com/thumb_sm_%s.jpg' % (m.group (2)))
     return __gen_tai (m.group (0), url)
 
-def __sp_imglog (m):
-    url = save_image (m.group (0))
-    return '<div class="thumbnails"><img src="%s" alt="thumbnail" /></div>' % url
+def __sp_flickr (m):
+    url = m.group (0)
+    j = oembed.discover (url, provider='flickr', maxwidth=400)
+    if j and j['type'] == 'photo':
+        return __gen_tai (url, j['url'])
+    else:
+        return url
+
+def __sp_imgloc (m):
+    url = save_image (m.group (2))
+    return '%s<div class="thumbnails"><img src="%s" alt="thumbnail" /></div>%s' % (m.group (1), url, m.group (4))
 
 def shortpics (s):
     """Expand short picture-URLs."""
     s = re.sub (r'http://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
     s = re.sub (r'http://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub (r'http://(www\.)?brizzly\.com/pic/(\w+)', __sp_brizzly, s)
+    s = re.sub (r'http://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
     return s
 
 def imgloc (s):
     """Convert image location to html img."""
-    s = re.sub (r'https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|png|gif)',
-                __sp_imglog, s)
+    s = re.sub (r'([^"])(https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|png|gif))([^"])',
+                __sp_imgloc, s)
     return s
 
 #

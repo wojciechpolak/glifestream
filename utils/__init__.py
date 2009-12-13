@@ -15,6 +15,7 @@
 
 __all__ = (
     'html',
+    'oembed',
     'time',
     'translate',
 )
