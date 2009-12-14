@@ -101,7 +101,7 @@ class API:
                 e = Entry (service=self.service, guid=guid)
 
             e.title = ent.title
-            e.link = ent.get ('feedburner_origlink', ent.link)
+            e.link = ent.get ('feedburner_origlink', ent.get ('link', ''))
 
             if ent.has_key ('author_detail'):
                 e.author_name = ent.author_detail.get ('name', None)
