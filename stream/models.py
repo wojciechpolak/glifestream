@@ -102,17 +102,16 @@ class Entry (models.Model):
                                          blank=True, editable=False)
     guid = models.CharField ('GUID', max_length=200)
     author_name = models.CharField (_("Author's Name"), max_length=64,
-                                    blank=True, null=True)
-    author_email = models.EmailField (_("Author's Email"),
-                                      blank=True, null=True)
+                                    blank=True)
+    author_email = models.EmailField (_("Author's Email"), blank=True)
     author_uri = models.CharField (_("Author's URI"), max_length=128,
-                                    blank=True, null=True)
+                                   blank=True)
     geolat = models.DecimalField (_('Geo Latitude'), max_digits=13,
                                   decimal_places=10, blank=True, null=True)
     geolng = models.DecimalField (_('Geo Longitude'), max_digits=13,
                                   decimal_places=10, blank=True, null=True)
     idata = models.CharField ('Internal data', max_length=64,
-                              null=True, blank=True, editable=False)
+                              blank=True, editable=False)
     protected = models.BooleanField (_('Protected'), default=False,
         help_text=_('Protect from possible overwriting by next update.'))
     active = models.BooleanField (_('Active'), default=True,
