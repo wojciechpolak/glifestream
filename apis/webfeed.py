@@ -104,15 +104,15 @@ class API:
             e.link = ent.get ('feedburner_origlink', ent.get ('link', ''))
 
             if ent.has_key ('author_detail'):
-                e.author_name = ent.author_detail.get ('name', None)
-                e.author_email = ent.author_detail.get ('email', None)
-                e.author_uri = ent.author_detail.get ('href', None)
+                e.author_name = ent.author_detail.get ('name', '')
+                e.author_email = ent.author_detail.get ('email', '')
+                e.author_uri = ent.author_detail.get ('href', '')
             else:
-                e.author_name = ent.get ('author', ent.get ('creator', None))
+                e.author_name = ent.get ('author', ent.get ('creator', ''))
                 if not e.author_name and self.fp.feed.has_key ('author_detail'):
-                    e.author_name = self.fp.feed.author_detail.get ('name', None)
-                    e.author_email = self.fp.feed.author_detail.get ('email', None)
-                    e.author_uri = self.fp.feed.author_detail.get ('href', None)
+                    e.author_name = self.fp.feed.author_detail.get ('name', '')
+                    e.author_email = self.fp.feed.author_detail.get ('email', '')
+                    e.author_uri = self.fp.feed.author_detail.get ('href', '')
 
             try:
                 e.content = ent.content[0].value
