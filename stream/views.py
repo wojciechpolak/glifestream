@@ -61,7 +61,7 @@ def index (request, **args):
     entries_orderby = 'date_published'
 
     # Entries filter.
-    fs = { 'active': True }
+    fs = { 'active': True, 'service__home': True }
 
     # Filter by dates.
     year = int (args.get ('year', 0))
@@ -112,6 +112,7 @@ def index (request, **args):
         try:
             services = List.objects.get (user__id=request.user.id,
                                          slug=args['list']).services
+            del fs['service__home']
             fs['service__id__in'] = services.values ('id')
             page['title'] = args['list']
             page['subtitle'] = _('You are currently browsing entries from %s list only.') % ('<b>'+ args['list'] +'</b>')
