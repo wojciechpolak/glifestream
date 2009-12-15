@@ -72,6 +72,8 @@ class Service (models.Model):
         help_text=_('Public services are visible to anyone.'))
     active = models.BooleanField (_('Active'), default=True,
         help_text=_('If not active, this service will not be further updated.'))
+    home = models.BooleanField (_('Home visible'), default=True,
+        help_text=_('If unchecked, this stream will be still active, but hidden and thus visible only via custom lists.'))
 
     class Meta:
         verbose_name = _('Service')

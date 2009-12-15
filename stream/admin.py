@@ -33,10 +33,11 @@ def truncate_title (self):
     return self.title[0:70]
 
 class ServiceAdmin (admin.ModelAdmin):
-    list_display = ('name', 'api', 'url', 'last_modified', 'public', 'active')
+    list_display = ('name', 'api', 'url', 'last_modified', 'public',
+                    'active', 'home')
     fieldsets = (
         (None, {'fields': ('api', 'name', 'url', 'creds', 'display', 'public',
-                           'active')}),
+                           'active', 'home')}),
         (_('Additional, optional fields'),
          {'classes': ('collapse',), 'fields': ('link', 'cls'),
           }),

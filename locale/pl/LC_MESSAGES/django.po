@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-12 13:22+0100\n"
-"PO-Revision-Date: 2009-12-07 22:47+0100\n"
+"POT-Creation-Date: 2009-12-15 19:43+0100\n"
+"PO-Revision-Date: 2009-12-15 19:53+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -180,7 +180,7 @@ msgstr "Publiczne"
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
 
-#: stream/models.py:73 stream/models.py:118
+#: stream/models.py:73 stream/models.py:119
 msgid "Active"
 msgstr "Aktywny"
 
@@ -188,107 +188,117 @@ msgstr "Aktywny"
 msgid "If not active, this service will not be further updated."
 msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 
-#: stream/models.py:77 stream/models.py:91
+#: stream/models.py:75
+msgid "Home visible"
+msgstr "Widoczny na stronie głównej"
+
+#: stream/models.py:76
+msgid ""
+"If unchecked, this stream will be still active, but hidden and thus visible "
+"only via custom lists."
+msgstr "Gdy nie jest zaznaczony, ten strumień będzie wciąż aktywny, ale ukryty i widoczny jedynie za pomocą List."
+
+#: stream/models.py:79 stream/models.py:93
 msgid "Service"
 msgstr "Serwis"
 
-#: stream/models.py:78
+#: stream/models.py:80
 msgid "Services"
 msgstr "Serwisy"
 
-#: stream/models.py:93
+#: stream/models.py:95
 msgid "Title"
 msgstr "Tytuł"
 
-#: stream/models.py:94
+#: stream/models.py:96
 msgid "Link"
 msgstr "Link"
 
-#: stream/models.py:95
+#: stream/models.py:97
 msgid "Image Link"
 msgstr "Link do obrazu"
 
-#: stream/models.py:96
+#: stream/models.py:98
 msgid "Contents"
 msgstr "Treść"
 
-#: stream/models.py:97
+#: stream/models.py:99
 msgid "Date published"
 msgstr "Data publikacji"
 
-#: stream/models.py:99
+#: stream/models.py:101
 msgid "Date updated"
 msgstr "Data aktualizacji"
 
-#: stream/models.py:104
+#: stream/models.py:106
 msgid "Author's Name"
 msgstr "Autor"
 
-#: stream/models.py:106
+#: stream/models.py:108
 msgid "Author's Email"
 msgstr "Email autora"
 
-#: stream/models.py:108
+#: stream/models.py:109
 msgid "Author's URI"
 msgstr "URI autora"
 
-#: stream/models.py:110
+#: stream/models.py:111
 msgid "Geo Latitude"
 msgstr "Szerokość geograficzna"
 
-#: stream/models.py:112
+#: stream/models.py:113
 msgid "Geo Longitude"
 msgstr "Długość geograficzna"
 
-#: stream/models.py:116
+#: stream/models.py:117
 msgid "Protected"
 msgstr "Chroniony"
 
-#: stream/models.py:117
+#: stream/models.py:118
 msgid "Protect from possible overwriting by next update."
 msgstr "Chroni przed możliwym nadpisaniem przy kolejnej aktualizacji."
 
-#: stream/models.py:119
+#: stream/models.py:120
 msgid "If not active, this entry will not be shown."
 msgstr "Nieaktywny, ten wpis nie będzie wyświetlany."
 
-#: stream/models.py:125 stream/models.py:140 stream/models.py:156
+#: stream/models.py:126 stream/models.py:141 stream/models.py:157
 msgid "Entry"
 msgstr "Wpis"
 
-#: stream/models.py:126
+#: stream/models.py:127
 msgid "Entries"
 msgstr "Wpisy"
 
-#: stream/models.py:142
+#: stream/models.py:143
 msgid "Type"
 msgstr "Typ"
 
-#: stream/models.py:146 stream/models.py:147
+#: stream/models.py:147 stream/models.py:148
 msgid "Media"
 msgstr "Media"
 
-#: stream/models.py:161 templates/i18n.html:2 templates/stream-pure.html:37
+#: stream/models.py:162 templates/i18n.html:2 templates/stream-pure.html:37
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:162 stream/views.py:106
+#: stream/models.py:163 stream/views.py:106
 msgid "Favorites"
 msgstr "Ulubione"
 
-#: stream/models.py:172
+#: stream/models.py:173
 msgid "Name"
 msgstr "Nazwa"
 
-#: stream/models.py:173
+#: stream/models.py:174
 msgid "Slug"
 msgstr "Slug"
 
-#: stream/models.py:178
+#: stream/models.py:179
 msgid "List"
 msgstr "Lista"
 
-#: stream/models.py:179 templates/stream.html:16
+#: stream/models.py:180 templates/stream.html:16
 msgid "Lists"
 msgstr "Listy"
 
@@ -301,27 +311,27 @@ msgstr "Aktualnie przeglądasz archiwum dla %s"
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:117
+#: stream/views.py:118
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:138
+#: stream/views.py:139
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:156
+#: stream/views.py:157
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:190
+#: stream/views.py:191
 #, python-format
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
 
-#: stream/views.py:394
+#: stream/views.py:395
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
