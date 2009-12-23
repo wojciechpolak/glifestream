@@ -34,6 +34,9 @@
     else if (type == 'vimeo') {
       var embed = '<object type="application/x-shockwave-flash" width="424" height="318" data="http://vimeo.com/moogaloop.swf?clip_id='+ id +'&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"><param name="quality" value="best"/><param name="allowfullscreen" value="true"/><param name="scale" value="showAll"/><param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id='+ id +'&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"/></object>';
     }
+    else if (type == 'chtv') {
+      var embed = '<object type="application/x-shockwave-flash" width="480" height="270" data="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id='+ id + '&fullscreen=1&autoplay=1"><param name="allowfullscreen" value="true"/><param name="wmode" value="transparent"/><param name="allowScriptAccess" value="always"/><param name="movie" quality="best" value="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id='+ id + '&fullscreen=1&autoplay=1"/><embed src="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id='+ id +'&fullscreen=1&autoplay=1" type="application/x-shockwave-flash" wmode="transparent" width="480" height="270" allowScriptAccess="always"></embed></object>';
+    }
     else if (type == 'ustream') {
       var embed = '<embed flashvars="loc=%2F&autoplay=true&vid='+ id +'" width="480" height="386" allowfullscreen="true" allowscriptaccess="always" src="http://www.ustream.tv/flash/video/'+ id +'" type="application/x-shockwave-flash" />';
     }
@@ -259,20 +262,20 @@
   }
 
   function alter_thumbnails (ctx) {
-    $('div.thumbnails a[href^=http://vimeo.com/]', ctx)
+    $('div.thumbnails a', ctx)
       .each (function (i) {
+	  var id = false;
 	  try {
-	    var id = this.href.substr (17);
-	    $(this).wrap ('<table class="vc"><tr><td><div id="vimeo-'+ id +'" class="play-video"></div></td></tr></table>');
-	    $(this).after ('<div class="playbutton"></div>');
-	  } catch (e) {}
-	});
-    $('div.thumbnails a[href^=http://www.youtube.com/watch]', ctx)
-      .each (function (i) {
-	  try {
-	    var id = this.href.substr (31);
-	    $(this).wrap ('<table class="vc"><tr><td><div id="youtube-'+ id +'" class="play-video"></div></td></tr></table>');
-	    $(this).after ('<div class="playbutton"></div>');
+	    if (this.href.indexOf ('http://www.youtube.com/watch') === 0)
+	      id = this.href.substr (31);
+	    else if (this.href.indexOf ('http://vimeo.com/') === 0)
+	      id = 'vimeo-' + this.href.substr (17);
+	    else if (this.href.indexOf ('http://www.collegehumor.com/video:') === 0)
+	      id = 'chtv-' + this.href.substr (34);
+	    if (id) {
+	      $(this).wrap ('<table class="vc"><tr><td><div id="'+ id +'" class="play-video"></div></td></tr></table>');
+	      $(this).after ('<div class="playbutton"></div>');
+	    }
 	  } catch (e) {}
 	});
   }

@@ -152,6 +152,11 @@ def __sv_vimeo (m):
     else:
         return link
 
+def __sv_chtv (m):
+    id = m.group (1)
+    link = m.group (0)
+    return '<span id="chtv-%s" class="play-video video-inline"><a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
+
 def __sv_ustream (m):
     id = m.group (1)
     link = m.group (0)
@@ -217,6 +222,8 @@ def videolinks (s):
         s = re.sub (r'http://(www\.)?twitvid.com/(\w+)', __sv_twitvid, s)
     if 'vidly.com/' in s:
         s = re.sub (r'http://vidly.com/(\w+)(\S*)', __sv_vidly, s)
+    if 'collegehumor.com/video:' in s:
+        s = re.sub (r'http://www.collegehumor.com/video:(\d+)', __sv_chtv, s)
     if 'http://video.google.com/videoplay?docid=' in s:
         s = re.sub (r'http://video.google.com/videoplay\?docid=(\d+)(\S*)',
                     __sv_googlevideo, s)
