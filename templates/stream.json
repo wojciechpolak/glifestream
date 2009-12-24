@@ -4,7 +4,7 @@
   "generator": "gLifestream",
   "id": "{{ page.taguri }}",
   "icon": "{{ page.icon }}",
-  "author": {"name": "{% if user.first_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}"},
+  "author": {"name": "{{ page.author_name }}"},
   "link": [
     {"rel": "self", "type: "application/json", "href": "{{ page.site_url }}{% url index %}?format=json"},{% if page.start %}
     {"rel": "previous", "type: "application/json", "href": "{{ page.site_url }}{% url index %}{{ page.urlparams }}start={{ page.start }}&format=json"},{% endif %}

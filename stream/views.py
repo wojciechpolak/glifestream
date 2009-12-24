@@ -50,6 +50,7 @@ def index (request, **args):
         'public': False,
         'site_url': settings.SITE_URL,
         'base_url': settings.BASE_URL,
+        'author_name': settings.FEED_AUTHOR_NAME,
         'taguri': settings.FEED_TAGURI,
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
@@ -275,14 +276,12 @@ def index (request, **args):
     if format == 'atom':
         return render_to_response ('stream.atom',
                                    { 'entries': entries,
-                                     'page': page,
-                                     'user': request.user },
+                                     'page': page },
                                    mimetype='application/atom+xml')
     elif format == 'json':
         return render_to_response ('stream.json',
                                    { 'entries': entries,
-                                     'page': page,
-                                     'user': request.user },
+                                     'page': page },
                                    mimetype='application/json')
     else:
         # Check which entry is already favorite.

@@ -94,6 +94,7 @@ STREAM_DESCRIPTION = "A short description"
 ENTRIES_ON_PAGE = 30
 
 # Webfeed settings.
+FEED_AUTHOR_NAME = 'YOUR NAME'
 FEED_TAGURI = 'tag:SITE-ID,YEAR:ID'
 FEED_ICON   = 'http://URL-TO-ICON'
 
