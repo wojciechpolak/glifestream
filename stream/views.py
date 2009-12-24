@@ -275,12 +275,14 @@ def index (request, **args):
     if format == 'atom':
         return render_to_response ('stream.atom',
                                    { 'entries': entries,
-                                     'page': page },
+                                     'page': page,
+                                     'user': request.user },
                                    mimetype='application/atom+xml')
     elif format == 'json':
         return render_to_response ('stream.json',
                                    { 'entries': entries,
-                                     'page': page },
+                                     'page': page,
+                                     'user': request.user },
                                    mimetype='application/json')
     else:
         # Check which entry is already favorite.
