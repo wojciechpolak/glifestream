@@ -168,6 +168,8 @@
     show_spinner (this);
     $.post (baseurl + 'api/reshare', { entry: id }, function (html) {
 	hide_spinner ();
+	Shareitbox.close ();
+	jump_to_top ();
 	$('#stream').prepend (html);
 	$('#stream article:first .play-video').toggle (play_video, stop_video);
 	$('#stream article:first a.map').each (render_map);
@@ -231,10 +233,7 @@
     date.setTime (date.getTime () + (365 * 86400000));
     var expires = '; expires=' + date.toGMTString ();
     document.cookie = cookie_name +'='+ cs + expires + '; path=' + baseurl;
-    if (document.body && document.body.scrollTop)
-      document.body.scrollTop = 0;
-    else if (document.documentElement && document.documentElement.scrollTop)
-      document.documentElement.scrollTop = 0;
+    jump_to_top ();
     window.location.reload ();
     return false;
   }
@@ -478,6 +477,13 @@
   function scroll_to_element (t) {
     var toffset = $(t).offset ().top - 16;
     $('html,body').animate ({scrollTop: toffset}, 200);
+  }
+
+  function jump_to_top () {
+    if (document.body && document.body.scrollTop)
+      document.body.scrollTop = 0;
+    else if (document.documentElement && document.documentElement.scrollTop)
+      document.documentElement.scrollTop = 0;
   }
 
   function ajax_error (e) {
