@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2009 Wojciech Polak
+ *  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -266,7 +266,7 @@
 	  var id = false;
 	  try {
 	    if (this.href.indexOf ('http://www.youtube.com/watch') === 0)
-	      id = this.href.substr (31);
+	      id = 'youtube-' + this.href.substr (31);
 	    else if (this.href.indexOf ('http://vimeo.com/') === 0)
 	      id = 'vimeo-' + this.href.substr (17);
 	    else if (this.href.indexOf ('http://www.collegehumor.com/video:') === 0)
