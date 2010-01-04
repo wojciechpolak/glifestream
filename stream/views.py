@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -214,12 +214,12 @@ def index (request, **args):
     # If not search, then normal query.
     else:
         entries = entries.filter (**fs)[0:entries_on_page + 1].select_related ()
+        num = len (entries)
 
-        if 'exactentry' in page and len (entries):
+        if 'exactentry' in page and num:
             page['title'] = truncatewords (entries[0].title, 7)
 
         # Time-based pagination.
-        num = len (entries)
         if num > entries_on_page:
             start = entries[num - 1].__getattribute__ (entries_orderby)
             start = int (time.mktime (start.timetuple ()))
@@ -227,6 +227,14 @@ def index (request, **args):
             start = False
 
         entries = entries[0:entries_on_page]
+
+        if num:
+            crymax = entries[0].date_published.year
+            crymin = entries[len (entries) - 1].date_published.year
+            if crymin != crymax:
+                page['copyright_years'] = '%s-%s' % (crymin, crymax)
+            else:
+                page['copyright_years'] = crymin
 
     # Build URL params for links.
     if len (urlparams):
