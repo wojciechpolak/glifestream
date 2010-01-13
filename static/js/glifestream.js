@@ -89,7 +89,7 @@
     $('a', this).blur ();
 
     if (type == 'audio') {
-      var embed = '<audio src="'+ $('a', this).attr ('href') +'" controls="true">'+ _('Your browser does not support it.') +'</audio>';
+      var embed = '<audio src="'+ $('a', this).attr ('href') +'" controls="true" autoplay="autoplay">'+ _('Your browser does not support it.') +'</audio>';
     }
     else if (type == 'thesixtyone') {
       var data = a[1];
