@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -21,7 +21,6 @@ from glifestream.utils.time import mtime, now
 from glifestream.utils.html import strip_script
 from glifestream.stream.models import Entry
 from glifestream.stream import media
-from glifestream.filters import expand
 
 class API:
     name = 'Webfeed API'
@@ -132,11 +131,11 @@ class API:
                 e.geolng = ent.geo_long
 
             if self.fp.feed.has_key ('image'):
-                e.link_image = expand.save_image (self.fp.feed.image.url)
+                e.link_image = media.save_image (self.fp.feed.image.url)
             else:
                 for link in ent.links:
                     if link.rel == 'image':
-                        e.link_image = expand.save_image (link.href)
+                        e.link_image = media.save_image (link.href)
 
             if hasattr (self, 'custom_process'):
                 self.custom_process (e, ent)

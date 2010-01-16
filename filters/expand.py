@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,21 +13,14 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
 import re
 import httplib
 import urllib
 import hashlib
-import tempfile
-import shutil
 from django.conf import settings
 from django.utils.html import strip_tags
+from glifestream.stream import media
 from glifestream.utils import oembed
-
-try:
-    import Image
-except ImportError:
-    Image = None
 
 #
 # Short link services
@@ -55,50 +48,20 @@ def shorturls (text):
 # Short image services
 #
 
-def save_image (url, force=False):
-    if settings.BASE_URL in url:
-        return url
-    newfile = 'thumbs/%s' % hashlib.sha1 (url).hexdigest ()
-    newpath = '%s/%s' % (settings.MEDIA_ROOT, newfile)
-    if not os.path.isfile (newpath):
-        tmp = tempfile.mktemp ('_ls')
-        try:
-            image = urllib.FancyURLopener ()
-            resp = image.retrieve (url, tmp)[1]
-            if not force and not 'image/' in resp.getheader ('Content-Type', ''):
-                return url
-            shutil.move (tmp, newpath)
-        except:
-            return url
-    return newfile
-
-def downscale_image (filename):
-    if not Image:
-        return
-    filename = '%s/%s' % (settings.MEDIA_ROOT, filename)
-    size = 400, 175
-    try:
-        im = Image.open (filename)
-        w, h = im.size
-        if w > size[0] or h > size[1]:
-            im.thumbnail (size, Image.ANTIALIAS)
-            im.save (filename, 'JPEG', quality=95)
-    except:
-        pass
-
 def __gen_tai (link, img_src):
     return '<div class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></div>' % (link, img_src)
 
 def __sp_twitpic (m):
-    url = save_image ('http://%s/show/thumb/%s' % (m.group (2), m.group (3)))
+    url = media.save_image ('http://%s/show/thumb/%s' % (m.group (2),
+                                                         m.group (3)))
     return __gen_tai (m.group (0), url)
 
 def __sp_yfrog (m):
-    url = save_image ('http://%s/%s.th.jpg' % (m.group (1), m.group (2)))
+    url = media.save_image ('http://%s/%s.th.jpg' % (m.group (1), m.group (2)))
     return __gen_tai (m.group (0), url)
 
 def __sp_brizzly (m):
-    url = save_image ('http://pics.brizzly.com/thumb_sm_%s.jpg' % (m.group (2)))
+    url = media.save_image ('http://pics.brizzly.com/thumb_sm_%s.jpg' % (m.group (2)))
     return __gen_tai (m.group (0), url)
 
 def __sp_flickr (m):
@@ -110,7 +73,7 @@ def __sp_flickr (m):
         return url
 
 def __sp_imgloc (m):
-    url = save_image (m.group (2))
+    url = media.save_image (m.group (2))
     return '%s<div class="thumbnails"><img src="%s" alt="thumbnail" /></div>%s' % (m.group (1), url, m.group (4))
 
 def shortpics (s):
@@ -138,7 +101,7 @@ def __sv_youtube (m):
     rest   = rest[ltag:] if ltag != -1 else ''
     link   = 'http://www.youtube.com/watch?v=%s' % id
     imgurl = 'http://i.ytimg.com/vi/%s/default.jpg' % id
-    imgurl = save_image (imgurl)
+    imgurl = media.save_image (imgurl)
     return '<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="120" height="90" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 def __sv_vimeo (m):
@@ -147,7 +110,7 @@ def __sv_vimeo (m):
     link = m.group (0)
     imgurl = vimeo.get_thumbnail_url (id)
     if imgurl:
-        imgurl = save_image (imgurl)
+        imgurl = media.save_image (imgurl)
         return '<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="Vimeo Video" /></a><div class="playbutton"></div></div></td></tr></table>' % (id, link, imgurl)
     else:
         return link
@@ -182,7 +145,7 @@ def __sv_dailymotion (m):
     ltag = rest.find ('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'http://www.dailymotion.com/thumbnail/160x120/video/%s' % id
-    imgurl = save_image (imgurl)
+    imgurl = media.save_image (imgurl)
     return '<table class="vc"><tr><td><div id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="160" height="120" alt="Dailymotion Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 def __sv_metacafe (m):
@@ -192,7 +155,7 @@ def __sv_metacafe (m):
     ltag = rest.find ('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'http://www.metacafe.com/thumb/%s.jpg' % id
-    imgurl = save_image (imgurl)
+    imgurl = media.save_image (imgurl)
     return '<table class="vc"><tr><td><div id="metacafe-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="136" height="81" alt="Metacafe Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 def __sv_googlevideo (m):

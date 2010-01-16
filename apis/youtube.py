@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,7 +15,7 @@
 
 from django.template.defaultfilters import title
 from django.utils.translation import ugettext as _
-from glifestream.filters import expand
+from glifestream.stream import media
 import webfeed
 
 class API (webfeed.API):
@@ -33,7 +33,7 @@ class API (webfeed.API):
         if ent.has_key ('media_thumbnail') and len (ent['media_thumbnail']):
             tn = ent['media_thumbnail'][0]
             if self.service.public:
-                tn['url'] = expand.save_image (tn['url'])
+                tn['url'] = media.save_image (tn['url'])
 
             e.link = e.link.replace ('&feature=youtube_gdata', '')
             e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['yt_videoid'], e.link, tn['url'], tn['width'], tn['height'])

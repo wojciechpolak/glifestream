@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -27,6 +27,7 @@ from django.utils.translation import ungettext
 from django.template.defaultfilters import date as ddate
 from django.template.defaultfilters import urlencode, urlize, slugify, timesince
 import glifestream.filters
+from glifestream.stream import media
 from glifestream.apis import *
 
 @register.filter
@@ -48,7 +49,7 @@ def gls_hdate (date):
 
 @register.filter
 def gls_media (s):
-    return s.replace ('thumbs/', settings.MEDIA_URL + '/thumbs/')
+    return media.set_thumbs_url (s)
 
 @register.filter
 def gls_link (e, entry):

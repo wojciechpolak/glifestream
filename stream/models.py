@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -140,8 +140,7 @@ class Entry (models.Model):
 class Media (models.Model):
     entry = models.ForeignKey (Entry, verbose_name=_('Entry'),
                                null=False, blank=False)
-    type = models.CharField (_('Type'), max_length=16)
-    file = models.FileField (upload_to='thumbs')
+    file = models.FileField (upload_to='upload/%Y/%m/%d')
 
     class Meta:
         verbose_name = _('Media')

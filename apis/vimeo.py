@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -19,7 +19,6 @@ from django.utils.translation import ugettext as _
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
-from glifestream.filters import expand
 
 try:
     import json
@@ -92,7 +91,7 @@ class API:
                 e.idata = 'liked'
 
                 if self.service.public:
-                    ent['video_thumbnail_medium'] = expand.save_image (ent['video_thumbnail_medium'])
+                    ent['video_thumbnail_medium'] = media.save_image (ent['video_thumbnail_medium'])
 
                 e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['video_id'], e.link, ent['video_thumbnail_medium'], ent['video_title'])
 
@@ -125,7 +124,7 @@ class API:
             e.author_name = ent['user_name']
 
             if self.service.public:
-                ent['thumbnail_medium'] = expand.save_image (ent['thumbnail_medium'])
+                ent['thumbnail_medium'] = media.save_image (ent['thumbnail_medium'])
 
             e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['id'], e.link, ent['thumbnail_medium'], ent['title'])
 
