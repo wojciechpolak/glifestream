@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -21,7 +21,6 @@ from django.utils.html import strip_tags, strip_entities
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
-from glifestream.filters import expand
 
 try:
     import json
@@ -97,7 +96,7 @@ class API:
             e.guid = guid
             e.title = '%s' % strip_entities (strip_tags (ent['body']))[0:254]
             e.link  = ent['url']
-            e.link_image = expand.save_image ('http://friendfeed-api.com/v2/picture/%s' % ent['from']['id'])
+            e.link_image = media.save_image ('http://friendfeed-api.com/v2/picture/%s' % ent['from']['id'])
 
             e.date_published = t
             e.date_updated = t
@@ -108,7 +107,7 @@ class API:
                 content += '<div class="thumbnails">'
                 for t in ent['thumbnails']:
                     if self.service.public:
-                        t['url'] = expand.save_image (t['url'])
+                        t['url'] = media.save_image (t['url'])
                     if t.has_key ('width') and t.has_key ('height'):
                         iwh = ' width="%d" height="%d"' % (t['width'],
                                                            t['height'])

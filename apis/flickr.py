@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@ from itertools import groupby
 from django.utils.translation import ugettext as _
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
-from glifestream.filters import expand
+from glifestream.stream import media
 import webfeed
 
 class API (webfeed.API):
@@ -44,7 +44,7 @@ class API (webfeed.API):
                 if ent.has_key ('media_thumbnail'):
                     tn = ent['media_thumbnail'][0]
                     if self.service.public:
-                        tn['url'] = expand.save_image (tn['url'])
+                        tn['url'] = media.save_image (tn['url'])
                     content += """  <a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a>\n""" % (ent.link, tn['url'], tn['width'], tn['height'])
 
             ent = firstent
@@ -77,11 +77,11 @@ class API (webfeed.API):
                 e.date_updated = mtime (ent.updated_parsed)
 
             if self.fp.feed.has_key ('image'):
-                e.link_image = expand.save_image (self.fp.feed.image.href)
+                e.link_image = media.save_image (self.fp.feed.image.href)
             else:
                 for link in ent.links:
                     if link.rel == 'image':
-                        e.link_image = expand.save_image (link.href)
+                        e.link_image = media.save_image (link.href)
             try:
                 e.save ()
             except:

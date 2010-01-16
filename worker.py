@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -37,6 +37,7 @@ setup_environ (settings)
 from django.conf import settings
 from glifestream.utils.time import unixnow
 from glifestream.stream.models import Service, Entry, Favorite
+from glifestream.stream import media
 
 if workerpool:
     class WorkerJob (workerpool.Job):
@@ -111,18 +112,21 @@ def run ():
 
     if thumbs in ('list-orphans', 'delete-orphans'):
         import re
-        ths = []
+        ths = {}
         for root, dirs, files in os.walk (os.path.join (settings.MEDIA_ROOT,
                                                         'thumbs')):
             for file in files:
-                ths.append (str ('thumbs/' + file))
+                if file[0] != '.':
+                    ths[media.get_thumb_info (file)['rel']] = True
         entries = Entry.objects.all ()
         for entry in entries:
-            if entry.link_image in ths:
-                ths.remove (entry.link_image)
-            for img in re.findall ('<img src="(thumbs/[a-z0-9]{40})"',
-                                   entry.content):
-                if img in ths: ths.remove (img)
+            hash = media.get_thumb_hash (entry.link_image)
+            t = media.get_thumb_info (hash)['rel'] if hash else ''
+            if t in ths: del ths[t]
+            for hash in re.findall ('\[GLS-THUMBS\]/([a-f0-9]{40})',
+                                    entry.content):
+                t = media.get_thumb_info (hash)['rel']
+                if t in ths: del ths[t]
         if thumbs == 'delete-orphans':
             if verbose:
                 print 'Files to remove: %d' % len (ths)

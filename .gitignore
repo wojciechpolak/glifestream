@@ -4,4 +4,5 @@
 *~
 settings.py
 static/thumbs
+static/upload
 templates/user-*

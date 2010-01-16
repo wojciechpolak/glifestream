@@ -1,5 +1,5 @@
 gLifestream -- INSTALL
-Copyright (C) 2009 Wojciech Polak
+Copyright (C) 2009, 2010 Wojciech Polak
 
 * gLifestream requirements
 ==========================
@@ -32,8 +32,14 @@ Optional (but recommended):
 Rename 'glifestream/settings-sample.py' to 'settings.py' and edit your
 local site configuration.
 
-Make sure that 'glifestream/static/thumbs' directory exists and has
-write permissions by your webserver.
+Make sure that 'glifestream/static/thumbs' and
+'glifestream/static/upload' directories exist and both have write
+permissions by your webserver.
+
+Create subfolders (with write permissions by your webserver) in
+'glifestream/static/thumbs':
+
+ $ mkdir {0..9} {a..f}
 
 Create the following files:
 

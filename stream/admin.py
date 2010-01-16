@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -20,6 +20,7 @@ from django.contrib.admin.widgets import AdminFileWidget
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from models import Service, Entry, Media, Favorite, List
+from glifestream.stream import media
 
 def deactivate (modeladmin, request, queryset):
     queryset.update (active=False)
@@ -61,28 +62,29 @@ class AdminImageWidget (AdminFileWidget):
         file_name = str (value)
         if file_name:
             file_path = '%s/%s' % (settings.MEDIA_URL, file_name)
-            try:
-                thumbnail = '<img src="%s" alt="" />' % file_path
-                output.append ('<p><a target="_blank" href="%s">%s</a></p>%s <a target="_blank" href="%s">%s</a><br />%s ' % \
-                                   (file_path, thumbnail, _('Currently:'), file_path, file_path, _('Change:')))
-            except IOError:
-                output.append ('%s <a target="_blank" href="%s">%s</a> <br />%s ' % \
-                                   (_('Currently:'), file_path, file_name, _('Change:')))
+            if 'thumbs/' in file_name:
+                thumbnail = '<img src="%s" alt="[thumbnail]" />' % file_path
+            else:
+                thumbnail = ''
+            output.append ('<p><a target="_blank" href="%s">%s</a></p>%s <a target="_blank" href="%s">%s</a><br />%s ' % \
+                               (file_path, thumbnail, _('Currently:'), file_path, file_path, _('Change:')))
         output.append (super (AdminFileWidget, self).render (name, value, attrs))
         return mark_safe (''.join (output))
 
-class MediaForm(forms.ModelForm):
+class MediaForm (forms.ModelForm):
     file = forms.FileField (widget=AdminImageWidget)
     class Meta:
         model = Media
 
 class MediaAdmin (admin.ModelAdmin):
     list_display = ('entry', 'file',)
+    raw_id_fields = ('entry',)
     form = MediaForm
 
 class FavoriteAdmin (admin.ModelAdmin):
     list_display = ('user', 'entry',)
     list_filter = ('user',)
+    raw_id_fields = ('entry',)
 
 class ListAdmin (admin.ModelAdmin):
     list_display = ('user', 'name',)

@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -69,8 +69,7 @@ class API:
         if images:
             thumbs = '<div class="thumbnails">\n'
             for img in images:
-                img = expand.save_image (img, force=True)
-                expand.downscale_image (img)
+                img = media.save_image (img, force=True, downscale=True)
                 thumbs += """  <a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a>\n""" % (e.link, img)
             thumbs += '</div>'
             e.content += thumbs
