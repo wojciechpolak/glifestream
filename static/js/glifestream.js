@@ -83,10 +83,17 @@
     return $(obj);
   }
 
-  function play_audio () {
+  function play_audio (e) {
+    if (e.which && e.which !== 1)
+      return false;
     var a = parse_id (this.id);
     var type = a[0];
     $('a', this).blur ();
+
+    if ($('.player', this.parentNode).length) {
+      $('.player', this.parentNode).remove ();
+      return false;
+    }
 
     if (type == 'audio') {
       var embed = '<audio src="'+ $('a', this).attr ('href') +'" controls="true" autoplay="autoplay">'+ _('Your browser does not support it.') +'</audio>';
