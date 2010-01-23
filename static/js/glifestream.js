@@ -55,6 +55,9 @@
     else if (type == 'googlevideo') {
       var embed = '<embed id="VideoPlayback" src="http://video.google.com/googleplayer.swf?docid='+ id +'&fs=true" style="width:400px; height:326px" allowFullScreen="true" allowScriptAccess="always" type=application/x-shockwave-flash></embed>';
     }
+    else {
+      return true;
+    }
 
     $('.playbutton', this).removeClass ('playbutton').addClass ('stopbutton');
     $VC (this).after ('<div class="player">' + embed + '</div>');
@@ -109,6 +112,10 @@
       var data = a[1];
       var embed = '<embed src="http://www.saynow.com/flash/sentplayer3.swf" quality="high" FlashVars="itemId='+ data +'&autoplay=0&duration=00:00&url=http://my.saynow.com" bgcolor="#ffffff" wmode="opaque" width="320" height="65" name="player" align="middle" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>';
     }
+    else {
+      return true;
+    }
+
     $('.player').remove ();
     $(this.parentNode).append ('<div class="player">' + embed + '</div>');
     scroll_to_element (this);
@@ -317,7 +324,16 @@
       show_selfposts_classes ();
   }
 
+  function open_files () {
+    $('#afiles').hide ();
+    $('#filebox').show ();
+    return false;
+  }
+
   function share () {
+    var docs = $('input[name=docs]');
+    if (docs.length && docs.get (0).files && docs.get (0).files.length)
+      return true;
     var status = $('#status');
     if ($.trim (status.val ()) != '') {
       show_spinner (this);
@@ -332,6 +348,7 @@
 	  scaledown_images ();
 	});
     }
+    return false;
   }
 
   function get_map_embed (lat, lng) {
@@ -547,8 +564,6 @@
       $('div.play-video,span.play-video', stream).toggle (play_video, stop_video);
       $('span.play-audio', stream).live ('click', play_audio);
       $('#change-theme').click (change_theme);
-      $('#ashare').click (open_sharing);
-      $('#post').click (share);
       $('div.lists select').change (function () {
 	  if (this.value != '')
 	    window.location = baseurl + 'list/' + this.value + '/';
@@ -573,6 +588,10 @@
       $('form[name=searchform]').submit (function () {
 	  return ($('input[name=s]').val () == '') ? false : true;
 	});
+
+      $('#ashare').click (open_sharing);
+      $('#afiles').click (open_files);
+      $('#post').click (share);
 
       /* You may overwrite it in your user-scripts.js */
       social_sharing_sites = window.social_sharing_sites ||

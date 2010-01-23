@@ -101,7 +101,7 @@ def index (request, **args):
     # Filter for favorites.
     if 'favorites' in args:
         if not authed:
-            return HttpResponseRedirect (settings.BASE_URL)
+            return HttpResponseRedirect (settings.BASE_URL + '/')
         favs = Favorite.objects.filter (user__id=request.user.id)
         page['favorites'] = True
         page['title'] = _('Favorites')
@@ -388,26 +388,31 @@ def api (request, **args):
         return HttpResponse (json.dumps (d), mimetype='application/json')
 
     elif cmd == 'share':
-        id = request.POST.get ('id', None)
-        link = request.POST.get ('link', None)
-        content = request.POST.get ('content', '')
-        source = request.POST.get ('from', '')
         images = []
         for i in range (0, 5):
             img = request.POST.get ('image' + str (i), None)
             if img:
                 images.append (img)
-        entry = selfposts.API (False).add (content, id=id, link=link,
-                                           images=images, source=source)
+        source = request.POST.get ('from', '')
+        entry = selfposts.API (False).share (
+            { 'content': request.POST.get ('content', ''),
+              'id': request.POST.get ('id', None),
+              'link': request.POST.get ('link', None),
+              'images': images,
+              'files': request.FILES,
+              'source': source })
         if entry:
             if source == 'bookmarklet':
                 d = {'close_msg': _("You've successfully shared this web page at your stream.")}
                 return HttpResponse (json.dumps (d),
                                      mimetype='application/json')
             else:
-                return render_to_response ('stream-pure.html',
-                                           { 'entries': (entry,),
-                                             'authed': authed })
+                if request.is_ajax ():
+                    return render_to_response ('stream-pure.html',
+                                               { 'entries': (entry,),
+                                                 'authed': authed })
+                else:
+                    return HttpResponseRedirect (settings.BASE_URL + '/')
     elif cmd == 'reshare' and entry:
         try:
             entry = Entry.objects.get (id=int(entry))

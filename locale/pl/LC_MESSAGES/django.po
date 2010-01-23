@@ -1,13 +1,13 @@
 # Polish translations for gLifestream package.
-# Copyright (C) 2009 Wojciech Polak
+# Copyright (C) 2009, 2010 Wojciech Polak
 # This file is distributed under the same license as the gLifestream package.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-12-15 19:43+0100\n"
-"PO-Revision-Date: 2009-12-15 19:53+0100\n"
+"POT-Creation-Date: 2010-01-23 20:21+0100\n"
+"PO-Revision-Date: 2010-01-23 20:23+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -44,12 +44,12 @@ msgstr "Utwór %s"
 msgid "Artist: %s"
 msgstr "Artysta: %s"
 
-#: apis/vimeo.py:153
+#: apis/vimeo.py:152
 #, python-format
 msgid "Liked %s"
 msgstr "Wideo %s"
 
-#: apis/vimeo.py:155 apis/youtube.py:47
+#: apis/vimeo.py:154 apis/youtube.py:47
 #, python-format
 msgid "Published %s"
 msgstr "Wideo %s"
@@ -84,11 +84,11 @@ msgstr "Zamknij"
 msgid "Click on images to share them."
 msgstr "Kliknij obrazki aby je dodać."
 
-#: bookmarklet/templates/frame.html:55 templates/stream.html:50
+#: bookmarklet/templates/frame.html:55 templates/stream.html:51
 msgid "Class:"
 msgstr "Klasa:"
 
-#: bookmarklet/templates/frame.html:59 templates/stream.html:51
+#: bookmarklet/templates/frame.html:59 templates/stream.html:56
 msgid "Post"
 msgstr "Publikuj"
 
@@ -100,27 +100,27 @@ msgstr "Kliknij aby usunąć"
 msgid "Remember Me"
 msgstr "Zapamiętaj mnie"
 
-#: stream/admin.py:26
+#: stream/admin.py:27
 msgid "Deactivate item"
 msgstr "Deaktywuj element"
 
-#: stream/admin.py:30
+#: stream/admin.py:31
 msgid "Activate item"
 msgstr "Aktywuj element"
 
-#: stream/admin.py:40
+#: stream/admin.py:42
 msgid "Additional, optional fields"
 msgstr "Dodatkowe, opcjonalne pola"
 
-#: stream/admin.py:43
+#: stream/admin.py:45
 msgid "Fields updated automatically by gLifestream"
 msgstr "Pola aktualizowane automatycznie przez gLifestream"
 
-#: stream/admin.py:66 stream/admin.py:69
+#: stream/admin.py:70
 msgid "Currently:"
 msgstr "Aktualnie:"
 
-#: stream/admin.py:66 stream/admin.py:69
+#: stream/admin.py:70
 msgid "Change:"
 msgstr "Zmień:"
 
@@ -196,7 +196,9 @@ msgstr "Widoczny na stronie głównej"
 msgid ""
 "If unchecked, this stream will be still active, but hidden and thus visible "
 "only via custom lists."
-msgstr "Gdy nie jest zaznaczony, ten strumień będzie wciąż aktywny, ale ukryty i widoczny jedynie za pomocą List."
+msgstr ""
+"Gdy nie jest zaznaczony, ten strumień będzie wciąż aktywny, ale ukryty i "
+"widoczny jedynie za pomocą List."
 
 #: stream/models.py:79 stream/models.py:93
 msgid "Service"
@@ -262,7 +264,7 @@ msgstr "Chroni przed możliwym nadpisaniem przy kolejnej aktualizacji."
 msgid "If not active, this entry will not be shown."
 msgstr "Nieaktywny, ten wpis nie będzie wyświetlany."
 
-#: stream/models.py:126 stream/models.py:141 stream/models.py:157
+#: stream/models.py:126 stream/models.py:141 stream/models.py:156
 msgid "Entry"
 msgstr "Wpis"
 
@@ -270,85 +272,81 @@ msgstr "Wpis"
 msgid "Entries"
 msgstr "Wpisy"
 
-#: stream/models.py:143
-msgid "Type"
-msgstr "Typ"
-
-#: stream/models.py:147 stream/models.py:148
+#: stream/models.py:146 stream/models.py:147
 msgid "Media"
 msgstr "Media"
 
-#: stream/models.py:162 templates/i18n.html:2 templates/stream-pure.html:37
+#: stream/models.py:161 templates/i18n.html:2 templates/stream-pure.html:37
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:163 stream/views.py:106
+#: stream/models.py:162 stream/views.py:107
 msgid "Favorites"
 msgstr "Ulubione"
 
-#: stream/models.py:173
+#: stream/models.py:172
 msgid "Name"
 msgstr "Nazwa"
 
-#: stream/models.py:174
+#: stream/models.py:173
 msgid "Slug"
 msgstr "Slug"
 
-#: stream/models.py:179
+#: stream/models.py:178
 msgid "List"
 msgstr "Lista"
 
-#: stream/models.py:180 templates/stream.html:16
+#: stream/models.py:179 templates/stream.html:16
 msgid "Lists"
 msgstr "Listy"
 
-#: stream/views.py:88
+#: stream/views.py:89
 #, python-format
 msgid "You are currently browsing the archive for %s"
 msgstr "Aktualnie przeglądasz archiwum dla %s"
 
-#: stream/views.py:107
+#: stream/views.py:108
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:118
+#: stream/views.py:119
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:139
+#: stream/views.py:140
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:157
+#: stream/views.py:158
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:191
+#: stream/views.py:192
 #, python-format
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
 
-#: stream/views.py:395
+#: stream/views.py:406
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
-#: stream/templatetags/gls_filters.py:80
+#: stream/templatetags/gls_filters.py:81
 msgid "show map"
 msgstr "pokaż na mapie"
 
-#: stream/templatetags/gls_filters.py:115
+#: stream/templatetags/gls_filters.py:116
 msgid "Yesterday"
 msgstr "Wczoraj"
 
-#: stream/templatetags/gls_filters.py:117
+#: stream/templatetags/gls_filters.py:118
 #, python-format
 msgid "%d days ago"
 msgstr "%d dni temu"
 
-#: stream/templatetags/gls_filters.py:120
+#: stream/templatetags/gls_filters.py:121
 #, python-format
 msgid "%(count)d hour ago"
 msgid_plural "%(count)d hours ago"
@@ -356,7 +354,7 @@ msgstr[0] "%(count)d godzinę temu"
 msgstr[1] "%(count)d godziny temu"
 msgstr[2] "%(count)d godzin temu"
 
-#: stream/templatetags/gls_filters.py:124
+#: stream/templatetags/gls_filters.py:125
 #, python-format
 msgid "%(count)d minute ago"
 msgid_plural "%(count)d minutes ago"
@@ -521,29 +519,37 @@ msgstr "Szukaj"
 msgid "Add content"
 msgstr "Dodaj wpis"
 
-#: templates/stream.html:47
+#: templates/stream.html:48
 msgid "What's up?"
 msgstr "Co słychać?"
 
-#: templates/stream.html:59
+#: templates/stream.html:52
+msgid "add files"
+msgstr "dodaj pliki"
+
+#: templates/stream.html:54
+msgid "Files:"
+msgstr "Pliki:"
+
+#: templates/stream.html:65
 msgid "next month"
 msgstr "następny miesiąc"
 
-#: templates/stream.html:64 templates/stream.html.py:74
-#: templates/stream.html:78
+#: templates/stream.html:70 templates/stream.html.py:80
+#: templates/stream.html:84
 msgid "newer entries"
 msgstr "nowsze wpisy"
 
-#: templates/stream.html:66 templates/stream.html.py:75
-#: templates/stream.html:77
+#: templates/stream.html:72 templates/stream.html.py:81
+#: templates/stream.html:83
 msgid "older entries"
 msgstr "starsze wpisy"
 
-#: templates/stream.html:84
+#: templates/stream.html:90
 msgid "previous page"
 msgstr "poprzednia strona"
 
-#: templates/stream.html:85
+#: templates/stream.html:91
 msgid "next page"
 msgstr "następna strona"
 

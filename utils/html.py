@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -29,3 +29,16 @@ def strip_script (s):
     except:
         pass
     return s
+
+def bytes_to_human (bytes, precision=2):
+    suffixes = ('B', 'kB', 'MB', 'GB')
+    format = '%.*f %s'
+    size = float (bytes)
+    for suffix in suffixes:
+        if size >= 1024:
+            size /= 1024
+        else:
+            if suffix is suffixes[0]:
+                precision = 0
+            return format % (precision, size, suffix)
+    return format % (precision, size, suffixes[-1])

@@ -49,7 +49,7 @@ def gls_hdate (date):
 
 @register.filter
 def gls_media (s):
-    return media.set_thumbs_url (s)
+    return media.set_upload_url (media.set_thumbs_url (s))
 
 @register.filter
 def gls_link (e, entry):

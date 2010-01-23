@@ -16,9 +16,10 @@
 from django.conf import settings
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
+from django.utils.datastructures import MultiValueDict
 from glifestream.utils.time import mtime, utcnow
-from glifestream.utils.html import strip_script
-from glifestream.stream.models import Service, Entry
+from glifestream.utils.html import strip_script, bytes_to_human
+from glifestream.stream.models import Service, Entry, Media
 from glifestream.stream import media
 from glifestream.filters import expand, truncate
 
@@ -37,12 +38,14 @@ class API:
     def run (self):
         pass
 
-    def add (self, content, **args):
-        id     = args.get ('id', None)
-        title  = args.get ('title', None)
-        link   = args.get ('link', None)
-        images = args.get ('images', None)
-        source = args.get ('source', '')
+    def share (self, args={}):
+        content = args.get ('content', '')
+        id      = args.get ('id', None)
+        title   = args.get ('title', None)
+        link    = args.get ('link', None)
+        images  = args.get ('images', None)
+        files   = args.get ('files', MultiValueDict ())
+        source  = args.get ('source', '')
 
         un = utcnow ()
         guid = '%s/entry/%s' % (settings.FEED_TAGURI,
@@ -67,11 +70,11 @@ class API:
         e.content = expand.imgloc (e.content)
 
         if images:
-            thumbs = '<div class="thumbnails">\n'
+            thumbs = '\n<div class="thumbnails">\n'
             for img in images:
                 img = media.save_image (img, force=True, downscale=True)
                 thumbs += """  <a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a>\n""" % (e.link, img)
-            thumbs += '</div>'
+            thumbs += '</div>\n'
             e.content += thumbs
 
         if title:
@@ -83,6 +86,40 @@ class API:
 
         try:
             e.save ()
+
+            pictures = []
+            docs = []
+
+            for f in files.getlist ('docs'):
+                md = Media (entry=e)
+                md.file.save (f.name, f)
+                md.save ()
+                if f.content_type.startswith ('image/'):
+                    pictures.append ((md, f))
+                else:
+                    docs.append ((md, f))
+
+            if len (pictures):
+                thumbs = '\n<div class="thumbnails">\n'
+                for o in pictures:
+                    thumb, orig = media.downsave_uploaded_image (o[0].file)
+                    thumbs += '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n' % (orig, thumb)
+                thumbs += '</div>\n'
+                e.content += thumbs
+
+            if len (docs):
+                doc = '\n<ul class="files">\n'
+                for o in docs:
+                    doc += '  <li><a href="[GLS-UPLOAD]/%s">%s</a> ' % \
+                        (o[0].file.url.replace ('/upload/', ''), o[1].name)
+                    doc += '<span class="size">%s</span></li>\n' % \
+                        bytes_to_human (o[1].size)
+                doc += '</ul>\n'
+                e.content += doc
+
+            if len (pictures) or len (docs):
+                e.save ()
+
             media.extract_and_register (e)
             return e
         except:
