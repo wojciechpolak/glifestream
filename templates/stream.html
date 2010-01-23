@@ -43,15 +43,21 @@
 {% if authed %}
 <aside id="share">
   <a href="#" id="ashare">{% trans "Add content" %}</a>
-  <fieldset style="display: none">
-    <h3><label for="status">{% trans "What's up?" %}</label></h3>
-    <div class="editor">
-      <textarea id="status" cols="40" rows="2" accesskey="u" autocomplete="off"></textarea>
-      <div>{% trans "Class:" %} <select id="status_class"></select>
-	<input id="post" type="button" value="{% trans "Post" %}">
+  <form action="/api/share" method="post" enctype="multipart/form-data">
+    <fieldset style="display:none">
+      <h3><label for="status">{% trans "What's up?" %}</label></h3>
+      <div class="editor">
+	<textarea id="status" name="content" cols="40" rows="2" accesskey="u" autocomplete="off"></textarea>
+	<div>{% trans "Class:" %} <select id="status_class" name="id"></select>
+	  <a href="#" id="afiles">{% trans "add files" %}</a>
+	  <span id="filebox" style="display:none">
+	    {% trans "Files:" %} <input type="file" name="docs" multiple="" />
+	  </span>
+	  <input id="post" type="submit" value="{% trans "Post" %}">
+	</div>
       </div>
-    </div>
-  </fieldset>
+    </fieldset>
+  </form>
 </aside>
 {% endif %}
 <section id="stream" class="hfeed">

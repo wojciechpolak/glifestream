@@ -19,6 +19,7 @@ import httplib
 import base64
 from django.utils.html import strip_tags, strip_entities
 from glifestream.utils.time import mtime, now
+from glifestream.utils.html import bytes_to_human
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 
@@ -125,12 +126,12 @@ class API:
                 content += '</div>'
 
             if ent.has_key ('files'):
-                content += '<div class="files">'
+                content += '<ul class="files">\n'
                 for f in ent['files']:
                     if 'http://friendfeed-media.com' in f['url']:
-                        content += '  <a href="%s">%s</a> <span class="size">%s</span>' \
-                            % (f['url'], f['name'], str (round (float (f['size']) / 1048576, 2)) + ' MB')
-                content += '</div>'
+                        content += '  <li><a href="%s" rel="nofollow">%s</a> <span class="size">%s</span></li>\n' \
+                            % (f['url'], f['name'], bytes_to_human (f['size']))
+                content += '</ul>\n'
 
             e.content = content
 

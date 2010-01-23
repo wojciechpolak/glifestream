@@ -6,17 +6,14 @@ a:link {
   text-decoration: none;
   color: #0000f0;
 }
-
 a:visited {
   text-decoration: none;
   color: #0000f0;
 }
-
 a:active {
   text-decoration: none;
   color: #0000f0;
 }
-
 a:hover {
   text-decoration: underline;
 }
@@ -229,7 +226,7 @@ p.subtitle {
   width: 48px;
   height: 48px;
   float: left;
-  margin-right: 12px;
+  margin-right: 10px;
   margin-bottom: 3px;
 }
 
@@ -369,6 +366,11 @@ table.vc td { padding: 0; }
   padding: 1px;
   border: 1px solid #dddddd;
 }
+ul.files {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
 .files span.size {
   color: #999999;
   font-size: 75%;
@@ -406,6 +408,10 @@ table.vc td { padding: 0; }
   width: 98%;
   padding: 3px;
   margin-bottom: 1px;
+}
+#afiles, #filebox {
+  font-size: 95%;
+  padding-left: 4px;
 }
 #post {
   float: right;

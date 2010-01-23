@@ -27,6 +27,9 @@ try:
 except ImportError:
     Image = None
 
+def set_upload_url (s):
+    return s.replace ('[GLS-UPLOAD]/', settings.MEDIA_URL + '/upload/')
+
 def set_thumbs_url (s):
     return re.sub (r'\[GLS-THUMBS\]/([a-f0-9])',
                    settings.MEDIA_URL + '/thumbs/\\1/\\1', s)
@@ -72,6 +75,18 @@ def downscale_image (filename):
             im.save (filename, 'JPEG', quality=95)
     except:
         pass
+
+def downsave_uploaded_image (file):
+    url = '[GLS-UPLOAD]/%s' % file.url.replace ('/upload/', '')
+    try:
+        thumb = get_thumb_info (hashlib.sha1 (file.name).hexdigest ())
+        if not os.path.isfile (thumb['local']):
+            shutil.copy (file.path, thumb['local'])
+            downscale_image (thumb['local'])
+        return (thumb['internal'], url)
+    except:
+        pass
+    return (url, url)
 
 def extract_and_register (entry):
     for hash in re.findall ('\[GLS-THUMBS\]/([a-f0-9]{40})', entry.content):
