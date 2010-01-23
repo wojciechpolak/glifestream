@@ -133,7 +133,7 @@ p.subtitle {
 }
 
 #stream .entry-hidden {
-  padding: 0 0 1em 58px;
+  padding: 0 0 1em 60px;
 }
 
 #stream .entry-highlight {
@@ -150,7 +150,7 @@ p.subtitle {
 }
 
 #stream .entry-content {
-  margin: 10px 0 0 58px;
+  margin: 10px 0 0 60px;
 }
 
 #stream .entry-info {
@@ -159,7 +159,7 @@ p.subtitle {
   font-size: 85% !important;
   clear: left;
   color: #999999;
-  margin: 4px 0 0 58px;
+  margin: 4px 0 0 60px;
   text-align: right;
 }
 #stream .entry-info a {
@@ -226,7 +226,7 @@ p.subtitle {
   width: 48px;
   height: 48px;
   float: left;
-  margin-right: 10px;
+  margin-right: 12px;
   margin-bottom: 3px;
 }
 
