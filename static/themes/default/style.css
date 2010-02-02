@@ -151,6 +151,7 @@ p.subtitle {
 
 #stream .entry-content {
   margin: 10px 0 0 60px;
+  line-height: 140%;
 }
 
 #stream .entry-info {
@@ -399,23 +400,47 @@ ul.files {
   font-weight: normal;
   margin: 3px 0 3px 0;
 }
-#share fieldset {
-  margin-top: 3px;
-  border: none;
-  padding: 0;
+#share .fieldset {
+  margin: 6px 6em 0 2px;
 }
 #share textarea {
   width: 98%;
   padding: 3px;
   margin-bottom: 1px;
 }
-#afiles, #filebox {
+#expand-sharing {
   font-size: 95%;
-  padding-left: 4px;
+  width: 16px;
+  height: 16px;
+  margin-left: 3px;
+  padding-right: 18px;
+  background: transparent url(icons/expand.png) no-repeat 100% 50%;
+}
+#more-sharing-options {
+  font-size: 95%;
+  padding: 7px 7px 7px 0;
+  border-bottom: 1px dashed gray;
 }
 #post {
   float: right;
   font-weight: bold;
+}
+
+.friends-only-entry {
+  background: transparent url(icons/halt.png) no-repeat 7px 25%;
+  border: 1px solid #333333;
+  padding: 5px 20px 5px 70px;
+  margin-bottom: 7px;
+}
+.friends-only-entry p {
+  font-weight: bold;
+}
+.friends-only-lock {
+  width: 16px;
+  height: 16px;
+  cursor: help;
+  padding-left: 22px;
+  background: transparent url(icons/lock.png) no-repeat 0 0;
 }
 
 .geo {
@@ -599,4 +624,16 @@ ul.files {
   padding-left: 1.5em;
   color: red;
   font-weight: bold;
+}
+
+@media print {
+  #head { height: 60px; }
+  #head h1 { margin: 0; }
+  #foot, #sidebar, #share, #ashare { display: none; }
+  #stream a.entry-controls-switch { display: none; }
+  #stream {
+    margin-right: auto;
+    border-right: none;
+  }
+  .playbutton, .stopbutton { display: none; }
 }

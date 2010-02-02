@@ -118,6 +118,8 @@ class Entry (models.Model):
         help_text=_('Protect from possible overwriting by next update.'))
     active = models.BooleanField (_('Active'), default=True,
         help_text=_('If not active, this entry will not be shown.'))
+    friends_only = models.BooleanField (_('Friends-only'), default=False,
+        help_text=_('Entry will only be visible to you and your friends.'))
 
     sphinx = SphinxSearch (index=getattr (settings, 'SPHINX_INDEX_NAME',
                                           'glifestream'))

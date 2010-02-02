@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -14,6 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth.models import User
 from django.views.decorators.cache import never_cache
 from django.conf import settings
 from django.core import urlresolvers
@@ -23,6 +24,12 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from glifestream.login.forms import AuthenticationRememberMeForm
 
+try:
+    import facebook
+except ImportError:
+    facebook = None
+
+@never_cache
 def login (request, template_name = 'registration/login.html',
            redirect_field_name = REDIRECT_FIELD_NAME):
 
@@ -33,7 +40,7 @@ def login (request, template_name = 'registration/login.html',
         form = AuthenticationRememberMeForm (data = request.POST,)
         if form.is_valid ():
             if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
-                redirect_to = settings.LOGIN_REDIRECT_URL
+                redirect_to = settings.BASE_URL + '/'
 
             if not form.cleaned_data ['remember_me']:
                 request.session.set_expiry (0)
@@ -72,4 +79,47 @@ def login (request, template_name = 'registration/login.html',
                                  redirect_field_name: redirect_to },
                                context_instance = RequestContext (request))
 
-login = never_cache (login)
+@never_cache
+def login_friend (request, template_name = 'registration/login.html',
+                  redirect_field_name = REDIRECT_FIELD_NAME):
+
+    redirect_to = request.REQUEST.get (redirect_field_name,
+                                       urlresolvers.reverse ('index'))
+    if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
+        redirect_to = settings.BASE_URL + '/'
+
+    if not facebook or settings.FACEBOOK_API_KEY == '':
+        return HttpResponseRedirect (redirect_to)
+
+    are_friends = False
+    try:
+        fb = facebook.Facebook (settings.FACEBOOK_API_KEY,
+                                settings.FACEBOOK_SECRET_KEY)
+        if fb.check_session (request):
+            user_id = fb.users.getLoggedInUser ()
+            if settings.FACEBOOK_USER_ID != user_id:
+                are_friends = fb.friends.areFriends ([settings.FACEBOOK_USER_ID],
+                                                     [user_id])
+                if are_friends:
+                    data = fb.users.getInfo ([user_id], ['first_name',
+                                                         'profile_url'])
+                    request.session['fb_username'] = data[0]['first_name']
+                    request.session['fb_profile_url'] = data[0]['profile_url']
+            else:
+                are_friends = True
+    except Exception, e:
+        raise e
+
+    if not are_friends:
+        return HttpResponseRedirect (redirect_to)
+
+    from django.contrib.auth import login
+
+    user = User.objects.get (username='friend')
+    if user is not None:
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
+        if user.is_active:
+            login (request, user)
+            return HttpResponseRedirect (redirect_to)
+
+    return HttpResponseRedirect (redirect_to)

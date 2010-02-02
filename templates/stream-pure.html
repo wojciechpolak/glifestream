@@ -27,6 +27,7 @@
   {% endifequal %}
     <footer class="entry-info">
       {% if authed %}
+      {% if entry.only_for_friends %}<span class="friends-only-lock" title="{% trans "Friends-only" %}"></span>{% endif %}
       {% if entry.fav or page.favorites %}<span class="favorite"></span>{% endif %}
       <a href="#" class="entry-controls-switch">{% trans "Menu" %}</a>
       <ul class="entry-controls">
@@ -41,7 +42,7 @@
 	<li><a href="{% url admin:index %}stream/entry/{{ entry.id }}">{% trans "Edit" %}</a></li>
       </ul>
       {% endif %}
-      <a href="#" id="shareit-{{ entry.id }}" class="shareit{% if authed %} reshareit{% endif %}" title="{% trans "Share or bookmark this entry" %}"><span>{% trans "Share" %}</span></a>
+      {% if not entry.friends_only %}<a href="#" id="shareit-{{ entry.id }}" class="shareit{% if authed %} reshareit{% endif %}" title="{% trans "Share or bookmark this entry" %}"><span>{% trans "Share" %}</span></a>{% endif %}
       <span class="entry-published">
 	<a href="{{ entry.gls_link }}" rel="bookmark">
 	  <time class="published" datetime="{{ entry.date_published|gls_hdate }}">{{ entry.date_published|gls_date }}</time>

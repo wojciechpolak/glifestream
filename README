@@ -1,5 +1,5 @@
 gLifestream -- README
-Copyright (C) 2009 Wojciech Polak
+Copyright (C) 2009, 2010 Wojciech Polak
 
 * What is gLifestream?
 ======================
@@ -45,6 +45,7 @@ APIs support.
 - Embedded multimedia views
 - Out of the box output formats: HTML5, Atom, JSON
 - Search functionality
+- Friends-only entries (via Facebook Connect)
 - Keyboard shortcuts for navigation
 - Customizable themes
 - Bookmarklet for easy webpage sharing

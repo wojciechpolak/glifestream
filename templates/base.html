@@ -28,7 +28,12 @@
     {% if user.is_staff %}<a href="{% url admin:index %}" target="_blank">{% trans "Admin" %}</a>{% endif %} |
     <a href="{% url django.contrib.auth.views.logout %}">{% trans "Logout" %}</a>
     {% else %}
+    {% if friend %}<span class="text">{% trans "Hello" %}
+    <a href="{{ user.fb_profile_url }}" target="_blank"><b>{{ user.fb_username }}</b></a></span> |
+    <a href="{% url django.contrib.auth.views.logout %}">{% trans "Logout" %}</a>
+    {% else %}
     <a href="{% url login.views.login %}" rel="nofollow">{% trans "Login" %}</a>
+    {% endif %}
     {% endif %}
   </nav>
   <h1 class="tb"><a href="{% url index %}" accesskey="1">{% trans "The Stream" %}</a></h1>
@@ -51,6 +56,17 @@
 </footer>
 
 {% include "user-scripts.js" %}
+
+{% if page.need_fbc %}
+<script type="text/javascript" src="http://static.ak.connect.facebook.com/js/api_lib/v0.4/FeatureLoader.js.php"></script>
+<script type="text/javascript">
+function fb_login_friend () { window.location = '{% url login.views.login_friend %}'; }
+$(document).ready (function () {
+    FB_RequireFeatures (['XFBML'], function () {
+	FB.init ('{{ page.fb_api_key }}', '{% static %}/xd_receiver.html');
+      });
+  });
+</script>{% endif %}
 
 <script type="text/javascript">
 var settings = {

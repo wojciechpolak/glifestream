@@ -297,7 +297,7 @@
   var gsc_done = false;
 
   function open_sharing () {
-    $('#share fieldset').slideDown ('normal', function () {
+    $('#share .fieldset').slideDown ('normal', function () {
 	$('#status').focus ();
 	if (!gsc_done)
 	  get_selfposts_classes ();
@@ -306,7 +306,7 @@
   }
 
   function show_selfposts_classes () {
-    var sc = $('#status_class').get (0);
+    var sc = $('#status-class').get (0);
     for (var i in gsc_load) {
       sc.options[sc.options.length] = new Option (gsc_load[i]['cls'], gsc_load[i]['id']);
     }
@@ -324,9 +324,9 @@
       show_selfposts_classes ();
   }
 
-  function open_files () {
-    $('#afiles').hide ();
-    $('#filebox').show ();
+  function open_more_sharing_options () {
+    $(this).hide ();
+    $('#more-sharing-options').fadeIn ();
     return false;
   }
 
@@ -337,8 +337,10 @@
     var status = $('#status');
     if ($.trim (status.val ()) != '') {
       show_spinner (this);
-      $.post (baseurl + 'api/share', { id: $('#status_class').val (),
-	    content: status.val () }, function (html) {
+      $.post (baseurl + 'api/share', { id: $('#status-class').val (),
+	    content: status.val (),
+	    friends_only: $('#friends-only').attr ('checked') ? 1 : 0 },
+	function (html) {
 	  hide_spinner ();
 	  $('#stream').prepend (html);
 	  $('#stream article:first .play-video').toggle (play_video, stop_video);
@@ -590,15 +592,15 @@
 	});
 
       $('#ashare').click (open_sharing);
-      $('#afiles').click (open_files);
+      $('#expand-sharing').click (open_more_sharing_options);
       $('#post').click (share);
 
       /* You may overwrite it in your user-scripts.js */
       social_sharing_sites = window.social_sharing_sites ||
 	[{ name: 'E-mail', href: 'mailto:?subject={URL}&body={TITLE}', icon: baseurl + 'static/themes/default/icons/email.png'},
 	 { name: 'Twitter', href: 'http://twitter.com/?status={TITLE}:%20{URL}', icon: 'http://twitter.com/favicon.ico'},
-	 { name: 'FriendFeed', href: 'http://friendfeed.com/share?url={URL}&title={TITLE}', icon: 'http://friendfeed.com/favicon.ico'},
 	 { name: 'Facebook', href: 'http://www.facebook.com/share.php?u={URL}&t={TITLE}', icon: 'http://www.facebook.com/favicon.ico'},
+	 { name: 'FriendFeed', href: 'http://friendfeed.com/share?url={URL}&title={TITLE}', icon: 'http://friendfeed.com/favicon.ico'},
 	 { name: 'Delicious', href: 'http://delicious.com/save?url={URL}&title={TITLE}', icon: 'http://delicious.com/favicon.ico'},
 	 { name: 'Digg', href: 'http://digg.com/submit?phase=2&url={URL}&title={TITLE}', icon: 'http://digg.com/favicon.ico'},
 	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', icon: 'http://www.reddit.com/favicon.ico'},

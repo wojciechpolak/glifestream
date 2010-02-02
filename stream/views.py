@@ -55,8 +55,10 @@ def index (request, **args):
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
         'maps_key': settings.MAPS_KEY,
+        'fb_api_key': settings.FACEBOOK_API_KEY,
     }
-    authed = request.user.is_authenticated ()
+    authed = request.user.is_authenticated () and request.user.is_staff
+    friend = request.user.is_authenticated () and not request.user.is_staff
     urlparams = []
     entries_on_page = settings.ENTRIES_ON_PAGE
     entries_orderby = 'date_published'
@@ -273,11 +275,20 @@ def index (request, **args):
     page['theme'] = __get_theme (request)
 
     # Setup links.
+    page['need_fbc'] = False
     for entry in entries:
-        entry.gls_link = '%s/%s' % (urlresolvers.reverse ('entry',
-                                                          args=[entry.id]),
-                                    gls_slugify (truncatewords(entry.title, 7)))
+        if authed or friend:
+            entry.friends_only = False
+        elif entry.friends_only:
+            page['need_fbc'] = True
+
+        if not entry.friends_only:
+            entry.gls_link = '%s/%s' % (urlresolvers.reverse ('entry', args=[entry.id]),
+                                        gls_slugify (truncatewords (entry.title, 7)))
+        else:
+            entry.gls_link = '%s/' % (urlresolvers.reverse ('entry', args=[entry.id]))
         entry.gls_absolute_link = '%s%s' % (page['site_url'], entry.gls_link)
+        entry.only_for_friends = entry.friends_only
 
     # Pickup right output format and finish.
     format = request.GET.get ('format', 'html')
@@ -322,6 +333,9 @@ def index (request, **args):
             accept_lang[i] = lang.split (';')[0]
         page['lang'] = accept_lang[0]
 
+        request.user.fb_username = request.session.get ('fb_username', '')
+        request.user.fb_profile_url = request.session.get ('fb_profile_url', '')
+
         return render_to_response ('stream.html',
                                    { 'classes': classes,
                                      'entries': entries,
@@ -329,12 +343,13 @@ def index (request, **args):
                                      'archives': archs,
                                      'page': page,
                                      'authed': authed,
+                                     'friend': friend,
                                      'has_search': search_enable,
                                      'user': request.user })
 
 @login_required
 def tools (request, **args):
-    authed = request.user.is_authenticated ()
+    authed = request.user.is_authenticated () and request.user.is_staff
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -368,7 +383,8 @@ def api (request, **args):
     cmd = args.get ('cmd', '')
     entry = request.POST.get ('entry', None)
 
-    authed = request.user.is_authenticated ()
+    authed = request.user.is_authenticated () and request.user.is_staff
+    friend = request.user.is_authenticated () and not request.user.is_staff
     if not authed and cmd != 'getcontent':
         return HttpResponseForbidden ()
 
@@ -397,6 +413,7 @@ def api (request, **args):
         entry = selfposts.API (False).share (
             { 'content': request.POST.get ('content', ''),
               'id': request.POST.get ('id', None),
+              'friends_only': request.POST.get ('friends_only', False),
               'link': request.POST.get ('link', None),
               'images': images,
               'files': request.FILES,
@@ -407,6 +424,7 @@ def api (request, **args):
                 return HttpResponse (json.dumps (d),
                                      mimetype='application/json')
             else:
+                entry.friends_only = False
                 if request.is_ajax ():
                     return render_to_response ('stream-pure.html',
                                                { 'entries': (entry,),
@@ -459,6 +477,8 @@ def api (request, **args):
                 else:
                     entry = Entry.objects.get (id=int(entry))
                 if entry:
+                    if authed or friend:
+                        entry.friends_only = False
                     content = fix_ampersands (gls_content ('', entry))
                     return HttpResponse (content)
         except Exception:
