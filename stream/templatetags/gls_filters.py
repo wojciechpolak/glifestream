@@ -73,6 +73,9 @@ def gls_title (e, entry):
 
 @register.filter
 def gls_content (e, entry):
+    if entry.friends_only:
+        return mark_safe ('<div class="friends-only-entry"><p>' +
+         _('The content of this entry is available only to my friends. If you are listed as my friend on Facebook, you may click Facebook Connect button to read it.') + '</p><p><fb:login-button v="2" size="medium" onlogin="fb_login_friend()"></fb:login-button></p></div>')
     try:
         mod = eval (entry.service.api)
         if hasattr (mod, 'filter_content'):

@@ -59,6 +59,7 @@ class API:
         e.link = link if link else settings.BASE_URL
         e.date_published = un
         e.date_updated = un
+        e.friends_only = int (args.get ('friends_only', False))
 
         if markdown and source != 'bookmarklet':
             e.content = expand.all (markdown.markdown (content))

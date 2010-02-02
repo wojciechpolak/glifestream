@@ -111,3 +111,8 @@ SPHINX_API_VERSION = 0x116 # version 0.9.9
 SPHINX_SERVER = 'localhost'
 SPHINX_PORT = 9312
 SPHINX_INDEX_NAME = 'glifestream'
+
+# Facebook Connect (for Friends-Only entries)
+FACEBOOK_API_KEY = 'YOUR-API-KEY' # Leave empty to disable FB.
+FACEBOOK_SECRET_KEY = 'YOUR-SECRET-KEY'
+FACEBOOK_USER_ID = 'YOUR-FB-USERID' # Number

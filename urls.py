@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -45,6 +45,7 @@ urlpatterns = patterns ('',
     (r'^list/(?P<list>[a-z\-]+)/$', sv.index, {}, 'list'),
 
     (r'^login/?$', 'glifestream.login.views.login'),
+    (r'^login-friend/?$', 'glifestream.login.views.login_friend'),
     (r'^logout/?$', 'django.contrib.auth.views.logout',
      {'next_page': './'}),
 

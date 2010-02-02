@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -30,7 +30,7 @@ def frame (request, **args):
     page = {
         'base_url': settings.BASE_URL,
     }
-    authed = request.user.is_authenticated ()
+    authed = request.user.is_authenticated () and request.user.is_staff
     if authed:
         srvs = Service.objects.filter (api='selfposts').order_by ('cls')
         srvs.query.group_by = ['cls']
