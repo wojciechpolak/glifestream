@@ -41,7 +41,7 @@ def __su_subs (m):
 
 def shorturls (text):
     """Expand short URLs."""
-    return re.sub (r'http://(tinyurl.com|bit.ly|url4.eu|is.gd|ur1.ca|2tu.us|ff.im|post.ly|awe.sm|lnk.ms|pic.gd|tl.gd|vid.ly)(/\w+)',
+    return re.sub (r'http://(tinyurl.com|bit.ly|goo.gl|url4.eu|is.gd|ur1.ca|2tu.us|ff.im|post.ly|awe.sm|lnk.ms|pic.gd|tl.gd|vid.ly)(/\w+)',
                    __su_subs, text)
 
 #
