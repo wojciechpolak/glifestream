@@ -17,6 +17,7 @@ from django.conf import settings
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
 from django.utils.datastructures import MultiValueDict
+from django.utils.encoding import smart_unicode
 from glifestream.utils.time import mtime, utcnow
 from glifestream.utils.html import strip_script, bytes_to_human
 from glifestream.stream.models import Service, Entry, Media
@@ -69,6 +70,7 @@ class API:
 
         e.content = strip_script (e.content)
         e.content = expand.imgloc (e.content)
+        e.content = smart_unicode (e.content)
 
         if images:
             thumbs = '\n<div class="thumbnails">\n'
