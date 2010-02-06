@@ -52,7 +52,7 @@ def save_image (url, force=False, downscale=False):
     if not os.path.isfile (thumb['local']):
         tmp = tempfile.mktemp ('_gls')
         try:
-            image = urllib.FancyURLopener ()
+            image = GlsURLopener ()
             resp = image.retrieve (url, tmp)[1]
             if not force and not 'image/' in resp.getheader ('Content-Type',''):
                 return url
@@ -103,3 +103,6 @@ def __img_subs (m):
 def transform_to_local (entry):
     entry.content = re.sub (r'<img src="(http://.*?)"', __img_subs,
                             entry.content)
+
+class GlsURLopener (urllib.FancyURLopener):
+    version = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
