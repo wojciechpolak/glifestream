@@ -28,36 +28,10 @@
     var type = a[0];
     var id = a[1];
 
-    if (type == 'youtube') {
-      var embed = '<object width="480" height="295"><param name="movie" value="http://www.youtube.com/v/'+ id +'&autoplay=1&showsearch=0&fs=1"></param><param name="allowFullScreen" value="true"><embed src="http://www.youtube.com/v/'+ id +'&autoplay=1&showsearch=0&fs=1" type="application/x-shockwave-flash" allowfullscreen="true" width="480" height="295"></embed></object>';
-    }
-    else if (type == 'vimeo') {
-      var embed = '<object type="application/x-shockwave-flash" width="480" height="270" data="http://vimeo.com/moogaloop.swf?clip_id='+ id +'&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"><param name="quality" value="best"/><param name="allowfullscreen" value="true"/><param name="scale" value="showAll"/><param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id='+ id +'&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"/></object>';
-    }
-    else if (type == 'chtv') {
-      var embed = '<object type="application/x-shockwave-flash" width="480" height="270" data="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id='+ id + '&fullscreen=1&autoplay=1"><param name="allowfullscreen" value="true"/><param name="wmode" value="transparent"/><param name="allowScriptAccess" value="always"/><param name="movie" quality="best" value="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id='+ id + '&fullscreen=1&autoplay=1"/><embed src="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id='+ id +'&fullscreen=1&autoplay=1" type="application/x-shockwave-flash" wmode="transparent" width="480" height="270" allowScriptAccess="always"></embed></object>';
-    }
-    else if (type == 'ustream') {
-      var embed = '<embed flashvars="loc=%2F&autoplay=true&vid='+ id +'" width="480" height="386" allowfullscreen="true" allowscriptaccess="always" src="http://www.ustream.tv/flash/video/'+ id +'" type="application/x-shockwave-flash" />';
-    }
-    else if (type == 'dailymotion') {
-      var embed = '<object width="480" height="381"><param name="movie" value="http://www.dailymotion.com/swf/'+ id +'?autoplay=1"></param><param name="allowFullScreen" value="true"></param><param name="allowScriptAccess" value="always"></param><embed src="http://www.dailymotion.com/swf/'+ id +'?autoplay=1" type="application/x-shockwave-flash" width="480" height="381" allowfullscreen="true" allowscriptaccess="always"></object>';
-    }
-    else if (type == 'metacafe') {
-      var embed = '<embed flashvars="playerVars=showStats=no|autoPlay=yes" src="http://www.metacafe.com/fplayer/'+ id +'/video.swf" width="400" height="348" wmode="transparent" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" allowFullScreen="true" allowScriptAccess="always" name="Metacafe_'+ id +'"></embed>';
-    }
-    else if (type == 'twitvid') {
-      var embed = '<object width="425" height="344"><param name="movie" value="http://www.twitvid.com/player/'+ id +'"></param><param name="allowFullScreen" value="true"></param><embed type="application/x-shockwave-flash" src="http://www.twitvid.com/player/'+ id +'" quality="high" allowscriptaccess="always" allowNetworking="all" allowfullscreen="true" wmode="transparent" width="425" height="344"></object>';
-    }
-    else if (type == 'vidly') {
-      var embed = '<object width="480" height="269"><param name="movie" value="http://vid.ly/embed/'+ id +'"></param><param name="wmode" value="opaque"></param><param name="allowscriptaccess" value="always"></param><param name="allowfullscreen" value="true"></param><embed src="http://vid.ly/embed/'+ id +'" type="application/x-shockwave-flash" wmode="opaque" allowscriptaccess="always" allowfullscreen="true" width="480" height="269"></embed></object>';
-    }
-    else if (type == 'googlevideo') {
-      var embed = '<embed id="VideoPlayback" src="http://video.google.com/googleplayer.swf?docid='+ id +'&fs=true" style="width:400px; height:326px" allowFullScreen="true" allowScriptAccess="always" type=application/x-shockwave-flash></embed>';
-    }
-    else {
+    if (type in video_embeds)
+      var embed = video_embeds[type].replace (/{ID}/g, id);
+    else
       return true;
-    }
 
     $('.playbutton', this).removeClass ('playbutton').addClass ('stopbutton');
     $VC (this).after ('<div class="player">' + embed + '</div>');
@@ -67,9 +41,6 @@
   }
 
   function stop_video () {
-    var a = parse_id (this.id);
-    var type = a[0];
-    var id = a[1];
     $('.player', $VC (this).parent ()).remove ();
     $('.stopbutton', this).removeClass ('stopbutton').addClass ('playbutton');
     $('a', this).blur ();
@@ -98,27 +69,28 @@
       return false;
     }
 
-    if (type == 'audio') {
+    if (type == 'audio')
       var embed = '<audio src="'+ $('a', this).attr ('href') +'" controls="true" autoplay="autoplay">'+ _('Your browser does not support it.') +'</audio>';
-    }
-    else if (type == 'thesixtyone') {
-      var data = a[1];
-      var b = data.split ('-');
-      var artist = b[0];
-      var songid = b[1];
-      var embed = '<object><embed src="http://www.thesixtyone.com/site_media/swf/song_player_embed.swf?song_id='+ songid +'&artist_username=' + artist + '&autoplay=1" type="application/x-shockwave-flash" wmode="transparent" width="310" height="120"></embed></object>';
-    }
-    else if (type == 'saynow') {
-      var data = a[1];
-      var embed = '<embed src="http://www.saynow.com/flash/sentplayer3.swf" quality="high" FlashVars="itemId='+ data +'&autoplay=0&duration=00:00&url=http://my.saynow.com" bgcolor="#ffffff" wmode="opaque" width="320" height="65" name="player" align="middle" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>';
-    }
-    else {
+    else if (type in audio_embeds)
+      var embed = audio_embeds[type];
+    else
       return true;
+
+    if (type == 'thesixtyone') {
+      var data = a[1].split ('-');
+      var artist = data[0];
+      var id = data[1];
+      embed = embed.replace ('{ARTIST}', artist);
     }
+    else if (type == 'mp3')
+      var id = $('a', this).attr ('href');
+    else
+      var id = a[1];
+
+    embed = embed.replace (/{ID}/g, id);
 
     $('.player').remove ();
     $(this.parentNode).append ('<div class="player">' + embed + '</div>');
-    scroll_to_element (this);
     return false;
   }
 
@@ -225,7 +197,7 @@
 	hide_spinner ();
 	var ctx = $('#entry-'+ id +' .entry-content');
 	ctx.html (html);
-	alter_thumbnails (ctx);
+	alter_html (ctx);
       });
     return false;
   }
@@ -274,7 +246,7 @@
     return null;
   }
 
-  function alter_thumbnails (ctx) {
+  function alter_html (ctx) {
     $('div.thumbnails a', ctx)
       .each (function (i) {
 	  var id = false;
@@ -291,6 +263,8 @@
 	    }
 	  } catch (e) {}
 	});
+    if (typeof window.user_alter_html == 'function')
+      window.user_alter_html (ctx);
   }
 
   var gsc_load = false;
@@ -553,7 +527,7 @@
       baseurl = settings.baseurl;
       Graybox.scan ();
       var stream = $('#stream').get (0);
-      alter_thumbnails (stream);
+      alter_html (stream);
 
       $('a.favorite-control', stream).live ('click', favorite_entry);
       $('a.hide-control', stream).live ('click', hide_entry);
@@ -594,6 +568,11 @@
       $('#ashare').click (open_sharing);
       $('#expand-sharing').click (open_more_sharing_options);
       $('#post').click (share);
+
+      if (window.audio_embeds)
+	$.extend (audio_embeds, window.audio_embeds);
+      if (window.video_embeds)
+	$.extend (video_embeds, window.video_embeds);
 
       /* You may overwrite it in your user-scripts.js */
       social_sharing_sites = window.social_sharing_sites ||
@@ -899,4 +878,20 @@
     }
     return obj;
   }
+
+  var audio_embeds = {
+    'thesixtyone': '<object><embed src="http://www.thesixtyone.com/site_media/swf/song_player_embed.swf?song_id={ID}&artist_username={ARTIST}&autoplay=1" type="application/x-shockwave-flash" wmode="transparent" width="310" height="120"></embed></object>',
+    'saynow': '<embed src="http://www.saynow.com/flash/sentplayer3.swf" quality="high" FlashVars="itemId={ID}&autoplay=1&duration=00:00&url=http://my.saynow.com" bgcolor="#ffffff" wmode="opaque" width="320" height="65" name="player" align="middle" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" pluginspage="http://www.macromedia.com/go/getflashplayer"></embed>'
+  };
+  var video_embeds = {
+    'youtube': '<object width="480" height="295"><param name="movie" value="http://www.youtube.com/v/{ID}&autoplay=1&showsearch=0&fs=1"></param><param name="allowFullScreen" value="true"><embed src="http://www.youtube.com/v/{ID}&autoplay=1&showsearch=0&fs=1" type="application/x-shockwave-flash" allowfullscreen="true" width="480" height="295"></embed></object>',
+    'vimeo': '<object type="application/x-shockwave-flash" width="480" height="270" data="http://vimeo.com/moogaloop.swf?clip_id={ID}&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"><param name="quality" value="best"/><param name="allowfullscreen" value="true"/><param name="scale" value="showAll"/><param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id={ID}&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"/></object>',
+    'chtv': '<object type="application/x-shockwave-flash" width="480" height="270" data="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id={ID}&fullscreen=1&autoplay=1"><param name="allowfullscreen" value="true"/><param name="wmode" value="transparent"/><param name="allowScriptAccess" value="always"/><param name="movie" quality="best" value="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id={ID}&fullscreen=1&autoplay=1"/><embed src="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id={ID}&fullscreen=1&autoplay=1" type="application/x-shockwave-flash" wmode="transparent" width="480" height="270" allowScriptAccess="always"></embed></object>',
+    'ustream': '<embed flashvars="loc=%2F&autoplay=true&vid={ID}" width="480" height="386" allowfullscreen="true" allowscriptaccess="always" src="http://www.ustream.tv/flash/video/{ID}" type="application/x-shockwave-flash" />',
+    'dailymotion': '<object width="480" height="381"><param name="movie" value="http://www.dailymotion.com/swf/{ID}?autoplay=1"></param><param name="allowFullScreen" value="true"></param><param name="allowScriptAccess" value="always"></param><embed src="http://www.dailymotion.com/swf/{ID}?autoplay=1" type="application/x-shockwave-flash" width="480" height="381" allowfullscreen="true" allowscriptaccess="always"></object>',
+    'metacafe': '<embed flashvars="playerVars=showStats=no|autoPlay=yes" src="http://www.metacafe.com/fplayer/{ID}/video.swf" width="400" height="348" wmode="transparent" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" allowFullScreen="true" allowScriptAccess="always" name="Metacafe_{ID}"></embed>',
+    'twitvid': '<object width="425" height="344"><param name="movie" value="http://www.twitvid.com/player/{ID}"></param><param name="allowFullScreen" value="true"></param><embed type="application/x-shockwave-flash" src="http://www.twitvid.com/player/{ID}" quality="high" allowscriptaccess="always" allowNetworking="all" allowfullscreen="true" wmode="transparent" width="425" height="344"></object>',
+    'vidly': '<object width="480" height="269"><param name="movie" value="http://vid.ly/embed/{ID}"></param><param name="wmode" value="opaque"></param><param name="allowscriptaccess" value="always"></param><param name="allowfullscreen" value="true"></param><embed src="http://vid.ly/embed/{ID}" type="application/x-shockwave-flash" wmode="opaque" allowscriptaccess="always" allowfullscreen="true" width="480" height="269"></embed></object>',
+    'googlevideo': '<embed id="VideoPlayback" src="http://video.google.com/googleplayer.swf?docid={ID}&fs=true" style="width:400px; height:326px" allowFullScreen="true" allowScriptAccess="always" type=application/x-shockwave-flash></embed>'
+  };
 })();
