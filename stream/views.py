@@ -258,14 +258,6 @@ def index (request, **args):
     else:
         page_title = None
 
-    if 'title' in page:
-        if page_title:
-            page['title'] += ': ' + page_title
-        else:
-            page['title'] += ': Lifestream'
-    elif page_title:
-        page['title'] = page_title
-
     if hasattr (settings, 'STREAM_DESCRIPTION'):
         page['description'] = settings.STREAM_DESCRIPTION
 
@@ -287,8 +279,26 @@ def index (request, **args):
                                         gls_slugify (truncatewords (entry.title, 7)))
         else:
             entry.gls_link = '%s/' % (urlresolvers.reverse ('entry', args=[entry.id]))
+            if 'title' in page: del page['title']
+
         entry.gls_absolute_link = '%s%s' % (page['site_url'], entry.gls_link)
         entry.only_for_friends = entry.friends_only
+
+    # Check single-entry URL
+    if 'exactentry' in page:
+        if len (entries):
+            if entries[0].gls_link != request.path:
+                return HttpResponseRedirect (entries[0].gls_link)
+        else:
+            raise Http404
+
+    if 'title' in page and page['title'] != '':
+        if page_title:
+            page['title'] += ': ' + page_title
+        else:
+            page['title'] += ': Lifestream'
+    elif page_title:
+        page['title'] = page_title
 
     # Pickup right output format and finish.
     format = request.GET.get ('format', 'html')

@@ -153,6 +153,9 @@ p.subtitle {
   margin: 10px 0 0 60px;
   line-height: 140%;
 }
+#stream .entry-content pre {
+  line-height: normal;
+}
 
 #stream .entry-info {
   font-family: georgia;

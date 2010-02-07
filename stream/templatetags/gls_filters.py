@@ -63,13 +63,18 @@ def gls_link (e, entry):
 
 @register.filter
 def gls_title (e, entry):
+    title = entry.title
     try:
         mod = eval (entry.service.api)
         if hasattr (mod, 'filter_title'):
-            return mark_safe (mod.filter_title (entry))
+            title = mod.filter_title (entry)
     except:
         pass
-    return mark_safe (entry.title)
+    if entry.friends_only:
+        title = '';
+    if title == '':
+        title = str (entry.date_published)[0:16]
+    return mark_safe (title)
 
 @register.filter
 def gls_content (e, entry):
