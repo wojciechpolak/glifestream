@@ -77,7 +77,7 @@ def downscale_image (filename):
         pass
 
 def downsave_uploaded_image (file):
-    url = '[GLS-UPLOAD]/%s' % file.url.replace ('/upload/', '')
+    url = '[GLS-UPLOAD]/%s' % file.name.replace ('upload/', '')
     try:
         thumb = get_thumb_info (hashlib.sha1 (file.name).hexdigest ())
         if not os.path.isfile (thumb['local']):
