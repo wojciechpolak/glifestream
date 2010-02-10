@@ -26,6 +26,11 @@ Optional (but recommended):
 - Sphinx -- a free open-source SQL full-text search engine
   http://www.sphinxsearch.com/
 
+Optional:
+
+- PyFacebook - a Python client library for the Facebook API.
+  http://github.com/sciyoshi/pyfacebook/
+
 * Installation instructions
 ===========================
 
