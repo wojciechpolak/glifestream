@@ -23,6 +23,11 @@ from django.conf import settings
 from glifestream.stream.models import Media
 
 try:
+    import json
+except ImportError:
+    import simplejson as json
+
+try:
     import Image
 except ImportError:
     Image = None
@@ -103,6 +108,54 @@ def __img_subs (m):
 def transform_to_local (entry):
     entry.content = re.sub (r'<img src="(http://.*?)"', __img_subs,
                             entry.content)
+
+def mrss_init (mblob=None):
+    if mblob and 'content' in mblob:
+        return mblob
+    return {'content': []}
+
+def mrss_scan (content):
+    # A limited solution.
+    mblob = mrss_init ()
+    for v in re.findall (r'http://www.youtube.com/watch\?v=([\-\w]+)', content):
+        mblob['content'].append ([{'url': 'http://www.youtube.com/v/' + v,
+                                   'type': 'application/x-shockwave-flash',
+                                   'medium': 'video'}])
+    for dummy, v in re.findall (r'http://(www\.)?vimeo.com/(\d+)', content):
+        mblob['content'].append ([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=' + v,
+                                   'type': 'application/x-shockwave-flash',
+                                   'medium': 'video'}])
+    return mblob
+
+def mrss_gen_json (mblob):
+    if len (mblob['content']):
+        return json.dumps (mblob)
+    else:
+        return None
+
+def mrss_gen_xml (entry):
+    m = ''
+    if entry.mblob:
+        mblob = json.loads (entry.mblob)
+        if 'content' in mblob:
+            for g in mblob['content']:
+                group = True if len (g) > 1 else False
+                if group: m += '    <media:group>\n'
+                for i in g:
+                    for k in i.keys ():
+                        if ':' in k: del i[k]
+                        if k == 'isdefault':
+                            i['isDefault'] = i[k]
+                            del i[k]
+                        elif k == 'filesize':
+                            i['fileSize'] = i[k]
+                            del i[k]
+                    attrs = ''.join ([' %s="%s"' % (k, str (i[k])) for k in i])
+                    if group: m += '  '
+                    m += '    <media:content%s/>\n' % attrs
+                if group: m += '    </media:group>\n'
+            m = set_upload_url (set_thumbs_url (m))
+    return m
 
 class GlsURLopener (urllib.FancyURLopener):
     version = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL

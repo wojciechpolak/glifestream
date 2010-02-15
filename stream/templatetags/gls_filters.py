@@ -16,7 +16,6 @@
 from django import template
 register = template.Library ()
 
-import re
 import math
 import time
 import datetime
@@ -95,10 +94,9 @@ def gls_content (e, entry):
 
 @register.filter
 def gls_mediarss (e, entry):
-    m = ''
-    for yt in re.findall (r'http://www.youtube.com/watch\?v=([\-\w]+)', entry.content):
-        m += '    <media:content type="application/x-shockwave-flash" url="http://www.youtube.com/v/%s" medium="video"/>\n' % yt
-    return mark_safe (m)
+    if entry.friends_only:
+        return ''
+    return mark_safe (media.mrss_gen_xml (entry))
 
 @register.filter
 def gls_reply_url (e, entry):

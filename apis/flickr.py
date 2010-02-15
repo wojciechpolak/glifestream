@@ -30,6 +30,7 @@ class API (webfeed.API):
 
     def process (self):
         for key, group in groupby (self.fp.entries, lambda x: x.updated[0:19]):
+            mblob = media.mrss_init ()
             lgroup = 0
             content = '<div class="thumbnails">\n'
             first = True
@@ -41,11 +42,14 @@ class API (webfeed.API):
                 if self.verbose:
                     print "ID: %s" % ent.id
 
-                if ent.has_key ('media_thumbnail'):
-                    tn = ent['media_thumbnail'][0]
+                if 'media_thumbnail' in ent:
+                    tn = ent.media_thumbnail[0]
                     if self.service.public:
                         tn['url'] = media.save_image (tn['url'])
                     content += """  <a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a>\n""" % (ent.link, tn['url'], tn['width'], tn['height'])
+
+                if 'media_content' in ent:
+                    mblob['content'].append (ent.media_content)
 
             ent = firstent
             content += '</div>'
@@ -62,6 +66,7 @@ class API (webfeed.API):
             except Entry.DoesNotExist:
                 e = Entry (service=self.service, guid=ent.id)
 
+            e.mblob = media.mrss_gen_json (mblob)
             if lgroup > 1:
                 e.idata = 'grouped'
 

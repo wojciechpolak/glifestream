@@ -140,6 +140,11 @@ class API:
             if hasattr (self, 'custom_process'):
                 self.custom_process (e, ent)
 
+            mblob = media.mrss_init (e.mblob)
+            if 'media_content' in ent:
+                mblob['content'].append (ent.media_content)
+            e.mblob = media.mrss_gen_json (mblob)
+
             e.content = strip_script (e.content)
 
             try:

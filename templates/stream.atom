@@ -34,12 +34,10 @@
     {{ entry|gls_content:entry|fix_ampersands|safe }}
     </div>
     </content>
-{% endifnotequal %}{{ entry|gls_mediarss:entry }}
-{% if entry.geolat and entry.geolng %}
+{% endifnotequal %}{{ entry|gls_mediarss:entry|fix_ampersands }}{% if entry.geolat and entry.geolng %}
     <georss:point>{{ entry.geolat }} {{ entry.geolng }}</georss:point>
     <geo:lat>{{ entry.geolat }}</geo:lat>
-    <geo:long>{{ entry.geolng }}</geo:long>
-{% endif %}
+    <geo:long>{{ entry.geolng }}</geo:long>{% endif %}
   </entry>
 {% endfor %}
 </feed>

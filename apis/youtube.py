@@ -30,8 +30,8 @@ class API (webfeed.API):
                                                            self.service.url))
 
     def custom_process (self, e, ent):
-        if ent.has_key ('media_thumbnail') and len (ent['media_thumbnail']):
-            tn = ent['media_thumbnail'][0]
+        if 'media_thumbnail' in ent and len (ent.media_thumbnail):
+            tn = ent.media_thumbnail[0]
             if self.service.public:
                 tn['url'] = media.save_image (tn['url'])
 

@@ -87,6 +87,9 @@ class API:
         if e.title == '':
             e.title = truncate.smart_truncate (strip_tags (content))
 
+        mblob = media.mrss_scan (e.content)
+        e.mblob = media.mrss_gen_json (mblob)
+
         try:
             e.save ()
 
@@ -107,19 +110,44 @@ class API:
                 for o in pictures:
                     thumb, orig = media.downsave_uploaded_image (o[0].file)
                     thumbs += '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n' % (orig, thumb)
+                    mrss = { 'url': orig, 'medium': 'image',
+                             'fileSize': o[1].size }
+                    if orig.lower ().endswith ('.jpg'):
+                        mrss['type'] = 'image/jpeg'
+                    mblob['content'].append ([mrss])
                 thumbs += '</div>\n'
                 e.content += thumbs
 
             if len (docs):
                 doc = '\n<ul class="files">\n'
                 for o in docs:
-                    doc += '  <li><a href="[GLS-UPLOAD]/%s">%s</a> ' % \
-                        (o[0].file.url.replace ('/upload/', ''), o[1].name)
+                    target = '[GLS-UPLOAD]/%s' % o[0].file.name.replace ('upload/', '')
+                    doc += '  <li><a href="%s">%s</a> ' % (target, o[1].name)
                     doc += '<span class="size">%s</span></li>\n' % \
                         bytes_to_human (o[1].size)
+
+                    mrss = {'url': target, 'fileSize': o[1].size}
+                    target = target.lower ()
+                    if target.endswith ('.mp3'):
+                        mrss['medium'] = 'audio'
+                        mrss['type'] = 'audio/mpeg'
+                    elif target.endswith ('.ogg'):
+                        mrss['medium'] = 'audio'
+                        mrss['type'] = 'audio/ogg'
+                    elif target.endswith ('.avi'):
+                        mrss['medium'] = 'video'
+                        mrss['type'] = 'video/avi'
+                    elif target.endswith ('.pdf'):
+                        mrss['medium'] = 'document'
+                        mrss['type'] = 'application/pdf'
+                    else:
+                        mrss['medium'] = 'document'
+                    mblob['content'].append ([mrss])
+
                 doc += '</ul>\n'
                 e.content += doc
 
+            e.mblob = media.mrss_gen_json (mblob)
             if len (pictures) or len (docs):
                 e.save ()
 
@@ -147,6 +175,7 @@ class API:
 
         e.geolat = entry.geolat
         e.geolng = entry.geolng
+        e.mblob  = entry.mblob
 
         e.title = entry.title
         if entry.service.api == 'greader':
