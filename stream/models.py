@@ -94,7 +94,7 @@ class Entry (models.Model):
                                  null=False, blank=False)
     title = models.CharField (_('Title'), max_length=255)
     link = models.URLField (_('Link'),)
-    link_image = models.CharField (_('Image Link'), max_length=255, blank=True)
+    link_image = models.CharField (_('Image Link'), max_length=128, blank=True)
     content = models.TextField (_('Contents'), blank=True)
     date_published = models.DateTimeField (_('Date published'), null=True,
                                            blank=True, db_index=True)
@@ -120,6 +120,7 @@ class Entry (models.Model):
         help_text=_('If not active, this entry will not be shown.'))
     friends_only = models.BooleanField (_('Friends-only'), default=False,
         help_text=_('Entry will only be visible to you and your friends.'))
+    mblob = models.TextField ('Media', null=True, blank=True, editable=False)
 
     sphinx = SphinxSearch (index=getattr (settings, 'SPHINX_INDEX_NAME',
                                           'glifestream'))

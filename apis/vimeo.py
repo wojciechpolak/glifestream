@@ -95,6 +95,12 @@ class API:
 
                 e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['video_id'], e.link, ent['video_thumbnail_medium'], ent['video_title'])
 
+                mblob = media.mrss_init ()
+                mblob['content'].append ([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=' + ent['video_id'],
+                                           'type': 'application/x-shockwave-flash',
+                                           'medium': 'video'}])
+                e.mblob = media.mrss_gen_json (mblob)
+
                 try:
                     e.save ()
                 except:
@@ -127,6 +133,12 @@ class API:
                 ent['thumbnail_medium'] = media.save_image (ent['thumbnail_medium'])
 
             e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['id'], e.link, ent['thumbnail_medium'], ent['title'])
+
+            mblob = media.mrss_init ()
+            mblob['content'].append ([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=' + ent['id'],
+                                       'type': 'application/x-shockwave-flash',
+                                       'medium': 'video'}])
+            e.mblob = media.mrss_gen_json (mblob)
 
             try:
                 e.save ()

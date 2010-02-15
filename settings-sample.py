@@ -44,6 +44,7 @@ MEDIA_ROOT = os.path.join (SITE_ROOT, 'static')
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
+# Setting an absolute URL is recommended in a production use.
 MEDIA_URL = '/static'
 
 # URL prefix for admin media. Make sure to use a trailing slash.

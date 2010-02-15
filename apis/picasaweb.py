@@ -24,8 +24,8 @@ class API (webfeed.API):
         self.fetch ('http://picasaweb.google.com/data/feed/base/user/%s?alt=rss&kind=album&access=public' % self.service.url)
 
     def custom_process (self, e, ent):
-        if ent.has_key ('media_thumbnail') and len (ent['media_thumbnail']):
-            tn = ent['media_thumbnail'][0]
+        if 'media_thumbnail' in ent and len (ent.media_thumbnail):
+            tn = ent.media_thumbnail[0]
             if self.service.public:
                 tn['url'] = media.save_image (tn['url'])
             e.content = """<div class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a></div>\n""" % (ent.link, tn['url'], tn['width'], tn['height'])
