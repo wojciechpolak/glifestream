@@ -26,6 +26,7 @@
 {% endif %}
 {% endspaceless %}
     <updated>{{ entry.date_published|gls_hdate }}</updated>
+    <category term="{{ entry.service.cls }}"/>
     <link rel="alternate" type="text/html" href="{{ entry.gls_absolute_link }}"/>
     {% if entry.link_image %}<link rel="image" href="{{ entry.link_image|gls_media }}"/>{% endif %}
     <title>{{ entry|gls_title:entry|striptags|fix_ampersands }}</title>{% ifnotequal entry.service.display "title" %}
