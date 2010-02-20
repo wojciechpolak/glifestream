@@ -140,6 +140,11 @@ class API:
             if hasattr (self, 'custom_process'):
                 self.custom_process (e, ent)
 
+            if hasattr (e, 'custom_mblob'):
+                e.mblob = e.custom_mblob
+            else:
+                e.mblob = None
+
             mblob = media.mrss_init (e.mblob)
             if 'media_content' in ent:
                 mblob['content'].append (ent.media_content)
