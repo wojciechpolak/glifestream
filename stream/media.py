@@ -18,6 +18,7 @@ import re
 import urllib
 import hashlib
 import tempfile
+import types
 import shutil
 from django.conf import settings
 from glifestream.stream.models import Media
@@ -110,8 +111,12 @@ def transform_to_local (entry):
                             entry.content)
 
 def mrss_init (mblob=None):
-    if mblob and 'content' in mblob:
-        return mblob
+    if mblob:
+        if isinstance (mblob, types.StringType) or \
+           isinstance (mblob, types.UnicodeType):
+            mblob = json.loads (mblob)
+        if 'content' in mblob:
+            return mblob
     return {'content': []}
 
 def mrss_scan (content):
