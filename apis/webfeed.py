@@ -25,6 +25,8 @@ from glifestream.stream import media
 class API:
     name = 'Webfeed API'
     limit_sec = 3600
+    fetch_only = False
+    payload = None
 
     def __init__ (self, service, verbose = 0, force_overwrite = False):
         self.service = service
@@ -54,22 +56,23 @@ class API:
                                         url.query)
             else:
                 url = '%s://%s%s' % (url.scheme, url.netloc, url.path)
+        self.url = url
 
         socket.setdefaulttimeout (45)
         agent = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
-        self.fp = feedparser.parse (url, agent=agent)
-        fp_error = False
+        self.fp = feedparser.parse (self.payload or url, agent=agent)
+        self.fp_error = False
 
         if hasattr (self.fp, 'bozo') and self.fp.bozo:
-            fp_error = True
+            self.fp_error = True
             if isinstance (self.fp.bozo_exception,
                            feedparser.CharacterEncodingOverride):
-                fp_error = False
+                self.fp_error = False
             if self.verbose:
                 print '%s (%d) Bozo: %s' % (self.service.api,
                                             self.service.id, self.fp)
 
-        if not fp_error:
+        if not self.fp_error:
             self.service.etag = self.fp.get ('etag', '')
             if self.service.etag is None:
                 self.service.etag = ''
@@ -81,7 +84,8 @@ class API:
             if not self.service.link:
                 self.service.link = self.fp.feed.get ('link', '')
             self.service.save ()
-            self.process ()
+            if not self.fetch_only:
+                self.process ()
 
     def process (self):
         for ent in self.fp.entries:

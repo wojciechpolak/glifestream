@@ -28,10 +28,11 @@ from django.template.defaultfilters import truncatewords
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as _
 from django.utils.html import escape
+from django.views.decorators.cache import never_cache
 from glifestream.stream.templatetags.gls_filters import gls_content
 from glifestream.stream.templatetags.gls_filters import gls_slugify
 from glifestream.stream.models import Service, Entry, Favorite, List
-from glifestream.stream import media
+from glifestream.stream import media, pshb
 from glifestream.utils.time import pn_month_start
 from glifestream.utils.translate import translate
 from glifestream.apis import selfposts
@@ -41,8 +42,6 @@ try:
 except ImportError:
     import simplejson as json
 
-#from django.views.decorators.cache import cache_page
-#@cache_page (0)
 def index (request, **args):
     page = {
         'backtime': True,
@@ -56,6 +55,7 @@ def index (request, **args):
         'maps_engine': settings.MAPS_ENGINE,
         'maps_key': settings.MAPS_KEY,
         'fb_api_key': settings.FACEBOOK_API_KEY,
+        'pshb_hubs': settings.PSHB_HUBS,
     }
     authed = request.user.is_authenticated () and request.user.is_staff
     friend = request.user.is_authenticated () and not request.user.is_staff
@@ -357,6 +357,17 @@ def index (request, **args):
                                      'has_search': search_enable,
                                      'user': request.user })
 
+@never_cache
+def pshb_dispatcher (request, **args):
+    if request.method == 'GET':
+        res = pshb.verify (args['id'], request.GET)
+        if res:
+            return HttpResponse (res)
+    elif request.method == 'POST':
+        pshb.accept_payload (args['id'], request.raw_post_data, request.META)
+        return HttpResponse ()
+    raise Http404
+
 @login_required
 def tools (request, **args):
     authed = request.user.is_authenticated () and request.user.is_staff
@@ -429,6 +440,7 @@ def api (request, **args):
               'files': request.FILES,
               'source': source })
         if entry:
+            pshb.publish ()
             if source == 'bookmarklet':
                 d = {'close_msg': _("You've successfully shared this web page at your stream.")}
                 return HttpResponse (json.dumps (d),
@@ -441,12 +453,14 @@ def api (request, **args):
                                                  'authed': authed })
                 else:
                     return HttpResponseRedirect (settings.BASE_URL + '/')
+
     elif cmd == 'reshare' and entry:
         try:
             entry = Entry.objects.get (id=int(entry))
             if entry:
                 entry = selfposts.API (False).reshare (entry)
                 if entry:
+                    pshb.publish ()
                     return render_to_response ('stream-pure.html',
                                                { 'entries': (entry,),
                                                  'authed': authed })

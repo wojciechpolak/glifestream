@@ -117,6 +117,10 @@ SPHINX_SERVER = 'localhost'
 SPHINX_PORT = 9312
 SPHINX_INDEX_NAME = 'glifestream'
 
+# PubSubHubbub - Hubs to ping (use empty tuple () to disable)
+PSHB_HUBS = ('https://pubsubhubbub.appspot.com/',)
+PSHB_HTTPS_CALLBACK = True
+
 # Facebook Connect (for Friends-Only entries)
 FACEBOOK_API_KEY = 'YOUR-API-KEY' # Leave empty to disable FB.
 FACEBOOK_SECRET_KEY = 'YOUR-SECRET-KEY'
