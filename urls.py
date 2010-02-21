@@ -27,8 +27,7 @@ urlpatterns = patterns ('',
     url (r'^$', sv.index, name='index'),
     (r'^(?P<year>\d{4})/$', sv.index),
     (r'^(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index),
-    (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
-     sv.index),
+    (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index),
 
     (r'^public/$', sv.index, {'public': True}, 'public'),
     (r'^public/(?P<year>\d{4})/$', sv.index, {'public': True}),
@@ -48,6 +47,8 @@ urlpatterns = patterns ('',
     (r'^login-friend/?$', 'glifestream.login.views.login_friend'),
     (r'^logout/?$', 'django.contrib.auth.views.logout',
      {'next_page': './'}),
+
+    (r'^pshb/(?P<id>[a-f0-9]{20})$', sv.pshb_dispatcher, {}, 'pshb'),
 
     (r'^bookmarklet/js$', 'glifestream.bookmarklet.views.js'),
     (r'^bookmarklet/frame$', 'glifestream.bookmarklet.views.frame'),

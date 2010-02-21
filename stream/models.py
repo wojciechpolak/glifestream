@@ -189,3 +189,19 @@ class List (models.Model):
 
     def __unicode__ (self):
         return u'%s: %s' % (self.user, self.name)
+
+
+class Pshb (models.Model):
+    hash = models.CharField ('ID', max_length=20, unique=True)
+    service = models.ForeignKey (Service, verbose_name=_('Service'),
+                                 null=False, blank=False)
+    hub = models.CharField ('Hub', max_length=128)
+    secret = models.CharField ('Secret', max_length=16, null=True, blank=True)
+    expire = models.DateTimeField ('Expire', null=True, blank=True)
+    verified = models.BooleanField ('Verified', default=False)
+
+    class Meta:
+        verbose_name = 'PSHB'
+        verbose_name_plural = 'PSHB'
+        ordering = 'service',
+        unique_together = (('hash', 'service', 'hub'),)

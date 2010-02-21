@@ -46,6 +46,7 @@ APIs support.
 - Out of the box output formats: HTML5, Atom, JSON
 - Search functionality
 - Friends-only entries (via Facebook Connect)
+- PubSubHubbub support (publisher and subscriber)
 - Keyboard shortcuts for navigation
 - Customizable themes
 - Bookmarklet for easy webpage sharing
