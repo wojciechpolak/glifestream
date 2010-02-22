@@ -105,7 +105,7 @@ class API:
 
             content = ent['body']
             if ent.has_key ('thumbnails'):
-                content += '<div class="thumbnails">'
+                content += '<p class="thumbnails">'
                 for t in ent['thumbnails']:
                     if self.service.public:
                         t['url'] = media.save_image (t['url'])
@@ -123,7 +123,7 @@ class API:
                             t['link'] = 'http://www.youtube.com/watch?v=%s' % yid
 
                     content += '<a href="%s" rel="nofollow"><img src="%s"%s alt="thumbnail" /></a> ' % (t['link'], t['url'], iwh)
-                content += '</div>'
+                content += '</p>'
 
             if ent.has_key ('files'):
                 content += '<ul class="files">\n'

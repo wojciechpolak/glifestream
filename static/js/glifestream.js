@@ -247,7 +247,7 @@
   }
 
   function alter_html (ctx) {
-    $('div.thumbnails a', ctx)
+    $('.thumbnails a', ctx)
       .each (function (i) {
 	  var id = false;
 	  try {
@@ -722,7 +722,7 @@
 
     this.scan = function () {
       self.init ();
-      $('div.thumbnails a:has(img)').click (self.open_img);
+      $('.thumbnails a:has(img)').click (self.open_img);
     };
 
     this.open_img = function () {

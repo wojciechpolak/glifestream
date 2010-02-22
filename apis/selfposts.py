@@ -73,11 +73,11 @@ class API:
         e.content = smart_unicode (e.content)
 
         if images:
-            thumbs = '\n<div class="thumbnails">\n'
+            thumbs = '\n<p class="thumbnails">\n'
             for img in images:
                 img = media.save_image (img, force=True, downscale=True)
                 thumbs += """  <a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a>\n""" % (e.link, img)
-            thumbs += '</div>\n'
+            thumbs += '</p>\n'
             e.content += thumbs
 
         if title:
@@ -106,7 +106,7 @@ class API:
                     docs.append ((md, f))
 
             if len (pictures):
-                thumbs = '\n<div class="thumbnails">\n'
+                thumbs = '\n<p class="thumbnails">\n'
                 for o in pictures:
                     thumb, orig = media.downsave_uploaded_image (o[0].file)
                     thumbs += '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n' % (orig, thumb)
@@ -115,7 +115,7 @@ class API:
                     if orig.lower ().endswith ('.jpg'):
                         mrss['type'] = 'image/jpeg'
                     mblob['content'].append ([mrss])
-                thumbs += '</div>\n'
+                thumbs += '</p>\n'
                 e.content += thumbs
 
             if len (docs):
