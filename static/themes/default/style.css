@@ -156,6 +156,9 @@ p.subtitle {
 #stream .entry-content pre {
   line-height: normal;
 }
+#stream .entry-content p {
+  margin-bottom: 0.5em;
+}
 
 #stream .entry-info {
   font-family: georgia;
@@ -363,7 +366,7 @@ table.vc td { padding: 0; }
 }
 
 .thumbnails {
-  margin-top: 4px;
+  margin: 4px 0 0 0 !important;
 }
 .thumbnails img {
   margin: 3px 3px 3px 0;

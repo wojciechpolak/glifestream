@@ -32,7 +32,7 @@ class API (webfeed.API):
         for key, group in groupby (self.fp.entries, lambda x: x.updated[0:19]):
             mblob = media.mrss_init ()
             lgroup = 0
-            content = '<div class="thumbnails">\n'
+            content = '<p class="thumbnails">\n'
             first = True
             for ent in group:
                 lgroup += 1
@@ -52,7 +52,7 @@ class API (webfeed.API):
                     mblob['content'].append (ent.media_content)
 
             ent = firstent
-            content += '</div>'
+            content += '</p>'
             guid = 'tag:flickr.com,2004:/photo/%s' % ent.id
 
             try:

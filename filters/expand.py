@@ -49,7 +49,7 @@ def shorturls (text):
 #
 
 def __gen_tai (link, img_src):
-    return '<div class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></div>' % (link, img_src)
+    return '<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></p>' % (link, img_src)
 
 def __sp_twitpic (m):
     url = media.save_image ('http://%s/show/thumb/%s' % (m.group (2),
@@ -74,7 +74,7 @@ def __sp_flickr (m):
 
 def __sp_imgloc (m):
     url = media.save_image (m.group (2))
-    return '%s<div class="thumbnails"><img src="%s" alt="thumbnail" /></div>%s' % (m.group (1), url, m.group (4))
+    return '%s<p class="thumbnails"><img src="%s" alt="thumbnail" /></p>%s' % (m.group (1), url, m.group (4))
 
 def shortpics (s):
     """Expand short picture-URLs."""

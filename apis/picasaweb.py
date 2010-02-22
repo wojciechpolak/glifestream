@@ -28,4 +28,4 @@ class API (webfeed.API):
             tn = ent.media_thumbnail[0]
             if self.service.public:
                 tn['url'] = media.save_image (tn['url'])
-            e.content = """<div class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a></div>\n""" % (ent.link, tn['url'], tn['width'], tn['height'])
+            e.content = """<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a></p>\n""" % (ent.link, tn['url'], tn['width'], tn['height'])
