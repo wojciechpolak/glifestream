@@ -38,6 +38,7 @@ class Service (models.Model):
         ('vimeo',       'Vimeo'),
         ('delicious',   'Delicious'),
         ('digg',        'Digg'),
+        ('gbuzz',       'Google Buzz'),
         ('greader',     'Google Reader'),
         ('flickr',      'Flickr'),
         ('picasaweb',   'Picasa Web'),
