@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,21 +13,18 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = (
-    'delicious',
-    'digg',
-    'flickr',
-    'friendfeed',
-    'gbuzz',
-    'greader',
-    'identica',
-    'lastfm',
-    'picasaweb',
-    'selfposts',
-    'stumbleupon',
-    'twitter',
-    'vimeo',
-    'webfeed',
-    'yelp',
-    'youtube',
-)
+from django.utils.html import strip_entities, strip_tags
+from glifestream.filters import expand, truncate
+import webfeed
+
+class API (webfeed.API):
+    name = 'Google Buzz API'
+    limit_sec = 180
+
+    def run (self):
+        self.fetch ('http://buzz.googleapis.com/feeds/%s/public/posted' % \
+                    self.service.url)
+
+    def custom_process (self, e, ent):
+        e.title = truncate.smart_truncate (strip_tags (strip_entities (e.content)))
+        e.content = expand.all (e.content)
