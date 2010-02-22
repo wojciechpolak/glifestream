@@ -221,6 +221,9 @@ p.subtitle {
   margin-left: 4px;
   background: transparent url(icons/share.png) no-repeat 0 50%;
 }
+#stream .shareit:hover {
+  background: transparent url(icons/share.png) no-repeat -16px 50%;
+}
 #stream .shareit span {
   display: none;
 }
