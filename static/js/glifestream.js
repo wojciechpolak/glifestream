@@ -320,7 +320,7 @@
 	  $('#stream article:first .play-video').toggle (play_video, stop_video);
 	  $('#stream article:first a.map').each (render_map);
 	  status.val ('');
-	  $('#share fieldset').slideUp ();
+	  $('#share .fieldset').slideUp ();
 	  scaledown_images ();
 	});
     }
