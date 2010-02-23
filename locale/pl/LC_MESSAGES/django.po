@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-05 18:49+0100\n"
-"PO-Revision-Date: 2010-02-01 17:45+0100\n"
+"POT-Creation-Date: 2010-02-23 13:33+0100\n"
+"PO-Revision-Date: 2010-02-23 13:36+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid "Bookmarked %s"
 msgstr "Link %s"
 
-#: apis/flickr.py:92
+#: apis/flickr.py:97
 msgid "Posted Photos"
 msgstr "Zdjęcia"
 
-#: apis/flickr.py:94
+#: apis/flickr.py:99
 msgid "Posted a Photo"
 msgstr "Zdjęcie"
 
@@ -44,12 +44,12 @@ msgstr "Utwór %s"
 msgid "Artist: %s"
 msgstr "Artysta: %s"
 
-#: apis/vimeo.py:152
+#: apis/vimeo.py:164
 #, python-format
 msgid "Liked %s"
 msgstr "Wideo %s"
 
-#: apis/vimeo.py:154 apis/youtube.py:47
+#: apis/vimeo.py:166 apis/youtube.py:47
 #, python-format
 msgid "Published %s"
 msgstr "Wideo %s"
@@ -124,75 +124,75 @@ msgstr "Aktualnie:"
 msgid "Change:"
 msgstr "Zmień:"
 
-#: stream/models.py:49
+#: stream/models.py:50
 msgid "API"
 msgstr "API"
 
-#: stream/models.py:51
+#: stream/models.py:52
 msgid "Custom CSS Class"
 msgstr "Wybrana klasa CSS"
 
-#: stream/models.py:53
+#: stream/models.py:54
 msgid "URL or Username"
 msgstr "URL lub nazwa użytkownika"
 
-#: stream/models.py:54
+#: stream/models.py:55
 msgid "Credentials"
 msgstr "Dane uwierzytelniające"
 
-#: stream/models.py:56
+#: stream/models.py:57
 msgid "Short name"
 msgstr "Nazwa skrócona"
 
-#: stream/models.py:57
+#: stream/models.py:58
 msgid "WWW Link"
 msgstr "Link WWW"
 
-#: stream/models.py:59
+#: stream/models.py:60
 msgid "Last modified"
 msgstr "Ostatnia modyfikacja"
 
-#: stream/models.py:61
+#: stream/models.py:62
 msgid "Last checked"
 msgstr "Ostatnio sprawdzane"
 
-#: stream/models.py:64
+#: stream/models.py:65
 msgid "Title and Contents"
 msgstr "Tytuł i treść"
 
-#: stream/models.py:65
+#: stream/models.py:66
 msgid "Contents only"
 msgstr "Tylko treść"
 
-#: stream/models.py:66
+#: stream/models.py:67
 msgid "Title only"
 msgstr "Tylko tytuł"
 
-#: stream/models.py:68
+#: stream/models.py:69
 msgid "Display entries'"
 msgstr "Wyświetlanie wpisów"
 
-#: stream/models.py:71 templates/base.html:26
+#: stream/models.py:72 templates/base.html:26
 msgid "Public"
 msgstr "Publiczne"
 
-#: stream/models.py:72
+#: stream/models.py:73
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
 
-#: stream/models.py:73 stream/models.py:119
+#: stream/models.py:74 stream/models.py:120
 msgid "Active"
 msgstr "Aktywny"
 
-#: stream/models.py:74
+#: stream/models.py:75
 msgid "If not active, this service will not be further updated."
 msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 
-#: stream/models.py:75
+#: stream/models.py:76
 msgid "Home visible"
 msgstr "Widoczny na stronie głównej"
 
-#: stream/models.py:76
+#: stream/models.py:77
 msgid ""
 "If unchecked, this stream will be still active, but hidden and thus visible "
 "only via custom lists."
@@ -200,111 +200,119 @@ msgstr ""
 "Gdy nie jest zaznaczony, ten strumień będzie wciąż aktywny, ale ukryty i "
 "widoczny jedynie za pomocą List."
 
-#: stream/models.py:79 stream/models.py:93
+#: stream/models.py:80 stream/models.py:94 stream/models.py:199
 msgid "Service"
 msgstr "Serwis"
 
-#: stream/models.py:80
+#: stream/models.py:81
 msgid "Services"
 msgstr "Serwisy"
 
-#: stream/models.py:95
+#: stream/models.py:96
 msgid "Title"
 msgstr "Tytuł"
 
-#: stream/models.py:96
+#: stream/models.py:97
 msgid "Link"
 msgstr "Link"
 
-#: stream/models.py:97
+#: stream/models.py:98
 msgid "Image Link"
 msgstr "Link do obrazu"
 
-#: stream/models.py:98
+#: stream/models.py:99
 msgid "Contents"
 msgstr "Treść"
 
-#: stream/models.py:99
+#: stream/models.py:100
 msgid "Date published"
 msgstr "Data publikacji"
 
-#: stream/models.py:101
+#: stream/models.py:102
 msgid "Date updated"
 msgstr "Data aktualizacji"
 
-#: stream/models.py:106
+#: stream/models.py:107
 msgid "Author's Name"
 msgstr "Autor"
 
-#: stream/models.py:108
+#: stream/models.py:109
 msgid "Author's Email"
 msgstr "Email autora"
 
-#: stream/models.py:109
+#: stream/models.py:110
 msgid "Author's URI"
 msgstr "URI autora"
 
-#: stream/models.py:111
+#: stream/models.py:112
 msgid "Geo Latitude"
 msgstr "Szerokość geograficzna"
 
-#: stream/models.py:113
+#: stream/models.py:114
 msgid "Geo Longitude"
 msgstr "Długość geograficzna"
 
-#: stream/models.py:117
+#: stream/models.py:118
 msgid "Protected"
 msgstr "Chroniony"
 
-#: stream/models.py:118
+#: stream/models.py:119
 msgid "Protect from possible overwriting by next update."
 msgstr "Chroni przed możliwym nadpisaniem przy kolejnej aktualizacji."
 
-#: stream/models.py:120
+#: stream/models.py:121
 msgid "If not active, this entry will not be shown."
 msgstr "Nieaktywny, ten wpis nie będzie wyświetlany."
 
-#: stream/models.py:121 templates/stream-pure.html:30
+#: stream/models.py:122
+msgid "Draft"
+msgstr "Szkic"
+
+#: stream/models.py:123
+msgid "A draft is a post that is in progress. Only you will be able to see it."
+msgstr "Szkic jest nieukończonym wpisem w realizacji. Będzie on widoczny tylko dla Ciebie."
+
+#: stream/models.py:124 templates/stream-pure.html:30
 msgid "Friends-only"
 msgstr "Tylko dla przyjaciół"
 
-#: stream/models.py:122
+#: stream/models.py:125
 msgid "Entry will only be visible to you and your friends."
 msgstr "Wpis będzie widoczny tylko dla Ciebie i Twoich przyjaciół."
 
-#: stream/models.py:128 stream/models.py:143 stream/models.py:158
+#: stream/models.py:132 stream/models.py:147 stream/models.py:162
 msgid "Entry"
 msgstr "Wpis"
 
-#: stream/models.py:129
+#: stream/models.py:133
 msgid "Entries"
 msgstr "Wpisy"
 
-#: stream/models.py:148 stream/models.py:149
+#: stream/models.py:152 stream/models.py:153
 msgid "Media"
 msgstr "Media"
 
-#: stream/models.py:163 templates/i18n.html:2 templates/stream-pure.html:38
+#: stream/models.py:167 templates/i18n.html:2 templates/stream-pure.html:38
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:164 stream/views.py:109
+#: stream/models.py:168 stream/views.py:111
 msgid "Favorites"
 msgstr "Ulubione"
 
-#: stream/models.py:174
+#: stream/models.py:178
 msgid "Name"
 msgstr "Nazwa"
 
-#: stream/models.py:175
+#: stream/models.py:179
 msgid "Slug"
 msgstr "Slug"
 
-#: stream/models.py:180
+#: stream/models.py:184
 msgid "List"
 msgstr "Lista"
 
-#: stream/models.py:181 templates/stream.html:16
+#: stream/models.py:185 templates/stream.html:16
 msgid "Lists"
 msgstr "Listy"
 
@@ -313,35 +321,35 @@ msgstr "Listy"
 msgid "You are currently browsing the archive for %s"
 msgstr "Aktualnie przeglądasz archiwum dla %s"
 
-#: stream/views.py:110
+#: stream/views.py:112
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:121
+#: stream/views.py:123
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:142
+#: stream/views.py:144
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:160
+#: stream/views.py:162
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:194
+#: stream/views.py:196
 #, python-format
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
 
-#: stream/views.py:424
+#: stream/views.py:449
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
-#: stream/templatetags/gls_filters.py:78
+#: stream/templatetags/gls_filters.py:83
 msgid ""
 "The content of this entry is available only to my friends. If you are listed "
 "as my friend on Facebook, you may click Facebook Connect button to read it."
@@ -350,20 +358,20 @@ msgstr ""
 "moim znajomym w serwisie Facebook, możesz kliknąć przycisk Facebook Connect, "
 "aby go przeczytać."
 
-#: stream/templatetags/gls_filters.py:84
+#: stream/templatetags/gls_filters.py:89
 msgid "show map"
 msgstr "pokaż na mapie"
 
-#: stream/templatetags/gls_filters.py:119
+#: stream/templatetags/gls_filters.py:130
 msgid "Yesterday"
 msgstr "Wczoraj"
 
-#: stream/templatetags/gls_filters.py:121
+#: stream/templatetags/gls_filters.py:132
 #, python-format
 msgid "%d days ago"
 msgstr "%d dni temu"
 
-#: stream/templatetags/gls_filters.py:124
+#: stream/templatetags/gls_filters.py:135
 #, python-format
 msgid "%(count)d hour ago"
 msgid_plural "%(count)d hours ago"
@@ -371,7 +379,7 @@ msgstr[0] "%(count)d godzinę temu"
 msgstr[1] "%(count)d godziny temu"
 msgstr[2] "%(count)d godzin temu"
 
-#: stream/templatetags/gls_filters.py:128
+#: stream/templatetags/gls_filters.py:139
 #, python-format
 msgid "%(count)d minute ago"
 msgid_plural "%(count)d minutes ago"
@@ -541,32 +549,36 @@ msgid "What's up?"
 msgstr "Co słychać?"
 
 #: templates/stream.html:56
+msgid "Mark as draft:"
+msgstr "Oznacz jako szkic:"
+
+#: templates/stream.html:58
 msgid "Only visible to friends:"
 msgstr "Widoczny tylko dla przyjaciół:"
 
-#: templates/stream.html:60
+#: templates/stream.html:62
 msgid "Add files:"
 msgstr "Dodaj pliki:"
 
-#: templates/stream.html:72
+#: templates/stream.html:74
 msgid "next month"
 msgstr "następny miesiąc"
 
-#: templates/stream.html:77 templates/stream.html.py:87
-#: templates/stream.html:91
+#: templates/stream.html:79 templates/stream.html.py:89
+#: templates/stream.html:93
 msgid "newer entries"
 msgstr "nowsze wpisy"
 
-#: templates/stream.html:79 templates/stream.html.py:88
-#: templates/stream.html:90
+#: templates/stream.html:81 templates/stream.html.py:90
+#: templates/stream.html:92
 msgid "older entries"
 msgstr "starsze wpisy"
 
-#: templates/stream.html:97
+#: templates/stream.html:99
 msgid "previous page"
 msgstr "poprzednia strona"
 
-#: templates/stream.html:98
+#: templates/stream.html:100
 msgid "next page"
 msgstr "następna strona"
 

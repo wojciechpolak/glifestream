@@ -119,6 +119,8 @@ class Entry (models.Model):
         help_text=_('Protect from possible overwriting by next update.'))
     active = models.BooleanField (_('Active'), default=True,
         help_text=_('If not active, this entry will not be shown.'))
+    draft = models.BooleanField (_('Draft'), default=False,
+        help_text=_('A draft is a post that is in progress. Only you will be able to see it.'))
     friends_only = models.BooleanField (_('Friends-only'), default=False,
         help_text=_('Entry will only be visible to you and your friends.'))
     mblob = models.TextField ('Media', null=True, blank=True, editable=False)
