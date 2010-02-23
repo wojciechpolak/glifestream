@@ -96,6 +96,8 @@ def index (request, **args):
     else:
         entries = Entry.objects.order_by (entries_orderby)
 
+    if not authed:
+        fs['draft'] = False
     if not authed or 'public' in args:
         fs['service__public'] = True
         page['public'] = True
@@ -269,6 +271,8 @@ def index (request, **args):
     # Setup links.
     page['need_fbc'] = False
     for entry in entries:
+        entry.only_for_friends = entry.friends_only
+
         if authed or friend:
             entry.friends_only = False
         elif entry.friends_only:
@@ -282,7 +286,6 @@ def index (request, **args):
             if 'title' in page: del page['title']
 
         entry.gls_absolute_link = '%s%s' % (page['site_url'], entry.gls_link)
-        entry.only_for_friends = entry.friends_only
 
     # Check single-entry URL
     if 'exactentry' in page:
@@ -434,6 +437,7 @@ def api (request, **args):
         entry = selfposts.API (False).share (
             { 'content': request.POST.get ('content', ''),
               'id': request.POST.get ('id', None),
+              'draft': request.POST.get ('draft', False),
               'friends_only': request.POST.get ('friends_only', False),
               'link': request.POST.get ('link', None),
               'images': images,

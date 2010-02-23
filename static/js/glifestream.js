@@ -313,6 +313,7 @@
       show_spinner (this);
       $.post (baseurl + 'api/share', { id: $('#status-class').val (),
 	    content: status.val (),
+	    draft: $('#draft').attr ('checked') ? 1 : 0,
 	    friends_only: $('#friends-only').attr ('checked') ? 1 : 0 },
 	function (html) {
 	  hide_spinner ();
