@@ -344,7 +344,7 @@ table.vc td { padding: 0; }
 }
 
 .playbutton {
-  background: transparent url(icons/play.png) no-repeat top left;
+  background: transparent url(icons/player.png) no-repeat top left;
   width: 29px;
   height: 29px;
   position: absolute;
@@ -354,7 +354,7 @@ table.vc td { padding: 0; }
   margin: -12px 0 0 -12px;
 }
 .stopbutton {
-  background: transparent url(icons/stop.png) no-repeat top left;
+  background: transparent url(icons/player.png) no-repeat -29px 0;
   width: 29px;
   height: 29px;
   position: absolute;
