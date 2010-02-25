@@ -30,6 +30,11 @@ import glifestream.filters
 from glifestream.stream import media
 from glifestream.apis import *
 
+try:
+    import json
+except ImportError:
+    import simplejson as json
+
 @register.filter
 def gls_date (date):
     ts = calendar.timegm (date.utctimetuple ())
@@ -143,3 +148,8 @@ def get_relative_time (t):
 @register.filter
 def smart_truncate (content, length=24, suffix='...'):
     return glifestream.filters.smart_truncate (content, length, suffix)
+
+@register.filter
+def encode_json (content):
+    enc = json.JSONEncoder ()
+    return mark_safe (enc.encode (content))
