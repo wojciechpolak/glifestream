@@ -47,6 +47,7 @@ class API:
         images  = args.get ('images', None)
         files   = args.get ('files', MultiValueDict ())
         source  = args.get ('source', '')
+        user    = args.get ('user', None)
 
         un = utcnow ()
         guid = '%s/entry/%s' % (settings.FEED_TAGURI,
@@ -62,6 +63,9 @@ class API:
         e.date_updated = un
         e.draft = int (args.get ('draft', False))
         e.friends_only = int (args.get ('friends_only', False))
+
+        if user and user.first_name and user.last_name:
+            e.author_name = user.first_name +' '+ user.last_name
 
         if markdown and source != 'bookmarklet':
             e.content = expand.all (markdown.markdown (content))
