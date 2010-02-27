@@ -442,7 +442,8 @@ def api (request, **args):
               'link': request.POST.get ('link', None),
               'images': images,
               'files': request.FILES,
-              'source': source })
+              'source': source,
+              'user': request.user })
         if entry:
             pshb.publish ()
             if source == 'bookmarklet':
