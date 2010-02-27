@@ -25,7 +25,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.template.defaultfilters import date as ddate
-from django.template.defaultfilters import urlencode, urlize, slugify, timesince
+from django.template.defaultfilters import urlencode, slugify
 import glifestream.filters
 from glifestream.stream import media
 from glifestream.apis import *

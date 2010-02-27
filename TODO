@@ -3,7 +3,6 @@ TO DO:
 A lot of stuff! Some of them:
 
 * User-friendly settings page
-* Facebook newsfeed support (apis/facebook.py)
 * OpenID
 * Comments (internal, Salmon Protocol).
 

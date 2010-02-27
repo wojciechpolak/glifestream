@@ -33,6 +33,7 @@ class Service (models.Model):
         ('webfeed',     'Webfeed'),
         ('selfposts',   'Self Posts'),
         ('twitter',     'Twitter'),
+        ('fb',          'Facebook'),
         ('friendfeed',  'FriendFeed'),
         ('youtube',     'YouTube'),
         ('vimeo',       'Vimeo'),

@@ -54,6 +54,8 @@ def run ():
     list_old = False
     delete_old = False
     thumbs = False
+    fb_cmd = False
+    fb_arg = False
     pshb_cmd = False
     fs = {}
 
@@ -69,6 +71,7 @@ def run ():
                                      'list-old=',
                                      'thumbs-list-orphans',
                                      'thumbs-delete-orphans',
+                                     'fb-get-inf-session-key=',
                                      'pshb='])
         for o, arg in opts:
             if o in ('-a', '--api'):
@@ -91,6 +94,9 @@ def run ():
                 thumbs = 'list-orphans'
             elif o == '--thumbs-delete-orphans':
                 thumbs = 'delete-orphans'
+            elif o == '--fb-get-inf-session-key':
+                fb_cmd = 'get-inf-session-key'
+                fb_arg = arg
             elif o == '--pshb':
                 pshb_cmd = arg
     except getopt.GetoptError:
@@ -106,6 +112,7 @@ def run ():
       --delete-old=DAYS        Delete entries older than DAYS
       --thumbs-list-orphans    List orphaned thumbnails
       --thumbs-delete-orphans  Delete orphaned thumbnails
+      --fb-get-inf-session-key=TOKEN Get Facebook's infinite session key
       --pshb=ACTION            PubSubHubbub's actions: (un)subscribe, list
   """ % sys.argv[0]
         sys.exit (0)
@@ -146,6 +153,12 @@ def run ():
         else:
             print '%s: Unknown "%s" action.' % (sys.argv[0], pshb_cmd)
             sys.exit (1)
+        sys.exit (0)
+
+    if fb_cmd:
+        from glifestream.apis import fb
+        if fb_cmd == 'get-inf-session-key' and fb_arg:
+            fb.get_inf_session_key (fb_arg)
         sys.exit (0)
 
     if thumbs in ('list-orphans', 'delete-orphans'):

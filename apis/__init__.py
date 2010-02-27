@@ -16,6 +16,7 @@
 __all__ = (
     'delicious',
     'digg',
+    'fb',
     'flickr',
     'friendfeed',
     'gbuzz',
