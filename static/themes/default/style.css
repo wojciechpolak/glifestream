@@ -104,12 +104,11 @@ h2, h3, h4, h5, h6 {
   padding: 0;
   list-style: none;
 }
-#sidebar .links li {
-  margin-top: 3px;
-}
+#sidebar .links li { margin-top: 3px; }
 #sidebar .lists, #sidebar .archives { margin-bottom: 1em; }
 #sidebar .lists h4, #sidebar .archives h4,
 #sidebar .search h4 { margin-bottom: 7px; }
+#sidebar .search input[name=s] { width: 80%; }
 
 p.subtitle {
   padding-bottom: 6px;
