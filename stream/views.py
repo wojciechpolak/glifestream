@@ -197,6 +197,7 @@ def index (request, **args):
         urlparams.append ('s=' + search_query)
         sfs = {}
         if page['public']: sfs['public'] = True
+        if not authed and not friend: sfs['friends_only'] = False
         page_number = int (request.GET.get ('page', 1))
         offset = (page_number - 1) * entries_on_page
 

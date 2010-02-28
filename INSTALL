@@ -146,11 +146,13 @@ source glifestream
    sql_query    = \
 	SELECT stream_entry.id, stream_entry.title, stream_entry.content, \
 	UNIX_TIMESTAMP(stream_entry.date_published) AS date_published, \
-	stream_service.public FROM stream_entry INNER JOIN stream_service \
-	ON stream_entry.service_id=stream_service.id WHERE stream_entry.active=1
+	stream_entry.friends_only, stream_service.public FROM stream_entry \
+	INNER JOIN stream_service ON stream_entry.service_id=stream_service.id \
+	WHERE stream_entry.active=1 AND stream_entry.draft=0
 
    sql_attr_timestamp = date_published
    sql_attr_bool      = public
+   sql_attr_bool      = friends_only
 
    sql_query_info     = SELECT * FROM stream_entry WHERE id=$id
 }
