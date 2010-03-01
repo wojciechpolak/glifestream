@@ -99,7 +99,8 @@
     return $('.entry-controls-switch', entry.parentNode.parentNode.parentNode)[0];
   }
 
-  function hide_entry () {
+  function hide_entry (e) {
+    if (e) e.preventDefault ();
     if (($('span.favorite', $M (this).parentNode).length)) {
       alert (_('Unfavorite this entry before hiding it.'));
       return false;
@@ -112,7 +113,6 @@
 	    $(this).after ('<div id="hidden-'+ id +'" class="entry-hidden"><em>'+ _('Entry hidden') +'</em> - <a href="#" onclick="return gls.unhide_entry.call(this)">'+ _('Undo') +'</a></div>');
 	  });
       });
-    return false;
   }
 
   function unhide_entry () {
@@ -126,7 +126,8 @@
     return false;
   }
 
-  function favorite_entry () {
+  function favorite_entry (e) {
+    if (e) e.preventDefault ();
     var that = this;
     var id = this.id.split ('-')[1];
     show_spinner ($M (this));
@@ -144,7 +145,6 @@
 	  $(that).removeClass ('fav').html (_('Favorite'));
 	});
     }
-    return false;
   }
 
   function reshare_entry () {
@@ -189,7 +189,8 @@
     return false;
   }
 
-  function translate_entry () {
+  function translate_entry (e) {
+    if (e) e.preventDefault ();
     var that = this;
     var id = this.id.split ('-')[1];
     show_spinner ($M (this));
@@ -199,7 +200,6 @@
 	ctx.html (html);
 	alter_html (ctx);
       });
-    return false;
   }
 
   function change_theme () {
@@ -499,11 +499,12 @@
     $('a:first', article).focus ().blur ();
     articles.removeClass ('entry-highlight');
     $(article).addClass ('entry-highlight');
-    scroll_to_element (article);
+    scroll_to_element (article, 24);
   }
 
-  function scroll_to_element (t) {
-    var toffset = $(t).offset ().top - 16;
+  function scroll_to_element (t, offset) {
+    offset = offset || 16;
+    var toffset = $(t).offset ().top - offset;
     $('html,body').animate ({scrollTop: toffset}, 200);
   }
 
@@ -765,8 +766,11 @@
 
       if (!type) {
 	if (src.match (/(\.jpg$|\.jpeg$|\.png$|\.gif$)/i) ||
-	    src.match (/http:\/\/friendfeed-media.com/))
+	    src.match (/http:\/\/friendfeed-media\.com/)) {
 	  type = 'image';
+	  if (src.match (/bp\.blogspot\.com/))
+	    src = src.replace (/-h\//, '/');
+	}
 	else
 	  return true;
       }
