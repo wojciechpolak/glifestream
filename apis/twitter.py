@@ -35,7 +35,7 @@ class API (webfeed.API):
     def custom_process (self, e, ent):
         e.title = 'Tweet: %s' % truncate.smart_truncate (ent.title.split (': ', 1)[1])
         e.content = expand.all (e.content)
-        e.mblob = media.mrss_scan (e.content)
+        e.custom_mblob = media.mrss_scan (e.content)
 
 def filter_content (entry):
     return twyntax.parse (entry.content)
