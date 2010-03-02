@@ -13,7 +13,6 @@ body { background: white; margin: 7px; }
 #bookmarklet { padding-top: 0; }
 #thumbnails { white-space: nowrap; overflow: hidden; }
 #thumbnails img { border: 1px solid #ccc; padding: 1px; margin-bottom: 8px; margin-right: 8px; vertical-align: middle; }
-#mtip { font-size: smaller; }
 td.button { padding-left: 4px; vertical-align: top; padding-top: 1px; }
 td.close { vertical-align: top; text-align: right; }
 textarea.blur, input.blur { color: #aaa; }
@@ -50,7 +49,7 @@ div.content { margin-right: 6px; padding-top: 5px; padding-bottom: 5px; }
       <div class="actions">
 	<table style="width:100%">
 	  <tr>
-	    <td id="mtip">{% trans "Click on images to share them." %}</td>
+	    <td class="smaller">{% trans "Click on images to share them." %}</td>
 	    <td style="text-align:right; padding-left:5px;">
 	      {% trans "Class:" %} <select name="id">
 {% for srv in srvs %}		<option value="{{ srv.id }}">{{ srv.cls }}</option>
@@ -60,6 +59,17 @@ div.content { margin-right: 6px; padding-top: 5px; padding-bottom: 5px; }
 	      <span id="spinner" style="display:none"></span>
 	      <input type="hidden" name="from" value="bookmarklet" />
  	      <input type="hidden" name="link" value="" />
+	    </td>
+	  </tr>
+	  <tr>
+	    <td colspan="2" class="smaller">
+	      <a href="#" id="expand-sharing" style="margin:0">{% trans "more options" %}</a>
+	      <div style="display:none">
+		<label for="draft">{% trans "Mark as draft:" %}</label>
+		<input type="checkbox" id="draft" name="draft" value="1" />,
+		<label for="friends-only">{% trans "Only visible to friends:" %}</label>
+		<input type="checkbox" id="friends-only" name="friends_only" value="1" />
+	      </div>
 	    </td>
 	  </tr>
 	</table>
@@ -77,7 +87,7 @@ div.content { margin-right: 6px; padding-top: 5px; padding-bottom: 5px; }
 //<![CDATA[
 
 /*
- *  gLifestream Copyright (C) 2009 Wojciech Polak
+ *  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -96,6 +106,9 @@ div.content { margin-right: 6px; padding-top: 5px; padding-bottom: 5px; }
 $(document).ready (function () {
   $('textarea.content').focus ();
   $('#bookmarkletform').submit (bookmarklet_submit);
+  $('#expand-sharing').click (function () {
+      $(this).next().show().end().remove();
+    });
   check_hash ();
   setInterval (check_hash, 100);
 });
@@ -272,7 +285,6 @@ function bookmarklet_submit () {
     return false;
   }
 
-  args.next = '';
   for (var i = 0; i < thumbs_set.length; i++) {
     args['image' + i] = thumbs_set[i].src;
     if (thumbs_set[i].video)

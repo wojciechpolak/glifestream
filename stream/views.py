@@ -446,7 +446,8 @@ def api (request, **args):
               'source': source,
               'user': request.user })
         if entry:
-            pshb.publish ()
+            if not entry.draft:
+                pshb.publish ()
             if source == 'bookmarklet':
                 d = {'close_msg': _("You've successfully shared this web page at your stream.")}
                 return HttpResponse (json.dumps (d),
