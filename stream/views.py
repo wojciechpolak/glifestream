@@ -465,7 +465,9 @@ def api (request, **args):
         try:
             entry = Entry.objects.get (id=int(entry))
             if entry:
-                entry = selfposts.API (False).reshare (entry)
+                entry = selfposts.API (False).reshare (
+                    entry, { 'as_me': request.POST.get ('as_me', False),
+                             'user': request.user })
                 if entry:
                     pshb.publish ()
                     return render_to_response ('stream-pure.html',

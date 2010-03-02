@@ -150,9 +150,11 @@
   function reshare_entry () {
     if (!confirm (_('You are about to re-share this entry at your stream. Confirm?')))
       return false;
+    var as_me = !confirm (_('Keep the original author?'));
     var id = this.id.split ('-')[1];
     show_spinner (this);
-    $.post (baseurl + 'api/reshare', { entry: id }, function (html) {
+    $.post (baseurl + 'api/reshare', { entry: id, as_me: as_me ? 1 : 0 },
+	    function (html) {
 	hide_spinner ();
 	Shareitbox.close ();
 	jump_to_top ();

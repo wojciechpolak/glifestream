@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-02 18:05+0100\n"
-"PO-Revision-Date: 2010-03-02 18:03+0100\n"
+"POT-Creation-Date: 2010-03-02 19:47+0100\n"
+"PO-Revision-Date: 2010-03-02 19:37+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -486,15 +486,19 @@ msgid "or elsewhere:"
 msgstr "lub na:"
 
 #: templates/i18n.html:12
+msgid "Keep the original author?"
+msgstr "Czy zachować oryginalnego autora?"
+
+#: templates/i18n.html:13
 msgid "Communication Error. Try again."
 msgstr "Błąd komunikacji. Spróbuj ponownie."
 
-#: templates/i18n.html:13
+#: templates/i18n.html:14
 msgid "You are about to re-share this entry at your stream. Confirm?"
 msgstr ""
 "Właśnie zamierzasz opublikować ten wpis na swoim strumieniu. Potwierdzasz?"
 
-#: templates/i18n.html:14
+#: templates/i18n.html:15
 msgid "Your browser does not support it."
 msgstr "Twoja przeglądarka tego nie obsługuje."
 
