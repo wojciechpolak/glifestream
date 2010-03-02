@@ -161,7 +161,11 @@ class API:
         except:
             pass
 
-    def reshare (self, entry, id=None):
+    def reshare (self, entry, args={}):
+        id    = args.get ('id', None)
+        as_me = int (args.get ('as_me', False))
+        user  = args.get ('user', None)
+
         un = utcnow ()
         guid = '%s/entry/%s' % (settings.FEED_TAGURI,
                                 un.strftime ('%Y-%m-%dT%H:%M:%SZ'))
@@ -171,12 +175,27 @@ class API:
             s = Service.objects.filter (api='selfposts').order_by ('id')[0]
         e = Entry (service=s, guid=guid)
 
-        e.link = entry.link
-        e.author_name  = entry.author_name
-        e.author_email = entry.author_email
-        e.author_uri   = entry.author_uri
         e.date_published = un
         e.date_updated   = un
+
+        if as_me:
+            if user and user.first_name and user.last_name:
+                e.author_name = user.first_name +' '+ user.last_name
+            else:
+                e.author_name = ''
+            e.author_email = ''
+            e.author_uri   = ''
+            if entry.service.api == 'greader':
+                e.link = entry.link
+            else:
+                e.link = settings.BASE_URL
+            if entry.service.api == 'twitter':
+                entry.content = entry.content.split (': ', 1)[1]
+        else:
+            e.author_name  = entry.author_name
+            e.author_email = entry.author_email
+            e.author_uri   = entry.author_uri
+            e.link = entry.link
 
         e.geolat = entry.geolat
         e.geolng = entry.geolng
