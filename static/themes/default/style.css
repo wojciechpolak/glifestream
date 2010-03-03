@@ -448,7 +448,7 @@ ul.files {
   height: 16px;
   cursor: help;
   padding-left: 22px;
-  background: transparent url(icons/lock.png) no-repeat 0 0;
+  background: transparent url(icons/lock.png) no-repeat 0 50%;
 }
 
 .geo {
