@@ -37,6 +37,10 @@ CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 SITE_URL = 'http://localhost:8000'
 BASE_URL = SITE_URL
 
+# The URL where requests are redirected for login.
+# For HTTPS use an absolute URL.
+LOGIN_URL = '/login'
+
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = os.path.join (SITE_ROOT, 'static')

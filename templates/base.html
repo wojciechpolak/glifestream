@@ -32,7 +32,7 @@
     <a href="{{ user.fb_profile_url }}" target="_blank"><b>{{ user.fb_username }}</b></a></span> |
     <a href="{% url django.contrib.auth.views.logout %}">{% trans "Logout" %}</a>
     {% else %}
-    <a href="{% url login.views.login %}" rel="nofollow">{% trans "Login" %}</a>
+    <a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>
     {% endif %}
     {% endif %}
   </nav>

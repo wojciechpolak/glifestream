@@ -49,6 +49,7 @@ def index (request, **args):
         'public': False,
         'site_url': settings.SITE_URL,
         'base_url': settings.BASE_URL,
+        'login_url': settings.LOGIN_URL,
         'author_name': settings.FEED_AUTHOR_NAME,
         'taguri': settings.FEED_TAGURI,
         'icon': settings.FEED_ICON,
