@@ -259,6 +259,8 @@
 	      id = 'vimeo-' + this.href.substr (17);
 	    else if (this.href.indexOf ('http://www.collegehumor.com/video:') === 0)
 	      id = 'chtv-' + this.href.substr (34);
+	    else if (this.href.indexOf ('http://www.facebook.com/video/video.php?v=') === 0)
+	      id = 'facebook-' + this.href.substr (42);
 	    if (id) {
 	      $(this).wrap ('<table class="vc"><tr><td><div id="'+ id +'" class="play-video"></div></td></tr></table>');
 	      $(this).after ('<div class="playbutton"></div>');
@@ -926,6 +928,7 @@
     'metacafe': '<embed flashvars="playerVars=showStats=no|autoPlay=yes" src="http://www.metacafe.com/fplayer/{ID}/video.swf" width="400" height="348" wmode="transparent" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" allowFullScreen="true" allowScriptAccess="always" name="Metacafe_{ID}"></embed>',
     'twitvid': '<object width="425" height="344"><param name="movie" value="http://www.twitvid.com/player/{ID}"></param><param name="allowFullScreen" value="true"></param><embed type="application/x-shockwave-flash" src="http://www.twitvid.com/player/{ID}" quality="high" allowscriptaccess="always" allowNetworking="all" allowfullscreen="true" wmode="transparent" width="425" height="344"></object>',
     'vidly': '<object width="480" height="269"><param name="movie" value="http://vid.ly/embed/{ID}"></param><param name="wmode" value="opaque"></param><param name="allowscriptaccess" value="always"></param><param name="allowfullscreen" value="true"></param><embed src="http://vid.ly/embed/{ID}" type="application/x-shockwave-flash" wmode="opaque" allowscriptaccess="always" allowfullscreen="true" width="480" height="269"></embed></object>',
+    'facebook': '<object width="480" height="270"><param name="movie" value="http://www.facebook.com/v/{ID}"></param><param name="allowFullScreen" value="true"><embed src="http://www.facebook.com/v/{ID}" type="application/x-shockwave-flash" allowfullscreen="true" width="480" height="270"></embed></object>',
     'googlevideo': '<embed id="VideoPlayback" src="http://video.google.com/googleplayer.swf?docid={ID}&fs=true" style="width:400px; height:326px" allowFullScreen="true" allowScriptAccess="always" type=application/x-shockwave-flash></embed>'
   };
 })();
