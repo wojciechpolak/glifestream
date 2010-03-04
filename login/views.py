@@ -30,8 +30,8 @@ except ImportError:
     facebook = None
 
 @never_cache
-def login (request, template_name = 'registration/login.html',
-           redirect_field_name = REDIRECT_FIELD_NAME):
+def login (request, template_name='registration/login.html',
+           redirect_field_name=REDIRECT_FIELD_NAME):
 
     redirect_to = request.REQUEST.get (redirect_field_name,
                                        urlresolvers.reverse ('index'))
@@ -67,7 +67,7 @@ def login (request, template_name = 'registration/login.html',
     if not gl_theme in settings.THEMES:
         gl_theme = settings.THEMES[0]
     page = {
-        'robots': 'noindex',
+        'robots': 'noindex,nofollow',
         'theme': gl_theme,
     }
 
@@ -80,8 +80,8 @@ def login (request, template_name = 'registration/login.html',
                                context_instance = RequestContext (request))
 
 @never_cache
-def login_friend (request, template_name = 'registration/login.html',
-                  redirect_field_name = REDIRECT_FIELD_NAME):
+def login_friend (request, template_name='registration/login.html',
+                  redirect_field_name=REDIRECT_FIELD_NAME):
 
     redirect_to = request.REQUEST.get (redirect_field_name,
                                        urlresolvers.reverse ('index'))
