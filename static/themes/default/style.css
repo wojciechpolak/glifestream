@@ -190,6 +190,7 @@ p.subtitle {
   list-style-position: outside;
   list-style-type: none;
   z-index: 9999;
+  border-radius: 5px;
   -moz-border-radius: 5px;
   -khtml-border-radius: 5px;
   -webkit-border-radius: 5px;
@@ -508,6 +509,7 @@ ul.files {
   border: 2px solid #666666;
   text-align: left;
   z-index: 9999;
+  border-radius: 5px;
   -moz-border-radius: 5px;
   -khtml-border-radius: 5px;
   -webkit-border-radius: 5px;
@@ -550,10 +552,10 @@ ul.files {
 #login form {
   padding: 16px 16px 50px 16px;
   font-weight: bold;
+  border-radius: 5px;
   -moz-border-radius: 5px;
   -khtml-border-radius: 5px;
   -webkit-border-radius: 5px;
-  border-radius: 5px;
   background-color: #eaf3fa;
 }
 
@@ -579,10 +581,10 @@ ul.files {
   padding: 3px 5px;
   border-width: 1px;
   border-style: solid;
+  border-radius: 3px;
   -moz-border-radius: 3px;
   -khtml-border-radius: 3px;
   -webkit-border-radius: 3px;
-  border-radius: 3px;
   cursor: default;
   text-decoration: none;
   margin-top: -6px;
