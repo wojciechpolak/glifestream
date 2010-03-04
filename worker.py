@@ -53,6 +53,7 @@ def run ():
     force_overwrite = False
     list_old = False
     delete_old = False
+    only_inactive = False
     thumbs = False
     fb_cmd = False
     fb_arg = False
@@ -69,6 +70,7 @@ def run ():
                                      'force-overwrite',
                                      'delete-old=',
                                      'list-old=',
+                                     'only-inactive',
                                      'thumbs-list-orphans',
                                      'thumbs-delete-orphans',
                                      'fb-get-inf-session-key=',
@@ -90,6 +92,8 @@ def run ():
                 list_old = int (arg)
             elif o == '--delete-old':
                 delete_old = int (arg)
+            elif o == '--only-inactive':
+                only_inactive = True
             elif o == '--thumbs-list-orphans':
                 thumbs = 'list-orphans'
             elif o == '--thumbs-delete-orphans':
@@ -110,6 +114,7 @@ def run ():
       --force-overwrite        Force overwriting unmodified entries
       --list-old=DAYS          List entries older than DAYS
       --delete-old=DAYS        Delete entries older than DAYS
+      --only-inactive          Match only inactive entries (hidden)
       --thumbs-list-orphans    List orphaned thumbnails
       --thumbs-delete-orphans  Delete orphaned thumbnails
       --fb-get-inf-session-key=TOKEN Get Facebook's infinite session key
@@ -211,6 +216,8 @@ def run ():
         fs['protected'] = False
         fs['date_published__lte'] = rt
         fs['date_inserted__lte'] = rt
+        if only_inactive:
+            fs['active'] = False
         favs = Favorite.objects.all ().values ('entry')
         if list_old:
             for entry in Entry.objects.filter (**fs).exclude (id__in=favs):
