@@ -135,14 +135,6 @@ def __sv_twitvid (m):
     link = m.group (0)
     return '<span id="twitvid-%s" class="play-video video-inline"><a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
 
-def __sv_vidly (m):
-    id   = m.group (1)
-    rest = m.group (2)
-    ltag = rest.find ('<') if rest else -1
-    rest = rest[ltag:] if ltag != -1 else ''
-    link = 'http://vidly.com/%s' % id
-    return '<span id="vidly-%s" class="play-video video-inline"><a href="%s" rel="nofollow">%s</a></span>%s' % (id, link, link, rest)
-
 def __sv_dailymotion (m):
     link = strip_tags (m.group (0))
     id   = m.group (1)
@@ -188,8 +180,6 @@ def videolinks (s):
                     __sv_metacafe, s)
     if 'twitvid.com/' in s:
         s = re.sub (r'http://(www\.)?twitvid.com/(\w+)', __sv_twitvid, s)
-    if 'vidly.com/' in s:
-        s = re.sub (r'http://vidly.com/(\w+)(\S*)', __sv_vidly, s)
     if 'collegehumor.com/video:' in s:
         s = re.sub (r'http://www.collegehumor.com/video:(\d+)', __sv_chtv, s)
     if 'http://video.google.com/videoplay?docid=' in s:
