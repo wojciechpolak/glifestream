@@ -103,7 +103,7 @@ class API:
                 traceback.print_exc (file=sys.stdout)
 
     def process (self):
-          for ent in self.stream['posts']:
+        for ent in self.stream['posts']:
             guid = 'tag:facebook.com,2004:post/%s' % ent['post_id']
             if self.verbose:
                 print "ID: %s" % guid
@@ -155,7 +155,11 @@ class API:
                                                            t['height'])
                     else:
                         iwh = ''
-                    content += '<a href="%s" rel="nofollow"><img src="%s"%s alt="thumbnail" /></a> ' % (t['href'], t['src'], iwh)
+                    if 'video' in t and 'display_url' in t['video']:
+                        href = t['video']['display_url']
+                    else:
+                        href = t['href']
+                    content += '<a href="%s" rel="nofollow"><img src="%s"%s alt="thumbnail" /></a> ' % (href, t['src'], iwh)
                 if ent['message'] == '' and 'description' in ent['attachment']:
                     content += ent['attachment']['description']
                 content += '</p>'
