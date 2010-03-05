@@ -42,6 +42,19 @@ h2, h3, h4, h5, h6 {
   font-weight: bold;
 }
 
+input[type="text"], input[type="password"], textarea {
+  padding: 2px 1px 2px 1px;
+  background-color: white;
+  border: 1px solid #9d9180;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -khtml-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
+input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+  border: 1px solid #3f5061;
+}
+
 .tb {
   border: 1px solid black;
   border-radius: 5px;
