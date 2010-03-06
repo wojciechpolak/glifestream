@@ -18,6 +18,7 @@ import datetime
 import httplib
 import base64
 from django.utils.html import strip_tags, strip_entities
+from glifestream.filters import truncate
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import bytes_to_human
 from glifestream.stream.models import Entry
@@ -95,7 +96,7 @@ class API:
                 e = Entry (service=self.service, guid=guid)
 
             e.guid = guid
-            e.title = '%s' % strip_entities (strip_tags (ent['body']))[0:254]
+            e.title = truncate.smart_truncate (strip_entities (strip_tags (ent['body'])), length=40)
             e.link  = ent['url']
             e.link_image = media.save_image ('http://friendfeed-api.com/v2/picture/%s' % ent['from']['id'])
 
