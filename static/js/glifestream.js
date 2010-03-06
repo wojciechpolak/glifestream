@@ -595,8 +595,15 @@
 	blur (function () { document.onkeypress = kshortcuts; });
 
       $('form[name=searchform]').submit (function () {
-	  return ($('input[name=s]').val () == '') ? false : true;
+	  var s = $('input[name=s]').get (0);
+	  if (s && s.value != '' && s.value != s.DEFAULT_SEARCHVAL)
+	    return true;
+	  return false;
 	});
+      $('#search-submit').click (function () {
+	  $('form[name=searchform]').submit ();
+	});
+      set_default_search ($('input[name=s]').get(0), _('Search this site'));
 
       $('#ashare').click (open_sharing);
       $('#expand-sharing').click (open_more_sharing_options);
@@ -883,6 +890,32 @@
       }
     };
   };
+
+  function focus_search () {
+    if (this.value == this.DEFAULT_SEARCHVAL) {
+      this.value = '';
+      this.className = 'focus';
+    }
+  }
+
+  function blur_search () {
+    if (this.value == '') {
+      this.value = this.DEFAULT_SEARCHVAL;
+      this.className = '';
+    }
+  }
+
+  function set_default_search (input, defval) {
+    if (!input && !defval) return;
+    input.DEFAULT_SEARCHVAL = defval;
+    input.autocomplete = 'off';
+    input.onfocus = focus_search;
+    input.onblur  = blur_search;
+    if (input.value == '')
+      input.value = input.DEFAULT_SEARCHVAL;
+    else if (input.value != input.DEFAULT_SEARCHVAL)
+      input.className = 'focus';
+  }
 
   function strip_tags_trim (s) {
     return s.replace (/<\/?[^>]+>/gi, '').replace (/^\s+|\s+$/g, '');

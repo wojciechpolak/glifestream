@@ -43,12 +43,12 @@ h2, h3, h4, h5, h6 {
 }
 
 input[type="text"], input[type="password"], textarea {
-  padding: 2px 1px 2px 1px;
+  font-family: Arial;
+  padding: 2px;
   background-color: white;
   border: 1px solid #9d9180;
   border-radius: 4px;
   -moz-border-radius: 4px;
-  -khtml-border-radius: 4px;
   -webkit-border-radius: 4px;
 }
 input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
@@ -121,7 +121,36 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
 #sidebar .lists, #sidebar .archives { margin-bottom: 1em; }
 #sidebar .lists h4, #sidebar .archives h4,
 #sidebar .search h4 { margin-bottom: 7px; }
-#sidebar .search input[name=s] { width: 80%; }
+#sidebar .search input[name="s"] {
+  font-size: 85%;
+  width: 75%;
+  color: #999999;
+  border-radius: 4px 0 0 4px;
+  -moz-border-radius: 4px 0 0 4px;
+  -webkit-border-radius: 4px;
+  -webkit-border-top-right-radius: 0;
+  -webkit-border-bottom-right-radius: 0;
+}
+#sidebar .search input[name="s"].focus { color: black; }
+
+#search-submit {
+  font-family: Arial;
+  font-size: 85%;
+  cursor: pointer;
+  padding: 2px 0 2px 24px;
+  background: transparent url(icons/search.png) no-repeat 0px 50%;
+  border: 1px solid #9d9180;
+  border-left: none;
+  border-radius: 0 4px 4px 0;
+  -moz-border-radius: 0 4px 4px 0;
+  -webkit-border-radius: 4px;
+  -webkit-border-top-left-radius: 0;
+  -webkit-border-bottom-left-radius: 0;
+}
+#search-submit:hover {
+  background: transparent url(icons/search.png) no-repeat -24px 50%;
+  background-color: white;
+}
 
 p.subtitle {
   padding-bottom: 6px;

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-02 19:47+0100\n"
+"POT-Creation-Date: 2010-03-06 15:09+0100\n"
 "PO-Revision-Date: 2010-03-02 19:37+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
@@ -84,23 +84,23 @@ msgstr "Zamknij"
 msgid "Click on images to share them."
 msgstr "Kliknij obrazki aby je dodać."
 
-#: bookmarklet/templates/frame.html:54 templates/stream.html:51
+#: bookmarklet/templates/frame.html:54 templates/stream.html:49
 msgid "Class:"
 msgstr "Klasa:"
 
-#: bookmarklet/templates/frame.html:58 templates/stream.html:52
+#: bookmarklet/templates/frame.html:58 templates/stream.html:50
 msgid "Post"
 msgstr "Publikuj"
 
-#: bookmarklet/templates/frame.html:66 templates/stream.html:53
+#: bookmarklet/templates/frame.html:66 templates/stream.html:51
 msgid "more options"
 msgstr "więcej opcji"
 
-#: bookmarklet/templates/frame.html:68 templates/stream.html:56
+#: bookmarklet/templates/frame.html:68 templates/stream.html:54
 msgid "Mark as draft:"
 msgstr "Oznacz jako szkic:"
 
-#: bookmarklet/templates/frame.html:70 templates/stream.html:58
+#: bookmarklet/templates/frame.html:70 templates/stream.html:56
 msgid "Only visible to friends:"
 msgstr "Widoczny tylko dla przyjaciół:"
 
@@ -310,7 +310,7 @@ msgstr "Media"
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:169 stream/views.py:111
+#: stream/models.py:169 stream/views.py:112
 msgid "Favorites"
 msgstr "Ulubione"
 
@@ -330,36 +330,36 @@ msgstr "Lista"
 msgid "Lists"
 msgstr "Listy"
 
-#: stream/views.py:91
+#: stream/views.py:92
 #, python-format
 msgid "You are currently browsing the archive for %s"
 msgstr "Aktualnie przeglądasz archiwum dla %s"
 
-#: stream/views.py:112
+#: stream/views.py:113
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:123
+#: stream/views.py:124
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:144
+#: stream/views.py:145
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:162
+#: stream/views.py:163
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:196
+#: stream/views.py:197
 #, python-format
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
 
-#: stream/views.py:452
+#: stream/views.py:453
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
@@ -490,15 +490,19 @@ msgid "Keep the original author?"
 msgstr "Czy zachować oryginalnego autora?"
 
 #: templates/i18n.html:13
+msgid "Search this site"
+msgstr "Wyszukaj na tej stronie"
+
+#: templates/i18n.html:14
 msgid "Communication Error. Try again."
 msgstr "Błąd komunikacji. Spróbuj ponownie."
 
-#: templates/i18n.html:14
+#: templates/i18n.html:15
 msgid "You are about to re-share this entry at your stream. Confirm?"
 msgstr ""
 "Właśnie zamierzasz opublikować ten wpis na swoim strumieniu. Potwierdzasz?"
 
-#: templates/i18n.html:15
+#: templates/i18n.html:16
 msgid "Your browser does not support it."
 msgstr "Twoja przeglądarka tego nie obsługuje."
 
@@ -551,44 +555,40 @@ msgid "Select Month"
 msgstr "Wybierz miesiąc"
 
 #: templates/stream.html:34
-msgid "Search this site"
-msgstr "Wyszukaj na tej stronie"
-
-#: templates/stream.html:36
 msgid "Search"
 msgstr "Szukaj"
 
-#: templates/stream.html:45
+#: templates/stream.html:43
 msgid "Add content"
 msgstr "Dodaj wpis"
 
-#: templates/stream.html:48
+#: templates/stream.html:46
 msgid "What's up?"
 msgstr "Co słychać?"
 
-#: templates/stream.html:62
+#: templates/stream.html:60
 msgid "Add files:"
 msgstr "Dodaj pliki:"
 
-#: templates/stream.html:74
+#: templates/stream.html:72
 msgid "next month"
 msgstr "następny miesiąc"
 
-#: templates/stream.html:79 templates/stream.html.py:89
-#: templates/stream.html:93
+#: templates/stream.html:77 templates/stream.html.py:87
+#: templates/stream.html:91
 msgid "newer entries"
 msgstr "nowsze wpisy"
 
-#: templates/stream.html:81 templates/stream.html.py:90
-#: templates/stream.html:92
+#: templates/stream.html:79 templates/stream.html.py:88
+#: templates/stream.html:90
 msgid "older entries"
 msgstr "starsze wpisy"
 
-#: templates/stream.html:99
+#: templates/stream.html:97
 msgid "previous page"
 msgstr "poprzednia strona"
 
-#: templates/stream.html:100
+#: templates/stream.html:98
 msgid "next page"
 msgstr "następna strona"
 
