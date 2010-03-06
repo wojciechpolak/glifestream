@@ -31,9 +31,7 @@
     </div>
     {% if has_search %}<div class="search">
       <form name="searchform" action="./" method="get">
-	<h4>{% trans "Search this site" %}</h4>
-	<input type="text" name="s" value="{{ page.search }}" />
-	<input type="submit" value="{% trans "Search" %}" />
+	<input type="text" name="s" value="{{ page.search }}" maxlength="64" /><span id="search-submit" title="{% trans "Search" %}"></span>
       </form>
     </div>{% endif %}
   </nav>
