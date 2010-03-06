@@ -27,7 +27,7 @@ import datetime
 from django.conf import settings
 from django.utils.html import strip_tags, strip_entities
 from django.template.defaultfilters import urlizetrunc
-from glifestream.filters import expand
+from glifestream.filters import expand, truncate
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
@@ -165,7 +165,7 @@ class API:
                 content += '</p>'
 
             e.content = content
-            e.title = ent['message']
+            e.title = truncate.smart_truncate (strip_tags (ent['message']), length=48)
             if e.title == '':
                 e.title = strip_entities (strip_tags (content))[0:128]
 

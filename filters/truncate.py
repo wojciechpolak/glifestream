@@ -17,4 +17,4 @@ def smart_truncate (content, length=24, suffix='...'):
     if len (content) <= length:
         return content
     else:
-        return content[:length].rsplit (' ', 1)[0] + suffix
+        return content[:length].rsplit (' ', 1)[0].rstrip (' -/,:') + suffix
