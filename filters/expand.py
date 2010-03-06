@@ -19,6 +19,7 @@ import urllib
 import hashlib
 from django.conf import settings
 from django.utils.html import strip_tags
+from django.utils.encoding import smart_unicode
 from glifestream.stream import media
 from glifestream.utils import oembed
 
@@ -42,7 +43,7 @@ def __su_subs (m):
 def shorturls (text):
     """Expand short URLs."""
     return re.sub (r'http://(tinyurl.com|bit.ly|goo.gl|url4.eu|is.gd|ur1.ca|2tu.us|ff.im|post.ly|awe.sm|lnk.ms|pic.gd|tl.gd|vid.ly)(/\w+)',
-                   __su_subs, text)
+                   __su_subs, smart_unicode (text))
 
 #
 # Short image services
