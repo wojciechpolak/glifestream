@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-06 15:09+0100\n"
-"PO-Revision-Date: 2010-03-02 19:37+0100\n"
+"POT-Creation-Date: 2010-03-07 15:34+0100\n"
+"PO-Revision-Date: 2010-03-07 15:36+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -444,6 +444,10 @@ msgstr "O stronie"
 #: templates/base.html:54
 msgid "Powered by"
 msgstr "Zasilany przez"
+
+#: templates/base.html:54
+msgid "A free and open source lifestream platform and social activity reader"
+msgstr "Wolna i otwarta platforma lifestream oraz czytnik aktywności społecznej"
 
 #: templates/base.html:55
 msgid "Change theme"
