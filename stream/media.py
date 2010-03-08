@@ -15,13 +15,13 @@
 
 import os.path
 import re
-import urllib
 import hashlib
 import tempfile
 import types
 import shutil
 from django.conf import settings
 from glifestream.stream.models import Media
+from glifestream.utils import httpclient
 
 try:
     import json
@@ -58,8 +58,7 @@ def save_image (url, force=False, downscale=False):
     if not os.path.isfile (thumb['local']):
         tmp = tempfile.mktemp ('_gls')
         try:
-            image = GlsURLopener ()
-            resp = image.retrieve (url, tmp)[1]
+            resp = httpclient.retrieve (url, tmp)
             if not force and not 'image/' in resp.getheader ('Content-Type',''):
                 return url
             if downscale:
@@ -161,6 +160,3 @@ def mrss_gen_xml (entry):
                 if group: m += '    </media:group>\n'
             m = set_upload_url (set_thumbs_url (m))
     return m
-
-class GlsURLopener (urllib.FancyURLopener):
-    version = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL

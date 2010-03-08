@@ -13,9 +13,9 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import httplib
 from django.template.defaultfilters import title
 from django.utils.translation import ugettext as _
+from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
@@ -45,10 +45,8 @@ class API:
         self.fetch ('/api/v2/%s/videos.json' % self.service.url)
 
     def fetch (self, url):
-        conn = httplib.HTTPConnection (host='vimeo.com', timeout=45)
         try:
-            conn.request ('GET', url)
-            r = conn.getresponse ()
+            r = httpclient.get ('vimeo.com', url)
             if r.status == 200:
                 self.json = json.loads (r.read ())
                 self.service.last_checked = now ()
@@ -147,11 +145,9 @@ class API:
                 pass
 
 def get_thumbnail_url (id):
-    conn = httplib.HTTPConnection ('vimeo.com')
     try:
-        conn.request ('GET', '/api/v2/video/%s.json' % id)
-        r = conn.getresponse ()
-        if r.status == 200:
+        r = httpclient.urlopen ('vimeo.com/api/v2/video/%s.json' % id)
+        if r.code == 200:
             jsn = json.loads (r.read ())
             if jsn[0].has_key ('thumbnail_medium'):
                 return jsn[0]['thumbnail_medium']
