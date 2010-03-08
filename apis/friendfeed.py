@@ -15,10 +15,10 @@
 
 import re
 import datetime
-import httplib
 import base64
 from django.utils.html import strip_tags, strip_entities
 from glifestream.filters import truncate
+from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import bytes_to_human
 from glifestream.stream.models import Entry
@@ -56,10 +56,8 @@ class API:
             hs['Authorization'] = 'Basic ' + \
                 base64.encodestring (self.service.creds).strip ()
 
-        conn = httplib.HTTPConnection (host='friendfeed-api.com', timeout=45)
         try:
-            conn.request ('GET', url, headers=hs)
-            r = conn.getresponse ()
+            r = httpclient.get ('friendfeed-api.com', url, headers=hs)
             if r.status == 200:
                 self.json = json.loads (r.read ().decode ('utf_8'))
                 self.service.last_checked = now ()

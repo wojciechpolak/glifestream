@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,9 +13,8 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import httplib
-import urllib
 from django.conf import settings
+from glifestream.utils import httpclient
 
 try:
     import json
@@ -30,17 +29,14 @@ def translate (msg, src='', target='en'):
         'langpair': src +'|'+ target,
     }
     headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
         'Referer': settings.BASE_URL,
     }
 
     try:
-        conn = httplib.HTTPConnection ('ajax.googleapis.com')
-        conn.request ('POST', '/ajax/services/language/translate',
-                      urllib.urlencode (params), headers)
-        response = conn.getresponse ()
-        if response.status == 200:
-            data = json.loads (response.read ())
+        r = httpclient.urlopen ('ajax.googleapis.com/ajax/services/language/translate',
+                                params, headers, timeout=30)
+        if r.code == 200:
+            data = json.loads (r.read ())
             if data['responseStatus'] == 200:
                 return data['responseData']['translatedText']
             else:

@@ -14,29 +14,22 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import httplib
 import urllib
 import hashlib
 from django.conf import settings
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_unicode
 from glifestream.stream import media
-from glifestream.utils import oembed
+from glifestream.utils import httpclient, oembed
 
 #
 # Short link services
 #
 
 def __su_subs (m):
-    conn = httplib.HTTPConnection (m.group (1))
     try:
-        conn.request ('HEAD', m.group (2))
-        response = conn.getresponse ()
-        url = response.getheader ('location')
-        if url:
-            return '%s' % response.getheader ('location')
-        else:
-            return m.group (0)
+        res = httpclient.head (m.group (1), m.group (2))
+        return res.getheader ('location') or m.group (0)
     except:
         return m.group (0)
 

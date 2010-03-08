@@ -15,11 +15,10 @@
 
 import hmac
 import hashlib
-import urllib
-import urllib2
 from datetime import timedelta
 from django.conf import settings
 from django.core import urlresolvers
+from glifestream.utils import httpclient
 from glifestream.utils.time import now
 from glifestream.stream.models import Pshb
 
@@ -79,11 +78,11 @@ def subscribe (service, verbose=False):
         data['hub.secret'] = secret
 
     try:
-        r = urllib2.urlopen (hub, urllib.urlencode (data))
+        r = httpclient.urlopen (hub, data)
         if verbose: print 'Response code: %d' % r.code
         if save_db: db.save ()
         return {'hub': hub, 'rc': r.code}
-    except (IOError, urllib2.HTTPError), e:
+    except (IOError, httpclient.HTTPError), e:
         error = ''
         if hasattr (e, 'read'):
             error = e.read ()
@@ -109,10 +108,10 @@ def unsubscribe (id, verbose=False):
              'hub.verify': 'sync' }
 
     try:
-        r = urllib2.urlopen (db.hub, urllib.urlencode (data))
+        r = httpclient.urlopen (db.hub, data)
         if verbose: print 'Response code: %d' % r.code
         return {'hub': db.hub, 'rc': r.code}
-    except (IOError, urllib2.HTTPError), e:
+    except (IOError, httpclient.HTTPError), e:
         error = ''
         if hasattr (e, 'read'):
             error = e.read ()
@@ -146,15 +145,15 @@ def publish (hubs=None, verbose=False):
     url = settings.SITE_URL + urlresolvers.reverse ('index') + '?format=atom'
     for hub in hubs:
         hub = hub.replace ('https://', 'http://') # it's just a ping.
-        data = urllib.urlencode ({'hub.mode': 'publish', 'hub.url': url})
+        data = {'hub.mode': 'publish', 'hub.url': url}
         try:
-            r = urllib2.urlopen (hub, data, timeout=7)
+            r = httpclient.urlopen (hub, data, timeout=7)
             if verbose:
                 if r.code == 204:
                     print '%s: Successfully pinged.' % hub
                 else:
                     print '%s: Pinged and got %d.' % (hub, r.code)
-        except (IOError, urllib2.HTTPError), e:
+        except (IOError, httpclient.HTTPError), e:
             if hasattr (e, 'code') and e.code == 204:
                 continue
             if verbose:
