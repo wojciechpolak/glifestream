@@ -21,15 +21,19 @@ def js (request, **args):
     page = {
         'base_url': settings.BASE_URL,
     }
+    if request.is_secure ():
+        page['base_url'] = page['base_url'].replace ('http://', 'https://')
+
     return render_to_response ('bookmarklet.js', { 'page': page },
                                mimetype='application/javascript')
 
-#from django.views.decorators.cache import cache_page
-#@cache_page (0)
 def frame (request, **args):
     page = {
         'base_url': settings.BASE_URL,
     }
+    if request.is_secure ():
+        page['base_url'] = page['base_url'].replace ('http://', 'https://')
+
     authed = request.user.is_authenticated () and request.user.is_staff
     if authed:
         srvs = Service.objects.filter (api='selfposts').order_by ('cls')
@@ -41,4 +45,5 @@ def frame (request, **args):
     return render_to_response ('frame.html',
                                { 'authed': authed,
                                  'page': page,
+                                 'is_secure': request.is_secure (),
                                  'srvs': srvs })

@@ -360,6 +360,7 @@ def index (request, **args):
                                      'authed': authed,
                                      'friend': friend,
                                      'has_search': search_enable,
+                                     'is_secure': request.is_secure (),
                                      'user': request.user })
 
 @never_cache
@@ -382,6 +383,7 @@ def tools (request, **args):
         'theme': __get_theme (request),
     }
     return render_to_response ('tools.html',{ 'page': page, 'authed': authed,
+                                              'is_secure': request.is_secure (),
                                               'user': request.user })
 
 def page_not_found (request, **args):
