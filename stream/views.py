@@ -43,11 +43,13 @@ except ImportError:
     import simplejson as json
 
 def index (request, **args):
+    site_url = '%s://%s' % (request.is_secure () and 'https' or 'http',
+                            request.get_host ())
     page = {
         'backtime': True,
         'robots': 'index',
         'public': False,
-        'site_url': settings.SITE_URL,
+        'site_url': site_url,
         'base_url': settings.BASE_URL,
         'login_url': settings.LOGIN_URL,
         'author_name': settings.FEED_AUTHOR_NAME,
