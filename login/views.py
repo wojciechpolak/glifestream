@@ -76,6 +76,7 @@ def login (request, template_name='registration/login.html',
                                  'form': form,
                                  'site': current_site,
                                  'site_name': current_site.name,
+                                 'is_secure': request.is_secure (),
                                  redirect_field_name: redirect_to },
                                context_instance = RequestContext (request))
 

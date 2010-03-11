@@ -14,12 +14,19 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
+from django import template
 from django.template import Library
 
 register = Library ()
 
-def static ():
-    """Return the string contained in the setting MEDIA_URL."""
-    return settings.MEDIA_URL
+class MediaUrl (template.Node):
+    def render (self, ctx):
+        url = settings.MEDIA_URL
+        if 'is_secure' in ctx and ctx['is_secure']:
+            url = url.replace ('http://', 'https://')
+        return url
 
-static = register.simple_tag (static)
+@register.tag
+def static (parser, token):
+    """Return the string contained in the setting MEDIA_URL."""
+    return MediaUrl ()
