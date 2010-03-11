@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -18,6 +18,13 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.utils.translation import ugettext_lazy as _
 
 class AuthenticationRememberMeForm (AuthenticationForm):
-    remember_me = forms.BooleanField (label = _('Remember Me'),
-                                      initial = False,
-                                      required = False)
+    remember_me = forms.BooleanField (label=_('Remember Me'),
+                                      initial=False,
+                                      required=False)
+
+class OpenIdForm (forms.Form):
+    openid_identifier = forms.CharField (label=_('OpenID'),
+                                         max_length=128)
+    remember_me = forms.BooleanField (label=_('Remember Me'),
+                                      initial=False,
+                                      required=False)

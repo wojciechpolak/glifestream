@@ -43,10 +43,12 @@ urlpatterns = patterns ('',
     (r'^favorites/$', sv.index, {'favorites': True}, 'favorites'),
     (r'^list/(?P<list>[a-z\-]+)/$', sv.index, {}, 'list'),
 
-    (r'^login/?$', 'glifestream.login.views.login'),
-    (r'^login-friend/?$', 'glifestream.login.views.login_friend'),
+    (r'^login/?$', 'glifestream.auth.views.login'),
+    (r'^login-friend/?$', 'glifestream.auth.views.login_friend'),
     (r'^logout/?$', 'django.contrib.auth.views.logout',
      {'next_page': './'}),
+    (r'^auth/xrds$', 'glifestream.auth.views.xrds'),
+    (r'^auth/openid$', 'glifestream.auth.views.openid'),
 
     (r'^pshb/(?P<id>[a-f0-9]{20})$', sv.pshb_dispatcher, {}, 'pshb'),
 

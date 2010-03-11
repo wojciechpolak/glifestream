@@ -353,17 +353,20 @@ def index (request, **args):
         request.user.fb_username = request.session.get ('fb_username', '')
         request.user.fb_profile_url = request.session.get ('fb_profile_url', '')
 
-        return render_to_response ('stream.html',
-                                   { 'classes': classes,
-                                     'entries': entries,
-                                     'lists': lists,
-                                     'archives': archs,
-                                     'page': page,
-                                     'authed': authed,
-                                     'friend': friend,
-                                     'has_search': search_enable,
-                                     'is_secure': request.is_secure (),
-                                     'user': request.user })
+        res = render_to_response ('stream.html',
+                                  { 'classes': classes,
+                                    'entries': entries,
+                                    'lists': lists,
+                                    'archives': archs,
+                                    'page': page,
+                                    'authed': authed,
+                                    'friend': friend,
+                                    'has_search': search_enable,
+                                    'is_secure': request.is_secure (),
+                                    'user': request.user })
+        res['X-XRDS-Location'] = request.build_absolute_uri (
+            urlresolvers.reverse ('glifestream.auth.views.xrds'))
+        return res
 
 @never_cache
 def pshb_dispatcher (request, **args):

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-03-07 15:34+0100\n"
-"PO-Revision-Date: 2010-03-07 15:36+0100\n"
+"POT-Creation-Date: 2010-03-13 10:31+0100\n"
+"PO-Revision-Date: 2010-03-13 10:31+0100\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -44,12 +44,12 @@ msgstr "Utwór %s"
 msgid "Artist: %s"
 msgstr "Artysta: %s"
 
-#: apis/vimeo.py:164
+#: apis/vimeo.py:160
 #, python-format
 msgid "Liked %s"
 msgstr "Wideo %s"
 
-#: apis/vimeo.py:166 apis/youtube.py:47
+#: apis/vimeo.py:162 apis/youtube.py:47
 #, python-format
 msgid "Published %s"
 msgstr "Wideo %s"
@@ -71,6 +71,61 @@ msgstr "BRAK WIDEO"
 #, python-format
 msgid "Favorited %s"
 msgstr "Wideo %s"
+
+#: auth/forms.py:21 auth/forms.py:28 auth/templates/login.html:22
+#: auth/templates/openid.html:17
+msgid "Remember Me"
+msgstr "Zapamiętaj mnie"
+
+#: auth/forms.py:26 auth/templates/openid.html:11
+msgid "OpenID"
+msgstr "OpenID"
+
+#: auth/models.py:22
+msgid "Identity"
+msgstr "Tożsamość"
+
+#: auth/views.py:174
+msgid "OpenID authentication failed"
+msgstr "Nieudana autentykacja OpenID"
+
+#: auth/views.py:177
+#, python-format
+msgid "No OpenID services found for %s"
+msgstr "Nie znaleziono serwisów OpenID dla %s"
+
+#: auth/views.py:195
+msgid "Invalid OpenID identifier"
+msgstr "Nieprawidłowy identyfikator OpenID"
+
+#: auth/views.py:205
+msgid "Verification cancelled"
+msgstr "Weryfikacja anulowana"
+
+#: auth/views.py:207
+#, python-format
+msgid "OpenID authentication failed: %s"
+msgstr "Nieudana autentykacja OpenID: %s"
+
+#: auth/views.py:224
+msgid "OpenID account match error"
+msgstr "Błąd dopasowania konta OpenID"
+
+#: auth/templates/login.html:8
+msgid "Invalid username or password"
+msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
+
+#: auth/templates/login.html:11
+msgid "Username"
+msgstr "Nazwa użytkownika"
+
+#: auth/templates/login.html:16
+msgid "Password"
+msgstr "Hasło"
+
+#: auth/templates/login.html:26 auth/templates/openid.html:21
+msgid "Log In"
+msgstr "Zaloguj"
 
 #: bookmarklet/templates/frame.html:32
 msgid "Share this web page at your Stream!"
@@ -107,10 +162,6 @@ msgstr "Widoczny tylko dla przyjaciół:"
 #: bookmarklet/templates/frame.html:215
 msgid "Click to remove"
 msgstr "Kliknij aby usunąć"
-
-#: login/forms.py:21 templates/registration/login.html:22
-msgid "Remember Me"
-msgstr "Zapamiętaj mnie"
 
 #: stream/admin.py:27
 msgid "Deactivate item"
@@ -310,7 +361,7 @@ msgstr "Media"
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:169 stream/views.py:112
+#: stream/models.py:169 stream/views.py:114
 msgid "Favorites"
 msgstr "Ulubione"
 
@@ -330,36 +381,36 @@ msgstr "Lista"
 msgid "Lists"
 msgstr "Listy"
 
-#: stream/views.py:92
+#: stream/views.py:94
 #, python-format
 msgid "You are currently browsing the archive for %s"
 msgstr "Aktualnie przeglądasz archiwum dla %s"
 
-#: stream/views.py:113
+#: stream/views.py:115
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:124
+#: stream/views.py:126
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:145
+#: stream/views.py:147
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:163
+#: stream/views.py:165
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:197
+#: stream/views.py:199
 #, python-format
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
 
-#: stream/views.py:453
+#: stream/views.py:457
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
@@ -447,7 +498,8 @@ msgstr "Zasilany przez"
 
 #: templates/base.html:54
 msgid "A free and open source lifestream platform and social activity reader"
-msgstr "Wolna i otwarta platforma lifestream oraz czytnik aktywności społecznej"
+msgstr ""
+"Wolna i otwarta platforma lifestream oraz czytnik aktywności społecznej"
 
 #: templates/base.html:55
 msgid "Change theme"
@@ -599,19 +651,3 @@ msgstr "następna strona"
 #: templates/tools.html:6
 msgid "Bookmarklet:"
 msgstr "Skryptozakładka:"
-
-#: templates/registration/login.html:8
-msgid "Invalid username or password"
-msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
-
-#: templates/registration/login.html:11
-msgid "Username"
-msgstr "Nazwa użytkownika"
-
-#: templates/registration/login.html:16
-msgid "Password"
-msgstr "Hasło"
-
-#: templates/registration/login.html:26
-msgid "Log In"
-msgstr "Zaloguj"
