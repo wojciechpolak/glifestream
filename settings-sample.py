@@ -29,13 +29,11 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
-# Site base URLs (without a trailing slash).
+# Site base URL (without a trailing slash).
 # For example:
-#  SITE_URL = 'http://wojciechpolak.org'
-#  BASE_URL = 'http://wojciechpolak.org/stream'
+# BASE_URL = 'http://wojciechpolak.org/stream'
 #
-SITE_URL = 'http://localhost:8000'
-BASE_URL = SITE_URL
+BASE_URL = 'http://localhost:8000'
 
 # The URL where requests are redirected for login.
 # For HTTPS use an absolute URL.

@@ -15,6 +15,7 @@
 
 import hmac
 import hashlib
+import urlparse
 from datetime import timedelta
 from django.conf import settings
 from django.core import urlresolvers
@@ -64,8 +65,8 @@ def subscribe (service, verbose=False):
         db = Pshb (hash=hash, service=service, hub=hub, secret=secret)
         save_db = True
 
-    topic = settings.SITE_URL + urlresolvers.reverse ('index') + '?format=atom'
-    callback = settings.SITE_URL + urlresolvers.reverse ('pshb', args=[hash])
+    topic = __get_absolute_url (urlresolvers.reverse ('index')) + '?format=atom'
+    callback = __get_absolute_url (urlresolvers.reverse ('pshb', args=[hash]))
 
     if settings.PSHB_HTTPS_CALLBACK:
         callback = callback.replace ('http://', 'https://')
@@ -96,8 +97,8 @@ def unsubscribe (id, verbose=False):
     except Pshb.DoesNotExist:
         return {'rc': 1}
 
-    topic = settings.SITE_URL + urlresolvers.reverse ('index') + '?format=atom'
-    callback = settings.SITE_URL + urlresolvers.reverse ('pshb', args=[db.hash])
+    topic = __get_absolute_url (urlresolvers.reverse ('index')) + '?format=atom'
+    callback = __get_absolute_url (urlresolvers.reverse ('pshb', args=[db.hash]))
 
     if settings.PSHB_HTTPS_CALLBACK:
         callback = callback.replace ('http://', 'https://')
@@ -142,7 +143,7 @@ def verify (id, GET):
 
 def publish (hubs=None, verbose=False):
     hubs = hubs or settings.PSHB_HUBS
-    url = settings.SITE_URL + urlresolvers.reverse ('index') + '?format=atom'
+    url = __get_absolute_url (urlresolvers.reverse ('index')) + '?format=atom'
     for hub in hubs:
         hub = hub.replace ('https://', 'http://') # it's just a ping.
         data = {'hub.mode': 'publish', 'hub.url': url}
@@ -197,3 +198,7 @@ def list ():
     for s in subscriptions:
         print '%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s' % \
             (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire)
+
+def __get_absolute_url (path=''):
+    url = urlparse.urlsplit (settings.BASE_URL)
+    return '%s://%s%s' % (url.scheme, url.netloc, path)
