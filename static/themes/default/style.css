@@ -600,18 +600,9 @@ ul.files {
   -webkit-border-radius: 5px;
   background-color: #eaf3fa;
 }
-
-#login form p {
-  margin-bottom: 24px;
-}
-
-#login form input {
-  color: #555555;
-}
-
-#login form .submit {
-  float: right;
-}
+#login form p { margin-bottom: 24px; }
+#login form input { color: #555555; }
+#login form .submit { float: right; }
 
 #login .rememberme {
   font-weight: normal;
@@ -627,14 +618,13 @@ ul.files {
   -moz-border-radius: 3px;
   -khtml-border-radius: 3px;
   -webkit-border-radius: 3px;
-  cursor: default;
+  cursor: pointer;
   text-decoration: none;
   margin-top: -6px;
   background-color: #CEE1EF !important;
   border-color: #80B5D0;
   color: #224466;
 }
-
 #login .submit input:hover {
   border-color: #328AB2;
 }
@@ -661,11 +651,18 @@ ul.files {
   padding: 12px;
 }
 
-#user_pass, #user_login {
+#username, #password {
   font-size: 20px;
-  width: 97%;
-  padding: 3px;
-  margin-right: 6px;
+  width: 240px;
+}
+#openid_identifier {
+  font-size: 20px;
+  width: 230px;
+  background: url(icons/openid.png) no-repeat;
+  background-color: #fff;
+  background-position: 0 50%;
+  color: #000;
+  padding-left: 18px;
 }
 
 #bookmarklet {

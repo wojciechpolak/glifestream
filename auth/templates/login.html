@@ -6,15 +6,15 @@
 
 <div id="login">
 {% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
-<form name="loginform" method="post" action="{% url glifestream.login.views.login %}">
+<form name="loginform" method="post" action="{% url glifestream.auth.views.login %}">
   <p>
     <label>{% trans "Username" %}<br />
-      <input type="text" name="username" id="username" class="input" size="20" />
+      <input type="text" name="username" id="username" size="20" />
     </label>
   </p>
   <p>
     <label>{% trans "Password" %}<br />
-      <input type="password" name="password" id="password" class="input" size="20" />
+      <input type="password" name="password" id="password" size="20" />
     </label>
   </p>
   <p class="rememberme">

@@ -84,7 +84,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.admin',
-    'glifestream.login',
+    'glifestream.auth',
     'glifestream.apis',
     'glifestream.stream',
     'glifestream.bookmarklet',

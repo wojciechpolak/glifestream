@@ -9,7 +9,7 @@ It is licensed under GPLv3.
 
 gLifestream joins several external and/or internal streams into a
 single one.  External streams may be represented by RSS/Atom channels
-or popular services such as Twitter or FriendFeed.  The user decides
+or popular services such as Twitter or Facebook.  The user decides
 which of them are publicly visible and which are not.  Public streams
 are visible for anybody.  The rest of streams are visible only for
 logged in users.
