@@ -57,7 +57,7 @@ class API (webfeed.API):
 
             try:
                 e = Entry.objects.get (service=self.service, guid=ent.id)
-                if not self.force_overwrite and ent.has_key ('updated_parsed'):
+                if not self.force_overwrite and 'updated_parsed' in ent:
                     if e.date_updated and \
                        mtime (ent.updated_parsed) <= e.date_updated:
                         continue
@@ -74,14 +74,14 @@ class API (webfeed.API):
             e.title = 'Posted Photos'
             e.content = content
 
-            if ent.has_key ('published_parsed'):
+            if 'published_parsed' in ent:
                 e.date_published = mtime (ent.published_parsed)
-            elif ent.has_key ('updated_parsed'):
+            elif 'updated_parsed' in ent:
                 e.date_published = mtime (ent.updated_parsed)
-            if ent.has_key ('updated_parsed'):
+            if 'updated_parsed' in ent:
                 e.date_updated = mtime (ent.updated_parsed)
 
-            if self.fp.feed.has_key ('image'):
+            if 'image' in self.fp.feed:
                 e.link_image = media.save_image (self.fp.feed.image.href)
             else:
                 for link in ent.links:

@@ -94,7 +94,7 @@ class API:
                 print 'ID: %s' % guid
             try:
                 e = Entry.objects.get (service=self.service, guid=guid)
-                if not self.force_overwrite and ent.has_key ('updated_parsed'):
+                if not self.force_overwrite and 'updated_parsed' in ent:
                     if e.date_updated and \
                        mtime (ent.updated_parsed) <= e.date_updated:
                         continue
@@ -106,13 +106,13 @@ class API:
             e.title = ent.title
             e.link = ent.get ('feedburner_origlink', ent.get ('link', ''))
 
-            if ent.has_key ('author_detail'):
+            if 'author_detail' in ent:
                 e.author_name = ent.author_detail.get ('name', '')
                 e.author_email = ent.author_detail.get ('email', '')
                 e.author_uri = ent.author_detail.get ('href', '')
             else:
                 e.author_name = ent.get ('author', ent.get ('creator', ''))
-                if not e.author_name and self.fp.feed.has_key ('author_detail'):
+                if not e.author_name and 'author_detail' in self.fp.feed:
                     e.author_name = self.fp.feed.author_detail.get ('name', '')
                     e.author_email = self.fp.feed.author_detail.get ('email', '')
                     e.author_uri = self.fp.feed.author_detail.get ('href', '')
@@ -122,19 +122,19 @@ class API:
             except:
                 e.content = ent.get ('summary', ent.get ('description', ''))
 
-            if ent.has_key ('published_parsed'):
+            if 'published_parsed' in ent:
                 e.date_published = mtime (ent.published_parsed)
-            elif ent.has_key ('updated_parsed'):
+            elif 'updated_parsed' in ent:
                 e.date_published = mtime (ent.updated_parsed)
 
-            if ent.has_key ('updated_parsed'):
+            if 'updated_parsed' in ent:
                 e.date_updated = mtime (ent.updated_parsed)
 
-            if ent.has_key ('geo_lat') and ent.has_key ('geo_long'):
+            if 'geo_lat' in ent and 'geo_long' in ent:
                 e.geolat = ent.geo_lat
                 e.geolng = ent.geo_long
 
-            if self.fp.feed.has_key ('image'):
+            if 'image' in self.fp.feed:
                 e.link_image = media.save_image (self.fp.feed.image.url)
             else:
                 for link in ent.links:

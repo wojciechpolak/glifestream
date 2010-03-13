@@ -150,7 +150,7 @@ class API:
                 for t in ent['attachment']['media']:
                     if self.service.public:
                         t['src'] = media.save_image (t['src'])
-                    if t.has_key ('width') and t.has_key ('height'):
+                    if 'width' in t and 'height' in t:
                         iwh = ' width="%d" height="%d"' % (t['width'],
                                                            t['height'])
                     else:
