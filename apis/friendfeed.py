@@ -103,12 +103,12 @@ class API:
             e.author_name = ent['from']['name']
 
             content = ent['body']
-            if ent.has_key ('thumbnails'):
+            if 'thumbnails' in ent:
                 content += '<p class="thumbnails">'
                 for t in ent['thumbnails']:
                     if self.service.public:
                         t['url'] = media.save_image (t['url'])
-                    if t.has_key ('width') and t.has_key ('height'):
+                    if 'width' in t and 'height' in t:
                         iwh = ' width="%d" height="%d"' % (t['width'],
                                                            t['height'])
                     else:
@@ -124,7 +124,7 @@ class API:
                     content += '<a href="%s" rel="nofollow"><img src="%s"%s alt="thumbnail" /></a> ' % (t['link'], t['url'], iwh)
                 content += '</p>'
 
-            if ent.has_key ('files'):
+            if 'files' in ent:
                 content += '<ul class="files">\n'
                 for f in ent['files']:
                     if 'http://friendfeed-media.com' in f['url']:

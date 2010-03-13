@@ -149,7 +149,7 @@ def get_thumbnail_url (id):
         r = httpclient.urlopen ('vimeo.com/api/v2/video/%s.json' % id)
         if r.code == 200:
             jsn = json.loads (r.read ())
-            if jsn[0].has_key ('thumbnail_medium'):
+            if 'thumbnail_medium' in jsn[0]:
                 return jsn[0]['thumbnail_medium']
     except:
         pass
