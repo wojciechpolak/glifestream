@@ -2,9 +2,9 @@
 {% load i18n %}
 
 {% block main %}
-<div class="main">
+<section id="login">
 
-<div id="login">
+<div id="loginbox">
 {% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
 <form name="loginform" method="post" action="{% url glifestream.auth.views.login %}">
   <p>
@@ -29,7 +29,7 @@
 </form>
 </div>
 
-</div><!-- /main -->
+</section><!-- /login -->
 
 <script type="text/javascript">
 document.getElementById('username').focus ();

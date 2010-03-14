@@ -2,9 +2,9 @@
 {% load i18n %}
 
 {% block main %}
-<div class="main">
+<section id="login">
 
-<div id="login">
+<div id="loginbox">
 {% if page.msg %}<p class="error">{{ page.msg }}</p>{% endif %}
 <form name="loginform" method="post" action="{% url glifestream.auth.views.openid %}">
   <p>
@@ -24,7 +24,7 @@
 </form>
 </div>
 
-</div><!-- /main -->
+</section><!-- /login -->
 
 <script type="text/javascript">
 document.getElementById('openid_identifier').focus ();

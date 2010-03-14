@@ -32,21 +32,14 @@
     <a href="{{ user.fb_profile_url }}" target="_blank"><b>{{ user.fb_username }}</b></a></span> |
     <a href="{% url django.contrib.auth.views.logout %}">{% trans "Logout" %}</a>
     {% else %}
-    <a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>
+    {% if page.login_url %}<a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>{% endif %}
     {% endif %}
     {% endif %}
   </nav>
   <h1 class="tb"><a href="{% url index %}" accesskey="1">{% trans "The Stream" %}</a></h1>
 </header>
 
-<aside id="sidebar">
-  <section id="about">
-    <h4>{% trans "About" %}</h4>
-{% include "user-about.html" %}
-  </section>
 {% block sidebar %}{% endblock sidebar %}
-</aside>
-
 {% block main %}{% endblock main %}
 
 <footer id="foot">

@@ -587,11 +587,14 @@ ul.files {
 }
 
 #login {
-  width: 292px;
-  margin: 12px auto 12px auto;
+  background-color: white;
 }
-
-#login form {
+#loginbox {
+  width: 292px;
+  margin: 0 auto 0 auto;
+  padding: 12px 0 15px 0;
+}
+#loginbox form {
   padding: 16px 16px 50px 16px;
   font-weight: bold;
   border-radius: 5px;
@@ -600,17 +603,17 @@ ul.files {
   -webkit-border-radius: 5px;
   background-color: #eaf3fa;
 }
-#login form p { margin-bottom: 24px; }
-#login form input { color: #555555; }
-#login form .submit { float: right; }
+#loginbox form p { margin-bottom: 24px; }
+#loginbox form input { color: #555555; }
+#loginbox form .submit { float: right; }
 
-#login .rememberme {
+#loginbox .rememberme {
   font-weight: normal;
   float: left;
   margin-bottom: 0;
 }
 
-#login .submit input {
+#loginbox .submit input {
   padding: 3px 5px;
   border-width: 1px;
   border-style: solid;
@@ -625,17 +628,17 @@ ul.files {
   border-color: #80B5D0;
   color: #224466;
 }
-#login .submit input:hover {
+#loginbox .submit input:hover {
   border-color: #328AB2;
 }
 
-#login .error {
+#loginbox .error {
   background-color: #FFEBE8;
   border: 1px solid #CC0000;
   padding: 5px;
 }
 
-#login h1 a {
+#loginbox h1 a {
   width: 292px;
   height: 122px;
   text-indent: -9999px;
@@ -668,11 +671,11 @@ ul.files {
 #bookmarklet {
   padding: 1em;
 }
-
 .http-error {
-  padding-left: 1.5em;
-  color: red;
   font-weight: bold;
+  color: red;
+  margin: 0;
+  padding: 1.5em;
 }
 
 @media print {

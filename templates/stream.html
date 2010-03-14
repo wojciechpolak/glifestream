@@ -2,6 +2,11 @@
 {% load i18n %}
 
 {% block sidebar %}
+<aside id="sidebar">
+  <section id="about">
+    <h4>{% trans "About" %}</h4>
+{% include "user-about.html" %}
+  </section>
   <nav>
     <ul class="services">
 {% for cls in classes %}      <li><a href="{% if page.exactentry %}{% url index %}{% endif %}?class={% firstof cls.cls cls.api %}" class="e-{% firstof cls.cls cls.api %}" title="{{ cls.cls|capfirst }}" rel="nofollow"><span>{{ cls.cls|capfirst }}</span></a></li>
@@ -35,6 +40,7 @@
       </form>
     </div>{% endif %}
   </nav>
+</aside>
 {% endblock sidebar %}
 
 {% block main %}
