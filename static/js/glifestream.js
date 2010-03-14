@@ -906,7 +906,7 @@
   }
 
   function set_default_search (input, defval) {
-    if (!input && !defval) return;
+    if (!input || !defval) return;
     input.DEFAULT_SEARCHVAL = defval;
     input.autocomplete = 'off';
     input.onfocus = focus_search;
