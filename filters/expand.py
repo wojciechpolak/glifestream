@@ -35,8 +35,10 @@ def __su_subs (m):
 
 def shorturls (text):
     """Expand short URLs."""
-    return re.sub (r'http://(tinyurl.com|bit.ly|goo.gl|url4.eu|is.gd|ur1.ca|2tu.us|ff.im|post.ly|awe.sm|lnk.ms|pic.gd|tl.gd|youtu.be)(/\w+)',
-                   __su_subs, smart_unicode (text))
+    return re.sub (r'http://(tinyurl.com|bit.ly|goo.gl|url4.eu|is.gd' \
+                   '|ur1.ca|2tu.us|ff.im|post.ly|awe.sm|lnk.ms|pic.gd' \
+                   '|tl.gd|youtu.be|tiny.cc' \
+                   ')(/\w+)', __su_subs, smart_unicode (text))
 
 #
 # Short image services
