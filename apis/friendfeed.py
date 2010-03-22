@@ -41,7 +41,7 @@ class API:
             print '%s: %s' % (self.name, self.service)
 
     def run (self):
-        if self.service.url == 'home':
+        if not self.service.url:
             self.service.link = 'http://friendfeed.com/'
             self.fetch ('/v2/feed/home?fof=1&num=50')
         elif not self.service.last_checked:
