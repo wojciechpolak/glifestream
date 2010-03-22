@@ -23,13 +23,13 @@ class API (webfeed.API):
 
     def run (self):
         if not self.service.url and self.service.creds:
-            self.fetch ('http://twitter.com/statuses/friends_timeline.atom?count=50')
+            self.fetch ('http://api.twitter.com/1/statuses/home_timeline.atom?count=50')
         else:
             if not self.service.last_checked:
-                self.fetch ('http://twitter.com/statuses/user_timeline/%s.atom?count=200' % \
+                self.fetch ('http://api.twitter.com/1/statuses/user_timeline/%s.atom?count=200' % \
                             self.service.url)
             else:
-                self.fetch ('http://twitter.com/statuses/user_timeline/%s.atom' % \
+                self.fetch ('http://api.twitter.com/1/statuses/user_timeline/%s.atom' % \
                             self.service.url)
 
     def custom_process (self, e, ent):
