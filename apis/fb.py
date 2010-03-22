@@ -70,7 +70,7 @@ class API:
         self.fb = facebook.Facebook (settings.FACEBOOK_API_KEY,
                                      settings.FACEBOOK_SECRET_KEY)
         self.fb.session_key = self.service.creds
-        if self.service.url == 'home':
+        if not self.service.url:
             self.fb.uid = settings.FACEBOOK_USER_ID
         else:
             self.fb.uid = self.service.url
@@ -80,7 +80,7 @@ class API:
         try:
             args = {}
             if not self.service.last_checked:
-                if self.service.url == 'home':
+                if not self.service.url:
                     days = 14
                 else:
                     days = 180
@@ -88,7 +88,7 @@ class API:
                 start_time = now () - datetime.timedelta (days=days)
                 start_time = int (time.mktime (start_time.timetuple ()))
                 args['start_time'] = start_time
-            if self.service.url != 'home':
+            if self.service.url:
                 args['source_ids'] = [int(self.service.url)]
 
             self.stream = self.fb.stream.get (**args)
