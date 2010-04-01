@@ -18,6 +18,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
+from glifestream.apis import API_LIST
 from glifestream.utils.time import now
 
 try:
@@ -29,26 +30,7 @@ except ImportError:
             pass
 
 class Service (models.Model):
-    API_CHOICES = (
-        ('webfeed',     'Webfeed'),
-        ('selfposts',   'Self Posts'),
-        ('twitter',     'Twitter'),
-        ('fb',          'Facebook'),
-        ('friendfeed',  'FriendFeed'),
-        ('youtube',     'YouTube'),
-        ('vimeo',       'Vimeo'),
-        ('delicious',   'Delicious'),
-        ('digg',        'Digg'),
-        ('gbuzz',       'Google Buzz'),
-        ('greader',     'Google Reader'),
-        ('flickr',      'Flickr'),
-        ('picasaweb',   'Picasa Web'),
-        ('lastfm',      'Last.fm'),
-        ('stumbleupon', 'StumbleUpon'),
-        ('yelp',        'Yelp'),
-        ('identica',    'Identi.ca'),
-    )
-    api = models.CharField (_('API'), max_length=16, choices=API_CHOICES,
+    api = models.CharField (_('API'), max_length=16, choices=API_LIST,
                             default='feed', db_index=True)
     cls = models.CharField (_('Custom CSS Class'), max_length=16, null=True,
                             blank=True)

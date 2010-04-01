@@ -407,7 +407,7 @@
 
     var y_bottom = pos.top + s.height ();
     var y_diff = y_bottom - $(window).height () - $(document).scrollTop ();
-    if (y_diff > 0)
+    if (y_diff > -20)
       s.css ('top', (pos.top - y_diff - 15) + 'px');
 
     return false;
@@ -558,6 +558,12 @@
 
   $(document).ready (function () {
       baseurl = settings.baseurl;
+
+      if (document.getElementById ('settings')) {
+	init_settings ();
+	return;
+      }
+
       Graybox.scan ();
       var stream = $('#stream').get (0);
       alter_html (stream);
@@ -618,13 +624,211 @@
       social_sharing_sites = window.social_sharing_sites ||
 	[{ name: 'E-mail', href: 'mailto:?subject={URL}&body={TITLE}', icon: baseurl + 'static/themes/default/icons/email.png'},
 	 { name: 'Twitter', href: 'http://twitter.com/?status={TITLE}:%20{URL}', icon: 'http://twitter.com/favicon.ico'},
-	 { name: 'Facebook', href: 'http://www.facebook.com/share.php?u={URL}&t={TITLE}', icon: 'http://www.facebook.com/favicon.ico'},
+	 { name: 'Facebook', href: 'http://www.facebook.com/sharer.php?u={URL}&t={TITLE}', icon: 'http://www.facebook.com/favicon.ico'},
 	 { name: 'FriendFeed', href: 'http://friendfeed.com/share?url={URL}&title={TITLE}', icon: 'http://friendfeed.com/favicon.ico'},
 	 { name: 'Delicious', href: 'http://delicious.com/save?url={URL}&title={TITLE}', icon: 'http://delicious.com/favicon.ico'},
 	 { name: 'Digg', href: 'http://digg.com/submit?phase=2&url={URL}&title={TITLE}', icon: 'http://digg.com/favicon.ico'},
 	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', icon: 'http://www.reddit.com/favicon.ico'},
 	 { name: 'Google', href: 'http://www.google.com/bookmarks/mark?op=add&bkmk={URL}&title={TITLE}', icon: 'http://www.google.com/favicon.ico'}];
     });
+
+  function init_settings () {
+    $('#add-service a').click (function () {
+	show_spinner (this);
+	get_service_form ({method: 'get', api:this.className}, '#add-service');
+	return false;
+      });
+    $('#edit-service a').click (function () {
+	show_spinner (this);
+	get_service_form ({method: 'get', id: parse_id (this.id)[1]}, this);
+	return false;
+      });
+    $('#select-list').change (function () {
+	if (this.value != '')
+	  window.location = baseurl + 'settings/lists/' + this.value;
+	else
+	  window.location = baseurl + 'settings/lists';
+      });
+    $('#settings input[name=cancel]').click (hide_settings_form);
+    $('#list-form a').click (function () {
+	if (!confirm (_('Are you sure?')))
+	  return false;
+	var form = $('#list-form');
+	form.append (DCE ('input', {type: 'hidden', name: 'delete', value: 1}));
+	form.submit ();
+	return false;
+      });
+    $('#pshb-subs a').click (function () {
+	if (!confirm (_('Are you sure?')))
+	  return false;
+	show_spinner (this);
+	var id = parse_id (this.id)[1];
+	var form = $('#pshb-form');
+	$('select').attr ('disabled', 'disabled');
+	form.append (DCE ('input', {type: 'hidden', name: 'unsubscribe', value: id}));
+	form.submit ();
+	return false;
+      });
+    $('#openid_identifiers a').click (function () {
+	if (!confirm (_('Are you sure?')))
+	  return false;
+	var id = parse_id (this.id)[1];
+	var form = $('#oid-form');
+	$('#oid-form input[name=openid_identifier]')
+	  .attr ('disabled', 'disabled');
+	form.append (DCE ('input', {type: 'hidden',
+		name: 'delete', value: id}));
+	form.submit ();
+	return false;
+      });
+    $('#change-theme').click (change_theme);
+  }
+
+  function get_service_form (params, dest) {
+    $.ajax ({ url: baseurl + 'settings/api/service',
+	  data: $.param (params),
+	  dataType: 'json',
+	  type: 'POST',
+	  success: function (json) {
+	    hide_spinner ();
+	    var f = prepare_service_form (json);
+	    $(dest).after (f);
+	    $(f).fadeIn ('normal', function () {
+		$('input[type=text]:first', f).focus ();
+	      });
+	}});
+  }
+
+  function hide_settings_form () {
+    $('#settings form').fadeOut ();
+  }
+
+  function submit_service_form () {
+    var dest = $(this).next ();
+    if (dest.length == 0)
+      dest = $(this).parent ();
+    show_spinner ($('input[type=submit]', this));
+
+    var form = $('#service-form');
+    var params = form.serializeArray ();
+    params.push ({name: 'method', value: 'post'});
+
+    $.ajax ({ url: form.attr ('action'),
+	  data: $.param (params),
+	  dataType: 'json',
+	  type: 'POST',
+	  success: function (json) {
+	    hide_spinner ();
+	    var f = prepare_service_form (json);
+	    dest.append (f);
+	    $(f).show ();
+	}});
+    return false;
+  }
+
+  var settings_deps = null;
+  var settings_onchange_field = function () {
+    if (this.id in settings_deps) {
+      var deps = settings_deps[this.id];
+      for (var i = 0; i < deps.length; i++) {
+	var val = deps[i][0];
+	var row = deps[i][1];
+	if (this.value == val) {
+	  $('input', row).removeAttr ('disabled');
+	  row.style.display = 'block';
+	}
+	else {
+	  $('input', row).attr ('disabled', 'disabled');
+	  row.style.display = 'none';
+	}
+      }
+    }
+  }
+
+  function prepare_service_form (data) {
+    var form = document.getElementById ('service-form');
+    if (!form) {
+      form = DCE ('form', {id: 'service-form', style: {display: 'none'}},
+	       [DCE ('fieldset', {className: 'aligned'})]);
+    }
+    $(form).hide ();
+
+    var fs = $('fieldset:first', form);
+    fs.empty ();
+    settings_deps = {};
+
+    if (data) {
+      form.action = data.action;
+      form.onsubmit = submit_service_form;
+
+      if (data.id)
+	fs.append (DCE ('input', {type: 'hidden', name: 'id', value: data.id}));
+      fs.append (DCE ('input', {type: 'hidden', name: 'api', value: data.api}));
+
+      for (var i = 0; i < data.fields.length; i++) {
+	var f = data.fields[i];
+
+	if (f.type == 'select') {
+	  var obj = DCE ('select', {id: f.name, name: f.name, value: f.value});
+	  for (var j = 0; j < f.options.length; j++) {
+	    var opt = f.options[j];
+	    var sel = opt[0] == f.value ? true : false;
+	    obj.options[obj.options.length] = new Option (opt[1], opt[0],
+							  sel, sel);
+	  }
+	}
+	else if (f.type == 'checkbox') {
+	  var obj = DCE ('input', {type: f.type, id: f.name, name: f.name,
+				   value: '1', checked: f.checked});
+	}
+	else {
+	  var obj = DCE ('input', {type: f.type, id: f.name, name: f.name,
+				   value: f.value, size: 32, maxlength: 80,
+				   autocomplete: 'off'});
+	}
+
+	var hint = false;
+	if (f.hint)
+	  hint = DCE ('span', {className: 'hint'}, [f.hint]);
+
+	var miss = f.miss ? 'missing' : '';
+	var row = DCE ('div', {className: 'form-row'},
+		       [DCE ('label', {htmlFor: f.name, className: miss},
+			     [f.label]), hint, obj]);
+	if (f.deps) {
+	  for (var name in f.deps) {
+	    if (!settings_deps[name])
+	      settings_deps[name] = [];
+	    settings_deps[name].push ([f.deps[name], row])
+	  }
+	}
+	fs.append (row);
+      }
+      for (var name in settings_deps) {
+	$('#' + name).change (settings_onchange_field).change ();
+      }
+
+      var row = DCE ('div', {className: 'form-row'});
+      if (data.save) {
+	row.appendChild (DCE ('input', {type: 'submit', id: 'save',
+		value: data.save}));
+      }
+      row.appendChild (DCE ('input', {type: 'button', id: 'cancel',
+	      value: data.cancel, onclick: hide_settings_form}));
+      if (data['delete']) {
+	row.appendChild (document.createTextNode (' '));
+	row.appendChild (DCE ('a', {href: baseurl + 'admin/stream/service/'
+		+ data.id + '/delete/', target: 'admin',
+		onclick: hide_settings_form}, [data['delete']]));
+      }
+      fs.append (row);
+
+      if (data['need_import']) {
+	$.post (baseurl + 'settings/api/import', {id: data.id});
+      }
+    }
+    return form;
+  }
 
   var MDOM = {
     'center': function (obj, objWidth, objHeight) {

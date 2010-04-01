@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,11 +13,10 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-__all__ = (
-    'common',
-    'html',
-    'httpclient',
-    'oembed',
-    'time',
-    'translate',
+from django.conf.urls.defaults import *
+from glifestream.bookmarklet import views
+
+urlpatterns = patterns ('',
+    (r'js$', views.js),
+    (r'frame$', views.frame),
 )

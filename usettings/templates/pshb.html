@@ -1,0 +1,41 @@
+{% extends "settings.html" %}
+{% load i18n %}
+
+{% block settings %}
+  <p class="bold">{% trans "PubSubHubbub subscriptions" %}</p>
+  {% if page.msg %}<p class="msg">{{ page.msg }}</p>{% endif %}
+
+  {% if subs %}
+  <table id="pshb-subs" cellpadding="5">
+    <tr class="odd">
+      <th>#</th>
+      <th>{% trans "Service" %}</th>
+      <th>{% trans "Verified" %}</th>
+      <th>{% trans "Expire" %}</th>
+      <th></th>
+    </tr>
+    {% for s in subs %}
+    <tr class="{% cycle 'odd' 'even' %}">
+      <td align="right">{{ forloop.counter }}.</td>
+      <td>{{ s.service.name }}</td>
+      <td>{% ifequal s.verified 1 %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endifequal %}</td>
+      <td>{{ s.expire }}</td>
+      <td>
+	<a href="#" id="unsubscribe-{{ s.id }}">{% trans "unsubscribe" %}</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  {% if services %}
+  <form id="pshb-form" method="post" action="{% url glifestream.usettings.views.pshb %}">
+    <select name="subscribe">
+      <option value="">-- {% trans "service" %} --</option>
+      {% for s in services %}
+      <option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+    </select>
+    <input type="submit" value="{% trans "subscribe" %}" />
+  </form>
+  {% endif %}
+{% endblock settings %}

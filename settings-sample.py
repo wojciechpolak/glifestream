@@ -87,6 +87,7 @@ INSTALLED_APPS = (
     'glifestream.auth',
     'glifestream.apis',
     'glifestream.stream',
+    'glifestream.usettings',
     'glifestream.bookmarklet',
 )
 

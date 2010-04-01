@@ -25,13 +25,13 @@ from glifestream.stream.models import Pshb
 
 def subscribe (service, verbose=False):
     try:
-        webfeed = __import__ ('apis.webfeed', {}, {}, ['API'])
+        webfeed = __import__ ('glifestream.apis.webfeed', {}, {}, ['API'])
     except ImportError:
         return {'rc': 1, 'error': 'ImportError apis.webfeed'}
     webfeed_api = getattr (webfeed, 'API')
 
     try:
-        mod = __import__ ('apis.%s' % service.api, {}, {}, ['API'])
+        mod = __import__ ('glifestream.apis.%s' % service.api, {}, {}, ['API'])
     except ImportError:
         return {'rc': 1, 'error': 'ImportError apis.%s' % service.api}
     mod_api = getattr (mod, 'API')
@@ -176,7 +176,7 @@ def accept_payload (id, payload, meta={}):
         if s != signature:
             return False # signature mismatch
     try:
-        mod = __import__ ('apis.%s' % db.service.api, {}, {}, ['API'])
+        mod = __import__ ('glifestream.apis.%s' % db.service.api, {}, {}, ['API'])
     except ImportError:
         return False
     mod_api = getattr (mod, 'API')
@@ -193,8 +193,10 @@ def renew_subscriptions (force=False, verbose=False):
             if now () > d or force:
                 subscribe (s.service, verbose)
 
-def list ():
+def list (raw=False):
     subscriptions = Pshb.objects.all ().order_by ('id')
+    if raw:
+        return subscriptions
     for s in subscriptions:
         print '%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s' % \
             (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire)

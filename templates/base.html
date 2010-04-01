@@ -25,7 +25,7 @@
     <a href="{% url index %}" title="{% trans "My private stream" %}">{% trans "Private" %}</a> |
     <a href="{% url public %}" title="{% trans "My publicly visible stream" %}" accesskey="2">{% trans "Public" %}</a> |
     <a href="{% url tools %}">{% trans "Tools" %}</a> |
-    {% if user.is_staff %}<a href="{% url admin:index %}" target="_blank">{% trans "Admin" %}</a>{% endif %} |
+    {% if user.is_staff %}<a href="{% url settings %}">{% trans "Settings" %}</a> |{% endif %}
     <a href="{% url django.contrib.auth.views.logout %}">{% trans "Logout" %}</a>
     {% else %}
     {% if friend %}<span class="text">{% trans "Hello" %}

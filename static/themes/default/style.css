@@ -64,7 +64,6 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
 }
 
 #main {
-  background-color: white;
   background-color: whitesmoke;
 }
 
@@ -330,12 +329,14 @@ div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -
 }
 #foot a { color: black !important; }
 
+.fleft { float: left; }
 .center { text-align: center; }
 .justify { text-align: justify; }
 .clear { clear: both; }
 .smaller { font-size: smaller; }
 .small { font-size: 10pt; }
 .bpadding { padding-bottom: 1em; }
+.bold { font-weight: bold; }
 
 img {
   border-style: none;
@@ -689,3 +690,142 @@ ul.files {
   }
   .playbutton, .stopbutton { display: none; }
 }
+
+/* settings page */
+
+#settings {
+  margin: 0;
+  padding: 1em;
+  background-color: white;
+}
+#settings ul {
+  list-style: none;
+}
+#settings form {
+  clear: both;
+  margin: 0 0 10px 0;
+  padding-top: 8px;
+  font-size: 85%;
+}
+#settings fieldset {
+  border: none;
+  background-color: whitesmoke;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
+#settings span.service,
+#settings img.service {
+  float: left;
+  width: 16px;
+  height: 16px;
+  margin: 1px 5px 0 0;
+  line-height: 16px;
+}
+span.selfposts { background: transparent url(../../favicon.ico) no-repeat top left; }
+span.delicious { background: transparent url(master-favicons.png) no-repeat 0px 0px; }
+span.digg { background: transparent url(master-favicons.png) no-repeat -16px 0px; }
+span.fb { background: transparent url(master-favicons.png) no-repeat -32px 0px; }
+span.flickr { background: transparent url(master-favicons.png) no-repeat -48px 0px; }
+span.friendfeed { background: transparent url(master-favicons.png) no-repeat -64px 0px; }
+span.gbuzz { background: transparent url(master-favicons.png) no-repeat -80px 0px; }
+span.greader { background: transparent url(master-favicons.png) no-repeat -96px 0px; }
+span.identica { background: transparent url(master-favicons.png) no-repeat -112px 0px; }
+span.lastfm { background: transparent url(master-favicons.png) no-repeat -128px 0px; }
+span.picasaweb { background: transparent url(master-favicons.png) no-repeat -144px 0px; }
+span.stumbleupon { background: transparent url(master-favicons.png) no-repeat -160px 0px; }
+span.twitter { background: transparent url(master-favicons.png) no-repeat -176px 0px; }
+span.vimeo { background: transparent url(master-favicons.png) no-repeat -192px 0px; }
+span.webfeed { background: transparent url(master-favicons.png) no-repeat -208px 0px; }
+span.yelp { background: transparent url(master-favicons.png) no-repeat -224px 0px; }
+span.youtube { background: transparent url(master-favicons.png) no-repeat -240px 0px; }
+
+ul.tabs {
+  list-style-type: none;
+  width: 100%;
+  border-bottom: solid 2px whitesmoke;
+  border-collapse: collapse;
+  display: table;
+  margin: 0;
+  margin-bottom: 7px;
+}
+ul.tabs li {
+  margin-left: 25px;
+  display: block;
+  float: left;
+  vertical-align: bottom;
+  padding: 0;
+  color: #777;
+  font-size: 100%;
+}
+ul.tabs li a {
+  color: #777;
+  font-size: 100%;
+  text-decoration: none;
+  padding: 2px 0.75em;
+}
+ul.tabs li a.active {
+  color: #000;
+  background-color: whitesmoke;
+  border-radius: 4px 4px 0 0;
+  -moz-border-radius: 4px 4px 0 0;
+  -webkit-border-top-left-radius: 4px;
+  -webkit-border-top-right-radius: 4px;
+}
+ul.tabs li a:hover {
+  text-decoration: underline;
+}
+ul.errorlist {
+  color: #ee0000;
+  font-weight: bold;
+}
+
+fieldset.aligned label {
+  display: block;
+  float: left;
+  padding: 3px 10px 0 0;
+  width: 8em;
+}
+fieldset.aligned label.missing {
+  color: #ee0000;
+  font-weight: bold;
+}
+fieldset .hint {
+  display: none;
+}
+#settings fieldset input { font-size: 95%; }
+#settings fieldset input[type="button"],
+#settings fieldset input[type="submit"] {
+  margin-right: 2px;
+}
+#settings fieldset a,
+#openid_identifiers a {
+  font-size: 95%;
+}
+#edit-service li {
+  line-height: 140%;
+}
+
+.form-row {
+  overflow: hidden;
+  padding: 4px 12px;
+}
+.form-row:hover > span.hint {
+  display: block;
+  position: absolute;
+  max-width: 300px;
+  font: bold 0.8em arial;
+  color: #000;
+  margin: 0 0 0 420px;
+  padding: 4px;
+  background-color: #ffff80;
+  border: 2px solid #f7de35;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
+
+#pshb-subs { font-size: 95%; }
+#pshb-subs th { text-align: left; }
+#pshb-subs .odd { background-color: #eeeeee; }
+#pshb-ssub .even { background-color: white; }
