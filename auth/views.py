@@ -23,16 +23,10 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
+from glifestream.auth import gls_openid
 from glifestream.auth.forms import OpenIdForm, AuthenticationRememberMeForm
 from glifestream.auth.models import OpenId
-
-try:
-    import openid
-    from openid.consumer import consumer
-    from openid import oidutil
-    oidutil.log = lambda *args: None
-except ImportError:
-    openid = None
+from glifestream.utils import common
 
 try:
     import facebook
@@ -74,7 +68,7 @@ def login (request, template_name='login.html',
 
     page = {
         'robots': 'noindex,nofollow',
-        'theme': __get_theme (request),
+        'theme': common.get_theme (request),
     }
 
     return render_to_response (template_name,
@@ -142,11 +136,14 @@ def xrds (request, **args):
     <Service priority="1">
       <Type>http://specs.openid.net/auth/2.0/return_to</Type>
       <URI priority="1">%s</URI>
+      <URI priority="2">%s</URI>
     </Service>
   </XRD>
 </xrds:XRDS>
 """
-    body = xrds_tpl % (request.build_absolute_uri ('openid'))
+    body = xrds_tpl % (request.build_absolute_uri ('openid'),
+                       request.build_absolute_uri (
+            urlresolvers.reverse ('glifestream.usettings.views.openid')))
     return HttpResponse (body, mimetype='application/xrds+xml')
 
 @never_cache
@@ -157,7 +154,7 @@ def openid (request, template_name='openid.html',
     if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
         redirect_to = settings.BASE_URL + '/'
 
-    if not openid:
+    if not gls_openid.openid:
         return HttpResponseRedirect (redirect_to)
 
     if request.method == 'POST':
@@ -166,49 +163,24 @@ def openid (request, template_name='openid.html',
             if not form.cleaned_data ['remember_me']:
                 request.session.set_expiry (0)
 
-            oidconsumer = consumer.Consumer (request.session, __get_store ())
-            try:
-                openid_url = form.cleaned_data['openid_identifier']
-                auth_request = oidconsumer.begin (openid_url)
-            except consumer.DiscoveryFailure, exc:
-                msg = _('OpenID authentication failed')
-            else:
-                if auth_request is None:
-                    msg = _('No OpenID services found for %s') % openid_url
-                else:
-                    trust_root = settings.BASE_URL + '/'
-                    if request.is_secure ():
-                        trust_root = trust_root.replace ('http://', 'https://')
-
-                    return_to = request.build_absolute_uri ()
-                    if auth_request.shouldSendRedirect ():
-                        redirect_url = auth_request.redirectURL (
-                            trust_root, return_to, immediate=False)
-                        return HttpResponseRedirect (redirect_url)
-                    else:
-                        form_html = auth_request.htmlMarkup (
-                            trust_root, return_to,
-                            form_tag_attrs = {'id':'openid_message'},
-                            immediate = False)
-                        return HttpResponse (form_html)
+            rs = gls_openid.start (request,
+                                   form.cleaned_data['openid_identifier'])
+            if 'res' in rs:
+                return rs['res']
+            elif 'msg' in rs:
+                msg = rs['msg']
         else:
             msg = _('Invalid OpenID identifier')
 
     elif request.method == 'GET':
 
         if request.GET.get ('openid.mode', None):
-            oidconsumer = consumer.Consumer (request.session, __get_store ())
-            return_to = request.build_absolute_uri ()
-            auth_response = oidconsumer.complete (request.GET, return_to)
-
-            if auth_response.status == consumer.CANCEL:
-                msg = _('Verification cancelled')
-            elif auth_response.status == consumer.FAILURE:
-                msg = _('OpenID authentication failed: %s') % auth_response.message
-            elif auth_response.status == consumer.SUCCESS:
-                identity_url = auth_response.identity_url
+            rs = gls_openid.finish (request)
+            if 'msg' in rs:
+                msg = rs['msg']
+            elif 'identity_url' in rs:
                 try:
-                    db = OpenId.objects.get (identity=identity_url)
+                    db = OpenId.objects.get (identity=rs['identity_url'])
                     if db:
                         user = db.user
                         user.backend = 'django.contrib.auth.backends.ModelBackend'
@@ -233,7 +205,7 @@ def openid (request, template_name='openid.html',
 
     page = {
         'robots': 'noindex,nofollow',
-        'theme': __get_theme (request),
+        'theme': common.get_theme (request),
         'msg': msg,
     }
 
@@ -245,21 +217,3 @@ def openid (request, template_name='openid.html',
                                  'is_secure': request.is_secure (),
                                  redirect_field_name: redirect_to },
                                context_instance = RequestContext (request))
-
-def __get_store ():
-    mstore = getattr (settings, 'OPENID_STORE',
-                      'openid.store.filestore.FileOpenIDStore')
-    i = mstore.rfind ('.')
-    module, attr = mstore[:i], mstore[i+1:]
-    mod = __import__ (module, {}, {}, [attr])
-    cls = getattr (mod, attr)
-
-    if module.endswith ('filestore'):
-        arg = getattr (settings, 'OPENID_STORE_FILEPATH', '/tmp/gls_openid')
-    return cls (arg)
-
-def __get_theme (request):
-    gl_theme = request.COOKIES.get ('glifestream_theme', settings.THEMES[0])
-    if not gl_theme in settings.THEMES:
-        gl_theme = settings.THEMES[0]
-    return gl_theme

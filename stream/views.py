@@ -33,6 +33,7 @@ from glifestream.stream.templatetags.gls_filters import gls_content
 from glifestream.stream.templatetags.gls_filters import gls_slugify
 from glifestream.stream.models import Service, Entry, Favorite, List
 from glifestream.stream import media, pshb
+from glifestream.utils import common
 from glifestream.utils.time import pn_month_start
 from glifestream.utils.translate import translate
 from glifestream.apis import selfposts
@@ -270,7 +271,7 @@ def index (request, **args):
     # Set page theme.
     page['themes'] = settings.THEMES
     page['themes_more'] = True if len (settings.THEMES) > 1 else False
-    page['theme'] = __get_theme (request)
+    page['theme'] = common.get_theme (request)
 
     # Setup links.
     page['need_fbc'] = False
@@ -385,7 +386,7 @@ def tools (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
-        'theme': __get_theme (request),
+        'theme': common.get_theme (request),
     }
     return render_to_response ('tools.html',{ 'page': page, 'authed': authed,
                                               'is_secure': request.is_secure (),
@@ -396,17 +397,10 @@ def page_not_found (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
-        'theme': __get_theme (request),
+        'theme': common.get_theme (request),
     }
     t = loader.get_template ('404.html')
     return HttpResponseNotFound (t.render (RequestContext (request, {'page': page})))
-
-
-def __get_theme (request):
-    gl_theme = request.COOKIES.get ('glifestream_theme', settings.THEMES[0])
-    if not gl_theme in settings.THEMES:
-        gl_theme = settings.THEMES[0]
-    return gl_theme
 
 #
 # XHR API

@@ -1,0 +1,30 @@
+{% extends "settings.html" %}
+{% load i18n %}
+
+{% block settings %}
+  <p>
+    <span class="bold">{% trans "Editing list:" %}</span>&nbsp;
+    <select id="select-list">
+      <option value="">-- {% trans "new" %} --</option>
+      {% for l in lists %}
+      <option value="{{ l.slug }}"{% ifequal curlist l.slug %} selected="selected"{% endifequal %}>{{ l.name }}</option>{% endfor %}
+    </select>&nbsp;
+  </p>
+
+  {% if form %}
+  <form id="list-form" method="post">
+    <fieldset class="aligned">
+      {% for field in form %}
+      <div class="form-row">{{ field.errors }}
+        {{ field.label_tag }} {{ field }}
+      </div>
+      {% endfor %}
+      <div class="form-row">
+	<input type="submit" name="save" value="{% trans "Save" %}" />
+	<input type="button" name="cancel" value="{% trans "Cancel" %}" />
+	{% if curlist %}<a href="#">{% trans "delete" %}</a>{% endif %}
+      </div>
+    </fieldset>
+  </form>
+  {% endif %}
+{% endblock settings %}

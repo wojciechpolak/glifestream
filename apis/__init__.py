@@ -32,3 +32,23 @@ __all__ = (
     'yelp',
     'youtube',
 )
+
+API_LIST = (
+    ('selfposts',   'Self Posts'),
+    ('webfeed',     'Webfeed'),
+    ('twitter',     'Twitter'),
+    ('fb',          'Facebook'),
+    ('friendfeed',  'FriendFeed'),
+    ('identica',    'Identi.ca'),
+    ('gbuzz',       'Google Buzz'),
+    ('greader',     'Google Reader'),
+    ('youtube',     'YouTube'),
+    ('vimeo',       'Vimeo'),
+    ('delicious',   'Delicious'),
+    ('digg',        'Digg'),
+    ('stumbleupon', 'StumbleUpon'),
+    ('flickr',      'Flickr'),
+    ('picasaweb',   'Picasa Web'),
+    ('lastfm',      'Last.fm'),
+    ('yelp',        'Yelp'),
+)

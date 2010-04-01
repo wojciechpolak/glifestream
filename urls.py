@@ -41,21 +41,17 @@ urlpatterns = patterns ('',
     (r'^api/(?P<cmd>[a-z]+)$', sv.api),
 
     (r'^favorites/$', sv.index, {'favorites': True}, 'favorites'),
-    (r'^list/(?P<list>[a-z\-]+)/$', sv.index, {}, 'list'),
+    (r'^list/(?P<list>[a-z0-9\-]+)/$', sv.index, {}, 'list'),
+    (r'^pshb/(?P<id>[a-f0-9]{20})$', sv.pshb_dispatcher, {}, 'pshb'),
+    (r'^tools/$', sv.tools, {}, 'tools'),
 
     (r'^login/?$', 'glifestream.auth.views.login'),
-    (r'^login-friend/?$', 'glifestream.auth.views.login_friend'),
     (r'^logout/?$', 'django.contrib.auth.views.logout',
      {'next_page': './'}),
-    (r'^auth/xrds$', 'glifestream.auth.views.xrds'),
-    (r'^auth/openid$', 'glifestream.auth.views.openid'),
 
-    (r'^pshb/(?P<id>[a-f0-9]{20})$', sv.pshb_dispatcher, {}, 'pshb'),
-
-    (r'^bookmarklet/js$', 'glifestream.bookmarklet.views.js'),
-    (r'^bookmarklet/frame$', 'glifestream.bookmarklet.views.frame'),
-
-    (r'^tools/$', sv.tools, {}, 'tools'),
+    (r'^auth/', include ('glifestream.auth.urls')),
+    (r'^bookmarklet/', include ('glifestream.bookmarklet.urls')),
+    (r'^settings/', include ('glifestream.usettings.urls')),
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
      {'document_root': settings.MEDIA_ROOT}),
