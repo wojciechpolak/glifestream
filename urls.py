@@ -45,11 +45,11 @@ urlpatterns = patterns ('',
     (r'^pshb/(?P<id>[a-f0-9]{20})$', sv.pshb_dispatcher, {}, 'pshb'),
     (r'^tools/$', sv.tools, {}, 'tools'),
 
-    (r'^login/?$', 'glifestream.auth.views.login'),
+    (r'^login/?$', 'glifestream.gauth.views.login'),
     (r'^logout/?$', 'django.contrib.auth.views.logout',
      {'next_page': './'}),
 
-    (r'^auth/', include ('glifestream.auth.urls')),
+    (r'^auth/', include ('glifestream.gauth.urls')),
     (r'^bookmarklet/', include ('glifestream.bookmarklet.urls')),
     (r'^settings/', include ('glifestream.usettings.urls')),
 
