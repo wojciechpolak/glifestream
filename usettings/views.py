@@ -221,7 +221,6 @@ def api (request, **args):
             'name': request.POST.get ('name', ''),
             'cls': request.POST.get ('cls', ''),
             'url': request.POST.get ('url', ''),
-            'creds': request.POST.get ('creds', ''),
             'display': request.POST.get ('display', 'both'),
             'public': bool (request.POST.get ('public', False)),
             'home': bool (request.POST.get ('home', False)),
@@ -261,8 +260,8 @@ def api (request, **args):
                     srv.creds = basic_user + ':' + basic_pass
                 elif auth == 'oauth':
                     srv.creds = auth
-                else:
-                    srv.creds = s['creds']
+                elif auth == 'none':
+                    srv.creds = '';
 
                 s['need_import'] = True if not srv.id else False
                 srv.save ()
@@ -293,6 +292,7 @@ def api (request, **args):
             except Service.DoesNotExist:
                 pass
         else:
+            s['creds'] = ''
             s['home'] = True
             s['active'] = True
 
