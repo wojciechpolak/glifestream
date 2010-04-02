@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-01 19:22+0200\n"
-"PO-Revision-Date: 2010-04-01 19:09+0200\n"
+"POT-Creation-Date: 2010-04-02 22:49+0200\n"
+"PO-Revision-Date: 2010-04-02 22:50+0200\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -72,62 +72,6 @@ msgstr "BRAK WIDEO"
 msgid "Favorited %s"
 msgstr "Wideo %s"
 
-#: auth/forms.py:21 auth/forms.py:28 auth/templates/login.html:22
-#: auth/templates/openid.html:17
-msgid "Remember Me"
-msgstr "Zapamiętaj mnie"
-
-#: auth/forms.py:26 auth/templates/openid.html:11
-#: usettings/templates/oid.html:21 usettings/templates/settings.html:10
-msgid "OpenID"
-msgstr "OpenID"
-
-#: auth/gls_openid.py:36
-msgid "OpenID authentication failed"
-msgstr "Nieudana autentykacja OpenID"
-
-#: auth/gls_openid.py:39
-#, python-format
-msgid "No OpenID services found for %s"
-msgstr "Nie znaleziono serwisów OpenID dla %s"
-
-#: auth/gls_openid.py:63
-msgid "Verification cancelled"
-msgstr "Weryfikacja anulowana"
-
-#: auth/gls_openid.py:65
-#, python-format
-msgid "OpenID authentication failed: %s"
-msgstr "Nieudana autentykacja OpenID: %s"
-
-#: auth/models.py:22
-msgid "Identity"
-msgstr "Tożsamość"
-
-#: auth/views.py:173
-msgid "Invalid OpenID identifier"
-msgstr "Nieprawidłowy identyfikator OpenID"
-
-#: auth/views.py:196
-msgid "OpenID account match error"
-msgstr "Błąd dopasowania konta OpenID"
-
-#: auth/templates/login.html:8
-msgid "Invalid username or password"
-msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
-
-#: auth/templates/login.html:11
-msgid "Username"
-msgstr "Nazwa użytkownika"
-
-#: auth/templates/login.html:16
-msgid "Password"
-msgstr "Hasło"
-
-#: auth/templates/login.html:26 auth/templates/openid.html:21
-msgid "Log In"
-msgstr "Zaloguj"
-
 #: bookmarklet/templates/frame.html:32
 msgid "Share this web page at your Stream!"
 msgstr "Podziel się tą stroną!"
@@ -163,6 +107,62 @@ msgstr "Widoczny tylko dla przyjaciół:"
 #: bookmarklet/templates/frame.html:215
 msgid "Click to remove"
 msgstr "Kliknij aby usunąć"
+
+#: gauth/forms.py:21 gauth/forms.py:28 gauth/templates/login.html:22
+#: gauth/templates/openid.html:17
+msgid "Remember Me"
+msgstr "Zapamiętaj mnie"
+
+#: gauth/forms.py:26 gauth/templates/openid.html:11
+#: usettings/templates/oid.html:21 usettings/templates/settings.html:10
+msgid "OpenID"
+msgstr "OpenID"
+
+#: gauth/gls_openid.py:36
+msgid "OpenID authentication failed"
+msgstr "Nieudana autentykacja OpenID"
+
+#: gauth/gls_openid.py:39
+#, python-format
+msgid "No OpenID services found for %s"
+msgstr "Nie znaleziono serwisów OpenID dla %s"
+
+#: gauth/gls_openid.py:63
+msgid "Verification cancelled"
+msgstr "Weryfikacja anulowana"
+
+#: gauth/gls_openid.py:65
+#, python-format
+msgid "OpenID authentication failed: %s"
+msgstr "Nieudana autentykacja OpenID: %s"
+
+#: gauth/models.py:22
+msgid "Identity"
+msgstr "Tożsamość"
+
+#: gauth/views.py:173
+msgid "Invalid OpenID identifier"
+msgstr "Nieprawidłowy identyfikator OpenID"
+
+#: gauth/views.py:196
+msgid "OpenID account match error"
+msgstr "Błąd dopasowania konta OpenID"
+
+#: gauth/templates/login.html:8
+msgid "Invalid username or password"
+msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
+
+#: gauth/templates/login.html:11
+msgid "Username"
+msgstr "Nazwa użytkownika"
+
+#: gauth/templates/login.html:16
+msgid "Password"
+msgstr "Hasło"
+
+#: gauth/templates/login.html:26 gauth/templates/openid.html:21
+msgid "Log In"
+msgstr "Zaloguj"
 
 #: stream/admin.py:27
 msgid "Deactivate item"
@@ -463,9 +463,9 @@ msgstr "Witaj"
 msgid "My private stream"
 msgstr "Mój prywatny strumień"
 
-#: templates/base.html:25
-msgid "Private"
-msgstr "Prywatne"
+#: templates/base.html:25 usettings/views.py:370
+msgid "Home"
+msgstr "Strona główna"
 
 #: templates/base.html:26
 msgid "My publicly visible stream"
@@ -698,7 +698,7 @@ msgstr "Hub %s: Wypisano."
 msgid "OpenID - Settings"
 msgstr "OpenID - Ustawienia"
 
-#: usettings/views.py:292 usettings/templates/lists.html:25
+#: usettings/views.py:291 usettings/templates/lists.html:25
 #: usettings/templates/oid.html:9
 msgid "delete"
 msgstr "skasuj"
@@ -754,10 +754,6 @@ msgstr "Hasło"
 #: usettings/views.py:355
 msgid "Session key"
 msgstr "Klucz sesji"
-
-#: usettings/views.py:370
-msgid "Home"
-msgstr "Strona główna"
 
 #: usettings/views.py:382 usettings/templates/lists.html:23
 msgid "Save"
