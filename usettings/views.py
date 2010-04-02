@@ -221,7 +221,7 @@ def api (request, **args):
             'name': request.POST.get ('name', ''),
             'cls': request.POST.get ('cls', ''),
             'url': request.POST.get ('url', ''),
-            'display': request.POST.get ('display', 'both'),
+            'display': request.POST.get ('display', 'content'),
             'public': bool (request.POST.get ('public', False)),
             'home': bool (request.POST.get ('home', False)),
             'active': bool (request.POST.get ('active', False)),
@@ -354,7 +354,7 @@ def api (request, **args):
                                  'value': s['creds'],
                                  'label': _('Session key')})
 
-        if s['api'] == 'webfeed':
+        if s['api'] in ('webfeed', 'flickr', 'youtube', 'vimeo'):
             s['fields'].append ({'type': 'select', 'name': 'display',
                                  'options': (('both', _('Title and Contents')),
                                              ('content', _('Contents only')),
