@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf.urls.defaults import *
-from glifestream.auth import views
+from glifestream.gauth import views
 
 urlpatterns = patterns ('',
     (r'login-friend$', views.login_friend),

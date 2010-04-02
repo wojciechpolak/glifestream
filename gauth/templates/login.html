@@ -5,11 +5,16 @@
 <section id="login">
 
 <div id="loginbox">
-{% if page.msg %}<p class="error">{{ page.msg }}</p>{% endif %}
-<form name="loginform" method="post" action="{% url glifestream.auth.views.openid %}">
+{% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
+<form name="loginform" method="post" action="{% url glifestream.gauth.views.login %}">
   <p>
-    <label>{% trans "OpenID" %}<br />
-      <input type="text" name="openid_identifier" id="openid_identifier" maxlength="128" />
+    <label>{% trans "Username" %}<br />
+      <input type="text" name="username" id="username" size="20" />
+    </label>
+  </p>
+  <p>
+    <label>{% trans "Password" %}<br />
+      <input type="password" name="password" id="password" size="20" />
     </label>
   </p>
   <p class="rememberme">
@@ -27,6 +32,6 @@
 </section><!-- /login -->
 
 <script type="text/javascript">
-document.getElementById('openid_identifier').focus ();
+document.getElementById('username').focus ();
 </script>
 {% endblock main %}

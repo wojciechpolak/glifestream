@@ -23,9 +23,9 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
-from glifestream.auth import gls_openid
-from glifestream.auth.forms import OpenIdForm, AuthenticationRememberMeForm
-from glifestream.auth.models import OpenId
+from glifestream.gauth import gls_openid
+from glifestream.gauth.forms import OpenIdForm, AuthenticationRememberMeForm
+from glifestream.gauth.models import OpenId
 from glifestream.utils import common
 
 try:

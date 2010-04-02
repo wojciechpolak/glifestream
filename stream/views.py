@@ -366,7 +366,7 @@ def index (request, **args):
                                     'is_secure': request.is_secure (),
                                     'user': request.user })
         res['X-XRDS-Location'] = request.build_absolute_uri (
-            urlresolvers.reverse ('glifestream.auth.views.xrds'))
+            urlresolvers.reverse ('glifestream.gauth.views.xrds'))
         return res
 
 @never_cache

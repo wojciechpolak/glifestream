@@ -24,8 +24,8 @@ from django.http import HttpResponseRedirect
 from django.forms import ModelForm
 from django.utils.translation import ugettext as _
 from glifestream.stream.models import Service, List
-from glifestream.auth import gls_openid
-from glifestream.auth.models import OpenId
+from glifestream.gauth import gls_openid
+from glifestream.gauth.models import OpenId
 from glifestream.stream import pshb as gls_pshb
 from glifestream.apis import API_LIST
 from glifestream.utils import common

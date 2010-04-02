@@ -79,7 +79,7 @@ div.content { margin-right: 6px; padding-top: 5px; padding-bottom: 5px; }
 {% else %}
   <input type="hidden" name="link" value="" />
   <input type="hidden" name="content" id="content" value="" />
-  <p>In order to use this bookmarklet, please <a href="{{page.base_url }}{% url auth.views.login %}" target="_top">log in</a>.</p>
+  <p>In order to use this bookmarklet, please <a href="{{page.base_url }}/login" target="_top">log in</a>.</p>
 {% endif %}
 </div>
 
