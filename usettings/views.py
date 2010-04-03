@@ -42,6 +42,7 @@ def services (request, **args):
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
         'themes': settings.THEMES,
+        'fb_api_key': settings.FACEBOOK_API_KEY,
         'themes_more': True if len (settings.THEMES) > 1 else False,
         'theme': common.get_theme (request),
         'title': _('Services - Settings'),
@@ -357,6 +358,7 @@ def api (request, **args):
             s['fields'].append ({'type': 'text', 'name': 'session_key',
                                  'value': s['creds'],
                                  'label': _('Session key')})
+            s['need_fb_sessionkey'] = _('get')
 
         if s['api'] in ('webfeed', 'flickr', 'youtube', 'vimeo'):
             s['fields'].append ({'type': 'select', 'name': 'display',

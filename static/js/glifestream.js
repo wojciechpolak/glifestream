@@ -791,10 +791,17 @@
 	if (f.hint)
 	  hint = DCE ('span', {className: 'hint'}, [f.hint]);
 
+	var alink = false;
+	if (data['need_fb_sessionkey'] && f.name == 'session_key') {
+	  alink = DCE ('span', {},
+		       [' ', DCE ('a', {href: '#', onclick: fb_get_session_key},
+				  [data['need_fb_sessionkey']])]);
+	}
+
 	var miss = f.miss ? 'missing' : '';
 	var row = DCE ('div', {className: 'form-row'},
 		       [DCE ('label', {htmlFor: f.name, className: miss},
-			     [f.label]), hint, obj]);
+			     [f.label]), hint, obj, alink]);
 	if (f.deps) {
 	  for (var name in f.deps) {
 	    if (!settings_deps[name])
@@ -828,6 +835,24 @@
       }
     }
     return form;
+  }
+
+  function fb_get_session_key () {
+    FB.login (fb_handle_session, {perms: 'offline_access,read_stream'});
+    return false;
+  }
+
+  function fb_handle_session (res) {
+    if (!res.session || !res.perms)
+      return;
+    if (res.perms) {
+      if (res.perms.indexOf ('read_stream') != -1 &&
+	  res.perms.indexOf ('offline_access') != -1 &&
+	  res.session['expires'] == 0) {
+	$('#settings input[name=session_key]')
+	  .val (res.session['session_key']);
+      }
+    }
   }
 
   var MDOM = {
