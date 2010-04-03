@@ -37,7 +37,7 @@ Optional:
 ===========================
 
 Rename 'glifestream/settings-sample.py' to 'settings.py' and edit your
-local site configuration.
+local site configuration. Run 'python manage.py syncdb'.
 
 Make sure that 'glifestream/static/thumbs' and
 'glifestream/static/upload' directories exist and both have write
