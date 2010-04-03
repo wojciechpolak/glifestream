@@ -255,11 +255,15 @@ def api (request, **args):
             try:
                 basic_user = request.POST.get ('basic_user', None)
                 basic_pass = request.POST.get ('basic_pass', None)
+                session_key = request.POST.get ('session_key', None)
+
                 auth = request.POST.get ('auth', 'none')
                 if auth == 'basic' and basic_user and basic_pass:
                     srv.creds = basic_user + ':' + basic_pass
                 elif auth == 'oauth':
                     srv.creds = auth
+                elif session_key:
+                    srv.creds = session_key
                 elif auth == 'none':
                     srv.creds = '';
 
@@ -350,7 +354,7 @@ def api (request, **args):
                                  'deps': {'auth': 'basic'}})
 
         if s['api'] == 'fb':
-            s['fields'].append ({'type': 'text', 'name': 'creds',
+            s['fields'].append ({'type': 'text', 'name': 'session_key',
                                  'value': s['creds'],
                                  'label': _('Session key')})
 
