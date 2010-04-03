@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+import hashlib
 from django.conf import settings
 from django import template
 from django.template import Library
@@ -30,3 +32,33 @@ class MediaUrl (template.Node):
 def static (parser, token):
     """Return the string contained in the setting MEDIA_URL."""
     return MediaUrl ()
+
+class MediaUrlHash (template.Node):
+    def __init__ (self, path):
+        self.path = path
+        self.hash = None
+        try:
+            f = open (os.path.join (settings.MEDIA_ROOT, path))
+            self.hash = hashlib.md5 (f.read ()).hexdigest ()[:5]
+            f.close ()
+        except:
+            pass
+
+    def render (self, ctx):
+        url = settings.MEDIA_URL
+        if 'is_secure' in ctx and ctx['is_secure']:
+            url = url.replace ('http://', 'https://')
+        url += '/' + self.path
+        if self.hash:
+            url += '?v=' + self.hash
+        return url
+
+@register.tag
+def static_hash (parser, token):
+    """Return a static URL for the given relative static file path."""
+    try:
+        tag_name, path = token.split_contents ()
+    except ValueError:
+        raise template.TemplateSyntaxError, \
+            "%r tag requires a single argument" % token.contents.split ()[0]
+    return MediaUrlHash (path)
