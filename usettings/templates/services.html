@@ -26,4 +26,13 @@
   <form id="service-form" style="display:none">
     <fieldset class="aligned"></fieldset>
   </form>
+
+  <script type="text/javascript">
+    window.fbAsyncInit = function () {
+      try {
+        FB.init ({apiKey: '{{ page.fb_api_key }}'});
+      } catch (e) {}
+    };
+  </script>
+  <script type="text/javascript" src="http://static.ak.fbcdn.net/connect/en_US/core.js"></script>
 {% endblock settings %}
