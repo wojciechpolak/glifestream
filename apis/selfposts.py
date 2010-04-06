@@ -88,9 +88,9 @@ class API:
         if title:
             e.title = title
         else:
-            e.title = truncate.smart_truncate (strip_tags (e.content))
+            e.title = truncate.smart_truncate (strip_tags (e.content)).strip ()
         if e.title == '':
-            e.title = truncate.smart_truncate (strip_tags (content))
+            e.title = truncate.smart_truncate (strip_tags (content)).strip ()
 
         mblob = media.mrss_scan (e.content)
         e.mblob = media.mrss_gen_json (mblob)
