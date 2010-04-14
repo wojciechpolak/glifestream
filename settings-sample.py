@@ -113,7 +113,7 @@ MAPS_KEY = 'YOUR-GOOGLE-MAP-KEY'
 
 # Search functionality
 SEARCH_ENABLE = True
-SEARCH_ENGINE = 'sphinx'
+SEARCH_ENGINE = 'sphinx' # db, sphinx
 
 SPHINX_API_VERSION = 0x116 # version 0.9.9
 SPHINX_SERVER = 'localhost'
