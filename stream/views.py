@@ -193,20 +193,24 @@ def index (request, **args):
     search_engine = getattr (settings, 'SEARCH_ENGINE', 'sphinx')
     search_query = request.GET.get ('s', '')
 
-    if search_query != '' and search_enable and search_engine == 'sphinx' and \
-       Entry.sphinx.query:
+    if search_query != '' and search_enable:
         page['search'] = search_query
         page['title'] = 'Search Results for %s' % escape (search_query)
         page['subtitle'] = _('Your search for %s returned the following results.') % ('<b>'+ escape (search_query) +'</b>')
         urlparams.append ('s=' + search_query)
         sfs = {}
-        if page['public']: sfs['public'] = True
         if not authed and not friend: sfs['friends_only'] = False
         page_number = int (request.GET.get ('page', 1))
         offset = (page_number - 1) * entries_on_page
 
         try:
-            entries = Entry.sphinx.query (search_query).filter (**sfs).select_related ()
+            if search_engine == 'sphinx' and Entry.sphinx.query:
+                if page['public']: sfs['public'] = True
+                entries = Entry.sphinx.query (search_query).filter (**sfs).select_related ()
+            else:
+                if page['public']: sfs['service__public'] = True
+                sfs['content__icontains'] = search_query
+                entries = entries.filter (**sfs).select_related ()
 
             limit = offset + entries_on_page
             if offset >= entries_on_page:
