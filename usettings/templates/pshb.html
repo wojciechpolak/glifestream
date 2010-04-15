@@ -2,7 +2,9 @@
 {% load i18n %}
 
 {% block settings %}
-  <p class="bold">{% trans "PubSubHubbub subscriptions" %}</p>
+  <p class="bold">{% trans "PubSubHubbub subscriptions" %}
+    <a href="http://code.google.com/p/pubsubhubbub/" target="_blank" class="smaller" style="font-weight:normal">(?)</a>
+  </p>
   {% if page.msg %}<p class="msg">{{ page.msg }}</p>{% endif %}
 
   {% if subs %}

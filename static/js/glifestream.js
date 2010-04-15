@@ -629,7 +629,7 @@
 	 { name: 'Delicious', href: 'http://delicious.com/save?url={URL}&title={TITLE}', icon: 'http://delicious.com/favicon.ico'},
 	 { name: 'Digg', href: 'http://digg.com/submit?phase=2&url={URL}&title={TITLE}', icon: 'http://digg.com/favicon.ico'},
 	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', icon: 'http://www.reddit.com/favicon.ico'},
-	 { name: 'Google', href: 'http://www.google.com/bookmarks/mark?op=add&bkmk={URL}&title={TITLE}', icon: 'http://www.google.com/favicon.ico'}];
+	 { name: 'Buzz', href: 'http://www.google.com/buzz/post?url={URL}', icon: 'http://www.gstatic.com/buzz/api/images/buzz-link.png'}];
     });
 
   function init_settings () {
@@ -1006,7 +1006,7 @@
 
       if (!type) {
 	if (src.match (/(\.jpg$|\.jpeg$|\.png$|\.gif$)/i) ||
-	    src.match (/http:\/\/friendfeed-media\.com/)) {
+	    src.match (/friendfeed-media\.com/)) {
 	  type = 'image';
 	  if (src.match (/bp\.blogspot\.com/))
 	    src = src.replace (/-h\//, '/');

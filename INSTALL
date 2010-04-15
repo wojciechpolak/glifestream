@@ -16,7 +16,8 @@ Optional (but recommended):
 - workerpool -- a multithreaded job distribution module
   http://code.google.com/p/workerpool/
 
-- python-markdown -- http://pypi.python.org/pypi/Markdown/
+- python-markdown -- a text-to-HTML converter
+  http://pypi.python.org/pypi/Markdown/
 
 - Beautiful Soup -- an HTML parser
   http://www.crummy.com/software/BeautifulSoup/
@@ -28,16 +29,18 @@ Optional (but recommended):
 
 Optional:
 
-- PyFacebook - a Python client library for the Facebook API.
+- PyFacebook -- a Python client library for the Facebook API.
   http://github.com/sciyoshi/pyfacebook/
 
-- python-openid - OpenID support for servers and consumers.
+- python-openid -- OpenID support for servers and consumers.
 
 * Installation instructions
 ===========================
 
 Rename 'glifestream/settings-sample.py' to 'settings.py' and edit your
-local site configuration. Run 'python manage.py syncdb'.
+local site configuration.
+
+Run 'python manage.py syncdb' and 'python manage.py compilemessages'.
 
 Make sure that 'glifestream/static/thumbs' and
 'glifestream/static/upload' directories exist and both have write
