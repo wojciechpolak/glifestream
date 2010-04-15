@@ -48,7 +48,7 @@ class API:
         try:
             r = httpclient.get ('vimeo.com', url)
             if r.status == 200:
-                self.json = json.loads (r.read ())
+                self.json = json.loads (r.data)
                 self.service.last_checked = now ()
                 self.service.save ()
                 self.process ()
@@ -148,7 +148,7 @@ def get_thumbnail_url (id):
     try:
         r = httpclient.urlopen ('vimeo.com/api/v2/video/%s.json' % id)
         if r.code == 200:
-            jsn = json.loads (r.read ())
+            jsn = json.loads (r.data)
             if 'thumbnail_medium' in jsn[0]:
                 return jsn[0]['thumbnail_medium']
     except:

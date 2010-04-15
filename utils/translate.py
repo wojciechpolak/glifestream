@@ -36,7 +36,7 @@ def translate (msg, src='', target='en'):
         r = httpclient.urlopen ('ajax.googleapis.com/ajax/services/language/translate',
                                 params, headers, timeout=30)
         if r.code == 200:
-            data = json.loads (r.read ())
+            data = json.loads (r.data)
             if data['responseStatus'] == 200:
                 return data['responseData']['translatedText']
             else:

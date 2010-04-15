@@ -59,7 +59,7 @@ class API:
         try:
             r = httpclient.get ('friendfeed-api.com', url, headers=hs)
             if r.status == 200:
-                self.json = json.loads (r.read ().decode ('utf_8'))
+                self.json = json.loads (r.data.decode ('utf_8'))
                 self.service.last_checked = now ()
                 self.service.save ()
                 self.process ()
