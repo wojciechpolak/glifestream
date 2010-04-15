@@ -37,7 +37,7 @@ def discover (url, provider, maxwidth=None, maxheight=None):
     try:
         r = httpclient.urlopen (pro + q, timeout=15)
         if r.code == 200:
-            return json.loads (r.read ())
+            return json.loads (r.data)
     except:
         pass
     return None
