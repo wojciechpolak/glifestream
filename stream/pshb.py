@@ -144,6 +144,8 @@ def verify (id, GET):
 def publish (hubs=None, verbose=False):
     hubs = hubs or settings.PSHB_HUBS
     url = __get_absolute_url (urlresolvers.reverse ('index')) + '?format=atom'
+    if 'localhost' in url:
+        return
     for hub in hubs:
         hub = hub.replace ('https://', 'http://') # it's just a ping.
         data = {'hub.mode': 'publish', 'hub.url': url}

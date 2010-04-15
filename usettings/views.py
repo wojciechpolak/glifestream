@@ -307,7 +307,8 @@ def api (request, **args):
              'value': s['name'], 'label': _('Short name'),
              'miss': miss.get ('name', False)},
             {'type': 'text', 'name': 'cls',
-             'value': s['cls'], 'label': _('Class name')}
+             'value': s['cls'], 'label': _('Class name'),
+             'hint': _('Any name for the service classification; a category.')}
         ]
 
         if s['api'] == 'webfeed':
