@@ -14,9 +14,9 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import feedparser
-import socket
 import urlparse
 from django.conf import settings
+from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import strip_script
 from glifestream.stream.models import Entry
@@ -28,7 +28,7 @@ class API:
     fetch_only = False
     payload = None
 
-    def __init__ (self, service, verbose = 0, force_overwrite = False):
+    def __init__ (self, service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite
@@ -42,26 +42,24 @@ class API:
             pass
 
     def fetch (self, url):
-        url = urlparse.urlsplit (url)
-        if self.service.creds:
-            if url.query:
-                url = '%s://%s@%s%s?%s' % (url.scheme, self.service.creds,
-                                           url.netloc, url.path, url.query)
-            else:
-                url = '%s://%s@%s%s' % (url.scheme, self.service.creds,
-                                        url.netloc, url.path)
-        else:
-            if url.query:
-                url = '%s://%s%s?%s' % (url.scheme, url.netloc, url.path,
-                                        url.query)
-            else:
-                url = '%s://%s%s' % (url.scheme, url.netloc, url.path)
-        self.url = url
-
-        socket.setdefaulttimeout (45)
-        agent = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
-        self.fp = feedparser.parse (self.payload or url, agent=agent)
         self.fp_error = False
+        if not self.payload:
+            try:
+                hs = httpclient.gen_auth_hs (self.service)
+                r = httpclient.urlopen (url, headers=hs)
+                self.fp = feedparser.parse (r.data)
+                self.fp.etag = r.etag
+                self.fp.modified = r.modified
+            except (IOError, httpclient.HTTPError), e:
+                self.fp_error = True
+                if self.verbose:
+                    error = e.code if hasattr (e, 'code') else ''
+                    print '%s (%d) HTTPError: %s' % (self.service.api,
+                                                     self.service.id,
+                                                     error)
+                return
+        else:
+            self.fp = feedparser.parse (self.payload)
 
         if hasattr (self.fp, 'bozo') and self.fp.bozo:
             self.fp_error = True

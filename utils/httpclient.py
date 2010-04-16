@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import base64
 import httplib
 import urllib
 import urllib2
@@ -102,6 +103,13 @@ def urlopen (url, data=None, headers={}, etag=None, timeout=45):
         return f
     except urllib2.HTTPError, e:
         raise HTTPError (e.url, e.code, e.msg, e.hdrs, e.fp)
+
+def gen_auth_hs (service):
+    """Generate authentication headers."""
+    if len (service.creds) and service.creds != 'oauth':
+        return {'Authorization': 'Basic ' + \
+                    base64.encodestring (service.creds).strip ()}
+    return {}
 
 def __decompress (data, encoding):
     if gzip and encoding == 'gzip':
