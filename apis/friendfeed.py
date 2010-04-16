@@ -15,7 +15,6 @@
 
 import re
 import datetime
-import base64
 from django.utils.html import strip_tags, strip_entities
 from glifestream.filters import truncate
 from glifestream.utils import httpclient
@@ -51,12 +50,8 @@ class API:
             self.fetch ('/v2/feed/%s' % self.service.url)
 
     def fetch (self, url):
-        hs = {}
-        if len (self.service.creds):
-            hs['Authorization'] = 'Basic ' + \
-                base64.encodestring (self.service.creds).strip ()
-
         try:
+            hs = httpclient.gen_auth_hs (self.service)
             r = httpclient.get ('friendfeed-api.com', url, headers=hs)
             if r.status == 200:
                 self.json = json.loads (r.data.decode ('utf_8'))
