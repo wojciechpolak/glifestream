@@ -122,7 +122,7 @@ class API:
             if 'files' in ent:
                 content += '<ul class="files">\n'
                 for f in ent['files']:
-                    if 'http://friendfeed-media.com' in f['url']:
+                    if 'friendfeed-media' in f['url']:
                         content += '  <li><a href="%s" rel="nofollow">%s</a> <span class="size">%s</span></li>\n' \
                             % (f['url'], f['name'], bytes_to_human (f['size']))
                 content += '</ul>\n'

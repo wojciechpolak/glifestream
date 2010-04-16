@@ -14,7 +14,6 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import feedparser
-import urlparse
 from django.conf import settings
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
