@@ -13,10 +13,12 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import base64
 import httplib
 import urllib
 import urllib2
+import urlparse
 from email.utils import parsedate
 from django.conf import settings
 
@@ -103,6 +105,30 @@ def urlopen (url, data=None, headers={}, etag=None, timeout=45):
         return f
     except urllib2.HTTPError, e:
         raise HTTPError (e.url, e.code, e.msg, e.hdrs, e.fp)
+
+def get_alturl_if_html (r):
+    """Return alternate URL (using feed autodiscovery mechanism)
+    if urlopen's Content-Type response is HTML."""
+
+    ct = r.headers.get ('content-type', '')
+    if ';' in ct:
+        ct = ct.split (';', 1)[0]
+    if ct in ('text/html', 'application/xhtml+xml'):
+        shortdata = r.data[:2048]
+        for link in re.findall (r'<link(.*?)>', shortdata):
+            if 'alternate' in link:
+                rx = re.search ('type=[\'"](.*?)[\'"]', link)
+                if not rx: continue
+                alt_type = rx.groups ()[0]
+                if alt_type in ('application/rss+xml',
+                                'application/atom+xml',
+                                'application/rdf+xml',
+                                'application/xml'):
+                    rx = re.search ('href=[\'"](.*?)[\'"]', link)
+                    if rx:
+                        alt_href = rx.groups ()[0]
+                        return urlparse.urljoin (r.url, alt_href)
+    return None
 
 def gen_auth_hs (service):
     """Generate authentication headers."""
