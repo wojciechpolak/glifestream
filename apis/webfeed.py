@@ -46,6 +46,9 @@ class API:
             try:
                 hs = httpclient.gen_auth_hs (self.service)
                 r = httpclient.urlopen (url, headers=hs)
+                alturl = httpclient.get_alturl_if_html (r)
+                if alturl:
+                    r = httpclient.urlopen (alturl, headers=hs)
                 self.fp = feedparser.parse (r.data)
                 self.fp.etag = r.etag
                 self.fp.modified = r.modified
