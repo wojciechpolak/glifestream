@@ -41,6 +41,7 @@ def services (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'fb_api_key': settings.FACEBOOK_API_KEY,
         'themes_more': True if len (settings.THEMES) > 1 else False,

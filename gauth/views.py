@@ -68,6 +68,7 @@ def login (request, template_name='login.html',
 
     page = {
         'robots': 'noindex,nofollow',
+        'favicon': settings.FAVICON,
         'theme': common.get_theme (request),
     }
 
@@ -205,6 +206,7 @@ def openid (request, template_name='openid.html',
 
     page = {
         'robots': 'noindex,nofollow',
+        'favicon': settings.FAVICON,
         'theme': common.get_theme (request),
         'msg': msg,
     }
