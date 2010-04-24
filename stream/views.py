@@ -53,6 +53,7 @@ def index (request, **args):
         'site_url': site_url,
         'base_url': settings.BASE_URL,
         'login_url': settings.LOGIN_URL,
+        'favicon': settings.FAVICON,
         'author_name': settings.FEED_AUTHOR_NAME,
         'taguri': settings.FEED_TAGURI,
         'icon': settings.FEED_ICON,
@@ -390,6 +391,7 @@ def tools (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
         'theme': common.get_theme (request),
     }
     return render_to_response ('tools.html',{ 'page': page, 'authed': authed,
@@ -401,6 +403,7 @@ def page_not_found (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
         'theme': common.get_theme (request),
     }
     t = loader.get_template ('404.html')

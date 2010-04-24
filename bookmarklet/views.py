@@ -20,6 +20,7 @@ from glifestream.stream.models import Service
 def js (request, **args):
     page = {
         'base_url': settings.BASE_URL,
+        'favicon': request.build_absolute_uri (settings.FAVICON),
     }
     if request.is_secure ():
         page['base_url'] = page['base_url'].replace ('http://', 'https://')

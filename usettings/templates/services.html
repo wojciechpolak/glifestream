@@ -5,7 +5,7 @@
   <p id="add-service">
     <span class="fleft bold" style="padding-right:5px">{% trans "Add a service:" %}</span>
     <a href="#" class="selfposts" title="Self Posts">
-      <img src="{% static %}/favicon.ico" class="service" alt="S" />
+      <img src="{{ page.favicon }}" class="service" alt="S" />
     </a>
     {% for s in services_supported %}{% ifnotequal s.0 "selfposts" %}
     <a href="#" class="{{ s.0 }}" title="{{ s.1 }}"><span class="service {{ s.0 }}"></span></a>

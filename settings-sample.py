@@ -91,6 +91,9 @@ INSTALLED_APPS = (
     'glifestream.bookmarklet',
 )
 
+# A shortcut icon URL (favicon).
+FAVICON = '/favicon.ico'
+
 THEMES = (
     'default',
 )

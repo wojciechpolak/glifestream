@@ -1,6 +1,6 @@
 {% load i18n %}
 /*
- *  gLifestream Copyright (C) 2009 Wojciech Polak
+ *  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -355,7 +355,7 @@
     fg.style.fontWeight = 'normal';
     fg.style.width  = '';
     fg.style.height = '';
-    fg.innerHTML = '<img style="width:16px; height:16px; margin-bottom:-3px; margin-right:1px;" src="{{ page.base_url }}/favicon.ico"> '+ message +' <a href="#" id="gls__close" style="margin-left:1em; color:#1030cc;">'+ '{% trans "Close" %}' +'</a>';
+    fg.innerHTML = '<img style="width:16px; height:16px; margin-bottom:-3px; margin-right:1px;" src="{{ page.favicon }}"> '+ message +' <a href="#" id="gls__close" style="margin-left:1em; color:#1030cc;">'+ '{% trans "Close" %}' +'</a>';
     GID ('gls__close').onclick = remove_container;
     setTimeout (remove_container, 5000);
   }
