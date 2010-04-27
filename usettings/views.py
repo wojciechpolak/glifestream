@@ -24,7 +24,7 @@ from django.http import HttpResponseRedirect
 from django.forms import ModelForm
 from django.utils.translation import ugettext as _
 from glifestream.stream.models import Service, List
-from glifestream.gauth import gls_openid
+from glifestream.gauth import gls_oauth, gls_openid
 from glifestream.gauth.models import OpenId
 from glifestream.stream import pshb as gls_pshb
 from glifestream.apis import API_LIST
@@ -68,6 +68,7 @@ def lists (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'themes_more': True if len (settings.THEMES) > 1 else False,
         'theme': common.get_theme (request),
@@ -114,6 +115,7 @@ def pshb (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'themes_more': True if len (settings.THEMES) > 1 else False,
         'theme': common.get_theme (request),
@@ -161,6 +163,7 @@ def openid (request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'themes_more': True if len (settings.THEMES) > 1 else False,
         'theme': common.get_theme (request),
@@ -201,6 +204,81 @@ def openid (request, **args):
                                              'is_secure': request.is_secure (),
                                              'user': request.user,
                                              'openids': ids })
+
+@login_required
+def oauth (request, **args):
+    page = {
+        'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
+        'theme': common.get_theme (request),
+        'title': _('OAuth - Settings'),
+    }
+    apis_help = {
+        'twitter': 'http://dev.twitter.com/pages/auth',
+        'friendfeed': 'http://friendfeed.com/api/documentation#authentication',
+    }
+    v = {}
+    id = args['id']
+
+    callback_url = request.build_absolute_uri (
+        urlresolvers.reverse ('glifestream.usettings.views.oauth', args=[id]))
+
+    service = Service.objects.get (id=id)
+    c = gls_oauth.Client (service=service)
+
+    v['identifier'] = request.POST.get ('identifier', c.db.identifier)
+    v['secret'] = request.POST.get ('secret', c.db.secret)
+
+    if c.db.phase == 0 and (not c.request_token_url or
+                            not c.authorize_url or
+                            not c.access_token_url):
+        v['request_token_url'] = request.POST.get ('request_token_url', '')
+        v['authorize_url'] = request.POST.get ('authorize_url', '')
+        v['access_token_url'] = request.POST.get ('access_token_url', '')
+        page['need_custom_urls'] = True
+
+    if 'reset' in request.POST:
+        c.reset ()
+        c.save ()
+    elif request.method == 'POST':
+        if c.db.phase == 0 and v['identifier'] and v['secret']:
+            c.set_creds (v['identifier'], v['secret'])
+            if not c.request_token_url:
+                c.set_urls (v['request_token_url'], v['authorize_url'],
+                            v['access_token_url'])
+            try:
+                c.get_request_token ()
+            except Exception, e:
+                page['msg'] = e
+            c.save ()
+        if c.db.phase == 1:
+            return HttpResponseRedirect (c.get_authorize_url ())
+
+    if request.method == 'GET':
+        if c.db.phase == 1:
+            if request.GET.get ('oauth_token', '') == c.db.token:
+                c.verifier = request.GET.get ('oauth_verifier', None)
+                c.db.phase = 2
+
+        if c.db.phase == 2:
+            try:
+                c.get_access_token ()
+                c.save ()
+                return HttpResponseRedirect (urlresolvers.reverse (
+                        'glifestream.usettings.views.oauth', args=[id]))
+            except Exception, e:
+                page['msg'] = e
+
+    api_help = apis_help.get (service.api,
+                              'http://oauth.net/documentation/getting-started/')
+
+    return render_to_response ('oauth.html', { 'page': page,
+                                               'is_secure': request.is_secure(),
+                                               'title': unicode (service),
+                                               'api_help': api_help,
+                                               'callback_url': callback_url,
+                                               'phase': c.db.phase,
+                                               'v': v,})
 
 #
 # XHR API
@@ -347,6 +425,12 @@ def api (request, **args):
                                              ('basic', _('Basic')),
                                              ('oauth', _('OAuth'))),
                                  'value': v, 'label': _('Authorization')})
+
+            if 'id' in s:
+                s['fields'].append ({'type': 'link', 'name': 'oauth_conf',
+                                     'value': _('configure access'),
+                                     'href': '#', 'label': '',
+                                     'deps': {'auth': 'oauth'}})
 
             s['fields'].append ({'type': 'text', 'name': 'basic_user',
                                  'value': basic_user,

@@ -21,6 +21,7 @@ import urllib2
 import urlparse
 from email.utils import parsedate
 from django.conf import settings
+from glifestream.gauth import gls_oauth
 
 try:
     from cStringIO import StringIO
@@ -130,11 +131,14 @@ def get_alturl_if_html (r):
                         return urlparse.urljoin (r.url, alt_href)
     return None
 
-def gen_auth_hs (service):
+def gen_auth_hs (service, url):
     """Generate authentication headers."""
     if len (service.creds) and service.creds != 'oauth':
         return {'Authorization': 'Basic ' + \
                     base64.encodestring (service.creds).strip ()}
+    elif service.creds == 'oauth':
+        client = gls_oauth.Client (service)
+        return client.sign_request (url).to_header ()
     return {}
 
 def __decompress (data, encoding):

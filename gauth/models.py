@@ -16,6 +16,33 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
+from glifestream.stream.models import Service
+
+class OAuthClient (models.Model):
+    service = models.ForeignKey (Service, verbose_name=_('Service'),
+                                 null=False, blank=False, unique=True)
+    identifier = models.CharField ('Identifier', max_length=64, null=False,
+                                   blank=False)
+    secret = models.CharField ('Secret', max_length=128, null=False,
+                               blank=False)
+    phase = models.PositiveSmallIntegerField ('Phase', default=0)
+    token = models.CharField ('Token', max_length=64, null=True, blank=True)
+    token_secret = models.CharField ('Token secret', max_length=128,
+                                     null=True, blank=True)
+    request_token_url = models.URLField ('Request Token URL', null=True,
+                                         blank=True, verify_exists=False)
+    access_token_url = models.URLField ('Access Token URL', null=True,
+                                        blank=True, verify_exists=False)
+    authorize_url = models.URLField ('Authorize URL', null=True, blank=True,
+                                     verify_exists=False)
+    class Meta:
+        verbose_name = 'OAuth'
+        verbose_name_plural = 'OAuth'
+        ordering = 'service',
+
+    def __unicode__ (self):
+        return u'%s: %s' % (self.service, self.identifier)
+
 
 class OpenId (models.Model):
     user = models.ForeignKey (User, db_index=True)

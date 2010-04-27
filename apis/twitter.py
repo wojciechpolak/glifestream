@@ -17,6 +17,10 @@ from glifestream.filters import expand, truncate, twyntax
 from glifestream.stream import media
 import webfeed
 
+OAUTH_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
+OAUTH_AUTHORIZE_URL     = 'https://api.twitter.com/oauth/authorize'
+OAUTH_ACCESS_TOKEN_URL  = 'https://api.twitter.com/oauth/access_token'
+
 class API (webfeed.API):
     name = 'Twitter API'
     limit_sec = 120

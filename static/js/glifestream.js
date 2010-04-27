@@ -781,6 +781,14 @@
 	  var obj = DCE ('input', {type: f.type, id: f.name, name: f.name,
 				   value: '1', checked: f.checked});
 	}
+	else if (f.type == 'link') {
+	  var obj = DCE ('a', {id: f.name, href: f.href}, [f.value]);
+	  if (f.name == 'oauth_conf')
+	    obj.onclick = function () {
+	      oauth_configure (data.id);
+	      return false;
+	    }
+	}
 	else {
 	  var obj = DCE ('input', {type: f.type, id: f.name, name: f.name,
 				   value: f.value, size: 32, maxlength: 80,
@@ -853,6 +861,11 @@
 	  .val (res.session['session_key']);
       }
     }
+  }
+
+  function oauth_configure (id) {
+    window.open ('oauth/' + id, 'oauth', 'width=800,height=480,toolbar=no,' +
+		 'status=yes,location=no,resizable=yes,scrollbars=yes');
   }
 
   var MDOM = {
