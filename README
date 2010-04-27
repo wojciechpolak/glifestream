@@ -47,6 +47,7 @@ APIs support.
 - Search functionality
 - Friends-only entries (via Facebook Connect)
 - PubSubHubbub support (publisher and subscriber)
+- OAuth and OpenID support
 - Keyboard shortcuts for navigation
 - Customizable themes
 - Bookmarklet for easy webpage sharing

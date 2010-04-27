@@ -28,6 +28,10 @@ try:
 except ImportError:
     import simplejson as json
 
+OAUTH_REQUEST_TOKEN_URL = 'https://friendfeed.com/account/oauth/request_token'
+OAUTH_AUTHORIZE_URL     = 'https://friendfeed.com/account/oauth/authorize'
+OAUTH_ACCESS_TOKEN_URL  = 'https://friendfeed.com/account/oauth/access_token'
+
 class API:
     name = 'FriendFeed API v2'
     limit_sec = 180
@@ -51,7 +55,8 @@ class API:
 
     def fetch (self, url):
         try:
-            hs = httpclient.gen_auth_hs (self.service)
+            hs = httpclient.gen_auth_hs (self.service,
+                                         'http://friendfeed-api.com' + url)
             r = httpclient.get ('friendfeed-api.com', url, headers=hs)
             if r.status == 200:
                 self.json = json.loads (r.data.decode ('utf_8'))
@@ -123,8 +128,10 @@ class API:
                 content += '<ul class="files">\n'
                 for f in ent['files']:
                     if 'friendfeed-media' in f['url']:
-                        content += '  <li><a href="%s" rel="nofollow">%s</a> <span class="size">%s</span></li>\n' \
-                            % (f['url'], f['name'], bytes_to_human (f['size']))
+                        content += '  <li><a href="%s" rel="nofollow">%s</a>' % (f['url'], f['name'])
+                        if 'size' in f:
+                            content += ' <span class="size">%s</span>' % bytes_to_human (f['size'])
+                        content += '</li>\n'
                 content += '</ul>\n'
 
             e.content = content

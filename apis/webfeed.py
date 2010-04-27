@@ -44,7 +44,7 @@ class API:
         self.fp_error = False
         if not self.payload:
             try:
-                hs = httpclient.gen_auth_hs (self.service)
+                hs = httpclient.gen_auth_hs (self.service, url)
                 r = httpclient.urlopen (url, headers=hs)
                 alturl = httpclient.get_alturl_if_html (r)
                 if alturl:
