@@ -800,10 +800,10 @@
 	  hint = DCE ('span', {className: 'hint'}, [f.hint]);
 
 	var alink = false;
-	if (data['need_fb_sessionkey'] && f.name == 'session_key') {
+	if (data['need_fb_accesstoken'] && f.name == 'access_token') {
 	  alink = DCE ('span', {},
-		       [' ', DCE ('a', {href: '#', onclick: fb_get_session_key},
-				  [data['need_fb_sessionkey']])]);
+		       [' ', DCE ('a', {href: '#', onclick: fb_get_access_token},
+				  [data['need_fb_accesstoken']])]);
 	}
 
 	var miss = f.miss ? 'missing' : '';
@@ -845,7 +845,7 @@
     return form;
   }
 
-  function fb_get_session_key () {
+  function fb_get_access_token () {
     FB.login (fb_handle_session, {perms: 'offline_access,read_stream'});
     return false;
   }
@@ -857,8 +857,8 @@
       if (res.perms.indexOf ('read_stream') != -1 &&
 	  res.perms.indexOf ('offline_access') != -1 &&
 	  res.session['expires'] == 0) {
-	$('#settings input[name=session_key]')
-	  .val (res.session['session_key']);
+	$('#settings input[name=access_token]')
+	  .val (res.session['access_token']);
       }
     }
   }

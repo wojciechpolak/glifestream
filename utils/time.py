@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -20,6 +20,10 @@ import calendar
 def mtime (t):
     if isinstance (t, types.StringType) or isinstance (t, types.UnicodeType):
         t = datetime.datetime.strptime (t, '%Y-%m-%d %H:%M:%S').timetuple ()
+    return datetime.datetime.utcfromtimestamp (calendar.timegm (t))
+
+def from_rfc3339 (t):
+    t = datetime.datetime.strptime (t[0:19], '%Y-%m-%dT%H:%M:%S').timetuple ()
     return datetime.datetime.utcfromtimestamp (calendar.timegm (t))
 
 def now ():

@@ -127,7 +127,7 @@ SPHINX_INDEX_NAME = 'glifestream'
 PSHB_HUBS = ('https://pubsubhubbub.appspot.com/',)
 PSHB_HTTPS_CALLBACK = True
 
-# Facebook Connect (for Friends-Only entries)
-FACEBOOK_API_KEY = 'YOUR-API-KEY' # Leave empty to disable FB.
-FACEBOOK_SECRET_KEY = 'YOUR-SECRET-KEY'
+# Facebook Connect
+FACEBOOK_APP_ID = 'YOUR-APP-ID' # Leave empty to disable FB.
+FACEBOOK_APP_SECRET = 'YOUR-APP-SECRET'
 FACEBOOK_USER_ID = 'YOUR-FB-USERID' # Number

@@ -30,6 +30,8 @@ from glifestream.utils import common
 
 try:
     import facebook
+    if not hasattr (facebook, 'GraphAPI'):
+        facebook = None
 except ImportError:
     facebook = None
 
@@ -90,23 +92,24 @@ def login_friend (request, template_name='registration/login.html',
     if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
         redirect_to = settings.BASE_URL + '/'
 
-    if not facebook or settings.FACEBOOK_API_KEY == '':
+    if not facebook or settings.FACEBOOK_APP_ID == '':
         return HttpResponseRedirect (redirect_to)
 
     are_friends = False
     try:
-        fb = facebook.Facebook (settings.FACEBOOK_API_KEY,
-                                settings.FACEBOOK_SECRET_KEY)
-        if fb.check_session (request):
-            user_id = fb.users.getLoggedInUser ()
-            if settings.FACEBOOK_USER_ID != user_id:
-                are_friends = fb.friends.areFriends ([settings.FACEBOOK_USER_ID],
-                                                     [user_id])
+        fb_user = facebook.get_user_from_cookie (request.COOKIES,
+                                                 settings.FACEBOOK_APP_ID,
+                                                 settings.FACEBOOK_APP_SECRET)
+        if fb_user and 'uid' in fb_user:
+            if settings.FACEBOOK_USER_ID != fb_user['uid']:
+                graph = facebook.GraphAPI (fb_user['access_token'])
+                friends = graph.get_connections ('me', 'friends')
+                are_friends = settings.FACEBOOK_USER_ID in \
+                    [friend['id'] for friend in friends['data']]
                 if are_friends:
-                    data = fb.users.getInfo ([user_id], ['first_name',
-                                                         'profile_url'])
-                    request.session['fb_username'] = data[0]['first_name']
-                    request.session['fb_profile_url'] = data[0]['profile_url']
+                    profile = graph.get_object ('me')
+                    request.session['fb_username'] = profile['first_name']
+                    request.session['fb_profile_url'] = profile['link']
             else:
                 are_friends = True
     except Exception, e:

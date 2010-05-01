@@ -43,7 +43,7 @@ def services (request, **args):
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
-        'fb_api_key': settings.FACEBOOK_API_KEY,
+        'fb_app_id': settings.FACEBOOK_APP_ID,
         'themes_more': True if len (settings.THEMES) > 1 else False,
         'theme': common.get_theme (request),
         'title': _('Services - Settings'),
@@ -335,15 +335,15 @@ def api (request, **args):
             try:
                 basic_user = request.POST.get ('basic_user', None)
                 basic_pass = request.POST.get ('basic_pass', None)
-                session_key = request.POST.get ('session_key', None)
+                access_token = request.POST.get ('access_token', None)
 
                 auth = request.POST.get ('auth', 'none')
                 if auth == 'basic' and basic_user and basic_pass:
                     srv.creds = basic_user + ':' + basic_pass
                 elif auth == 'oauth':
                     srv.creds = auth
-                elif session_key:
-                    srv.creds = session_key
+                elif access_token:
+                    srv.creds = access_token
                 elif auth == 'none':
                     srv.creds = '';
 
@@ -441,10 +441,10 @@ def api (request, **args):
                                  'deps': {'auth': 'basic'}})
 
         if s['api'] == 'fb':
-            s['fields'].append ({'type': 'text', 'name': 'session_key',
+            s['fields'].append ({'type': 'text', 'name': 'access_token',
                                  'value': s['creds'],
-                                 'label': _('Session key')})
-            s['need_fb_sessionkey'] = _('get')
+                                 'label': _('Access token')})
+            s['need_fb_accesstoken'] = _('get')
 
         if s['api'] in ('webfeed', 'flickr', 'youtube', 'vimeo'):
             s['fields'].append ({'type': 'select', 'name': 'display',

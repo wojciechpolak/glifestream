@@ -51,14 +51,13 @@
 {% include "user-scripts.js" %}
 
 {% if page.need_fbc %}
-<script type="text/javascript" src="http://static.ak.connect.facebook.com/js/api_lib/v0.4/FeatureLoader.js.php"></script>
+<div id="fb-root"></div>
+<script type="text/javascript" src="http://connect.facebook.net/en_US/all.js"></script>
 <script type="text/javascript">
 function fb_login_friend () { window.location = '{% url gauth.views.login_friend %}'; }
 $(document).ready (function () {
-    FB_RequireFeatures (['XFBML'], function () {
-	FB.init ('{{ page.fb_api_key }}', '{% static %}/xd_receiver.html');
-      });
-  });
+  FB.init ({appId: '{{ page.fb_app_id }}', status: true, cookie: true, xfbml: true});
+});
 </script>{% endif %}
 
 <script type="text/javascript">
