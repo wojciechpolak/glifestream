@@ -199,6 +199,8 @@ p.subtitle {
 #stream .entry-content p {
   margin-bottom: 0.5em;
 }
+#stream .entry-content .fb-caption { font-size: 85%; }
+#stream .entry-content .fb-description { font-size: 85%; }
 
 #stream .entry-info {
   font-family: georgia;

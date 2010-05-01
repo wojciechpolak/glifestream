@@ -59,7 +59,7 @@ def index (request, **args):
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
         'maps_key': settings.MAPS_KEY,
-        'fb_api_key': settings.FACEBOOK_API_KEY,
+        'fb_app_id': settings.FACEBOOK_APP_ID,
         'pshb_hubs': settings.PSHB_HUBS,
     }
     authed = request.user.is_authenticated () and request.user.is_staff

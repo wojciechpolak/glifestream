@@ -13,43 +13,20 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# 1. Give your application access to your account:
-#    http://www.facebook.com/connect/prompt_permissions.php?v=1.0&ext_perm=offline_access,read_stream&api_key=FACEBOOK_API_KEY
-# 2. Generate a one-time auth token:
-#    http://www.facebook.com/code_gen.php?v=1.0&api_key=FACEBOOK_API_KEY
-# 3. Get an infinite session key:
-#    ./worker.py --fb-get-inf-session-key AUTH_TOKEN
-# 4. Save the session key and use it as the Facebook's service
-#    credentials.
-
-import time
-import datetime
 from django.conf import settings
 from django.utils.html import strip_tags, strip_entities
 from django.template.defaultfilters import urlizetrunc
 from glifestream.filters import expand, truncate
-from glifestream.utils.time import mtime, now
+from glifestream.utils.time import from_rfc3339, mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 
 try:
     import facebook
+    if not hasattr (facebook, 'GraphAPI'):
+        facebook = None
 except ImportError:
     facebook = None
-
-def get_inf_session_key (auth_token):
-    if not facebook:
-        print 'ImportError: facebook. Install pyfacebook.'
-        return 1
-    fb = facebook.Facebook (settings.FACEBOOK_API_KEY,
-                            settings.FACEBOOK_SECRET_KEY,
-                            auth_token)
-    session = fb.auth.getSession ()
-    if session:
-        print 'session_key: %s' % session['session_key']
-        print 'uid: %s' % session['uid']
-        print 'expires: %s' % session['expires']
-    return 0
 
 class API:
     name = 'Facebook API'
@@ -64,34 +41,20 @@ class API:
 
     def run (self):
         if not facebook:
-            print 'ImportError: facebook. Install pyfacebook.'
+            print "ImportError: facebook. Install Facebook's python-sdk."
             return
 
-        self.fb = facebook.Facebook (settings.FACEBOOK_API_KEY,
-                                     settings.FACEBOOK_SECRET_KEY)
-        self.fb.session_key = self.service.creds
-        if not self.service.url:
-            self.fb.uid = settings.FACEBOOK_USER_ID
-        else:
-            self.fb.uid = self.service.url
-        self.get_stream ()
-
-    def get_stream (self):
         try:
             args = {}
             if not self.service.last_checked:
-                if not self.service.url:
-                    days = 14
-                else:
-                    days = 180
-                    args['limit'] = 250
-                start_time = now () - datetime.timedelta (days=days)
-                start_time = int (time.mktime (start_time.timetuple ()))
-                args['start_time'] = start_time
-            if self.service.url:
-                args['source_ids'] = [int(self.service.url)]
+                args['limit'] = 250
 
-            self.stream = self.fb.stream.get (**args)
+            graph = facebook.GraphAPI (self.service.creds)
+            if not self.service.url:
+                self.stream = graph.get_connections ('me', 'home', **args)
+            else:
+                self.stream = graph.get_connections (self.service.url, 'feed',
+                                                     **args)
             self.service.last_checked = now ()
             self.service.save ()
             self.process ()
@@ -103,15 +66,15 @@ class API:
                 traceback.print_exc (file=sys.stdout)
 
     def process (self):
-        for ent in self.stream['posts']:
-            guid = 'tag:facebook.com,2004:post/%s' % ent['post_id']
+        for ent in self.stream['data']:
+            guid = 'tag:facebook.com,2004:post/%s' % ent['id']
             if self.verbose:
                 print "ID: %s" % guid
 
             if 'updated_time' in ent:
-                t = datetime.datetime.utcfromtimestamp (ent['updated_time'])
+                t = from_rfc3339 (ent['updated_time'])
             else:
-                t = datetime.datetime.utcfromtimestamp (ent['created_time'])
+                t = from_rfc3339 (ent['created_time'])
 
             try:
                 e = Entry.objects.get (service=self.service, guid=guid)
@@ -124,48 +87,57 @@ class API:
                 e = Entry (service=self.service, guid=guid)
 
             e.guid = guid
-            e.link  = ent['permalink']
+            e.link  = ent['actions'][0]['link']
 
-            profile = None
-            for p in self.stream['profiles']:
-                if p['id'] == ent['actor_id']:
-                    profile = p
-                    break
-            if profile:
-                e.link_image = media.save_image (profile['pic_square'])
-                e.author_name = profile['name']
-                e.author_url = profile['url']
+            if 'from' in ent:
+                frm = ent['from']
+                image_url = 'http://graph.facebook.com/%s/picture' % frm['id']
+                e.link_image = media.save_image (image_url)
+                e.author_name = frm['name']
 
-            e.date_published = datetime.datetime.utcfromtimestamp (ent['created_time'])
+            e.date_published = from_rfc3339 (ent['created_time'])
             e.date_updated = t
 
-            content = ent['message']
-            content = expand.shorts (content)
-            content = urlizetrunc (content, 45)
+            content = ''
+            if 'message' in ent:
+                content = expand.shorts (ent['message'])
+                content = '<p>' + urlizetrunc (content, 45) + '</p>'
 
-            if 'attachment' in ent and 'media' in ent['attachment']:
-                if 'name' in ent['attachment']:
-                    content += ' <p>' + ent['attachment']['name'] + '</p>'
+            name = ''
+            if 'name' in ent:
+                name = ent['name']
+                content += ' <p>' + ent['name'] + '</p>'
+
+            if 'picture' in ent and 'link' in ent:
                 content += '<p class="thumbnails">'
-                for t in ent['attachment']['media']:
-                    if self.service.public:
-                        t['src'] = media.save_image (t['src'])
-                    if 'width' in t and 'height' in t:
-                        iwh = ' width="%d" height="%d"' % (t['width'],
-                                                           t['height'])
-                    else:
-                        iwh = ''
-                    if 'video' in t and 'display_url' in t['video']:
-                        href = t['video']['display_url']
-                    else:
-                        href = t['href']
-                    content += '<a href="%s" rel="nofollow"><img src="%s"%s alt="thumbnail" /></a> ' % (href, t['src'], iwh)
-                if ent['message'] == '' and 'description' in ent['attachment']:
-                    content += ent['attachment']['description']
+                if self.service.public:
+                    picture = media.save_image (ent['picture'])
+                else:
+                    picture = ent['picture']
+                content += '<a href="%s" rel="nofollow">' \
+                    '<img src="%s" alt="thumbnail" /></a> ' \
+                    % (ent['link'], picture)
+
+                if 'description' in ent:
+                    content += '<div class="fb-description">%s</div>' % \
+                        ent['description']
+                elif 'caption' in ent and name != ent['caption']:
+                    content += '<div class="fb-caption">%s</div>' % \
+                        ent['caption']
+
                 content += '</p>'
+            else:
+                if 'description' in ent:
+                    content += '<div class="fb-description">%s</div>' % \
+                        ent['description']
+                elif 'caption' in ent and name != ent['caption']:
+                    content += '<div class="fb-caption">%s</div>' % \
+                        ent['caption']
 
             e.content = content
-            e.title = truncate.smart_truncate (strip_tags (ent['message']), length=48)
+            if 'message' in ent:
+                e.title = truncate.smart_truncate (strip_tags (ent['message']),
+                                                   length=48)
             if e.title == '':
                 e.title = strip_entities (strip_tags (content))[0:128]
 

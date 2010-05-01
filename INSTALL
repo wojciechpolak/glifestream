@@ -32,10 +32,11 @@ Optional (but recommended):
 
 Optional:
 
-- PyFacebook -- a Python client library for the Facebook API.
-  http://github.com/sciyoshi/pyfacebook/
+- Facebook Platform Python SDK
+  http://github.com/facebook/python-sdk/
 
 - python-openid -- OpenID support for servers and consumers.
+  http://openidenabled.com/python-openid/
 
 * Installation instructions
 ===========================

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-04-27 22:29+0200\n"
-"PO-Revision-Date: 2010-04-27 18:58+0200\n"
+"POT-Creation-Date: 2010-05-01 13:31+0200\n"
+"PO-Revision-Date: 2010-05-01 13:31+0200\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -158,11 +158,11 @@ msgstr "Serwis"
 msgid "Identity"
 msgstr "Tożsamość"
 
-#: gauth/views.py:174
+#: gauth/views.py:177
 msgid "Invalid OpenID identifier"
 msgstr "Nieprawidłowy identyfikator OpenID"
 
-#: gauth/views.py:197
+#: gauth/views.py:200
 msgid "OpenID account match error"
 msgstr "Błąd dopasowania konta OpenID"
 
@@ -777,8 +777,8 @@ msgid "Basic password"
 msgstr "Hasło"
 
 #: usettings/views.py:446
-msgid "Session key"
-msgstr "Klucz sesji"
+msgid "Access token"
+msgstr "Access token"
 
 #: usettings/views.py:447
 msgid "get"
