@@ -76,7 +76,7 @@ class Client:
         if not self.request_token_url:
             raise Exception (_('Request token URL not set.'))
         client = oauth.Client (self.consumer)
-        res, content = client.request (self.request_token_url, 'GET')
+        res, content = client.request (self.request_token_url, 'POST')
         if res['status'] != '200':
             raise Exception (_('Invalid response %s.') % res['status'])
 
