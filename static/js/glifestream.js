@@ -864,8 +864,11 @@
   }
 
   function oauth_configure (id) {
-    window.open ('oauth/' + id, 'oauth', 'width=800,height=480,toolbar=no,' +
-		 'status=yes,location=no,resizable=yes,scrollbars=yes');
+    var p = MDOM.get_win_center (800, 480);
+    window.open ('oauth/' + id, 'oauth', 'width=' + p.width
+		 + ',height=' + p.height + ',left=' + p.left + ',top=' + p.top
+		 + ',toolbar=no,status=yes,location=no,resizable=yes'
+		 + ',scrollbars=yes');
   }
 
   var MDOM = {
@@ -900,6 +903,22 @@
       obj.style.top  = $(document).scrollTop () + innerHeight - (objHeight/2) + 'px';
       if (parseInt (obj.style.top) < 1)
 	obj.style.top = '1px';
+    },
+    'get_win_center': function (width, height) {
+      var screenX = typeof window.screenX != 'undefined' ?
+                    window.screenX : window.screenLeft;
+      var screenY = typeof window.screenY != 'undefined' ?
+                    window.screenY : window.screenTop;
+      var outerWidth = typeof window.outerWidth != 'undefined' ?
+                       window.outerWidth : document.body.clientWidth;
+      var outerHeight = typeof window.outerHeight != 'undefined' ?
+                        window.outerHeight : (document.body.clientHeight - 22);
+      return {
+        width: width,
+	height: height,
+	left: parseInt (screenX + ((outerWidth - width) / 2), 10),
+	top: parseInt (screenY + ((outerHeight - height) / 2.5), 10)
+      };
     }
   };
 

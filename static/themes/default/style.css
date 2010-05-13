@@ -253,6 +253,8 @@ p.subtitle {
   position: absolute;
   width: 7em;
   border: 1px solid #666666;
+  -moz-box-shadow: 2px 2px 6px #888;
+  -webkit-box-shadow: 2px 2px 6px #888;
 }
 
 #stream .shareit {
