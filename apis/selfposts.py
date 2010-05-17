@@ -58,7 +58,7 @@ class API:
             s = Service.objects.filter (api='selfposts').order_by ('id')[0]
         e = Entry (service=s, guid=guid)
 
-        e.link = link if link else settings.BASE_URL
+        e.link = link if link else settings.BASE_URL + '/'
         e.date_published = un
         e.date_updated = un
         e.draft = int (args.get ('draft', False))
@@ -188,7 +188,7 @@ class API:
             if entry.service.api == 'greader':
                 e.link = entry.link
             else:
-                e.link = settings.BASE_URL
+                e.link = settings.BASE_URL + '/'
             if entry.service.api == 'twitter':
                 entry.content = entry.content.split (': ', 1)[1]
         else:
