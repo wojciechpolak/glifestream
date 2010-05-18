@@ -26,7 +26,6 @@ from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.template.defaultfilters import date as ddate
 from django.template.defaultfilters import urlencode, slugify
-import glifestream.filters
 from glifestream.stream import media
 from glifestream.apis import *
 
@@ -144,10 +143,6 @@ def get_relative_time (t):
         rel = ungettext ('%(count)d minute ago', '%(count)d minutes ago', rel) % \
             { 'count': rel, }
     return rel
-
-@register.filter
-def smart_truncate (content, length=24, suffix='...'):
-    return glifestream.filters.smart_truncate (content, length, suffix)
 
 @register.filter
 def encode_json (content):

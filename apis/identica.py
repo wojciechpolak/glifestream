@@ -33,7 +33,7 @@ class API (webfeed.API):
                             self.service.url)
 
     def custom_process (self, e, ent):
-        e.title = 'Tweet: %s' % truncate.smart_truncate (ent.title)
+        e.title = 'Tweet: %s' % truncate.smart (ent.title)
         e.content = expand.all (ent.summary)
         e.custom_mblob = media.mrss_scan (e.content)
 

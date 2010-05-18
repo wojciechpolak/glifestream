@@ -94,7 +94,8 @@ class API:
                 e = Entry (service=self.service, guid=guid)
 
             e.guid = guid
-            e.title = truncate.smart_truncate (strip_entities (strip_tags (ent['body'])), length=40)
+            e.title = truncate.smart (strip_entities (strip_tags (ent['body'])),
+                                      max_length=40)
             e.link  = ent['url']
             e.link_image = media.save_image ('http://friendfeed-api.com/v2/picture/%s' % ent['from']['id'])
 
