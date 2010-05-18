@@ -26,5 +26,5 @@ class API (webfeed.API):
                     self.service.url)
 
     def custom_process (self, e, ent):
-        e.title = truncate.smart_truncate (strip_tags (strip_entities (e.content)))
+        e.title = truncate.smart (strip_tags (strip_entities (e.content)))
         e.content = expand.all (e.content)

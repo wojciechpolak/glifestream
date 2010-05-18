@@ -136,8 +136,8 @@ class API:
 
             e.content = content
             if 'message' in ent:
-                e.title = truncate.smart_truncate (strip_tags (ent['message']),
-                                                   length=48)
+                e.title = truncate.smart (strip_tags (ent['message']),
+                                          max_length=48)
             if e.title == '':
                 e.title = strip_entities (strip_tags (content))[0:128]
 

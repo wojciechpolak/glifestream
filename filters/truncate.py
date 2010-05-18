@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,8 +13,23 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def smart_truncate (content, length=24, suffix='...'):
-    if len (content) <= length:
+def simple (content, max_length=36, suffix='...'):
+    content = content.strip ()
+    if len (content) <= max_length:
         return content
     else:
-        return content[:length].rsplit (' ', 1)[0].rstrip (' -/,:') + suffix
+        content = content[:max_length].rsplit (' ', 1)[0].rstrip (' -/,:')
+        return content + suffix
+
+def smart (content, max_words=7, max_length=36, suffix='...'):
+    sx = ''
+    content = content.strip ()
+    words = content.split (' ')
+    if len (words) > max_words:
+        content = ' '.join (words[:max_words])
+        sx = suffix
+    if len (content) <= max_length:
+        return content.rstrip (' -/,:') + sx
+    else:
+        content = content[:max_length].rsplit (' ', 1)[0].rstrip (' -/,:')
+        return content + suffix
