@@ -833,3 +833,5 @@ fieldset .hint {
 #pshb-subs th { text-align: left; }
 #pshb-subs .odd { background-color: #eeeeee; }
 #pshb-ssub .even { background-color: white; }
+
+.feedflare { display: none; }

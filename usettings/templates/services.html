@@ -23,6 +23,19 @@
     {% endfor %}
   </ul>
 
+  <p id="opml-form">
+    <form action="{% url opml-import %}" method="post" enctype="multipart/form-data">
+      <input type="file" name="opml" />
+      <input type="submit" value="{% trans "Import OPML" %}"/>
+      {% trans "or" %}
+      <a href="{% url opml-export %}">
+	{% trans "Export OPML" %}
+      </a>
+      <a href="http://www.wikipedia.org/wiki/OPML" target="_blank"
+	 class="smaller">(?)</a>
+    </form>
+  </p>
+
   <form id="service-form" style="display:none">
     <fieldset class="aligned"></fieldset>
   </form>

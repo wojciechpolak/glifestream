@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -20,9 +20,12 @@ class API (webfeed.API):
     name = 'Yelp API'
     limit_sec = 3600
 
-    def run (self):
-        self.fetch ('http://www.yelp.com/syndicate/user/%s/atom.xml' % \
-                    self.service.url)
+    def get_urls (self):
+        if self.service.url.startswith ('http://'):
+            return (self.service.url,)
+        else:
+            return ('http://www.yelp.com/syndicate/user/%s/atom.xml' %
+                    self.service.url,)
 
     def custom_process (self, e, ent):
         e.title = ent.title.replace (' on Yelp.com', '')
@@ -31,5 +34,5 @@ def filter_title (entry):
     return _('Reviewed %s') % ('<em>' + entry.title + '</em>')
 
 def filter_content (entry):
-    return entry.content + ' <a href="%s" rel="nofollow" class="more">%s</a>' % \
-        (entry.link, _('more'))
+    return entry.content + (' <a href="%s" rel="nofollow" class="more">%s</a>' %
+                            (entry.link, _('more')))

@@ -21,16 +21,16 @@ class API (webfeed.API):
     name = 'Identi.ca API'
     limit_sec = 180
 
-    def run (self):
+    def get_urls (self):
         if not self.service.url and self.service.creds:
-            self.fetch ('http://identi.ca/api/statuses/friends_timeline.atom?count=50')
+            return ('http://identi.ca/api/statuses/friends_timeline.atom?count=50',)
         else:
             if not self.service.last_checked:
-                self.fetch ('http://identi.ca/api/statuses/user_timeline/%s.atom?count=200' % \
-                            self.service.url)
+                return ('http://identi.ca/api/statuses/user_timeline/%s.atom?count=200' %
+                        self.service.url,)
             else:
-                self.fetch ('http://identi.ca/api/statuses/user_timeline/%s.atom' % \
-                            self.service.url)
+                return ('http://identi.ca/api/statuses/user_timeline/%s.atom' %
+                        self.service.url,)
 
     def custom_process (self, e, ent):
         e.title = 'Tweet: %s' % truncate.smart (ent.title)

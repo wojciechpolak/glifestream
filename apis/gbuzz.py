@@ -21,9 +21,9 @@ class API (webfeed.API):
     name = 'Google Buzz API'
     limit_sec = 180
 
-    def run (self):
-        self.fetch ('http://buzz.googleapis.com/feeds/%s/public/posted' % \
-                    self.service.url)
+    def get_urls (self):
+        return ('http://buzz.googleapis.com/feeds/%s/public/posted' %
+                self.service.url,)
 
     def custom_process (self, e, ent):
         e.title = truncate.smart (strip_tags (strip_entities (e.content)))

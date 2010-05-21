@@ -39,6 +39,9 @@ class API:
         if self.verbose:
             print '%s: %s' % (self.name, self.service)
 
+    def get_urls (self):
+        return ()
+
     def run (self):
         if not facebook:
             print "ImportError: facebook. Install Facebook's python-sdk."

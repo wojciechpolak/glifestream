@@ -29,20 +29,33 @@ class API:
     name = 'Vimeo Simple API v2'
     limit_sec = 3600
 
-    def __init__ (self, service, verbose = 0, force_overwrite = False):
+    def __init__ (self, service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
             print '%s: %s' % (self.name, self.service)
 
+    def get_urls (self):
+        if '/' in self.service.url:
+            url = self.service.url.replace ('channel/', 'channels/')
+            url = url.replace ('group/', 'groups/')
+            return ('http://vimeo.com/%s/videos/rss' % url,)
+        else:
+            return ('http://vimeo.com/%s/likes/rss' % self.service.url,
+                    'http://vimeo.com/%s/videos/rss' % self.service.url)
+
     def run (self):
         if not self.service.link:
             self.service.link = 'http://vimeo.com/%s' % self.service.url
-        self.process = self.process_userdid
-        self.fetch ('/api/v2/activity/%s/user_did.json' % self.service.url)
-        self.process = self.process_videos
-        self.fetch ('/api/v2/%s/videos.json' % self.service.url)
+        if '/' in self.service.url:
+            self.process = self.process_videos
+            self.fetch ('/api/v2/%s/videos.json' % self.service.url)
+        else:
+            self.process = self.process_userdid
+            self.fetch ('/api/v2/activity/%s/user_did.json' % self.service.url)
+            self.process = self.process_videos
+            self.fetch ('/api/v2/%s/videos.json' % self.service.url)
 
     def fetch (self, url):
         try:

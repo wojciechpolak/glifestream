@@ -22,21 +22,29 @@ class API (webfeed.API):
     name = 'YouTube API v2'
     limit_sec = 3600
 
-    def run (self):
-        host = 'http://gdata.youtube.com'
-        self.fetch ('%s/feeds/api/users/%s/favorites?v=2' % (host,
-                                                             self.service.url))
-        self.fetch ('%s/feeds/api/users/%s/uploads?v=2' % (host,
-                                                           self.service.url))
+    def get_urls (self):
+        if self.service.url.startswith ('http://'):
+            return (self.service.url,)
+        else:
+            h = 'http://gdata.youtube.com/feeds/api/users/%s' % self.service.url
+            return ('%s/favorites?v=2' % h,
+                    '%s/uploads?v=2' % h)
 
     def custom_process (self, e, ent):
-        if 'media_thumbnail' in ent and len (ent.media_thumbnail):
+        if 'yt_videoid' in ent:
+            vid = ent['yt_videoid']
+        elif 'media_player' in ent and 'url' in ent['media_player']:
+            vid = ent['media_player']['url'][22:]
+        else:
+            vid = None
+
+        if vid and 'media_thumbnail' in ent and len (ent.media_thumbnail):
             tn = ent.media_thumbnail[0]
             if self.service.public:
                 tn['url'] = media.save_image (tn['url'])
 
             e.link = e.link.replace ('&feature=youtube_gdata', '')
-            e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['yt_videoid'], e.link, tn['url'], tn['width'], tn['height'])
+            e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (vid, e.link, tn['url'], tn['width'], tn['height'])
         else:
             e.content = ent.get ('yt_state', _('NO VIDEO'));
 

@@ -20,8 +20,9 @@ class API (webfeed.API):
     name = 'PicasaWeb API'
     limit_sec = 600
 
-    def run (self):
-        self.fetch ('http://picasaweb.google.com/data/feed/base/user/%s?alt=rss&kind=album&access=public' % self.service.url)
+    def get_urls (self):
+        return ('http://picasaweb.google.com/data/feed/base/user/%s?alt=rss&kind=album&access=public' %
+                self.service.url,)
 
     def custom_process (self, e, ent):
         if 'media_thumbnail' in ent and len (ent.media_thumbnail):

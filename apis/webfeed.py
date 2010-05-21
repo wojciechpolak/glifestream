@@ -34,11 +34,15 @@ class API:
         if self.verbose:
             print '%s: %s' % (self.name, self.service)
 
+    def get_urls (self):
+        return (self.service.url,)
+
     def run (self):
-        try:
-            self.fetch (self.service.url)
-        except:
-            pass
+        for url in self.get_urls ():
+            try:
+                self.fetch (url)
+            except:
+                pass
 
     def fetch (self, url):
         self.fp_error = False
