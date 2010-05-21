@@ -96,8 +96,8 @@ def imgloc (s):
 #
 
 def __sv_youtube (m):
-    id     = m.group (1)
-    rest   = m.group (2)
+    id     = m.group (2)
+    rest   = m.group (3)
     ltag   = rest.find ('<') if rest else -1
     rest   = rest[ltag:] if ltag != -1 else ''
     link   = 'http://www.youtube.com/watch?v=%s' % id
@@ -161,8 +161,8 @@ def __sv_googlevideo (m):
 
 def videolinks (s):
     """Expand video links."""
-    if 'http://www.youtube.com/' in s:
-        s = re.sub (r'http://www.youtube.com/watch\?v=([\-\w]+)(\S*)',
+    if 'youtube.com/' in s:
+        s = re.sub (r'http://(www\.)?youtube.com/watch\?v=([\-\w]+)(\S*)',
                     __sv_youtube, s)
     if 'vimeo.com/' in s:
         s = re.sub (r'http://(www\.)?vimeo.com/(\d+)', __sv_vimeo, s)
