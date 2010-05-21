@@ -25,16 +25,16 @@ class API (webfeed.API):
     name = 'Twitter API'
     limit_sec = 120
 
-    def run (self):
+    def get_urls (self):
         if not self.service.url and self.service.creds:
-            self.fetch ('http://api.twitter.com/1/statuses/home_timeline.atom?count=50')
+            return ('http://api.twitter.com/1/statuses/home_timeline.atom?count=50',)
         else:
             if not self.service.last_checked:
-                self.fetch ('http://api.twitter.com/1/statuses/user_timeline/%s.atom?count=200' % \
-                            self.service.url)
+                return ('http://api.twitter.com/1/statuses/user_timeline/%s.atom?count=200' %
+                        self.service.url,)
             else:
-                self.fetch ('http://api.twitter.com/1/statuses/user_timeline/%s.atom' % \
-                            self.service.url)
+                return ('http://api.twitter.com/1/statuses/user_timeline/%s.atom' %
+                        self.service.url,)
 
     def custom_process (self, e, ent):
         e.title = 'Tweet: %s' % truncate.smart (ent.title.split (': ', 1)[1])

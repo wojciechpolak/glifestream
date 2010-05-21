@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 from django.conf import settings
 from django.core import urlresolvers
 from django.db import IntegrityError
@@ -38,6 +39,9 @@ except ImportError:
 @login_required
 def services (request, **args):
     authed = request.user.is_authenticated () and request.user.is_staff
+    if not authed:
+        return HttpResponseForbidden ()
+
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -50,7 +54,7 @@ def services (request, **args):
         'menu': 'services',
     }
 
-    services = Service.objects.all ().order_by ('name')
+    services = Service.objects.all ().order_by ('api', 'name')
     return render_to_response ('services.html',{ 'page': page, 'authed': authed,
                                                  'is_secure': request.is_secure (),
                                                  'user': request.user,
@@ -65,6 +69,9 @@ class ListForm (ModelForm):
 @login_required
 def lists (request, **args):
     authed = request.user.is_authenticated () and request.user.is_staff
+    if not authed:
+        return HttpResponseForbidden ()
+
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -112,6 +119,9 @@ def lists (request, **args):
 @login_required
 def pshb (request, **args):
     authed = request.user.is_authenticated () and request.user.is_staff
+    if not authed:
+        return HttpResponseForbidden ()
+
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -160,6 +170,9 @@ def pshb (request, **args):
 @login_required
 def openid (request, **args):
     authed = request.user.is_authenticated () and request.user.is_staff
+    if not authed:
+        return HttpResponseForbidden ()
+
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -207,6 +220,10 @@ def openid (request, **args):
 
 @login_required
 def oauth (request, **args):
+    authed = request.user.is_authenticated () and request.user.is_staff
+    if not authed:
+        return HttpResponseForbidden ()
+
     page = {
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
@@ -280,16 +297,134 @@ def oauth (request, **args):
                                                'phase': c.db.phase,
                                                'v': v,})
 
+@login_required
+def opml (request, **args):
+    authed = request.user.is_authenticated () and request.user.is_staff
+    if not authed:
+        return HttpResponseForbidden ()
+
+    cmd = args.get ('cmd', '')
+
+    if cmd == 'import':
+        from xml.dom.minidom import parseString
+
+        if 'opml' in request.FILES:
+            xml = request.FILES['opml'].read ()
+
+            # Parse OPML
+            dom = parseString (xml)
+            body = dom.getElementsByTagName ('body')
+            for e in body[0].childNodes:
+                if e.nodeName == 'outline':
+                    tp = e.getAttribute ('type')
+                    if tp == 'rss':
+                        xml_url = e.getAttribute ('xmlUrl')
+                        title = e.getAttribute ('text') or \
+                            e.getAttribute ('title')
+                        _import_service (xml_url, title)
+                    elif not tp:
+                        cls = e.getAttribute ('text') or \
+                            e.getAttribute ('title')
+                        cls = cls.lower ()
+                        for f in e.childNodes:
+                            if f.nodeName == 'outline' and \
+                                    f.getAttribute ('type') == 'rss':
+                                xml_url = f.getAttribute ('xmlUrl')
+                                title = f.getAttribute ('text') or \
+                                    f.getAttribute ('title')
+                                _import_service (xml_url, title, cls)
+
+        return HttpResponseRedirect (
+            urlresolvers.reverse ('glifestream.usettings.views.services'))
+
+    elif cmd == 'export':
+        excluded_apis = ('selfposts', 'fb')
+        services = Service.objects.exclude (api__in=excluded_apis) \
+            .order_by ('name')
+
+        srvs = []
+        for service in services:
+            try:
+                mod = __import__ ('glifestream.apis.%s' % service.api,
+                                  {}, {}, ['API'])
+                mod_api = getattr (mod, 'API')
+                api = mod_api (service)
+                srvs.extend ([{'name': service.name, 'url': u} \
+                                  for u in api.get_urls ()])
+            except:
+                pass
+
+        res = render_to_response ('opml.xml', {'services': srvs},
+                                  mimetype='text/xml')
+        res['Content-Disposition'] = 'attachment; filename="gls-services.xml"'
+        return res
+
+    return HttpResponse ()
+
+def _import_service (url, title, cls='webfeed'):
+    api = 'webfeed'
+
+    if 'flickr.com' in url:
+        m = re.search (r'flickr.com/services/feeds/photos_public\.gne\?id=([0-9@A-Z]+)', url)
+        if m:
+            url = m.groups ()[0]
+        url = url.replace ('format=atom', 'format=rss_200')
+        api = 'flickr'
+        cls = 'photos'
+    elif 'friendfeed.com' in url:
+        m = re.search (r'friendfeed.com/([\w/]+)\?format=atom', url)
+        if m:
+            url = m.groups ()[0]
+            api = 'friendfeed'
+            cls = 'links'
+    elif 'twitter.com' in url:
+        m = re.search (r'twitter.com/1/statuses/user_timeline/(\w+)\.', url)
+        if m:
+            url = m.groups ()[0]
+            api = 'twitter'
+            cls = 'sms'
+    elif 'vimeo.com' in url:
+        m = re.search (r'vimeo.com/([\w/]+)/\w+/rss', url)
+        if m:
+            url = m.groups ()[0]
+            url = url.replace ('channels/', 'channel/')
+            url = url.replace ('groups/', 'group/')
+            api = 'vimeo'
+            cls = 'videos'
+    elif 'youtube.com' in url:
+        m = re.search (r'gdata.youtube.com/feeds/api/users/(\w+)', url)
+        if m:
+            url = m.groups ()[0]
+        api = 'youtube'
+        cls = 'videos'
+    elif 'yelp.com/syndicate' in url:
+        api = 'yelp'
+        cls = 'reviews'
+
+    try:
+        try:
+            service = Service.objects.get (api=api, url=url)
+        except Service.DoesNotExist:
+            if api in ('vimeo', 'webfeed', 'yelp', 'youtube'):
+                display = 'both'
+            else:
+                display = 'content'
+            service = Service (api=api, cls=cls, url=url, name=title,
+                               display=display)
+            service.save ()
+    except:
+        pass
+
 #
 # XHR API
 #
 
 def api (request, **args):
-    cmd = args.get ('cmd', '')
-
     authed = request.user.is_authenticated () and request.user.is_staff
     if not authed:
         return HttpResponseForbidden ()
+
+    cmd = args.get ('cmd', '')
 
     method = request.POST.get ('method', 'get')
     id = request.POST.get ('id', None)
@@ -376,9 +511,11 @@ def api (request, **args):
             except Service.DoesNotExist:
                 pass
         else:
-            s['creds'] = ''
             s['home'] = True
             s['active'] = True
+
+        if not 'creds' in s:
+            s['creds'] = ''
 
         # Setup fields
         s['fields'] = [

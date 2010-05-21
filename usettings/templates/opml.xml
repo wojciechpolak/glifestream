@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.0">
+  <head>
+    <title>gLifestream Service Subscriptions</title>
+    <dateCreated>{% now "r" %}</dateCreated>
+  </head>
+  <body>
+    {% for srv in services %}<outline title="{{ srv.name }}" text="{{ srv.name }}" type="rss" xmlUrl="{{ srv.url }}"/>
+    {% endfor %}
+  </body>
+</opml>

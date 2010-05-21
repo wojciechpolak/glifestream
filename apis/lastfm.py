@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -21,16 +21,17 @@ class API (webfeed.API):
     name = 'Last.fm API'
     limit_sec = 180
 
-    def run (self):
-        self.fetch ('http://ws.audioscrobbler.com/1.0/user/%s/recenttracks.rss' % \
-                    self.service.url)
-        self.fetch ('http://ws.audioscrobbler.com/2.0/user/%s/lovedtracks.rss' % \
-                    self.service.url)
+    def get_urls (self):
+        return ('http://ws.audioscrobbler.com/1.0/user/%s/recenttracks.rss' %
+                self.service.url,
+                'http://ws.audioscrobbler.com/2.0/user/%s/lovedtracks.rss' %
+                self.service.url)
 
 def filter_title (entry):
-    return _('Listened to %s') % '<em><a href="%s" rel="nofollow">%s</a></em>' % \
-        (entry.link, entry.title)
+    return _('Listened to %s') % ('<em><a href="%s" rel="nofollow">%s</a></em>' %
+                                  (entry.link, entry.title))
 
 def filter_content (entry):
-    return _('Artist: %s') % '<a href="%s" rel="nofollow">%s</a>' % \
-        (entry.content, urllib.unquote_plus (entry.content[25:]))
+    return _('Artist: %s') % ('<a href="%s" rel="nofollow">%s</a>' %
+                              (entry.content,
+                               urllib.unquote_plus (entry.content[25:])))

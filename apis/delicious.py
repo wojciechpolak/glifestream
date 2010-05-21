@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -20,10 +20,10 @@ class API (webfeed.API):
     name = 'Delicious API v2'
     limit_sec = 3600
 
-    def run (self):
-        self.fetch ('http://feeds.delicious.com/v2/rss/%s?count=20' % \
-                    self.service.url)
+    def get_urls (self):
+        return ('http://feeds.delicious.com/v2/rss/%s?count=20' %
+                self.service.url,)
 
 def filter_title (entry):
-    return _('Bookmarked %s') % '<a href="%s" rel="nofollow">%s</a>' % \
-        (entry.link, entry.title)
+    return _('Bookmarked %s') % ('<a href="%s" rel="nofollow">%s</a>' %
+                                 (entry.link, entry.title))

@@ -325,6 +325,8 @@ def index (request, **args):
                                    { 'entries': entries,
                                      'page': page },
                                    mimetype='application/json')
+    elif format != 'html':
+        raise Http404
     else:
         # Check which entry is already favorite.
         if authed and not 'favorites' in args:

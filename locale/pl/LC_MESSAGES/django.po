@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-05-01 13:31+0200\n"
-"PO-Revision-Date: 2010-05-01 13:31+0200\n"
+"POT-Creation-Date: 2010-05-21 17:26+0200\n"
+"PO-Revision-Date: 2010-05-21 17:27+0200\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -21,11 +21,11 @@ msgstr ""
 msgid "Bookmarked %s"
 msgstr "Link %s"
 
-#: apis/flickr.py:97
+#: apis/flickr.py:100
 msgid "Posted Photos"
 msgstr "Zdjęcia"
 
-#: apis/flickr.py:99
+#: apis/flickr.py:102
 msgid "Posted a Photo"
 msgstr "Zdjęcie"
 
@@ -44,30 +44,30 @@ msgstr "Utwór %s"
 msgid "Artist: %s"
 msgstr "Artysta: %s"
 
-#: apis/vimeo.py:160
+#: apis/vimeo.py:173
 #, python-format
 msgid "Liked %s"
 msgstr "Wideo %s"
 
-#: apis/vimeo.py:162 apis/youtube.py:47
+#: apis/vimeo.py:175 apis/youtube.py:55
 #, python-format
 msgid "Published %s"
 msgstr "Wideo %s"
 
-#: apis/yelp.py:31
+#: apis/yelp.py:34
 #, python-format
 msgid "Reviewed %s"
 msgstr "Recenzja %s"
 
-#: apis/yelp.py:35
+#: apis/yelp.py:38
 msgid "more"
 msgstr "więcej"
 
-#: apis/youtube.py:41
+#: apis/youtube.py:49
 msgid "NO VIDEO"
 msgstr "BRAK WIDEO"
 
-#: apis/youtube.py:45
+#: apis/youtube.py:53
 #, python-format
 msgid "Favorited %s"
 msgstr "Wideo %s"
@@ -222,7 +222,7 @@ msgstr "URL lub nazwa użytkownika"
 msgid "Credentials"
 msgstr "Dane uwierzytelniające"
 
-#: stream/models.py:40 usettings/views.py:386
+#: stream/models.py:40 usettings/views.py:523
 msgid "Short name"
 msgstr "Skrócona nazwa"
 
@@ -238,35 +238,35 @@ msgstr "Ostatnia modyfikacja"
 msgid "Last checked"
 msgstr "Ostatnio sprawdzane"
 
-#: stream/models.py:48 usettings/views.py:451
+#: stream/models.py:48 usettings/views.py:588
 msgid "Title and Contents"
 msgstr "Tytuł i treść"
 
-#: stream/models.py:49 usettings/views.py:452
+#: stream/models.py:49 usettings/views.py:589
 msgid "Contents only"
 msgstr "Tylko treść"
 
-#: stream/models.py:50 usettings/views.py:453
+#: stream/models.py:50 usettings/views.py:590
 msgid "Title only"
 msgstr "Tylko tytuł"
 
-#: stream/models.py:52 usettings/views.py:455
+#: stream/models.py:52 usettings/views.py:592
 msgid "Display entries'"
 msgstr "Wyświetlanie wpisów"
 
-#: stream/models.py:55 templates/base.html:26 usettings/views.py:458
+#: stream/models.py:55 templates/base.html:26 usettings/views.py:595
 msgid "Public"
 msgstr "Publiczne"
 
-#: stream/models.py:56 usettings/views.py:459
+#: stream/models.py:56 usettings/views.py:596
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
 
-#: stream/models.py:57 stream/models.py:103 usettings/views.py:467
+#: stream/models.py:57 stream/models.py:103 usettings/views.py:604
 msgid "Active"
 msgstr "Aktywny"
 
-#: stream/models.py:58 usettings/views.py:468
+#: stream/models.py:58 usettings/views.py:605
 msgid "If not active, this service will not be further updated."
 msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 
@@ -274,7 +274,7 @@ msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 msgid "Home visible"
 msgstr "Widoczny na stronie głównej"
 
-#: stream/models.py:60 usettings/views.py:463
+#: stream/models.py:60 usettings/views.py:600
 msgid ""
 "If unchecked, this stream will be still active, but hidden and thus visible "
 "only via custom lists."
@@ -426,11 +426,11 @@ msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
 
-#: stream/views.py:461
+#: stream/views.py:463
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
-#: stream/templatetags/gls_filters.py:88
+#: stream/templatetags/gls_filters.py:87
 msgid ""
 "The content of this entry is available only to my friends. If you are listed "
 "as my friend on Facebook, you may click Facebook Connect button to read it."
@@ -439,20 +439,20 @@ msgstr ""
 "moim znajomym w serwisie Facebook, możesz kliknąć przycisk Facebook Connect, "
 "aby go przeczytać."
 
-#: stream/templatetags/gls_filters.py:94
+#: stream/templatetags/gls_filters.py:93
 msgid "show map"
 msgstr "pokaż na mapie"
 
-#: stream/templatetags/gls_filters.py:135
+#: stream/templatetags/gls_filters.py:134
 msgid "Yesterday"
 msgstr "Wczoraj"
 
-#: stream/templatetags/gls_filters.py:137
+#: stream/templatetags/gls_filters.py:136
 #, python-format
 msgid "%d days ago"
 msgstr "%d dni temu"
 
-#: stream/templatetags/gls_filters.py:140
+#: stream/templatetags/gls_filters.py:139
 #, python-format
 msgid "%(count)d hour ago"
 msgid_plural "%(count)d hours ago"
@@ -460,7 +460,7 @@ msgstr[0] "%(count)d godzinę temu"
 msgstr[1] "%(count)d godziny temu"
 msgstr[2] "%(count)d godzin temu"
 
-#: stream/templatetags/gls_filters.py:144
+#: stream/templatetags/gls_filters.py:143
 #, python-format
 msgid "%(count)d minute ago"
 msgid_plural "%(count)d minutes ago"
@@ -476,7 +476,7 @@ msgstr "Witaj"
 msgid "My private stream"
 msgstr "Mój prywatny strumień"
 
-#: templates/base.html:25 usettings/views.py:462
+#: templates/base.html:25 usettings/views.py:599
 msgid "Home"
 msgstr "Strona główna"
 
@@ -672,123 +672,123 @@ msgstr "następna strona"
 msgid "Bookmarklet:"
 msgstr "Skryptozakładka:"
 
-#: usettings/views.py:49
+#: usettings/views.py:53
 msgid "Services - Settings"
 msgstr "Serwisy - Ustawienia"
 
-#: usettings/views.py:75
+#: usettings/views.py:82
 msgid "Lists - Settings"
 msgstr "Listy - Ustawienia"
 
-#: usettings/views.py:122
+#: usettings/views.py:132
 msgid "PubSubHubbub - Settings"
 msgstr "PubSubHubbub - Ustawienia"
 
-#: usettings/views.py:133
+#: usettings/views.py:143
 msgid "Hub not found."
 msgstr "Nie odnaleziono huba."
 
-#: usettings/views.py:135 usettings/views.py:144
+#: usettings/views.py:145 usettings/views.py:154
 #, python-format
 msgid "Hub %s: Accepted for verification."
 msgstr "Hub %s: Zaakceptowano do weryfikacji."
 
-#: usettings/views.py:137
+#: usettings/views.py:147
 #, python-format
 msgid "Hub %s: Subscription verified."
 msgstr "Hub %s: Subskrypcja zweryfikowana."
 
-#: usettings/views.py:142
+#: usettings/views.py:152
 msgid "No subscription found."
 msgstr "Nie znaleziono subskrypcji."
 
-#: usettings/views.py:146
+#: usettings/views.py:156
 #, python-format
 msgid "Hub %s: Unsubscribed."
 msgstr "Hub %s: Wypisano."
 
-#: usettings/views.py:170
+#: usettings/views.py:183
 msgid "OpenID - Settings"
 msgstr "OpenID - Ustawienia"
 
-#: usettings/views.py:214
+#: usettings/views.py:231
 msgid "OAuth - Settings"
 msgstr "OAuth - Ustawienia"
 
-#: usettings/views.py:375 usettings/templates/lists.html:25
+#: usettings/views.py:510 usettings/templates/lists.html:25
 #: usettings/templates/oid.html:9
 msgid "delete"
 msgstr "skasuj"
 
-#: usettings/views.py:389
+#: usettings/views.py:526
 msgid "Class name"
 msgstr "Klasa:"
 
-#: usettings/views.py:390
+#: usettings/views.py:527
 msgid "Any name for the service classification; a category."
 msgstr "Dowolna nazwa, służąca klasyfikacji serwisu; kategoria."
 
-#: usettings/views.py:395
+#: usettings/views.py:532
 msgid "URL"
 msgstr "URL"
 
-#: usettings/views.py:401
+#: usettings/views.py:538
 msgid "User timeline"
 msgstr "Strona użytkownika"
 
-#: usettings/views.py:402
+#: usettings/views.py:539
 msgid "Home timeline"
 msgstr "Strona główna"
 
-#: usettings/views.py:403
+#: usettings/views.py:540
 msgid "Timeline"
 msgstr ""
 
-#: usettings/views.py:405 usettings/views.py:410
+#: usettings/views.py:542 usettings/views.py:547
 msgid "ID/Username"
 msgstr "ID/Nazwa użytkownika"
 
-#: usettings/views.py:424 usettings/templates/oid.html:7
+#: usettings/views.py:561 usettings/templates/oid.html:7
 msgid "none"
 msgstr "brak"
 
-#: usettings/views.py:425
+#: usettings/views.py:562
 msgid "Basic"
 msgstr "Basic"
 
-#: usettings/views.py:426
+#: usettings/views.py:563
 msgid "OAuth"
 msgstr "OAuth"
 
-#: usettings/views.py:427
+#: usettings/views.py:564
 msgid "Authorization"
 msgstr "Autoryzacja"
 
-#: usettings/views.py:431
+#: usettings/views.py:568
 msgid "configure access"
 msgstr "konfiguracja dostępu"
 
-#: usettings/views.py:437
+#: usettings/views.py:574
 msgid "Basic username"
 msgstr "Użytkownik"
 
-#: usettings/views.py:440
+#: usettings/views.py:577
 msgid "Basic password"
 msgstr "Hasło"
 
-#: usettings/views.py:446
+#: usettings/views.py:583
 msgid "Access token"
 msgstr "Access token"
 
-#: usettings/views.py:447
+#: usettings/views.py:584
 msgid "get"
 msgstr "pobierz"
 
-#: usettings/views.py:474 usettings/templates/lists.html:23
+#: usettings/views.py:611 usettings/templates/lists.html:23
 msgid "Save"
 msgstr "Zapisz"
 
-#: usettings/views.py:475 usettings/templates/lists.html:24
+#: usettings/views.py:612 usettings/templates/lists.html:24
 msgid "Cancel"
 msgstr "Anuluj"
 
@@ -892,6 +892,18 @@ msgstr "Dodaj serwis:"
 #: usettings/templates/services.html:16
 msgid "Connected services:"
 msgstr "Połączone serwisy:"
+
+#: usettings/templates/services.html:29
+msgid "Import OPML"
+msgstr "Zaimportuj OPML"
+
+#: usettings/templates/services.html:30
+msgid "or"
+msgstr "lub"
+
+#: usettings/templates/services.html:32
+msgid "Export OPML"
+msgstr "Wyeksportuj OPML"
 
 #: usettings/templates/settings.html:9
 msgid "PubSubHub"

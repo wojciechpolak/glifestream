@@ -133,7 +133,7 @@ def get_alturl_if_html (r):
 
 def gen_auth_hs (service, url):
     """Generate authentication headers."""
-    if len (service.creds) and service.creds != 'oauth':
+    if service.creds and len (service.creds) and service.creds != 'oauth':
         return {'Authorization': 'Basic ' + \
                     base64.encodestring (service.creds).strip ()}
     elif service.creds == 'oauth':

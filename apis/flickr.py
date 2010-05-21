@@ -24,9 +24,12 @@ class API (webfeed.API):
     name = 'Flickr API'
     limit_sec = 600
 
-    def run (self):
-        self.fetch ('http://api.flickr.com/services/feeds/photos_public.gne?id=%s&format=rss_200' % \
-                    self.service.url)
+    def get_urls (self):
+        if self.service.url.startswith ('http://'):
+            return (self.service.url,)
+        else:
+            return ('http://api.flickr.com/services/feeds/photos_public.gne?id=%s&format=rss_200' %
+                    self.service.url,)
 
     def process (self):
         for key, group in groupby (self.fp.entries, lambda x: x.updated[0:19]):

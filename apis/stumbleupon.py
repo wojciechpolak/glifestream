@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -19,9 +19,11 @@ class API (webfeed.API):
     name = 'StumbleUpon API'
     limit_sec = 600
 
-    def run (self):
-        self.fetch ('http://rss.stumbleupon.com/user/%s/favorites' % self.service.url)
-        self.fetch ('http://rss.stumbleupon.com/user/%s/reviews' % self.service.url)
+    def get_urls (self):
+        return ('http://rss.stumbleupon.com/user/%s/favorites' %
+                self.service.url,
+                'http://rss.stumbleupon.com/user/%s/reviews' %
+                self.service.url)
 
 def filter_title (entry):
     return '<a href="%s" rel="nofollow">%s</a>' % (entry.link, entry.title)

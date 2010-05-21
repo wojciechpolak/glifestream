@@ -36,6 +36,9 @@ class API:
         self.service = service
         self.verbose = verbose
 
+    def get_urls (self):
+        return ()
+
     def run (self):
         pass
 

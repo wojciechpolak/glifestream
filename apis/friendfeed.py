@@ -36,12 +36,17 @@ class API:
     name = 'FriendFeed API v2'
     limit_sec = 180
 
-    def __init__ (self, service, verbose = 0, force_overwrite = False):
+    def __init__ (self, service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
             print '%s: %s' % (self.name, self.service)
+
+    def get_urls (self):
+        if self.service.url:
+            return ('http://friendfeed.com/%s?format=atom' % self.service.url,)
+        return ()
 
     def run (self):
         if not self.service.url:
