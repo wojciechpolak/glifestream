@@ -700,7 +700,7 @@
   }
 
   function hide_settings_form () {
-    $('#settings form').fadeOut ();
+    $('#service-form').fadeOut ();
   }
 
   function submit_service_form () {
