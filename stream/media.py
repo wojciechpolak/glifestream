@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import os.path
+import os
 import re
 import hashlib
 import tempfile
@@ -60,6 +60,7 @@ def save_image (url, force=False, downscale=False):
         try:
             resp = httpclient.retrieve (url, tmp)
             if not force and not 'image/' in resp.getheader ('Content-Type',''):
+                os.remove (tmp)
                 return url
             if downscale:
                 downscale_image (tmp)
