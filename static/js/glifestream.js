@@ -420,16 +420,28 @@
   }
 
   function scaledown_images () {
-    var maxwidth = $('#stream').width () - 100;
+    var maxwidth = $('#stream').width () - 80;
     $('#stream img').each (function (i) {
 	if (this.complete) {
-	  if (this.width > maxwidth)
+	  if (this.width > maxwidth) {
 	    this.width = maxwidth;
+	    if (this.style.width) {
+	      var p = maxwidth * 100 / parseInt (this.style.width, 10);
+	      this.style.width = maxwidth + 'px';
+	      this.style.height = (this.height * p / 100) + 'px';
+	    }
+	  }
 	}
 	else {
 	  this.onload = function () {
-	    if (this.width > maxwidth)
+	    if (this.width > maxwidth) {
 	      this.width = maxwidth;
+	      if (this.style.width) {
+		var p = maxwidth * 100 / parseInt (this.style.width, 10);
+		this.style.width = maxwidth + 'px';
+		this.style.height = (this.height * p / 100) + 'px';
+	      }
+	    }
 	    this.onload = null;
 	  };
 	}
