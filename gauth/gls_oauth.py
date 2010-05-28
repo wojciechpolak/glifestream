@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import urllib
 import urlparse
 from django.utils.translation import ugettext as _
 from glifestream.gauth import models
@@ -23,7 +24,8 @@ except ImportError:
     oauth = None
 
 class Client:
-    def __init__ (self, service, identifier=None, secret=None):
+    def __init__ (self, service, identifier=None, secret=None,
+                  callback_url=None):
         if not oauth:
             raise Exception ('python-oauth2 is required.')
 
@@ -40,9 +42,11 @@ class Client:
         except ImportError:
             raise Exception ('Unable to load %s API.' % self.db.service.api)
 
+        self.callback_url = callback_url
         self.request_token_url = getattr (mod, 'OAUTH_REQUEST_TOKEN_URL', None)
         self.authorize_url = getattr (mod, 'OAUTH_AUTHORIZE_URL', None)
         self.access_token_url = getattr (mod, 'OAUTH_ACCESS_TOKEN_URL', None)
+        self.scope = getattr (mod, 'OAUTH_SCOPE', None)
 
         self.verifier = None
         self.consumer = oauth.Consumer (self.db.identifier,
@@ -76,7 +80,15 @@ class Client:
         if not self.request_token_url:
             raise Exception (_('Request token URL not set.'))
         client = oauth.Client (self.consumer)
-        res, content = client.request (self.request_token_url, 'POST')
+
+        body = {}
+        if self.callback_url:
+            body['oauth_callback'] = self.callback_url
+        if self.db.service.api == 'gbuzz':
+            body['scope'] = self.scope
+
+        res, content = client.request (self.request_token_url, 'POST',
+                                       body=urllib.urlencode (body))
         if res['status'] != '200':
             raise Exception (_('Invalid response %s.') % res['status'])
 
@@ -92,7 +104,11 @@ class Client:
     def get_authorize_url (self):
         if self.db.phase != 1:
             raise Exception ('Not ready to authorize.')
-        return '%s?oauth_token=%s' % (self.authorize_url, self.db.token)
+        url = '%s?oauth_token=%s' % (self.authorize_url, self.db.token)
+        if self.db.service.api == 'gbuzz':
+            url += '&' + urllib.urlencode ({'domain': 'glifestream',
+                                            'scope': self.scope})
+        return url
 
     def get_access_token (self):
         if self.db.phase != 2:
