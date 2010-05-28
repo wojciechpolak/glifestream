@@ -215,7 +215,8 @@ def run ():
             Entry.objects.filter (**fs).exclude (id__in=favs).delete ()
         sys.exit (0)
     else:
-        fs['active'] = True
+        if not force_check or not 'id' in fs:
+            fs['active'] = True
 
     if force_overwrite:
         sel = raw_input ("WARNING: This may create thumbnail orphans! Continue Y/N? ").strip ()
