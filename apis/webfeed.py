@@ -142,7 +142,7 @@ class API:
                 e.link_image = media.save_image (self.fp.feed.image.url)
             else:
                 for link in ent.links:
-                    if link.rel == 'image':
+                    if link.rel == 'image' or link.rel == 'photo':
                         e.link_image = media.save_image (link.href)
 
             if hasattr (self, 'custom_process'):
