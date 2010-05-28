@@ -113,13 +113,10 @@ class API:
 
             if 'picture' in ent and 'link' in ent:
                 content += '<p class="thumbnails">'
-                if self.service.public:
-                    picture = media.save_image (ent['picture'])
-                else:
-                    picture = ent['picture']
                 content += '<a href="%s" rel="nofollow">' \
                     '<img src="%s" alt="thumbnail" /></a> ' \
-                    % (ent['link'], picture)
+                    % (ent['link'], media.save_image (ent['picture'],
+                                                      downscale=True))
 
                 if 'description' in ent:
                     content += '<div class="fb-description">%s</div>' % \
