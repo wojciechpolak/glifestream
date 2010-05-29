@@ -137,6 +137,10 @@ class API:
             if 'geo_lat' in ent and 'geo_long' in ent:
                 e.geolat = ent.geo_lat
                 e.geolng = ent.geo_long
+            elif 'georss_point' in ent:
+                geo = ent['georss_point'].split (' ')
+                e.geolat = geo[0]
+                e.geolng = geo[1]
 
             if 'image' in self.fp.feed:
                 e.link_image = media.save_image (self.fp.feed.image.url)

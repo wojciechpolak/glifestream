@@ -548,7 +548,8 @@ def api (request, **args):
                                  'value': s['url'], 'label': _('ID/Username'),
                                  'miss': miss.get ('url', False)})
 
-        if s['api'] in ('webfeed', 'twitter', 'friendfeed', 'gbuzz'):
+        if s['api'] in ('webfeed', 'friendfeed', 'gbuzz', 'identica',
+                        'twitter'):
             basic_user = ''
             if s['creds'] == 'oauth':
                 v = 'oauth'

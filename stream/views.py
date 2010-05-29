@@ -36,7 +36,7 @@ from glifestream.stream import media, pshb
 from glifestream.utils import common
 from glifestream.utils.time import pn_month_start
 from glifestream.utils.translate import translate
-from glifestream.apis import selfposts
+from glifestream.apis import API_LIST, selfposts
 
 try:
     import json
@@ -161,10 +161,11 @@ def index (request, **args):
         fs['service__api'] = srvapi
         urlparams.append ('service=' + srvapi)
         page['robots'] = 'noindex'
+        srvapi_name = dict (API_LIST).get (srvapi, srvapi.capitalize ())
         if 'subtitle' in page:
-            page['subtitle'] += ' <b>(%s)</b>' % escape (srvapi.capitalize ())
+            page['subtitle'] += ' <b>(%s)</b>' % escape (srvapi_name)
         else:
-            page['subtitle'] = _('You are currently browsing entries from %s service only.') % ('<b>'+ escape (srvapi.capitalize ()) +'</b>')
+            page['subtitle'] = _('You are currently browsing entries from %s service only.') % ('<b>'+ escape (srvapi_name) +'</b>')
 
     # Filter entries after specified timestamp 'start'.
     after = False
