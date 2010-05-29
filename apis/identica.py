@@ -23,13 +23,13 @@ class API (webfeed.API):
 
     def get_urls (self):
         if not self.service.url and self.service.creds:
-            return ('http://identi.ca/api/statuses/friends_timeline.atom?count=50',)
+            return ('http://identi.ca/api/statuses/friends_timeline.rss?count=50',)
         else:
             if not self.service.last_checked:
-                return ('http://identi.ca/api/statuses/user_timeline/%s.atom?count=200' %
+                return ('http://identi.ca/api/statuses/user_timeline/%s.rss?count=200' %
                         self.service.url,)
             else:
-                return ('http://identi.ca/api/statuses/user_timeline/%s.atom' %
+                return ('http://identi.ca/api/statuses/user_timeline/%s.rss' %
                         self.service.url,)
 
     def custom_process (self, e, ent):

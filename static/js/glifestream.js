@@ -706,6 +706,7 @@
 	    var f = prepare_service_form (json);
 	    $(dest).after (f);
 	    $(f).fadeIn ('normal', function () {
+		scroll_to_element (f, 120);
 		$('input[type=text]:first', f).focus ();
 	      });
 	}});
