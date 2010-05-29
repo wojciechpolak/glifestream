@@ -48,8 +48,8 @@ def __gen_tai (link, img_src):
     return '<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></p>' % (link, img_src)
 
 def __sp_twitpic (m):
-    url = media.save_image ('http://%s/show/thumb/%s' % (m.group (2),
-                                                         m.group (3)))
+    url = media.save_image ('http://%s/show/full/%s' %
+                            (m.group (2), m.group (3)), downscale=True)
     return __gen_tai (m.group (0), url)
 
 def __sp_tweetphoto (m):
@@ -57,11 +57,13 @@ def __sp_tweetphoto (m):
     return __gen_tai (m.group (0), url)
 
 def __sp_yfrog (m):
-    url = media.save_image ('http://%s/%s.th.jpg' % (m.group (1), m.group (2)))
+    url = media.save_image ('http://%s/%s:iphone' %
+                            (m.group (1), m.group (2)), downscale=True)
     return __gen_tai (m.group (0), url)
 
 def __sp_brizzly (m):
-    url = media.save_image ('http://pics.brizzly.com/thumb_sm_%s.jpg' % (m.group (2)))
+    url = media.save_image ('http://pics.brizzly.com/thumb_sm_%s.jpg' %
+                            (m.group (2)))
     return __gen_tai (m.group (0), url)
 
 def __sp_flickr (m):
