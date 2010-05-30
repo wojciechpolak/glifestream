@@ -62,8 +62,8 @@ def __sp_yfrog (m):
     return __gen_tai (m.group (0), url)
 
 def __sp_brizzly (m):
-    url = media.save_image ('http://pics.brizzly.com/thumb_sm_%s.jpg' %
-                            (m.group (2)))
+    url = media.save_image ('http://pics.brizzly.com/thumb_lg_%s.jpg' %
+                            (m.group (2)), downscale=True)
     return __gen_tai (m.group (0), url)
 
 def __sp_flickr (m):

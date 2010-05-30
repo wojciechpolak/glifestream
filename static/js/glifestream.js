@@ -1040,7 +1040,27 @@
     };
 
     this.open_img = function () {
-      return self.open ({ src: this.href });
+      var href = this.href;
+      var type = undefined;
+
+      if (href.match (/twitpic\.com\/(\w+)/)) {
+	href = 'http://twitpic.com/show/full/' + RegExp.$1;
+	type = 'image';
+      }
+      else if (href.match (/yfrog\.com\/(\w+)/)) {
+	href = 'http://yfrog.com/'+ RegExp.$1 +':iphone';
+	type = 'image';
+      }
+      else if (href.match (/brizzly\.com\/pic\/(\w+)/)) {
+	href = 'http://pics.brizzly.com/thumb_lg_'+ RegExp.$1 +'.jpg';
+      }
+      else if (href.match (/friendfeed-media\.com/)) {
+	type = 'image';
+      }
+      else if (href.match (/bp\.blogspot\.com/))
+	href = href.replace (/-h\//, '/');
+
+      return self.open ({src: href, type: type});
     }
 
     this.open = function (opts) {
@@ -1050,12 +1070,8 @@
       var type   = opts.type || undefined;
 
       if (!type) {
-	if (src.match (/(\.jpg$|\.jpeg$|\.png$|\.gif$)/i) ||
-	    src.match (/friendfeed-media\.com/)) {
+	if (src.match (/(\.jpg$|\.jpeg$|\.png$|\.gif$)/i))
 	  type = 'image';
-	  if (src.match (/bp\.blogspot\.com/))
-	    src = src.replace (/-h\//, '/');
-	}
 	else
 	  return true;
       }
