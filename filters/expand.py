@@ -53,7 +53,8 @@ def __sp_twitpic (m):
     return __gen_tai (m.group (0), url)
 
 def __sp_tweetphoto (m):
-    url = media.save_image ('http://tweetphotoapi.com/api/TPAPI.svc/imagefromurl?url=http://tweetphoto.com/%s' % m.group (1))
+    url = media.save_image ('http://tweetphotoapi.com/api/TPAPI.svc/imagefromurl?size=medium&url=http://tweetphoto.com/%s' %
+                            (m.group (1)), downscale=True)
     return __gen_tai (m.group (0), url)
 
 def __sp_yfrog (m):
