@@ -1043,8 +1043,15 @@
       var href = this.href;
       var type = undefined;
 
-      if (href.match (/twitpic\.com\/(\w+)/)) {
+      if (href.match (/friendfeed-media\.com/)) {
+	type = 'image';
+      }
+      else if (href.match (/twitpic\.com\/(\w+)/)) {
 	href = 'http://twitpic.com/show/full/' + RegExp.$1;
+	type = 'image';
+      }
+      else if (href.match (/tweetphoto\.com\/(\d+)/)) {
+	href = 'http://tweetphotoapi.com/api/TPAPI.svc/imagefromurl?size=big&url=http://tweetphoto.com/' + RegExp.$1;
 	type = 'image';
       }
       else if (href.match (/yfrog\.com\/(\w+)/)) {
@@ -1053,9 +1060,6 @@
       }
       else if (href.match (/brizzly\.com\/pic\/(\w+)/)) {
 	href = 'http://pics.brizzly.com/thumb_lg_'+ RegExp.$1 +'.jpg';
-      }
-      else if (href.match (/friendfeed-media\.com/)) {
-	type = 'image';
       }
       else if (href.match (/bp\.blogspot\.com/))
 	href = href.replace (/-h\//, '/');

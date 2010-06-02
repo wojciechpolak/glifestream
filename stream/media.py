@@ -59,9 +59,13 @@ def save_image (url, force=False, downscale=False):
         tmp = tempfile.mktemp ('_gls')
         try:
             resp = httpclient.retrieve (url, tmp)
-            if not force and not 'image/' in resp.getheader ('Content-Type',''):
-                os.remove (tmp)
-                return url
+            if not 'image/' in resp.getheader ('Content-Type', ''):
+                if not force and Image:
+                    try:
+                        Image.open (tmp)
+                    except:
+                        os.remove (tmp)
+                        return url
             if downscale:
                 downscale_image (tmp)
             shutil.move (tmp, thumb['local'])
