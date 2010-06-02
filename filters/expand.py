@@ -82,7 +82,7 @@ def __sp_imgloc (m):
 def shortpics (s):
     """Expand short picture-URLs."""
     s = re.sub (r'http://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
-    s = re.sub (r'http://tweetphoto.com/(\d+)', __sp_tweetphoto, s)
+    s = re.sub (r'http://tweetphoto\.com/(\d+)', __sp_tweetphoto, s)
     s = re.sub (r'http://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub (r'http://(www\.)?brizzly\.com/pic/(\w+)', __sp_brizzly, s)
     s = re.sub (r'http://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
