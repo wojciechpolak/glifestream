@@ -346,6 +346,7 @@ def index (request, **args):
 
         # Get archives.
         archs = Entry.objects.dates ('date_published', 'month', order='DESC')
+        page['months12'] = [datetime.date (2010, x, 1) for x in range (1, 13)]
 
         # List available classes.
         fs = {}

@@ -29,10 +29,7 @@
 {% endif %}
     <div class="archives">
       <h4>{% trans "Archives" %}</h4>
-      <select>
-	<option value="">{% trans "Select Month" %}</option>
-	{% for d in archives %}<option value="{{ d|date:"Y/m" }}">{{ d|date:"F Y" }}</option>{% endfor %}
-      </select>
+      <div id="calendar"></div>
     </div>
     {% if has_search %}<div class="search">
       <form name="searchform" action="./" method="get">
@@ -75,7 +72,7 @@
 {% endif %}
 <section id="stream" class="hfeed">
 {% if page.subtitle %}
-  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% url index %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow"> </a>{% endif %}</p>
+  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% url index %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
 {% endif %}
 {% if page.after %}
   <nav class="pagination-top">
@@ -107,6 +104,15 @@
 {% endif %}
 
 </section>
+
+<script type="text/javascript">
+var stream_data = {
+  'year_now': {% now "Y" %},
+  'view_date': '{{ page.updated|date:"Y/m" }}',
+  'archives': [{% for d in archives %}'{{ d|date:"Y/m" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+  'month_names': [{% for m in page.months12 %}'{{ m|date:"M"|slice:":3" }}'{% if not forloop.last %},{% endif %}{% endfor %}]
+};
+</script>
 {% endblock main %}
 
 {% block copyright %}
