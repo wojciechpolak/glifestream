@@ -531,6 +531,35 @@
       document.documentElement.scrollTop = 0;
   }
 
+  function gen_archive_calendar (year) {
+    year = year || stream_data.view_date.split ('/')[0];
+    var month = 1;
+    var cal = '<table>';
+    cal += '<tr><th colspan="3">'
+      + '<a href="#" class="fleft prev">&nbsp;</a>';
+    if (parseInt (year, 10) < stream_data.year_now)
+      cal += '<a href="#" class="fright next">&nbsp;</a>';
+    else
+      cal += '<span class="fright" style="width:25px">&nbsp;</span>';
+    cal += '<span class="year">'+ year +'</span> '
+      + '</th></tr>';
+    for (var row = 0; row < 4; row++) {
+      cal += '<tr>';
+      for (var col = 0; col < 3; col++, month++) {
+	var d = year +'/'+ pad (month, 2);
+	var u = d == stream_data.view_date ? ' class="view-month"' : '';
+	if ($.inArray (d, stream_data.archives) != -1)
+	  cal += '<td> <a href="'+ settings.baseurl + d +'/" rel="nofollow"'+ u +'>' +
+	    stream_data.month_names[month - 1] +'</a></td>';
+	else
+	  cal += '<td> '+ stream_data.month_names[month - 1] +'</td>';
+      }
+      cal += '</tr>';
+    }
+    cal += '</table>';
+    $('#calendar').html (cal);
+  }
+
   function ajax_error (e) {
     alert (_('Communication Error. Try again.'));
     hide_spinner ();
@@ -595,10 +624,19 @@
 	  if (this.value != '')
 	    window.location = baseurl + 'list/' + this.value + '/';
 	});
-      $('div.archives select').change (function () {
-	  if (this.value != '')
-	    window.location = baseurl + this.value + '/';
+
+      gen_archive_calendar ();
+      $('#calendar a.prev').live ('click', function () {
+	  var year = parseInt ($('#calendar .year').html (), 10);
+	  gen_archive_calendar (year - 1);
+	  return false;
 	});
+      $('#calendar a.next').live ('click', function () {
+	  var year = parseInt ($('#calendar .year').html (), 10);
+	  gen_archive_calendar (year + 1);
+	  return false;
+	});
+
       scaledown_images ();
 
       articles = $('article', stream);
@@ -1209,6 +1247,13 @@
       input.value = input.DEFAULT_SEARCHVAL;
     else if (input.value != input.DEFAULT_SEARCHVAL)
       input.className = 'focus';
+  }
+
+  function pad (number, len) {
+    var str = '' + number;
+    while (str.length < len)
+      str = '0' + str;
+    return str;
   }
 
   function strip_tags_trim (s) {

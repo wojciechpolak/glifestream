@@ -4,7 +4,7 @@ Copyright (C) 2009, 2010 Wojciech Polak
 * gLifestream requirements
 ==========================
 
-- Django 1.1 -- a Python Web framework (http://www.djangoproject.com/)
+- Django 1.1 or later -- a Python Web framework (http://www.djangoproject.com/)
 - A database supported by Django (e.g. MySQL, PostgreSQL).
 - Universal Feed Parser (http://www.feedparser.org/)
 

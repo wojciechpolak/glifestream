@@ -151,9 +151,8 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
   background-color: white;
 }
 
-p.subtitle {
-  padding-bottom: 6px;
-}
+p.subtitle { padding-bottom: 6px; }
+p.subtitle a:hover { text-decoration: none; }
 
 #stream {
   width: auto !important;
@@ -334,6 +333,7 @@ div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -
 #foot a { color: black !important; }
 
 .fleft { float: left; }
+.fright { float: right; }
 .center { text-align: center; }
 .justify { text-align: justify; }
 .clear { clear: both; }
@@ -693,6 +693,32 @@ ul.files {
     border-right: none;
   }
   .playbutton, .stopbutton { display: none; }
+}
+
+#calendar .year {
+  font-family: Arial;
+  font-size: 90%;
+  text-decoration: underline;
+}
+#calendar table {
+  font-family: monospace;
+  font-size: 110%;
+  border-style: none;
+}
+#calendar table td,
+#calendar table th {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+#calendar th a:hover {
+  text-decoration: none;
+}
+#calendar a:link,
+#calendar a:visited {
+  color: #8787f8;  
+}
+#calendar .view-month {
+  border-bottom: 1px dotted;
 }
 
 /* settings page */
