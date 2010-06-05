@@ -42,12 +42,18 @@ class API (webfeed.API):
         e.content = expand.all (e.content)
 
         links = []
+        videos = []
         for link in ent.links:
             if link.rel == 'enclosure' and link.type.startswith ('image/'):
                 links.append (link)
-        if len (links):
+            elif link.rel == 'alternate' and \
+                 'youtube.com/watch' in link.href:
+                videos.append (link)
+        if len (links) or len (videos):
             e.content += '<p class="thumbnails">'
             for l in links:
-                url = media.save_image (l['href'], downscale=True)
-                e.content += '<a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a> ' % (l['href'], url)
+                url = media.save_image (l.href, downscale=True)
+                e.content += '<a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a> ' % (l.href, url)
+            for v in videos:
+                e.content += expand.videolinks (v.href)
             e.content += '</p>'
