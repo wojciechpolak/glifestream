@@ -23,11 +23,12 @@ from django.http import HttpResponseRedirect
 from django.http import HttpResponseNotFound
 from django.http import Http404
 from django.shortcuts import render_to_response
+from django.template.loader import render_to_string
 from django.template.defaultfilters import fix_ampersands
 from django.template.defaultfilters import truncatewords
 from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as _
-from django.utils.html import escape
+from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
 from glifestream.stream.templatetags.gls_filters import gls_content
 from glifestream.stream.templatetags.gls_filters import gls_slugify
@@ -326,6 +327,30 @@ def index (request, **args):
                                    { 'entries': entries,
                                      'page': page },
                                    mimetype='application/json')
+    elif format == 'html-pure' and request.is_ajax ():
+        # Check which entry is already favorite.
+        if authed and not 'favorites' in args:
+            ents = [entry.id for entry in entries]
+            favs = Favorite.objects.filter (user__id=request.user.id,
+                                            entry__id__in=ents)
+            favs = [f.entry_id for f in favs]
+            for entry in entries:
+                if entry.id in favs:
+                    entry.fav = True
+                if entry.service.api in ('twitter', 'identica'):
+                    entry.sms = True
+        d = {
+            'next': page['start'],
+            'stream': strip_spaces_between_tags (
+                render_to_string ('stream-pure.html',
+                                  { 'entries': entries,
+                                    'page': page,
+                                    'authed': authed,
+                                    'friend': friend })),
+        }
+        if 'nextpage' in page:
+            d['next'] = page['nextpage']
+        return HttpResponse (json.dumps (d), mimetype='application/json')
     elif format != 'html':
         raise Http404
     else:
