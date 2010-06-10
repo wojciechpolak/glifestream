@@ -345,6 +345,7 @@ div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -
 img {
   border-style: none;
   -moz-user-select: none;
+  -webkit-user-select: none;
 }
 
 .photo {
@@ -695,6 +696,10 @@ ul.files {
   .playbutton, .stopbutton { display: none; }
 }
 
+#calendar {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+}
 #calendar .year {
   font-family: Arial;
   font-size: 90%;
