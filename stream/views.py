@@ -323,9 +323,11 @@ def index (request, **args):
                                      'page': page },
                                    mimetype='application/atom+xml')
     elif format == 'json':
+        cb = request.GET.get ('callback', False)
         return render_to_response ('stream.json',
                                    { 'entries': entries,
-                                     'page': page },
+                                     'page': page,
+                                     'callback': cb },
                                    mimetype='application/json')
     elif format == 'html-pure' and request.is_ajax ():
         # Check which entry is already favorite.

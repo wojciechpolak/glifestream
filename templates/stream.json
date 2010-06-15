@@ -1,4 +1,4 @@
-{% load gls_filters %}{
+{% load gls_filters %}{% if callback %}{{ callback }}({% endif %}{
   "title": "{% firstof page.title "Lifestream" %}",
   "updated": "{{ page.updated|gls_hdate }}",
   "generator": "gLifestream",
@@ -26,4 +26,4 @@
      }{% if not forloop.last %},{% endif %}
 {% endfor %}
   ]
-}
+}{% if callback %});{% endif %}
