@@ -32,7 +32,7 @@ class API (webfeed.API):
         if not self.service.url and self.service.creds:
             return ('https://www.googleapis.com/buzz/v1/activities/@me/@consumption',)
         else:
-            return ('http://buzz.googleapis.com/feeds/%s/public/posted' %
+            return ('http://www.googleapis.com/buzz/v1/activities/%s/@public' %
                     self.service.url,)
 
     def custom_process (self, e, ent):
