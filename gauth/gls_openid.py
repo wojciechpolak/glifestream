@@ -77,4 +77,8 @@ def __get_store ():
 
     if module.endswith ('filestore'):
         arg = getattr (settings, 'OPENID_STORE_FILEPATH', '/tmp/gls_openid')
+    else:
+        from django.db import connection
+        c = connection.cursor ()
+        arg = c.db.connection
     return cls (arg)
