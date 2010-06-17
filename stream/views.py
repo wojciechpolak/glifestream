@@ -173,7 +173,10 @@ def index (request, **args):
     start = request.GET.get ('start', False)
     if start:
         qs = fs.copy ()
-        dt = datetime.datetime.fromtimestamp (float (start))
+        try:
+            dt = datetime.datetime.fromtimestamp (float (start))
+        except ValueError:
+            raise Http404
 
         if page['backtime']:
             fs[entries_orderby + '__lte'] = dt
