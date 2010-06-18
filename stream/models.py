@@ -80,12 +80,13 @@ class Entry (models.Model):
     link = models.URLField (_('Link'),)
     link_image = models.CharField (_('Image Link'), max_length=128, blank=True)
     content = models.TextField (_('Contents'), blank=True)
-    date_published = models.DateTimeField (_('Date published'), null=True,
-                                           blank=True, db_index=True)
-    date_updated = models.DateTimeField (_('Date updated'), null=True,
-                                         blank=True)
+    date_published = models.DateTimeField (_('Date published'), null=False,
+                                           blank=True, default=now,
+                                           db_index=True)
+    date_updated = models.DateTimeField (_('Date updated'), null=False,
+                                         blank=True, default=now)
     date_inserted = models.DateTimeField ('Date inserted', null=False,
-                                         blank=True, editable=False)
+                                         blank=True, default=now, editable=False)
     guid = models.CharField ('GUID', max_length=200)
     author_name = models.CharField (_("Author's Name"), max_length=64,
                                     blank=True)
@@ -116,11 +117,6 @@ class Entry (models.Model):
         verbose_name_plural = _('Entries')
         ordering = '-date_published',
         unique_together = (('service', 'guid'),)
-
-    def save (self):
-        if not self.date_inserted:
-            self.date_inserted = now ()
-        super (Entry, self).save ()
 
     def __unicode__ (self):
         return u'%s: %s' % (self.service.name, self.title[0:60])
