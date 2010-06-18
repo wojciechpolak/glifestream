@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-05-21 17:26+0200\n"
-"PO-Revision-Date: 2010-05-21 17:27+0200\n"
+"POT-Creation-Date: 2010-06-18 20:18+0200\n"
+"PO-Revision-Date: 2010-06-18 20:18+0200\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -84,23 +84,23 @@ msgstr "Zamknij"
 msgid "Click on images to share them."
 msgstr "Kliknij obrazki aby je dodać."
 
-#: bookmarklet/templates/frame.html:54 templates/stream.html:55
+#: bookmarklet/templates/frame.html:54 templates/stream.html:52
 msgid "Class:"
 msgstr "Klasa:"
 
-#: bookmarklet/templates/frame.html:58 templates/stream.html:56
+#: bookmarklet/templates/frame.html:58 templates/stream.html:53
 msgid "Post"
 msgstr "Publikuj"
 
-#: bookmarklet/templates/frame.html:66 templates/stream.html:57
+#: bookmarklet/templates/frame.html:66 templates/stream.html:54
 msgid "more options"
 msgstr "więcej opcji"
 
-#: bookmarklet/templates/frame.html:68 templates/stream.html:60
+#: bookmarklet/templates/frame.html:68 templates/stream.html:57
 msgid "Mark as draft:"
 msgstr "Oznacz jako szkic:"
 
-#: bookmarklet/templates/frame.html:70 templates/stream.html:62
+#: bookmarklet/templates/frame.html:70 templates/stream.html:59
 msgid "Only visible to friends:"
 msgstr "Widoczny tylko dla przyjaciół:"
 
@@ -118,16 +118,16 @@ msgstr "Zapamiętaj mnie"
 msgid "OpenID"
 msgstr "OpenID"
 
-#: gauth/gls_oauth.py:77
+#: gauth/gls_oauth.py:81
 msgid "Request token URL not set."
 msgstr "Adres Request token nie został ustawiony."
 
-#: gauth/gls_oauth.py:81 gauth/gls_oauth.py:108
+#: gauth/gls_oauth.py:93 gauth/gls_oauth.py:124
 #, python-format
 msgid "Invalid response %s."
 msgstr "Nieprawidłowa odpowiedź %s."
 
-#: gauth/gls_oauth.py:90 gauth/gls_oauth.py:118
+#: gauth/gls_oauth.py:102 gauth/gls_oauth.py:134
 msgid "Invalid OAuth response. No tokens found."
 msgstr "Nieprawidłowa odpowiedź OAuth. Nie znaleziono żetonów."
 
@@ -150,7 +150,7 @@ msgid "OpenID authentication failed: %s"
 msgstr "Nieudana autentykacja OpenID: %s"
 
 #: gauth/models.py:22 stream/models.py:63 stream/models.py:77
-#: stream/models.py:182 usettings/templates/pshb.html:14
+#: stream/models.py:178 usettings/templates/pshb.html:14
 msgid "Service"
 msgstr "Serwis"
 
@@ -222,7 +222,7 @@ msgstr "URL lub nazwa użytkownika"
 msgid "Credentials"
 msgstr "Dane uwierzytelniające"
 
-#: stream/models.py:40 usettings/views.py:523
+#: stream/models.py:40 usettings/views.py:524
 msgid "Short name"
 msgstr "Skrócona nazwa"
 
@@ -238,35 +238,35 @@ msgstr "Ostatnia modyfikacja"
 msgid "Last checked"
 msgstr "Ostatnio sprawdzane"
 
-#: stream/models.py:48 usettings/views.py:588
+#: stream/models.py:48 usettings/views.py:590
 msgid "Title and Contents"
 msgstr "Tytuł i treść"
 
-#: stream/models.py:49 usettings/views.py:589
+#: stream/models.py:49 usettings/views.py:591
 msgid "Contents only"
 msgstr "Tylko treść"
 
-#: stream/models.py:50 usettings/views.py:590
+#: stream/models.py:50 usettings/views.py:592
 msgid "Title only"
 msgstr "Tylko tytuł"
 
-#: stream/models.py:52 usettings/views.py:592
+#: stream/models.py:52 usettings/views.py:594
 msgid "Display entries'"
 msgstr "Wyświetlanie wpisów"
 
-#: stream/models.py:55 templates/base.html:26 usettings/views.py:595
+#: stream/models.py:55 templates/base.html:26 usettings/views.py:597
 msgid "Public"
 msgstr "Publiczne"
 
-#: stream/models.py:56 usettings/views.py:596
+#: stream/models.py:56 usettings/views.py:598
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
 
-#: stream/models.py:57 stream/models.py:103 usettings/views.py:604
+#: stream/models.py:57 stream/models.py:104 usettings/views.py:606
 msgid "Active"
 msgstr "Aktywny"
 
-#: stream/models.py:58 usettings/views.py:605
+#: stream/models.py:58 usettings/views.py:607
 msgid "If not active, this service will not be further updated."
 msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 
@@ -274,7 +274,7 @@ msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 msgid "Home visible"
 msgstr "Widoczny na stronie głównej"
 
-#: stream/models.py:60 usettings/views.py:600
+#: stream/models.py:60 usettings/views.py:602
 msgid ""
 "If unchecked, this stream will be still active, but hidden and thus visible "
 "only via custom lists."
@@ -306,127 +306,127 @@ msgstr "Treść"
 msgid "Date published"
 msgstr "Data publikacji"
 
-#: stream/models.py:85
+#: stream/models.py:86
 msgid "Date updated"
 msgstr "Data aktualizacji"
 
-#: stream/models.py:90
+#: stream/models.py:91
 msgid "Author's Name"
 msgstr "Autor"
 
-#: stream/models.py:92
+#: stream/models.py:93
 msgid "Author's Email"
 msgstr "Email autora"
 
-#: stream/models.py:93
+#: stream/models.py:94
 msgid "Author's URI"
 msgstr "URI autora"
 
-#: stream/models.py:95
+#: stream/models.py:96
 msgid "Geo Latitude"
 msgstr "Szerokość geograficzna"
 
-#: stream/models.py:97
+#: stream/models.py:98
 msgid "Geo Longitude"
 msgstr "Długość geograficzna"
 
-#: stream/models.py:101
+#: stream/models.py:102
 msgid "Protected"
 msgstr "Chroniony"
 
-#: stream/models.py:102
+#: stream/models.py:103
 msgid "Protect from possible overwriting by next update."
 msgstr "Chroni przed możliwym nadpisaniem przy kolejnej aktualizacji."
 
-#: stream/models.py:104
+#: stream/models.py:105
 msgid "If not active, this entry will not be shown."
 msgstr "Nieaktywny, ten wpis nie będzie wyświetlany."
 
-#: stream/models.py:105
+#: stream/models.py:106
 msgid "Draft"
 msgstr "Szkic"
 
-#: stream/models.py:106
+#: stream/models.py:107
 msgid "A draft is a post that is in progress. Only you will be able to see it."
 msgstr ""
 "Szkic jest nieukończonym wpisem w realizacji. Będzie on widoczny tylko dla "
 "Ciebie."
 
-#: stream/models.py:107 templates/stream-pure.html:30
+#: stream/models.py:108 templates/stream-pure.html:30
 msgid "Friends-only"
 msgstr "Tylko dla przyjaciół"
 
-#: stream/models.py:108
+#: stream/models.py:109
 msgid "Entry will only be visible to you and your friends."
 msgstr "Wpis będzie widoczny tylko dla Ciebie i Twoich przyjaciół."
 
-#: stream/models.py:115 stream/models.py:130 stream/models.py:145
+#: stream/models.py:116 stream/models.py:126 stream/models.py:141
 msgid "Entry"
 msgstr "Wpis"
 
-#: stream/models.py:116
+#: stream/models.py:117
 msgid "Entries"
 msgstr "Wpisy"
 
-#: stream/models.py:135 stream/models.py:136
+#: stream/models.py:131 stream/models.py:132
 msgid "Media"
 msgstr "Media"
 
-#: stream/models.py:150 templates/i18n.html:2 templates/stream-pure.html:38
+#: stream/models.py:146 templates/i18n.html:2 templates/stream-pure.html:38
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:151 stream/views.py:116
+#: stream/models.py:147 stream/views.py:117
 msgid "Favorites"
 msgstr "Ulubione"
 
-#: stream/models.py:161
+#: stream/models.py:157
 msgid "Name"
 msgstr "Nazwa"
 
-#: stream/models.py:162
+#: stream/models.py:158
 msgid "Slug"
 msgstr "Slug"
 
-#: stream/models.py:167
+#: stream/models.py:163
 msgid "List"
 msgstr "Lista"
 
-#: stream/models.py:168 templates/stream.html:21
+#: stream/models.py:164 templates/stream.html:21
 #: usettings/templates/settings.html:8
 msgid "Lists"
 msgstr "Listy"
 
-#: stream/views.py:96
+#: stream/views.py:97
 #, python-format
 msgid "You are currently browsing the archive for %s"
 msgstr "Aktualnie przeglądasz archiwum dla %s"
 
-#: stream/views.py:117
+#: stream/views.py:118
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:128
+#: stream/views.py:129
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:149
+#: stream/views.py:150
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:167
+#: stream/views.py:169
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:200
+#: stream/views.py:205
 #, python-format
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
 
-#: stream/views.py:463
+#: stream/views.py:495
 msgid "You've successfully shared this web page at your stream."
 msgstr "Strona została umieszczona na Twoim strumieniu."
 
@@ -476,7 +476,7 @@ msgstr "Witaj"
 msgid "My private stream"
 msgstr "Mój prywatny strumień"
 
-#: templates/base.html:25 usettings/views.py:599
+#: templates/base.html:25 usettings/views.py:601
 msgid "Home"
 msgstr "Strona główna"
 
@@ -626,45 +626,41 @@ msgstr "Wybierz listę"
 msgid "Archives"
 msgstr "Archiwum"
 
-#: templates/stream.html:33
-msgid "Select Month"
-msgstr "Wybierz miesiąc"
-
-#: templates/stream.html:39
+#: templates/stream.html:36
 msgid "Search"
 msgstr "Szukaj"
 
-#: templates/stream.html:49
+#: templates/stream.html:46
 msgid "Add content"
 msgstr "Dodaj wpis"
 
-#: templates/stream.html:52
+#: templates/stream.html:49
 msgid "What's up?"
 msgstr "Co słychać?"
 
-#: templates/stream.html:66
+#: templates/stream.html:63
 msgid "Add files:"
 msgstr "Dodaj pliki:"
 
-#: templates/stream.html:78
+#: templates/stream.html:75
 msgid "next month"
 msgstr "następny miesiąc"
 
-#: templates/stream.html:83 templates/stream.html.py:93
-#: templates/stream.html:97
+#: templates/stream.html:80 templates/stream.html.py:90
+#: templates/stream.html:94
 msgid "newer entries"
 msgstr "nowsze wpisy"
 
-#: templates/stream.html:85 templates/stream.html.py:94
-#: templates/stream.html:96
+#: templates/stream.html:82 templates/stream.html.py:91
+#: templates/stream.html:93
 msgid "older entries"
 msgstr "starsze wpisy"
 
-#: templates/stream.html:103
+#: templates/stream.html:100
 msgid "previous page"
 msgstr "poprzednia strona"
 
-#: templates/stream.html:104
+#: templates/stream.html:101
 msgid "next page"
 msgstr "następna strona"
 
@@ -715,80 +711,80 @@ msgstr "OpenID - Ustawienia"
 msgid "OAuth - Settings"
 msgstr "OAuth - Ustawienia"
 
-#: usettings/views.py:510 usettings/templates/lists.html:25
+#: usettings/views.py:511 usettings/templates/lists.html:25
 #: usettings/templates/oid.html:9
 msgid "delete"
 msgstr "skasuj"
 
-#: usettings/views.py:526
+#: usettings/views.py:527
 msgid "Class name"
 msgstr "Klasa:"
 
-#: usettings/views.py:527
+#: usettings/views.py:528
 msgid "Any name for the service classification; a category."
 msgstr "Dowolna nazwa, służąca klasyfikacji serwisu; kategoria."
 
-#: usettings/views.py:532
+#: usettings/views.py:533
 msgid "URL"
 msgstr "URL"
 
-#: usettings/views.py:538
+#: usettings/views.py:539
 msgid "User timeline"
 msgstr "Strona użytkownika"
 
-#: usettings/views.py:539
+#: usettings/views.py:540
 msgid "Home timeline"
 msgstr "Strona główna"
 
-#: usettings/views.py:540
+#: usettings/views.py:541
 msgid "Timeline"
 msgstr ""
 
-#: usettings/views.py:542 usettings/views.py:547
+#: usettings/views.py:543 usettings/views.py:548
 msgid "ID/Username"
 msgstr "ID/Nazwa użytkownika"
 
-#: usettings/views.py:561 usettings/templates/oid.html:7
+#: usettings/views.py:563 usettings/templates/oid.html:7
 msgid "none"
 msgstr "brak"
 
-#: usettings/views.py:562
+#: usettings/views.py:564
 msgid "Basic"
 msgstr "Basic"
 
-#: usettings/views.py:563
+#: usettings/views.py:565
 msgid "OAuth"
 msgstr "OAuth"
 
-#: usettings/views.py:564
+#: usettings/views.py:566
 msgid "Authorization"
 msgstr "Autoryzacja"
 
-#: usettings/views.py:568
+#: usettings/views.py:570
 msgid "configure access"
 msgstr "konfiguracja dostępu"
 
-#: usettings/views.py:574
+#: usettings/views.py:576
 msgid "Basic username"
 msgstr "Użytkownik"
 
-#: usettings/views.py:577
+#: usettings/views.py:579
 msgid "Basic password"
 msgstr "Hasło"
 
-#: usettings/views.py:583
+#: usettings/views.py:585
 msgid "Access token"
 msgstr "Access token"
 
-#: usettings/views.py:584
+#: usettings/views.py:586
 msgid "get"
 msgstr "pobierz"
 
-#: usettings/views.py:611 usettings/templates/lists.html:23
+#: usettings/views.py:613 usettings/templates/lists.html:23
 msgid "Save"
 msgstr "Zapisz"
 
-#: usettings/views.py:612 usettings/templates/lists.html:24
+#: usettings/views.py:614 usettings/templates/lists.html:24
 msgid "Cancel"
 msgstr "Anuluj"
 
