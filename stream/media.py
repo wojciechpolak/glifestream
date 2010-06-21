@@ -17,6 +17,7 @@ import os
 import re
 import hashlib
 import tempfile
+import time
 import types
 import shutil
 from django.conf import settings
@@ -51,11 +52,19 @@ def get_thumb_info (hash):
              'rel': 'thumbs/%s%s' % (prefix, hash),
              'internal': '[GLS-THUMBS]/%s' % hash, }
 
-def save_image (url, force=False, downscale=False):
+def save_image (url, direct_image=True, force=False, downscale=False):
     if settings.BASE_URL in url:
         return url
     thumb = get_thumb_info (hashlib.sha1 (url).hexdigest ())
-    if not os.path.isfile (thumb['local']):
+    stale = False
+
+    is_file = os.path.isfile (thumb['local'])
+    if is_file and not direct_image:
+        if (time.time () - os.path.getmtime (thumb['local'])) > 604800:
+            is_file = False
+            stale = True
+
+    if not is_file:
         tmp = tempfile.mktemp ('_gls')
         try:
             resp = httpclient.retrieve (url, tmp)
@@ -70,7 +79,8 @@ def save_image (url, force=False, downscale=False):
                 downscale_image (tmp)
             shutil.move (tmp, thumb['local'])
         except:
-            return url
+            if not stale:
+                return url
     return thumb['internal']
 
 def downscale_image (filename):

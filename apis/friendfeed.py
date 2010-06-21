@@ -102,7 +102,8 @@ class API:
             e.title = truncate.smart (strip_entities (strip_tags (ent['body'])),
                                       max_length=40)
             e.link  = ent['url']
-            e.link_image = media.save_image ('http://friendfeed-api.com/v2/picture/%s' % ent['from']['id'])
+            image_url = 'http://friendfeed-api.com/v2/picture/%s' % ent['from']['id']
+            e.link_image = media.save_image (image_url, direct_image=False)
 
             e.date_published = t
             e.date_updated = t

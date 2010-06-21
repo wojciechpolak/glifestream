@@ -95,7 +95,7 @@ class API:
             if 'from' in ent:
                 frm = ent['from']
                 image_url = 'http://graph.facebook.com/%s/picture' % frm['id']
-                e.link_image = media.save_image (image_url)
+                e.link_image = media.save_image (image_url, direct_image=False)
                 e.author_name = frm['name']
 
             e.date_published = from_rfc3339 (ent['created_time'])
