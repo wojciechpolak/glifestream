@@ -151,7 +151,7 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
   background-color: white;
 }
 
-p.subtitle { padding-bottom: 6px; }
+p.subtitle { padding-bottom: 6px; font-style: italic; }
 p.subtitle a:hover { text-decoration: none; }
 
 #stream {

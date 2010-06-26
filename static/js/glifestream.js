@@ -570,6 +570,8 @@
   }
 
   function gen_archive_calendar (year) {
+    if (typeof stream_data == 'undefined')
+      return;
     year = year || stream_data.view_date.split ('/')[0];
     var month = 1;
     var cal = '<table>';
@@ -586,9 +588,12 @@
       for (var col = 0; col < 3; col++, month++) {
 	var d = year +'/'+ pad (month, 2);
 	var u = d == stream_data.view_date ? ' class="view-month"' : '';
-	if ($.inArray (d, stream_data.archives) != -1)
-	  cal += '<td> <a href="'+ settings.baseurl + d +'/" rel="nofollow"'+ u +'>' +
+	if ($.inArray (d, stream_data.archives) != -1) {
+	  var ctx = stream_data.ctx != '' ? stream_data.ctx + '/' : '';
+	  cal += '<td> <a href="'+ settings.baseurl + ctx +
+	    d +'/" rel="nofollow"'+ u +'>' +
 	    stream_data.month_names[month - 1] +'</a></td>';
+	}
 	else
 	  cal += '<td> '+ stream_data.month_names[month - 1] +'</td>';
       }
