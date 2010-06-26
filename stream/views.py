@@ -48,6 +48,7 @@ def index (request, **args):
     site_url = '%s://%s' % (request.is_secure () and 'https' or 'http',
                             request.get_host ())
     page = {
+        'ctx': args.get ('ctx', ''),
         'backtime': True,
         'robots': 'index',
         'public': False,
@@ -104,12 +105,12 @@ def index (request, **args):
 
     if not authed:
         fs['draft'] = False
-    if not authed or 'public' in args:
+    if not authed or page['ctx'] == 'public':
         fs['service__public'] = True
         page['public'] = True
 
     # Filter for favorites.
-    if 'favorites' in args:
+    if page['ctx'] == 'favorites':
         if not authed:
             return HttpResponseRedirect (settings.BASE_URL + '/')
         favs = Favorite.objects.filter (user__id=request.user.id)
@@ -125,6 +126,7 @@ def index (request, **args):
                                          slug=args['list']).services
             del fs['service__home']
             fs['service__id__in'] = services.values ('id')
+            page['ctx'] = 'list/' + args['list']
             page['title'] = args['list']
             page['subtitle'] = _('You are currently browsing entries from %s list only.') % ('<b>'+ args['list'] +'</b>')
         except List.DoesNotExist:
@@ -135,8 +137,11 @@ def index (request, **args):
     elif 'entry' in args:
         fs['id__exact'] = int (args['entry'])
         page['exactentry'] = True
-        if authed:
+        if authed and 'service__public' in fs:
             del fs['service__public']
+
+    if not authed:
+        page['ctx'] = ''
 
     # Filter by class type.
     cls = request.GET.get ('class', 'all')
@@ -334,7 +339,7 @@ def index (request, **args):
                                    mimetype='application/json')
     elif format == 'html-pure' and request.is_ajax ():
         # Check which entry is already favorite.
-        if authed and not 'favorites' in args:
+        if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
             favs = Favorite.objects.filter (user__id=request.user.id,
                                             entry__id__in=ents)
@@ -360,7 +365,7 @@ def index (request, **args):
         raise Http404
     else:
         # Check which entry is already favorite.
-        if authed and not 'favorites' in args:
+        if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
             favs = Favorite.objects.filter (user__id=request.user.id,
                                             entry__id__in=ents)
@@ -375,12 +380,20 @@ def index (request, **args):
         lists = List.objects.filter (user__id=request.user.id).order_by ('name')
 
         # Get archives.
-        archs = Entry.objects.dates ('date_published', 'month', order='DESC')
+        if 'entry' in args:
+            qs = {}
+        else:
+            qs = fs.copy ()
+            if year: del qs[entries_orderby + '__year']
+            if month: del qs[entries_orderby + '__month']
+            if day: del qs[entries_orderby + '__day']
+        archs = Entry.objects.filter (**qs).dates ('date_published',
+                                                   'month', order='DESC')
         page['months12'] = [datetime.date (2010, x, 1) for x in range (1, 13)]
 
         # List available classes.
         fs = {}
-        if not authed or 'public' in args:
+        if not authed or page['ctx'] == 'public':
             fs['public'] = True
         classes = Service.objects.filter (**fs).order_by ('id').values ('api', 'cls')
         classes.query.group_by = ['cls']

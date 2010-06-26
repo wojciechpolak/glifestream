@@ -32,7 +32,7 @@
       <div id="calendar"></div>
     </div>
     {% if has_search %}<div class="search">
-      <form name="searchform" action="./" method="get">
+      <form name="searchform" action="{% ifequal page.ctx "public" %}{% url public %}{% else %}{% url index %}{% endifequal %}" method="get">
 	<input type="text" name="s" value="{{ page.search }}" maxlength="64" /><span id="search-submit" title="{% trans "Search" %}"></span>
       </form>
     </div>{% endif %}
@@ -72,7 +72,7 @@
 {% endif %}
 <section id="stream" class="hfeed">
 {% if page.subtitle %}
-  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% url index %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
+  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% ifequal page.ctx "public" %}{% url public %}{% else %}{% if page.favorites %}{% url favorites %}{% else %}{% url index %}{% endif %}{% endifequal %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
 {% endif %}
 {% if page.after %}
   <nav class="pagination-top">
@@ -107,6 +107,7 @@
 
 <script type="text/javascript">
 var stream_data = {
+  'ctx': '{{ page.ctx }}',
   'year_now': {% now "Y" %},
   'view_date': '{{ page.updated|date:"Y/m" }}',
   'archives': [{% for d in archives %}'{{ d|date:"Y/m" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
