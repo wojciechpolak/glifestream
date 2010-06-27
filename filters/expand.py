@@ -99,6 +99,8 @@ def imgloc (s):
 #
 
 def __sv_youtube (m):
+    if m.start () > 0 and m.string[m.start () - 1] == '"':
+        return m.group (0)
     id     = m.group (2)
     rest   = m.group (3)
     ltag   = rest.find ('<') if rest else -1
@@ -110,6 +112,8 @@ def __sv_youtube (m):
 
 def __sv_vimeo (m):
     from glifestream.apis import vimeo
+    if m.start () > 0 and m.string[m.start () - 1] == '"':
+        return m.group (0)
     id = m.group (2)
     link = m.group (0)
     imgurl = vimeo.get_thumbnail_url (id)
@@ -165,24 +169,24 @@ def __sv_googlevideo (m):
 def videolinks (s):
     """Expand video links."""
     if 'youtube.com/' in s:
-        s = re.sub (r'http://(www\.)?youtube.com/watch\?v=([\-\w]+)(\S*)',
+        s = re.sub (r'http://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)',
                     __sv_youtube, s)
     if 'vimeo.com/' in s:
-        s = re.sub (r'http://(www\.)?vimeo.com/(\d+)', __sv_vimeo, s)
+        s = re.sub (r'http://(www\.)?vimeo\.com/(\d+)', __sv_vimeo, s)
     if 'http://www.ustream.tv/recorded/' in s:
-        s = re.sub (r'http://www.ustream.tv/recorded/(\d+)', __sv_ustream, s)
+        s = re.sub (r'http://www\.ustream\.tv/recorded/(\d+)', __sv_ustream, s)
     if 'http://www.dailymotion.' in s:
-        s = re.sub (r'http://www.dailymotion.[a-z]{2,3}/video/([\-\w]+)_(\S*)',
+        s = re.sub (r'http://www\.dailymotion\.[a-z]{2,3}/video/([\-\w]+)_(\S*)',
                     __sv_dailymotion, s)
     if 'http://www.metacafe.com/' in s:
-        s = re.sub (r'http://www.metacafe.com/(w|watch)/(\d+)/(\S*)',
+        s = re.sub (r'http://www\.metacafe\.com/(w|watch)/(\d+)/(\S*)',
                     __sv_metacafe, s)
     if 'twitvid.com/' in s:
-        s = re.sub (r'http://(www\.)?twitvid.com/(\w+)', __sv_twitvid, s)
+        s = re.sub (r'http://(www\.)?twitvid\.com/(\w+)', __sv_twitvid, s)
     if 'collegehumor.com/video:' in s:
-        s = re.sub (r'http://www.collegehumor.com/video:(\d+)', __sv_chtv, s)
+        s = re.sub (r'http://www\.collegehumor\.com/video:(\d+)', __sv_chtv, s)
     if 'http://video.google.com/videoplay?docid=' in s:
-        s = re.sub (r'http://video.google.com/videoplay\?docid=(\d+)(\S*)',
+        s = re.sub (r'http://video\.google\.com/videoplay\?docid=(\d+)(\S*)',
                     __sv_googlevideo, s)
     return s
 
