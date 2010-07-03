@@ -41,32 +41,19 @@ Optional:
 * Installation instructions
 ===========================
 
-Rename 'glifestream/settings-sample.py' to 'settings.py' and edit your
-local site configuration.
+1. Change the current working directory into the `glifestream' directory.
+2. Copy `settings-sample.py' to `settings.py' and edit your local site
+   configuration.
+3. Run `python manage.py syncdb'
+4. Run `python manage.py compilemessages'
+5. Run `./worker.py --init-files-dirs'
 
-Run 'python manage.py syncdb' and 'python manage.py compilemessages'.
+Make sure that `static/thumbs/*' and `static/upload' directories exist
+and all have write permissions by your webserver.
 
-Make sure that 'glifestream/static/thumbs' and
-'glifestream/static/upload' directories exist and both have write
-permissions by your webserver.
-
-Create subfolders (with write permissions by your webserver) in
-'glifestream/static/thumbs':
-
- $ mkdir {0..9} {a..f}
-
-Create the following files:
-
-  * glifestream/templates/user-about.html
-  * glifestream/templates/user-copyright.html
-  * glifestream/templates/user-scripts.js
-
-These files may remain empty or remove references to them from your
-templates.
-
-Use 'glifestream/worker.py' to automatically fetch external streams
+Use `glifestream/worker.py' to automatically fetch external streams
 (via cron), list available streams or remove old entries. See
-'worker.py --help'.
+`worker.py --help'.
 
 
 ** The development/test server
