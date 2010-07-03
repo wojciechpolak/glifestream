@@ -71,7 +71,8 @@ def run ():
                                      'only-inactive',
                                      'thumbs-list-orphans',
                                      'thumbs-delete-orphans',
-                                     'pshb='])
+                                     'pshb=',
+                                     'init-files-dirs'])
         for o, arg in opts:
             if o in ('-a', '--api'):
                 fs['api'] = arg
@@ -97,6 +98,8 @@ def run ():
                 thumbs = 'delete-orphans'
             elif o == '--pshb':
                 pshb_cmd = arg
+            elif o == '--init-files-dirs':
+                sys.exit (init_files_dirs ())
     except getopt.GetoptError:
         print "Usage: %s [OPTION...]" % sys.argv[0]
         print """%s -- gLifestream worker
@@ -265,6 +268,49 @@ def run ():
 
     if last2 and last1 != last2:
         pshb.publish (verbose=verbose)
+
+def init_files_dirs ():
+    """Create initial directories and files."""
+
+    upload = os.path.join (settings.MEDIA_ROOT, 'upload')
+    _create_dir (upload)
+
+    thumbs = os.path.join (settings.MEDIA_ROOT, 'thumbs')
+    _create_dir (thumbs)
+
+    for i in range (0, 10):
+        _create_dir (os.path.join (thumbs, str (i)))
+    for i in 'abcdef':
+        _create_dir (os.path.join (thumbs, i))
+
+    print """
+Make sure that 'static/thumbs/*' and 'static/upload' directories exist
+and all have write permissions by your webserver.
+"""
+
+    template_dir = settings.TEMPLATE_DIRS[0]
+    template_files = (
+        'user-about.html',
+        'user-copyright.html',
+        'user-scripts.js',
+    )
+    try:
+        for i in template_files:
+            file = os.path.join (template_dir, i)
+            if not os.path.isfile (file):
+                print "Creating empty file '%s'" % file
+                open (file, 'w').close ()
+    except Error, e:
+        print e
+        return 1
+
+    return 0
+
+def _create_dir (d, verbose=True):
+    if not os.path.isdir (d):
+        if verbose:
+            print "Creating directory '%s'" % d
+        os.mkdir (d)
 
 if __name__ == '__main__':
     run ()
