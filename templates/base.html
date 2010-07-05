@@ -9,7 +9,7 @@
   <meta name="generator" content="gLifestream">
   <meta name="robots" content="{{ page.robots }}">
   <link rel="shortcut icon" href="{{ page.favicon }}">
-  <link rel="alternate" type="application/atom+xml" title="Webfeed" href="?format=atom">
+  <link rel="alternate" type="application/atom+xml" title="Webfeed" href="{% if page.exactentry %}{% url index %}{% endif %}?format=atom">
   <link rel="stylesheet" type="text/css" href="{% static %}/themes/{% firstof page.theme "default" %}/style.css">
   <script type="text/javascript" src="{% static_hash js/jquery.js %}"></script>
   <script type="text/javascript" src="{% static_hash js/glifestream.js %}"></script>
