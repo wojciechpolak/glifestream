@@ -454,6 +454,11 @@ def api (request, **args):
                 miss['url'] = True
                 method = 'get'
 
+        # Special cases, predefined
+        if s['api'] in ('delicious', 'digg', 'greader', 'lastfm',
+                        'stumbleupon', 'yelp'):
+            s['display'] = 'both'
+
         # Save
         if method == 'post':
             try:

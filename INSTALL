@@ -45,7 +45,7 @@ Optional:
 2. Copy `settings-sample.py' to `settings.py' and edit your local site
    configuration.
 3. Run `python manage.py syncdb'
-4. Run `python manage.py compilemessages'
+4. Run `python manage.py compilemessages' (if you have `gettext' installed)
 5. Run `./worker.py --init-files-dirs'
 
 Make sure that `static/thumbs/*' and `static/upload' directories exist
