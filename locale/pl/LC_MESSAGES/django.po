@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-06-18 20:18+0200\n"
-"PO-Revision-Date: 2010-06-18 20:18+0200\n"
+"POT-Creation-Date: 2010-07-08 17:07+0200\n"
+"PO-Revision-Date: 2010-07-08 17:07+0200\n"
 "Last-Translator: Wojciech Polak <polak@gnu.org>\n"
 "Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -222,7 +222,7 @@ msgstr "URL lub nazwa użytkownika"
 msgid "Credentials"
 msgstr "Dane uwierzytelniające"
 
-#: stream/models.py:40 usettings/views.py:524
+#: stream/models.py:40 usettings/views.py:546
 msgid "Short name"
 msgstr "Skrócona nazwa"
 
@@ -238,35 +238,35 @@ msgstr "Ostatnia modyfikacja"
 msgid "Last checked"
 msgstr "Ostatnio sprawdzane"
 
-#: stream/models.py:48 usettings/views.py:590
+#: stream/models.py:48 usettings/views.py:612
 msgid "Title and Contents"
 msgstr "Tytuł i treść"
 
-#: stream/models.py:49 usettings/views.py:591
+#: stream/models.py:49 usettings/views.py:613
 msgid "Contents only"
 msgstr "Tylko treść"
 
-#: stream/models.py:50 usettings/views.py:592
+#: stream/models.py:50 usettings/views.py:614
 msgid "Title only"
 msgstr "Tylko tytuł"
 
-#: stream/models.py:52 usettings/views.py:594
+#: stream/models.py:52 usettings/views.py:616
 msgid "Display entries'"
 msgstr "Wyświetlanie wpisów"
 
-#: stream/models.py:55 templates/base.html:26 usettings/views.py:597
+#: stream/models.py:55 templates/base.html:26 usettings/views.py:619
 msgid "Public"
 msgstr "Publiczne"
 
-#: stream/models.py:56 usettings/views.py:598
+#: stream/models.py:56 usettings/views.py:620
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
 
-#: stream/models.py:57 stream/models.py:104 usettings/views.py:606
+#: stream/models.py:57 stream/models.py:104 usettings/views.py:628
 msgid "Active"
 msgstr "Aktywny"
 
-#: stream/models.py:58 usettings/views.py:607
+#: stream/models.py:58 usettings/views.py:629
 msgid "If not active, this service will not be further updated."
 msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 
@@ -274,7 +274,7 @@ msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 msgid "Home visible"
 msgstr "Widoczny na stronie głównej"
 
-#: stream/models.py:60 usettings/views.py:602
+#: stream/models.py:60 usettings/views.py:624
 msgid ""
 "If unchecked, this stream will be still active, but hidden and thus visible "
 "only via custom lists."
@@ -376,7 +376,7 @@ msgstr "Media"
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:147 stream/views.py:117
+#: stream/models.py:147 stream/views.py:118
 msgid "Favorites"
 msgstr "Ulubione"
 
@@ -397,31 +397,31 @@ msgstr "Lista"
 msgid "Lists"
 msgstr "Listy"
 
-#: stream/views.py:97
+#: stream/views.py:98
 #, python-format
 msgid "You are currently browsing the archive for %s"
 msgstr "Aktualnie przeglądasz archiwum dla %s"
 
-#: stream/views.py:118
+#: stream/views.py:119
 msgid "You are currently browsing your favorite entries"
 msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
 
-#: stream/views.py:129
+#: stream/views.py:131
 #, python-format
 msgid "You are currently browsing entries from %s list only."
 msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
 
-#: stream/views.py:150
+#: stream/views.py:155
 #, python-format
 msgid "You are currently browsing %s entries only."
 msgstr "Aktualnie przeglądasz tylko %s."
 
-#: stream/views.py:169
+#: stream/views.py:174
 #, python-format
 msgid "You are currently browsing entries from %s service only."
 msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
 
-#: stream/views.py:205
+#: stream/views.py:210
 #, python-format
 msgid "Your search for %s returned the following results."
 msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
@@ -468,7 +468,7 @@ msgstr[0] "%(count)d minutę temu"
 msgstr[1] "%(count)d minuty temu"
 msgstr[2] "%(count)d minut temu"
 
-#: templates/base.html:24 templates/base.html.py:31
+#: templates/base.html:24 templates/base.html.py:30
 msgid "Hello"
 msgstr "Witaj"
 
@@ -476,7 +476,7 @@ msgstr "Witaj"
 msgid "My private stream"
 msgstr "Mój prywatny strumień"
 
-#: templates/base.html:25 usettings/views.py:601
+#: templates/base.html:25 usettings/views.py:623
 msgid "Home"
 msgstr "Strona główna"
 
@@ -485,35 +485,31 @@ msgid "My publicly visible stream"
 msgstr "Mój publicznie widziany strumień"
 
 #: templates/base.html:27
-msgid "Tools"
-msgstr "Narzędzia"
-
-#: templates/base.html:28
 msgid "Settings"
 msgstr "Ustawienia"
 
-#: templates/base.html:29 templates/base.html.py:33
+#: templates/base.html:28 templates/base.html.py:32
 msgid "Logout"
 msgstr "Wyloguj"
 
-#: templates/base.html:35
+#: templates/base.html:34
 msgid "Login"
 msgstr "Zaloguj"
 
-#: templates/base.html:39
+#: templates/base.html:38
 msgid "The Stream"
 msgstr "Strumień"
 
-#: templates/base.html:47
+#: templates/base.html:46
 msgid "Powered by"
 msgstr "Zasilanie"
 
-#: templates/base.html:47
+#: templates/base.html:46
 msgid "A free and open source lifestream platform and social activity reader"
 msgstr ""
 "Wolna i otwarta platforma lifestream oraz czytnik aktywności społecznej"
 
-#: templates/base.html:48
+#: templates/base.html:47
 msgid "Change theme"
 msgstr "Zmień motyw"
 
@@ -602,7 +598,7 @@ msgstr "Przetłumacz"
 msgid "Edit"
 msgstr "Edytuj"
 
-#: templates/stream-pure.html:45 templates/tools.html:7
+#: templates/stream-pure.html:45 usettings/templates/tools.html:6
 msgid "Share"
 msgstr "Podziel się"
 
@@ -664,10 +660,6 @@ msgstr "poprzednia strona"
 msgid "next page"
 msgstr "następna strona"
 
-#: templates/tools.html:6
-msgid "Bookmarklet:"
-msgstr "Skryptozakładka:"
-
 #: usettings/views.py:53
 msgid "Services - Settings"
 msgstr "Serwisy - Ustawienia"
@@ -707,84 +699,88 @@ msgstr "Hub %s: Wypisano."
 msgid "OpenID - Settings"
 msgstr "OpenID - Ustawienia"
 
-#: usettings/views.py:231
+#: usettings/views.py:231 usettings/templates/settings.html:11
+msgid "Tools"
+msgstr "Narzędzia"
+
+#: usettings/views.py:248
 msgid "OAuth - Settings"
 msgstr "OAuth - Ustawienia"
 
-#: usettings/views.py:511 usettings/templates/lists.html:25
+#: usettings/views.py:533 usettings/templates/lists.html:25
 #: usettings/templates/oid.html:9
 msgid "delete"
 msgstr "skasuj"
 
-#: usettings/views.py:527
+#: usettings/views.py:549
 msgid "Class name"
 msgstr "Klasa:"
 
-#: usettings/views.py:528
+#: usettings/views.py:550
 msgid "Any name for the service classification; a category."
 msgstr "Dowolna nazwa, służąca klasyfikacji serwisu; kategoria."
 
-#: usettings/views.py:533
+#: usettings/views.py:555
 msgid "URL"
 msgstr "URL"
 
-#: usettings/views.py:539
+#: usettings/views.py:561
 msgid "User timeline"
 msgstr "Strona użytkownika"
 
-#: usettings/views.py:540
+#: usettings/views.py:562
 msgid "Home timeline"
 msgstr "Strona główna"
 
-#: usettings/views.py:541
+#: usettings/views.py:563
 msgid "Timeline"
 msgstr ""
 
-#: usettings/views.py:543 usettings/views.py:548
+#: usettings/views.py:565 usettings/views.py:570
 msgid "ID/Username"
 msgstr "ID/Nazwa użytkownika"
 
-#: usettings/views.py:563 usettings/templates/oid.html:7
+#: usettings/views.py:585 usettings/templates/oid.html:7
 msgid "none"
 msgstr "brak"
 
-#: usettings/views.py:564
+#: usettings/views.py:586
 msgid "Basic"
 msgstr "Basic"
 
-#: usettings/views.py:565
+#: usettings/views.py:587
 msgid "OAuth"
 msgstr "OAuth"
 
-#: usettings/views.py:566
+#: usettings/views.py:588
 msgid "Authorization"
 msgstr "Autoryzacja"
 
-#: usettings/views.py:570
+#: usettings/views.py:592
 msgid "configure access"
 msgstr "konfiguracja dostępu"
 
-#: usettings/views.py:576
+#: usettings/views.py:598
 msgid "Basic username"
 msgstr "Użytkownik"
 
-#: usettings/views.py:579
+#: usettings/views.py:601
 msgid "Basic password"
 msgstr "Hasło"
 
-#: usettings/views.py:585
+#: usettings/views.py:607
 msgid "Access token"
 msgstr "Access token"
 
-#: usettings/views.py:586
+#: usettings/views.py:608
 msgid "get"
 msgstr "pobierz"
 
-#: usettings/views.py:613 usettings/templates/lists.html:23
+#: usettings/views.py:635 usettings/templates/lists.html:23
 msgid "Save"
 msgstr "Zapisz"
 
-#: usettings/views.py:614 usettings/templates/lists.html:24
+#: usettings/views.py:636 usettings/templates/lists.html:24
 msgid "Cancel"
 msgstr "Anuluj"
 
@@ -904,3 +900,7 @@ msgstr "Wyeksportuj OPML"
 #: usettings/templates/settings.html:9
 msgid "PubSubHub"
 msgstr "PubSubHub"
+
+#: usettings/templates/tools.html:5
+msgid "Bookmarklet"
+msgstr "Skryptozakładka"

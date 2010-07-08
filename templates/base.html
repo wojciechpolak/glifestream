@@ -24,7 +24,6 @@
     <span class="text">{% trans "Hello" %} <b>{{ user.email }}</b></span> |
     <a href="{% url index %}" title="{% trans "My private stream" %}">{% trans "Home" %}</a> |
     <a href="{% url public %}" title="{% trans "My publicly visible stream" %}" accesskey="2">{% trans "Public" %}</a> |
-    <a href="{% url tools %}">{% trans "Tools" %}</a> |
     {% if user.is_staff %}<a href="{% url settings %}">{% trans "Settings" %}</a> |{% endif %}
     <a href="{% url django.contrib.auth.views.logout %}">{% trans "Logout" %}</a>
     {% else %}

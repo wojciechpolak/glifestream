@@ -27,5 +27,6 @@ urlpatterns = patterns ('',
     (r'lists/(?P<list>[a-z0-9\-]+)$', views.lists),
     (r'pshb$', views.pshb),
     (r'openid$', views.openid),
+    (r'tools$', views.tools),
     (r'oauth/(?P<id>[0-9]+)$', views.oauth),
 )

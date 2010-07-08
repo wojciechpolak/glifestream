@@ -219,6 +219,23 @@ def openid (request, **args):
                                              'openids': ids })
 
 @login_required
+def tools (request, **args):
+    authed = request.user.is_authenticated () and request.user.is_staff
+    page = {
+        'robots': 'noindex',
+        'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
+        'themes': settings.THEMES,
+        'themes_more': True if len (settings.THEMES) > 1 else False,
+        'theme': common.get_theme (request),
+        'title': _('Tools'),
+        'menu': 'tools',
+    }
+    return render_to_response ('tools.html',{ 'page': page, 'authed': authed,
+                                              'is_secure': request.is_secure (),
+                                              'user': request.user })
+
+@login_required
 def oauth (request, **args):
     authed = request.user.is_authenticated () and request.user.is_staff
     if not authed:
