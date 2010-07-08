@@ -432,19 +432,6 @@ def pshb_dispatcher (request, **args):
         return HttpResponse ()
     raise Http404
 
-@login_required
-def tools (request, **args):
-    authed = request.user.is_authenticated () and request.user.is_staff
-    page = {
-        'robots': 'noindex',
-        'base_url': settings.BASE_URL,
-        'favicon': settings.FAVICON,
-        'theme': common.get_theme (request),
-    }
-    return render_to_response ('tools.html',{ 'page': page, 'authed': authed,
-                                              'is_secure': request.is_secure (),
-                                              'user': request.user })
-
 def page_not_found (request, **args):
     from django.template import RequestContext, loader
     page = {

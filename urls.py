@@ -53,7 +53,6 @@ urlpatterns = patterns ('',
     (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index),
 
     (r'^pshb/(?P<id>[a-f0-9]{20})$', sv.pshb_dispatcher, {}, 'pshb'),
-    (r'^tools/$', sv.tools, {}, 'tools'),
 
     (r'^login/?$', 'glifestream.gauth.views.login'),
     (r'^logout/?$', 'django.contrib.auth.views.logout',
