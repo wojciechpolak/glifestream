@@ -738,10 +738,12 @@
 	get_service_form ({method: 'get', api:this.className}, '#add-service');
 	return false;
       });
-    $('#edit-service a').click (function () {
-	show_spinner (this);
-	get_service_form ({method: 'get', id: parse_id (this.id)[1]}, this);
-	return false;
+    $('#edit-service a').live ('click', function () {
+	if (this.id && this.id.indexOf ('service-') == 0) {
+	  show_spinner (this);
+	  get_service_form ({method: 'get', id: parse_id (this.id)[1]}, this);
+	  return false;
+	}
       });
     $('#select-list').change (function () {
 	if (this.value != '')
@@ -940,6 +942,10 @@
       fs.append (row);
 
       if (data['need_import']) {
+	$('#edit-service').prepend ('<li><span class="service ' + data.api +
+				    '"></span><a class="' + data.api +
+				    '" id="service-' + data.id +
+				    '" href="#">' + data.name + '</a></li>');
 	$.post (baseurl + 'settings/api/import', {id: data.id});
       }
     }
