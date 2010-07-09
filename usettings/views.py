@@ -24,6 +24,7 @@ from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.forms import ModelForm
 from django.utils.translation import ugettext as _
+from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service, List
 from glifestream.gauth import gls_oauth, gls_openid
 from glifestream.gauth.models import OpenId
@@ -37,6 +38,7 @@ except ImportError:
     import simplejson as json
 
 @login_required
+@never_cache
 def services (request, **args):
     authed = request.user.is_authenticated () and request.user.is_staff
     if not authed:
