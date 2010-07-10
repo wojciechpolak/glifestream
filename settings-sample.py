@@ -26,6 +26,7 @@ USE_I18N = True
 SESSION_COOKIE_NAME = 'glifestream_sid'
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
+# Caching, see http://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
 CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
