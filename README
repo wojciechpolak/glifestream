@@ -48,6 +48,7 @@ APIs support.
 - Friends-only entries (via Facebook Connect)
 - PubSubHubbub support (publisher and subscriber)
 - OAuth and OpenID support
+- Write posts by web or e-mail (including media attachments)
 - Keyboard shortcuts for navigation
 - Customizable themes
 - Bookmarklet for easy webpage sharing

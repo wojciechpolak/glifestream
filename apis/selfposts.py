@@ -70,6 +70,7 @@ class API:
         if user and user.first_name and user.last_name:
             e.author_name = user.first_name +' '+ user.last_name
 
+        content = smart_unicode (content)
         if markdown and source != 'bookmarklet':
             e.content = expand.all (markdown.markdown (content))
         else:
@@ -89,7 +90,7 @@ class API:
             e.content += thumbs
 
         if title:
-            e.title = title
+            e.title = smart_unicode (title)
         else:
             e.title = truncate.smart (strip_tags (e.content)).strip ()
         if e.title == '':
