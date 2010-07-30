@@ -72,6 +72,7 @@ def run ():
                                      'thumbs-list-orphans',
                                      'thumbs-delete-orphans',
                                      'pshb=',
+                                     'email2post',
                                      'init-files-dirs'])
         for o, arg in opts:
             if o in ('-a', '--api'):
@@ -98,6 +99,8 @@ def run ():
                 thumbs = 'delete-orphans'
             elif o == '--pshb':
                 pshb_cmd = arg
+            elif o == '--email2post':
+                sys.exit (email2post ())
             elif o == '--init-files-dirs':
                 sys.exit (init_files_dirs ())
     except getopt.GetoptError:
@@ -115,6 +118,7 @@ def run ():
       --thumbs-list-orphans    List orphaned thumbnails
       --thumbs-delete-orphans  Delete orphaned thumbnails
       --pshb=ACTION            PubSubHubbub's actions: (un)subscribe, list
+      --email2post             Post things using e-mail (from stdin)
   """ % sys.argv[0]
         sys.exit (0)
 
@@ -268,6 +272,11 @@ def run ():
 
     if last2 and last1 != last2:
         pshb.publish (verbose=verbose)
+
+def email2post ():
+    from glifestream.apis import mail
+    api = mail.API ()
+    return api.share (sys.stdin)
 
 def init_files_dirs ():
     """Create initial directories and files."""

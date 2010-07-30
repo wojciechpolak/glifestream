@@ -23,6 +23,7 @@ __all__ = (
     'greader',
     'identica',
     'lastfm',
+    'mail',
     'picasaweb',
     'selfposts',
     'stumbleupon',
