@@ -202,10 +202,8 @@ def __sa_ogg (m):
 
 def __sa_thesixtyone (m):
     link     = m.group (0)
-    artist   = m.group (1)
-    songname = urllib.unquote_plus (m.group (2))
-    songid   = m.group (3)
-    return '<span id="thesixtyone-%s-%s" class="play-audio"><a href="%s" rel="nofollow">%s</a></span>' % (artist, songid, link, songname)
+    songid   = m.group (1)
+    return '<span id="thesixtyone-art-%s" class="play-audio"><a href="%s" rel="nofollow">%s</a></span>' % (songid, link, link)
 
 def __sa_saynow (m):
     link = m.group (0)
@@ -217,8 +215,8 @@ def audiolinks (s):
     if '.ogg' in s:
         s = re.sub (r'<a href="(https?://[\w\.\-\+/=%~]+\.ogg)">(.*?)</a>', __sa_ogg, s)
     if 'http://www.thesixtyone.com/' in s:
-        # Scheme: http://www.thesixtyone.com/ARTIST/song/SONGNAME/SONGID/
-        s = re.sub (r'http://www.thesixtyone.com/(.+)/song/(.+)/(\w+)/', __sa_thesixtyone, s)
+        # Scheme: http://www.thesixtyone.com/s/SONGID/
+        s = re.sub (r'http://www.thesixtyone.com/s/(\w+)/', __sa_thesixtyone, s)
     if 'http://www.saynow.com/playMsg.html?ak=' in s:
         s = re.sub (r'http://www.saynow.com/playMsg.html\?ak=(\w+)', __sa_saynow, s)
     return s
