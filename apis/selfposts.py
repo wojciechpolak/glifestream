@@ -71,7 +71,12 @@ class API:
             e.author_name = user.first_name +' '+ user.last_name
 
         content = smart_unicode (content)
-        if markdown and source != 'bookmarklet':
+
+        editor_syntax = getattr (settings, 'EDITOR_SYNTAX', 'markdown')
+        if source == 'bookmarklet':
+            editor_syntax = 'html'
+
+        if editor_syntax == 'markdown' and markdown:
             e.content = expand.all (markdown.markdown (content))
         else:
             e.content = expand.all (content.replace ('\n', '<br/>'))
