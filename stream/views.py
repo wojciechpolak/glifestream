@@ -60,7 +60,6 @@ def index (request, **args):
         'taguri': settings.FEED_TAGURI,
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
-        'maps_key': settings.MAPS_KEY,
         'fb_app_id': settings.FACEBOOK_APP_ID,
         'pshb_hubs': settings.PSHB_HUBS,
     }

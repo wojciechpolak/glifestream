@@ -63,7 +63,6 @@ $(document).ready (function () {
 var settings = {
   baseurl: '{% url index %}',
   maps_engine: '{{ page.maps_engine }}',
-  maps_key: '{{ page.maps_key }}',
   themes: [{% for theme in page.themes %}'{{ theme }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
 };
 {% include "i18n.html" %}</script>

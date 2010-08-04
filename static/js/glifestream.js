@@ -375,7 +375,7 @@
 
   function get_map_embed (lat, lng) {
     if (settings.maps_engine == 'google') {
-      return '<img src="http://maps.google.com/staticmap?zoom=12&size=175x120&maptype=mobile&markers='+ lat +','+ lng +'&key='+ settings.maps_key +'" alt="Map" width="175" height="120" />';
+      return '<img src="http://maps.google.com/maps/api/staticmap?sensor=false&zoom=12&size=175x120&markers='+ lat +','+ lng +'" alt="Map" width="175" height="120" />';
     }
     return '';
   }
