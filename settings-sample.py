@@ -110,10 +110,8 @@ FEED_AUTHOR_NAME = 'YOUR NAME'
 FEED_TAGURI = 'tag:SITE-ID,YEAR:ID'
 FEED_ICON   = 'http://URL-TO-ICON'
 
-# Sign up for the Google Maps API at
-# http://code.google.com/apis/maps/signup.html
+# Embedded maps
 MAPS_ENGINE = 'google'
-MAPS_KEY = 'YOUR-GOOGLE-MAP-KEY'
 
 # Search functionality
 SEARCH_ENABLE = True
