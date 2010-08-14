@@ -164,6 +164,15 @@ index glifestream
 ...
 
 
+** Receive postings via e-mail
+------------------------------
+
+To allow for posts sent by e-mail, create a secret mail alias,
+by extending /etc/mail/aliases file:
+
+gls.secret.address: "|/usr/local/django/glifestream/worker.py --email2post"
+
+
 
 Local Variables:
 mode: outline
