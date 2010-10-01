@@ -52,8 +52,8 @@ def __sp_twitpic (m):
                             (m.group (2), m.group (3)), downscale=True)
     return __gen_tai (m.group (0), url)
 
-def __sp_tweetphoto (m):
-    url = media.save_image ('http://tweetphotoapi.com/api/TPAPI.svc/imagefromurl?size=medium&url=http://tweetphoto.com/%s' %
+def __sp_plixi (m):
+    url = media.save_image ('http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=http://plixi.com/p/%s' %
                             (m.group (1)), downscale=True)
     return __gen_tai (m.group (0), url)
 
@@ -82,7 +82,7 @@ def __sp_imgloc (m):
 def shortpics (s):
     """Expand short picture-URLs."""
     s = re.sub (r'http://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
-    s = re.sub (r'http://tweetphoto\.com/(\d+)', __sp_tweetphoto, s)
+    s = re.sub (r'http://plixi\.com/p/(\d+)', __sp_plixi, s)
     s = re.sub (r'http://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub (r'http://(www\.)?brizzly\.com/pic/(\w+)', __sp_brizzly, s)
     s = re.sub (r'http://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
