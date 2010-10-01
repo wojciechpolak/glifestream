@@ -1144,8 +1144,9 @@
 	href = 'http://twitpic.com/show/full/' + RegExp.$1;
 	type = 'image';
       }
-      else if (href.match (/tweetphoto\.com\/(\d+)/)) {
-	href = 'http://tweetphotoapi.com/api/TPAPI.svc/imagefromurl?size=big&url=http://tweetphoto.com/' + RegExp.$1;
+      else if (href.match (/plixi\.com\/p\/(\d+)/) ||
+	       href.match (/tweetphoto\.com\/(\d+)/)) {
+	href = 'http://api.plixi.com/api/tpapi.svc/imagefromurl?size=big&url=http://plixi.com/p/' + RegExp.$1;
 	type = 'image';
       }
       else if (href.match (/yfrog\.com\/(\w+)/)) {
