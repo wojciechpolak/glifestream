@@ -35,9 +35,9 @@ def __su_subs (m):
 
 def shorturls (text):
     """Expand short URLs."""
-    return re.sub (r'http://(tinyurl\.com|bit\.ly|goo\.gl|url4\.eu|is\.gd' \
+    return re.sub (r'http://(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd' \
                    '|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd' \
-                   '|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp' \
+                   '|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu' \
                    ')(/\w+)', __su_subs, smart_unicode (text))
 
 #
