@@ -106,9 +106,9 @@ def __sv_youtube (m):
     ltag   = rest.find ('<') if rest else -1
     rest   = rest[ltag:] if ltag != -1 else ''
     link   = 'http://www.youtube.com/watch?v=%s' % id
-    imgurl = 'http://i.ytimg.com/vi/%s/default.jpg' % id
-    imgurl = media.save_image (imgurl)
-    return '<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="120" height="90" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
+    imgurl = 'http://i.ytimg.com/vi/%s/hqdefault.jpg' % id
+    imgurl = media.save_image (imgurl, downscale=True, size=(200, 150))
+    return '<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 def __sv_vimeo (m):
     from glifestream.apis import vimeo

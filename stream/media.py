@@ -52,7 +52,8 @@ def get_thumb_info (hash):
              'rel': 'thumbs/%s%s' % (prefix, hash),
              'internal': '[GLS-THUMBS]/%s' % hash, }
 
-def save_image (url, direct_image=True, force=False, downscale=False):
+def save_image (url, direct_image=True, force=False, downscale=False,
+                size=None):
     if settings.BASE_URL in url:
         return url
     thumb = get_thumb_info (hashlib.sha1 (url).hexdigest ())
@@ -76,17 +77,17 @@ def save_image (url, direct_image=True, force=False, downscale=False):
                         os.remove (tmp)
                         return url
             if downscale:
-                downscale_image (tmp)
+                downscale_image (tmp, size=size)
             shutil.move (tmp, thumb['local'])
         except:
             if not stale:
                 return url
     return thumb['internal']
 
-def downscale_image (filename):
+def downscale_image (filename, size=None):
     if not Image:
         return
-    size = 400, 175
+    size = size or (400, 175)
     try:
         im = Image.open (filename)
         w, h = im.size
