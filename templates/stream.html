@@ -33,7 +33,7 @@
     </div>
     {% if has_search %}<div class="search">
       <form name="searchform" action="{% ifequal page.ctx "public" %}{% url public %}{% else %}{% url index %}{% endifequal %}" method="get">
-	<input type="text" name="s" value="{{ page.search }}" maxlength="64" /><span id="search-submit" title="{% trans "Search" %}"></span>
+	<input type="search" name="s" value="{{ page.search }}" maxlength="64" placeholder="{% trans "Search this site" %}" /><span id="search-submit" title="{% trans "Search" %}"></span>
       </form>
     </div>{% endif %}
   </nav>

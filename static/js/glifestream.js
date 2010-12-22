@@ -698,14 +698,14 @@
 
       $('form[name=searchform]').submit (function () {
 	  var s = $('input[name=s]').get (0);
-	  if (s && s.value != '' && s.value != s.DEFAULT_SEARCHVAL)
+	  if (s && s.value != '' && s.value != s.PLACEHOLDER)
 	    return true;
 	  return false;
 	});
       $('#search-submit').click (function () {
 	  $('form[name=searchform]').submit ();
 	});
-      set_default_search ($('input[name=s]').get(0), _('Search this site'));
+      set_placeholder ($('input[placeholder]'));
 
       $('#ashare').click (open_sharing);
       $('#expand-sharing').click (open_more_sharing_options);
@@ -1286,29 +1286,28 @@
   }
 
   function focus_search () {
-    if (this.value == this.DEFAULT_SEARCHVAL) {
-      this.value = '';
-      this.className = 'focus';
-    }
+    if (this.value == this.PLACEHOLDER)
+      $(this).val ('').removeClass ('blur');
   }
 
   function blur_search () {
-    if (this.value == '') {
-      this.value = this.DEFAULT_SEARCHVAL;
-      this.className = '';
-    }
+    if (this.value == '')
+      $(this).val (this.PLACEHOLDER).addClass ('blur');
   }
 
-  function set_default_search (input, defval) {
-    if (!input || !defval) return;
-    input.DEFAULT_SEARCHVAL = defval;
-    input.autocomplete = 'off';
-    input.onfocus = focus_search;
-    input.onblur  = blur_search;
-    if (input.value == '')
-      input.value = input.DEFAULT_SEARCHVAL;
-    else if (input.value != input.DEFAULT_SEARCHVAL)
-      input.className = 'focus';
+  function set_placeholder (inputs, defval) {
+    var has = 'placeholder' in document.createElement ('input');
+    for (var i = 0; i < inputs.length; i++) {
+      var input = inputs[i];
+      input.PLACEHOLDER = defval || input.getAttribute ('placeholder');
+      if (!has) {
+	input.autocomplete = 'off';
+	input.onfocus = focus_search;
+	input.onblur  = blur_search;
+	if (input.value == '' || input.value == input.PLACEHOLDER)
+	  $(input).val (input.PLACEHOLDER).addClass ('blur');
+      }
+    }
   }
 
   function pad (number, len) {
