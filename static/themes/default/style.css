@@ -42,7 +42,10 @@ h2, h3, h4, h5, h6 {
   font-weight: bold;
 }
 
-input[type="text"], input[type="password"], textarea {
+input[type="text"],
+input[type="password"],
+input[type="search"],
+textarea {
   font-family: Arial;
   padding: 2px;
   background-color: white;
@@ -51,8 +54,16 @@ input[type="text"], input[type="password"], textarea {
   -moz-border-radius: 4px;
   -webkit-border-radius: 4px;
 }
-input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="search"]:focus,
+textarea:focus {
   border: 1px solid #3f5061;
+}
+
+input[type="search"] {
+  -webkit-appearance: textfield;
+  outline: none;
 }
 
 .tb {
@@ -123,14 +134,14 @@ input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
 #sidebar .search input[name="s"] {
   font-size: 85%;
   width: 75%;
-  color: #999999;
+  color: black;
   border-radius: 4px 0 0 4px;
   -moz-border-radius: 4px 0 0 4px;
   -webkit-border-radius: 4px;
   -webkit-border-top-right-radius: 0;
   -webkit-border-bottom-right-radius: 0;
 }
-#sidebar .search input[name="s"].focus { color: black; }
+input[placeholder].blur { color: #999999 !important; }
 
 #search-submit {
   font-family: Arial;
