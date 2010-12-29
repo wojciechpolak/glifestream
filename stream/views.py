@@ -479,7 +479,7 @@ def api (request, **args):
         source = request.POST.get ('from', '')
         entry = selfposts.API (False).share (
             { 'content': request.POST.get ('content', ''),
-              'id': request.POST.get ('id', None),
+              'sid': request.POST.get ('sid', None),
               'draft': request.POST.get ('draft', False),
               'friends_only': request.POST.get ('friends_only', False),
               'link': request.POST.get ('link', None),

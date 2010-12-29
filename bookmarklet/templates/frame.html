@@ -51,7 +51,7 @@ div.content { margin-right: 6px; padding-top: 5px; padding-bottom: 5px; }
 	  <tr>
 	    <td class="smaller">{% trans "Click on images to share them." %}</td>
 	    <td style="text-align:right; padding-left:5px;">
-	      {% trans "Class:" %} <select name="id">
+	      {% trans "Class:" %} <select name="sid">
 {% for srv in srvs %}		<option value="{{ srv.id }}">{{ srv.cls }}</option>
 {% endfor %}
 	      </select>
