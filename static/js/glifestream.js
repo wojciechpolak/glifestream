@@ -357,7 +357,7 @@
     var status = $('#status');
     if ($.trim (status.val ()) != '') {
       show_spinner (this);
-      $.post (baseurl + 'api/share', { id: $('#status-class').val (),
+      $.post (baseurl + 'api/share', { sid: $('#status-class').val (),
 	    content: status.val (),
 	    draft: $('#draft').attr ('checked') ? 1 : 0,
 	    friends_only: $('#friends-only').attr ('checked') ? 1 : 0 },

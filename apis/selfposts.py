@@ -32,7 +32,7 @@ except ImportError:
 class API:
     name = 'Selfposts API'
 
-    def __init__ (self, service, verbose = 0, force_overwrite = False):
+    def __init__ (self, service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
 
@@ -44,7 +44,7 @@ class API:
 
     def share (self, args={}):
         content = args.get ('content', '')
-        id      = args.get ('id', None)
+        sid     = args.get ('sid', None)
         title   = args.get ('title', None)
         link    = args.get ('link', None)
         images  = args.get ('images', None)
@@ -55,8 +55,8 @@ class API:
         un = utcnow ()
         guid = '%s/entry/%s' % (settings.FEED_TAGURI,
                                 un.strftime ('%Y-%m-%dT%H:%M:%SZ'))
-        if id:
-            s = Service.objects.get (id=id, api='selfposts')
+        if sid:
+            s = Service.objects.get (id=sid, api='selfposts')
         else:
             s = Service.objects.filter (api='selfposts').order_by ('id')[0]
         e = Entry (service=s, guid=guid)
@@ -171,15 +171,15 @@ class API:
             pass
 
     def reshare (self, entry, args={}):
-        id    = args.get ('id', None)
+        sid   = args.get ('sid', None)
         as_me = int (args.get ('as_me', False))
         user  = args.get ('user', None)
 
         un = utcnow ()
         guid = '%s/entry/%s' % (settings.FEED_TAGURI,
                                 un.strftime ('%Y-%m-%dT%H:%M:%SZ'))
-        if id:
-            s = Service.objects.get (id=id, api='selfposts')
+        if sid:
+            s = Service.objects.get (id=sid, api='selfposts')
         else:
             s = Service.objects.filter (api='selfposts').order_by ('id')[0]
         e = Entry (service=s, guid=guid)
