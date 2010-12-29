@@ -11,17 +11,22 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-DATABASE_ENGINE   = 'mysql'
-DATABASE_NAME     = 'glifestream'
-DATABASE_USER     = 'USER'
-DATABASE_PASSWORD = 'PASS'
-DATABASE_HOST     = ''
-DATABASE_PORT     = ''
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'glifestream',
+        'USER': 'user',
+        'PASSWORD': 'pass',
+        'HOST': '',
+        'PORT': '',
+    }
+}
 
 TIME_ZONE = 'Europe/Warsaw'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 USE_I18N = True
+USE_L10N = False
 
 SESSION_COOKIE_NAME = 'glifestream_sid'
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
