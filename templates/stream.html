@@ -48,9 +48,10 @@
     <div class="fieldset" style="display:none">
       <h3><label for="status">{% trans "What's up?" %}</label></h3>
       <div class="editor">
-	<textarea id="status" name="content" cols="40" rows="2" accesskey="u" autocomplete="off"></textarea>
-	<div>{% trans "Class:" %} <select id="status-class" name="sid"></select>
-	  <input id="post" type="submit" value="{% trans "Post" %}">
+	<textarea id="status" name="content" cols="40" rows="4" accesskey="u" autocomplete="off"></textarea>
+	<div style="margin-top:1px">
+	  {% trans "Class:" %} <select id="status-class" name="sid"></select>
+	  <input id="post" type="submit" value="{% trans "Post" %}" />
 	  <a href="#" id="expand-sharing">{% trans "more options" %}</a>
 	  <div id="more-sharing-options" style="display:none">
 	    <p>
