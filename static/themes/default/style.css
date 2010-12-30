@@ -295,6 +295,22 @@ p.subtitle a:hover { text-decoration: none; }
   margin-bottom: 3px;
 }
 
+#entry-editor {
+  margin: 10px 0 0 60px;
+  line-height: 140%;
+  padding: 5px;
+  border: none;
+  background-color: whitesmoke;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
+#entry-editor textarea {
+  font-size: smaller;
+  width: 95%;
+  height: 100px;
+}
+
 .services {
   padding: 0 0 1em 0;
   margin: 0 0 1em 0;
