@@ -246,6 +246,40 @@
       });
   }
 
+  function edit_entry (e) {
+    if (e) e.preventDefault ();
+    var that = this;
+    var id = this.id.split ('-')[1];
+    show_spinner ($M (this));
+    $.post (baseurl + 'api/getcontent', {entry: id, raw: 1}, function (html) {
+	hide_spinner ();
+	var ec = $(that).closest ('article').find ('.entry-content');
+	var editor = $('#entry-editor');
+	$('#edited-content').val (html);
+	ec.after (editor);
+	editor.fadeIn ('normal', function () {
+	    scroll_to_element (editor, 400);
+	  });
+    });
+  }
+
+  function editor_handler (e) {
+    var op = this.getAttribute ('name');
+    if (op == 'cancel')
+      $('#entry-editor').fadeOut ();
+    else if (op == 'save') {
+      show_spinner (this);
+      var article = $(this).closest ('article').get (0);
+      var id = parse_id (article.id)[1];
+      $.post (baseurl + 'api/putcontent',
+	      { entry: id, content: $('#edited-content').val () },
+	      function (html) {
+		hide_spinner ();
+		$('#entry-'+ id +' .entry-content').html (html);
+	      });
+    }
+  }
+
   function change_theme () {
     var cookie_name = 'glifestream_theme';
     var cs = read_cookie (cookie_name);
@@ -657,6 +691,7 @@
       $('a.favorite-control', stream).live ('click', favorite_entry);
       $('a.hide-control', stream).live ('click', hide_entry);
       $('a.translate-control', stream).live ('click', translate_entry);
+      $('a.edit-control', stream).live ('click', edit_entry);
       $('a.shareit', stream).live ('click', shareit_entry);
       $('a.map', stream).each (render_map);
       $('a.show-map', stream).live ('click', show_map);
@@ -669,6 +704,7 @@
 	  if (this.value != '')
 	    window.location = baseurl + 'list/' + this.value + '/';
 	});
+      $('#entry-editor input[type=button]').live ('click', editor_handler);
 
       gen_archive_calendar ();
       $('#calendar a.prev').live ('click', function () {
@@ -692,7 +728,7 @@
 	  this.title = _('Click and Listen');
 	});
 
-      $('#status, form input[type=text]').
+      $('#status, #edited-content, form input[type=search]').
 	focus (function () { document.onkeypress = null; }).
 	blur (function () { document.onkeypress = kshortcuts; });
 

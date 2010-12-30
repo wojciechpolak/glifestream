@@ -69,6 +69,13 @@
     </div>
   </form>
 </aside>
+<aside id="entry-editor" style="display:none">
+  <textarea id="edited-content" cols="50" rows="4"></textarea>
+  <div>
+    <input type="button" name="save" value="{% trans 'Save' %}" />
+    <input type="button" name="cancel" value="{% trans 'Cancel' %}" />
+  </div>
+</aside>
 {% endif %}
 <section id="stream" class="hfeed">
 {% if page.subtitle %}

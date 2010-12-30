@@ -552,8 +552,25 @@ def api (request, **args):
                 else:
                     entry = Entry.objects.get (id=int(entry))
                 if entry:
+                    if request.POST.get('raw', False) and authed:
+                        return HttpResponse (entry.content)
+
                     if authed or friend:
                         entry.friends_only = False
+                    content = fix_ampersands (gls_content ('', entry))
+                    return HttpResponse (content)
+        except Exception:
+            pass
+
+    elif cmd == 'putcontent':
+        try:
+            if entry and authed:
+                content = request.POST.get ('content', '')
+                if content:
+                    Entry.objects.filter (id=int(entry)).update (
+                        content=content)
+                entry = Entry.objects.get (id=int(entry))
+                if entry:
                     content = fix_ampersands (gls_content ('', entry))
                     return HttpResponse (content)
         except Exception:

@@ -39,7 +39,8 @@
 	{% endif %}
         <li><a id="hide-{{ entry.id }}" class="hide-control" href="#">{% trans "Hide" %}</a></li>
 	<li><a id="translate-{{ entry.id }}" class="translate-control" href="#">{% trans "Translate" %}</a></li>
-	<li><a href="{% url admin:index %}stream/entry/{{ entry.id }}">{% trans "Edit" %}</a></li>
+	<li><a id="edit-{{ entry.id }}" class="edit-control" href="#">{% trans "Edit" %}</a></li>
+	<li><a href="{% url admin:index %}stream/entry/{{ entry.id }}" target="_blank">{% trans "Admin" %}</a></li>
       </ul>
       {% endif %}
       {% if not entry.friends_only %}<a href="#" id="shareit-{{ entry.id }}" class="shareit{% if authed %} reshareit{% endif %}" title="{% trans "Share or bookmark this entry" %}"><span>{% trans "Share" %}</span></a>{% endif %}
