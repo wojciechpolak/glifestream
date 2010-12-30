@@ -306,6 +306,7 @@ p.subtitle a:hover { text-decoration: none; }
   -webkit-border-radius: 4px;
 }
 #entry-editor textarea {
+  font-family: monospace;
   font-size: smaller;
   width: 95%;
   height: 100px;
