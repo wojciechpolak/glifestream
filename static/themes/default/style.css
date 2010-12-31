@@ -607,6 +607,22 @@ ul.files {
   padding: 2px;
   float: left;
 }
+#shareitbox .item span {
+  display: block;
+  float: left;
+  width: 16px;
+  height: 16px;
+}
+#shareitbox .share-gbuzz { background: transparent url(master-share.png) no-repeat 0 0; }
+#shareitbox .share-delicious { background: transparent url(master-share.png) no-repeat -16px 0px; }
+#shareitbox .share-digg { background: transparent url(master-share.png) no-repeat -32px 0px; }
+#shareitbox .share-email { background: transparent url(master-share.png) no-repeat -48px 0px; }
+#shareitbox .share-facebook { background: transparent url(master-share.png) no-repeat -64px 0px; }
+#shareitbox .share-friendfeed { background: transparent url(master-share.png) no-repeat -80px 0px; }
+#shareitbox .share-google { background: transparent url(master-share.png) no-repeat -96px 0px; }
+#shareitbox .share-reddit { background: transparent url(master-share.png) no-repeat -112px 0px; }
+#shareitbox .share-stumbleupon { background: transparent url(master-share.png) no-repeat -128px 0px; }
+#shareitbox .share-twitter { background: transparent url(master-share.png) no-repeat -144px 0px; }
 
 #graybox {
   z-index: 1010;
