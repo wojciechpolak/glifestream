@@ -789,14 +789,14 @@
 
       /* You may overwrite it in your user-scripts.js */
       social_sharing_sites = window.social_sharing_sites ||
-	[{ name: 'E-mail', href: 'mailto:?subject={URL}&body={TITLE}', icon: baseurl + 'static/themes/default/icons/email.png'},
-	 { name: 'Twitter', href: 'http://twitter.com/?status={TITLE}:%20{URL}', icon: 'http://twitter.com/favicon.ico'},
-	 { name: 'Facebook', href: 'http://www.facebook.com/sharer.php?u={URL}&t={TITLE}', icon: 'http://www.facebook.com/favicon.ico'},
-	 { name: 'FriendFeed', href: 'http://friendfeed.com/share?url={URL}&title={TITLE}', icon: 'http://friendfeed.com/favicon.ico'},
-	 { name: 'Delicious', href: 'http://delicious.com/save?url={URL}&title={TITLE}', icon: 'http://delicious.com/favicon.ico'},
-	 { name: 'Digg', href: 'http://digg.com/submit?phase=2&url={URL}&title={TITLE}', icon: 'http://digg.com/favicon.ico'},
-	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', icon: 'http://www.reddit.com/favicon.ico'},
-	 { name: 'Buzz', href: 'http://www.google.com/buzz/post?url={URL}', icon: 'http://www.gstatic.com/buzz/api/images/buzz-link.png'}];
+	[{ name: 'E-mail', href: 'mailto:?subject={URL}&body={TITLE}', className: 'email'},
+	 { name: 'Twitter', href: 'http://twitter.com/?status={TITLE}:%20{URL}', className: 'twitter'},
+	 { name: 'Facebook', href: 'http://www.facebook.com/sharer.php?u={URL}&t={TITLE}', className: 'facebook'},
+	 { name: 'FriendFeed', href: 'http://friendfeed.com/share?url={URL}&title={TITLE}', className: 'friendfeed'},
+	 { name: 'Delicious', href: 'http://delicious.com/save?url={URL}&title={TITLE}', className: 'delicious'},
+	 { name: 'Digg', href: 'http://digg.com/submit?phase=2&url={URL}&title={TITLE}', className: 'digg'},
+	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', className: 'reddit'},
+	 { name: 'Buzz', href: 'http://www.google.com/buzz/post?url={URL}', className: 'gbuzz'}];
     });
 
   function init_settings () {
@@ -1125,11 +1125,15 @@
 	var href = s.href.replace ('{URL}', encodeURIComponent (url));
 	href = href.replace ('{TITLE}', encodeURIComponent (title));
 
+	if (s.className)
+	  var img = DCE ('span', {className: 'share-' + s.className});
+	else if (s.icon)
+	  var img = DCE ('img', {src: s.icon, width:16, height:16});
+
 	o.appendChild
 	  (DCE ('div', {className: 'item'},
 		[DCE ('a', {href: href, target: '_blank'},
-		      [DCE ('img', {src: s.icon, width:16, height:16}),
-		       document.createTextNode (String.fromCharCode (160)),
+		      [img, document.createTextNode (String.fromCharCode (160)),
 		       document.createTextNode (s.name)])]));
       }
       if (reshareit) {
