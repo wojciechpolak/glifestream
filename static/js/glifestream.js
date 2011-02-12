@@ -1201,7 +1201,11 @@
 
     this.scan = function (ctx) {
       self.init ();
-      $('.thumbnails a:has(img)', ctx).click (self.open_img);
+      $imgs = $('.thumbnails > a:has(img)', ctx);
+      $imgs.each (function (i, v) {
+	  this.rel = $(v).closest ('article').get (0).id;
+      });
+      $imgs.click (self.open_img);
     };
 
     this.open_img = function () {
@@ -1230,7 +1234,7 @@
       else if (href.match (/bp\.blogspot\.com/))
 	href = href.replace (/-h\//, '/');
 
-      return self.open ({src: href, type: type});
+      return self.open ({src: href, type: type, obj: this});
     }
 
     this.open = function (opts) {
@@ -1238,12 +1242,41 @@
       var width  = opts.width || 425;
       var height = opts.height || 344;
       var type   = opts.type || undefined;
+      var obj    = opts.obj || undefined;
 
       if (!type) {
 	if (src.match (/(\.jpg$|\.jpeg$|\.png$|\.gif$)/i))
 	  type = 'image';
 	else
 	  return true;
+      }
+
+      if ('fancybox' in $) {
+	var imgs = [src];
+	var index = 0;
+	if (obj.rel && obj.rel != '' && obj.rel != 'nofollow') {
+	  var $r = $('a[rel='+ obj.rel +']');
+	  if ($r.length > 1) {
+	    imgs = [];
+	    $r.each (function (i, v) {
+		imgs.push (v.href);
+		if (src == v.href)
+		  index = i;
+	      });
+	  }
+	}
+	$.fancybox (imgs, {
+	  type: type,
+	  index: index,
+	  overlayColor: 'black',
+	  overlayOpacity: 0.8,
+	  padding: 2,
+	  margin: 15,
+	  transitionIn: 'elastic',
+	  transitionOut: 'fade',
+	  speedOut: 200
+	});
+	return false;
       }
 
       Overlay.enable ();
