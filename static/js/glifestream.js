@@ -108,6 +108,9 @@
   }
 
   function load_entries () {
+    var that = this;
+    if (that.busy) return false;
+    that.busy = true;
     if (articles.length >= continuous_reading)
       return follow_href.call (this);
     show_spinner (this);
@@ -116,6 +119,7 @@
     url += 'format=html-pure';
     $.getJSON (url, function (json) {
 	hide_spinner ();
+	that.busy = false;
 	var num = articles.length;
 	$(articles[num - 1]).after (json.stream);
 	nav_next.each (function () {
