@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -52,9 +52,14 @@ def __sp_twitpic (m):
                             (m.group (2), m.group (3)), downscale=True)
     return __gen_tai (m.group (0), url)
 
-def __sp_plixi (m):
-    url = media.save_image ('http://api.plixi.com/api/tpapi.svc/imagefromurl?size=medium&url=http://plixi.com/p/%s' %
+def __sp_lockerz (m):
+    url = media.save_image ('http://api.plixi.com/api/tpapi.svc/imagefromurl?size=mobile&url=http://lockerz.com/s/%s' %
                             (m.group (1)), downscale=True)
+    return __gen_tai (m.group (0), url)
+
+def __sp_instagram (m):
+    url = media.save_image ('http://%s/p/%s/media/?size=t' %
+                            (m.group (1), m.group (2)), downscale=True)
     return __gen_tai (m.group (0), url)
 
 def __sp_yfrog (m):
@@ -82,7 +87,8 @@ def __sp_imgloc (m):
 def shortpics (s):
     """Expand short picture-URLs."""
     s = re.sub (r'http://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
-    s = re.sub (r'http://plixi\.com/p/(\d+)', __sp_plixi, s)
+    s = re.sub (r'http://lockerz\.com/s/(\d+)', __sp_lockerz, s)
+    s = re.sub (r'http://(instagr\.am)/p/(\w+)/?', __sp_instagram, s)
     s = re.sub (r'http://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub (r'http://(www\.)?brizzly\.com/pic/(\w+)', __sp_brizzly, s)
     s = re.sub (r'http://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)

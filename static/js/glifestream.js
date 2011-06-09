@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+ *  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -1223,9 +1223,14 @@
 	href = 'http://twitpic.com/show/full/' + RegExp.$1;
 	type = 'image';
       }
-      else if (href.match (/plixi\.com\/p\/(\d+)/) ||
+      else if (href.match (/lockerz\.com\/s\/(\d+)/) ||
+	       href.match (/plixi\.com\/p\/(\d+)/) ||
 	       href.match (/tweetphoto\.com\/(\d+)/)) {
-	href = 'http://api.plixi.com/api/tpapi.svc/imagefromurl?size=big&url=http://plixi.com/p/' + RegExp.$1;
+	href = 'http://api.plixi.com/api/tpapi.svc/imagefromurl?size=big&url=http://lockerz.com/s/' + RegExp.$1;
+	type = 'image';
+      }
+      else if (href.match (/instagr\.am\/p\/(\w+)\/?/)) {
+	href = 'http://instagr.am/p/'+ RegExp.$1 +'/media/?size=l';
 	type = 'image';
       }
       else if (href.match (/yfrog\.com\/(\w+)/)) {
@@ -1272,6 +1277,7 @@
 	$.fancybox (imgs, {
 	  type: type,
 	  index: index,
+	  centerOnScroll: true,
 	  overlayColor: 'black',
 	  overlayOpacity: 0.8,
 	  padding: 2,
