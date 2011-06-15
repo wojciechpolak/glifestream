@@ -48,10 +48,23 @@
   }
 
   function toggle_video () {
-    if ($('.playbutton', this).length)
-      play_video.call (this);
-    else
-      stop_video.call (this);
+    var $this = $(this);
+    if (!$this.hasClass ('video-inline')) {
+      if ($('.playbutton', this).length)
+	play_video.call (this);
+      else
+	stop_video.call (this);
+    }
+    else {
+      if (!$this.data ('play')) {
+	$this.data ('play', true);
+	play_video.call (this);
+      }
+      else {
+	stop_video.call (this);
+	$this.data ('play', false);
+      }
+    }
     return false;
   }
 
@@ -1467,13 +1480,13 @@
     'saynow': '<object type="application/x-shockwave-flash" width="320" height="65" data="http://www.saynow.com/flash/sentplayer3.swf"><param name="movie" value="http://www.saynow.com/flash/sentplayer3.swf"/><param name="flashvars" value="itemId={ID}&autoplay=1&duration=00:00&url=http://my.saynow.com"/><param name="allowScriptAccess" value="sameDomain"/></object>'
   };
   var video_embeds = {
-    'youtube': '<object type="application/x-shockwave-flash" width="560" height="340" data="http://www.youtube.com/v/{ID}&autoplay=1&showsearch=0&fs=1"><param name="movie" value="http://www.youtube.com/v/{ID}&autoplay=1&showsearch=0&fs=1"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
-    'vimeo': '<object type="application/x-shockwave-flash" width="560" height="315" data="http://vimeo.com/moogaloop.swf?clip_id={ID}&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"><param name="movie" value="http://vimeo.com/moogaloop.swf?clip_id={ID}&server=vimeo.com&fullscreen=1&show_title=1&show_byline=1&show_portrait=1&color=&autoplay=1"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><param name="quality" value="best"/><param name="scale" value="showAll"/></object>',
+    'youtube': '<iframe width="560" height="340" src="http://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
+    'vimeo': '<iframe src="http://player.vimeo.com/video/{ID}?autoplay=1" width="560" height="315" frameborder="0"></iframe>',
     'chtv': '<object type="application/x-shockwave-flash" width="560" height="315" data="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id={ID}&fullscreen=1&autoplay=1"><param name="movie" value="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id={ID}&fullscreen=1&autoplay=1"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><param name="wmode" value="transparent"/></object>',
     'ustream': '<object type="application/x-shockwave-flash" width="480" height="386" data="http://www.ustream.tv/flash/video/{ID}"><param name="movie" value="http://www.ustream.tv/flash/video/{ID}"/><param name="flashvars" value="loc=%2F&autoplay=true&vid={ID}"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
     'dailymotion': '<object type="application/x-shockwave-flash" width="480" height="381" data="http://www.dailymotion.com/swf/{ID}?autoplay=1"><param name="movie" value="http://www.dailymotion.com/swf/{ID}?autoplay=1"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
     'metacafe': '<object type="application/x-shockwave-flash" width="400" height="348" data="http://www.metacafe.com/fplayer/{ID}/video.swf"><param name="movie" value="http://www.metacafe.com/fplayer/{ID}/video.swf"/><param name="name" value="Metacafe_{ID}"/><param name="flashvars" value="playerVars=showStats=no|autoPlay=yes"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
-    'twitvid': '<object type="application/x-shockwave-flash" width="425" height="344" data="http://www.twitvid.com/player/{ID}"><param name="movie" value="http://www.twitvid.com/player/{ID}"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
+    'twitvid': '<iframe width="480" height="360" src="http://www.twitvid.com/embed.php?guid={ID}&autoplay=1" frameborder="0"></iframe>',
     'facebook': '<object type="application/x-shockwave-flash" width="560" height="315" data="http://www.facebook.com/v/{ID}"><param name="movie" value="http://www.facebook.com/v/{ID}"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
     'googlevideo': '<object type="application/x-shockwave-flash" width="400" height="326" data="http://video.google.com/googleplayer.swf?docid={ID}&fs=true"><param name="movie" value="http://video.google.com/googleplayer.swf?docid={ID}&fs=true"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>'
   };
