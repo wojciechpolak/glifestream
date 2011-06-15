@@ -1480,8 +1480,8 @@
     'saynow': '<object type="application/x-shockwave-flash" width="320" height="65" data="http://www.saynow.com/flash/sentplayer3.swf"><param name="movie" value="http://www.saynow.com/flash/sentplayer3.swf"/><param name="flashvars" value="itemId={ID}&autoplay=1&duration=00:00&url=http://my.saynow.com"/><param name="allowScriptAccess" value="sameDomain"/></object>'
   };
   var video_embeds = {
-    'youtube': '<iframe width="560" height="340" src="http://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
-    'vimeo': '<iframe src="http://player.vimeo.com/video/{ID}?autoplay=1" width="560" height="315" frameborder="0"></iframe>',
+    'youtube': '<iframe width="560" height="349" src="http://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
+    'vimeo': '<iframe width="560" height="315" src="http://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0"></iframe>',
     'chtv': '<object type="application/x-shockwave-flash" width="560" height="315" data="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id={ID}&fullscreen=1&autoplay=1"><param name="movie" value="http://www.collegehumor.com/moogaloop/moogaloop.swf?clip_id={ID}&fullscreen=1&autoplay=1"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/><param name="wmode" value="transparent"/></object>',
     'ustream': '<object type="application/x-shockwave-flash" width="480" height="386" data="http://www.ustream.tv/flash/video/{ID}"><param name="movie" value="http://www.ustream.tv/flash/video/{ID}"/><param name="flashvars" value="loc=%2F&autoplay=true&vid={ID}"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
     'dailymotion': '<object type="application/x-shockwave-flash" width="480" height="381" data="http://www.dailymotion.com/swf/{ID}?autoplay=1"><param name="movie" value="http://www.dailymotion.com/swf/{ID}?autoplay=1"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
