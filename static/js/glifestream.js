@@ -402,6 +402,7 @@
   }
 
   function share () {
+    $(this).attr ('disabled', 'disabled');
     var docs = $('input[name=docs]');
     if (docs.length && docs.get (0).files && docs.get (0).files.length)
       return true;
@@ -423,10 +424,13 @@
 	    tinyMCE.get ('status').setContent ('');
 	  else
 	    $('#status').val ('');
+	  $('#post').removeAttr ('disabled');
 	  $('#share .fieldset').slideUp ();
 	  scaledown_images ('#stream article:first img');
 	});
     }
+    else
+      $('#post').removeAttr ('disabled');
     return false;
   }
 
