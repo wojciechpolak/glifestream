@@ -142,6 +142,8 @@ input[type="search"] {
   -webkit-border-bottom-right-radius: 0;
 }
 input[placeholder].blur { color: #999999 !important; }
+input:-moz-placeholder { color: #999999 !important; }
+::-webkit-input-placeholder { color: #999999 !important; }
 
 #search-submit {
   font-family: Arial;
