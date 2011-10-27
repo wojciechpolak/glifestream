@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -107,7 +107,7 @@ class API:
                 e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['video_id'], e.link, ent['video_thumbnail_medium'], ent['video_title'])
 
                 mblob = media.mrss_init ()
-                mblob['content'].append ([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=' + ent['video_id'],
+                mblob['content'].append ([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=%s' % ent['video_id'],
                                            'type': 'application/x-shockwave-flash',
                                            'medium': 'video'}])
                 e.mblob = media.mrss_gen_json (mblob)
@@ -146,7 +146,7 @@ class API:
             e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (ent['id'], e.link, ent['thumbnail_medium'], ent['title'])
 
             mblob = media.mrss_init ()
-            mblob['content'].append ([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=' + ent['id'],
+            mblob['content'].append ([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=%s' % ent['id'],
                                        'type': 'application/x-shockwave-flash',
                                        'medium': 'video'}])
             e.mblob = media.mrss_gen_json (mblob)
