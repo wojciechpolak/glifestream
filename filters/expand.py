@@ -189,8 +189,8 @@ def videolinks (s):
                     __sv_metacafe, s)
     if 'twitvid.com/' in s:
         s = re.sub (r'http://(www\.)?twitvid\.com/(\w+)', __sv_twitvid, s)
-    if 'collegehumor.com/video:' in s:
-        s = re.sub (r'http://www\.collegehumor\.com/video:(\d+)', __sv_chtv, s)
+    if 'collegehumor.com/video/' in s:
+        s = re.sub (r'http://www\.collegehumor\.com/video/(\d+)(/[\-\w]+)?', __sv_chtv, s)
     if 'http://video.google.com/videoplay?docid=' in s:
         s = re.sub (r'http://video\.google\.com/videoplay\?docid=(\d+)(\S*)',
                     __sv_googlevideo, s)
@@ -211,11 +211,6 @@ def __sa_thesixtyone (m):
     songid   = m.group (1)
     return '<span id="thesixtyone-art-%s" class="play-audio"><a href="%s" rel="nofollow">%s</a></span>' % (songid, link, link)
 
-def __sa_saynow (m):
-    link = m.group (0)
-    id   = m.group (1)
-    return '<span id="saynow-%s" class="play-audio"><a href="%s" rel="nofollow">Say Now</a></span>' % (id, link)
-
 def audiolinks (s):
     """Expand audio links."""
     if '.ogg' in s:
@@ -223,8 +218,6 @@ def audiolinks (s):
     if 'http://www.thesixtyone.com/' in s:
         # Scheme: http://www.thesixtyone.com/s/SONGID/
         s = re.sub (r'http://www.thesixtyone.com/s/(\w+)/', __sa_thesixtyone, s)
-    if 'http://www.saynow.com/playMsg.html?ak=' in s:
-        s = re.sub (r'http://www.saynow.com/playMsg.html\?ak=(\w+)', __sa_saynow, s)
     return s
 
 #
