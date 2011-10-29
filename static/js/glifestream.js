@@ -24,7 +24,7 @@
   }
 
   function play_video () {
-    var a = parse_id (this.id);
+    var a = parse_id ($(this).data ('id') || this.id);
     var type = a[0];
     var id = a[1];
 
@@ -81,7 +81,7 @@
   function play_audio (e) {
     if (e.which && e.which !== 1)
       return false;
-    var a = parse_id (this.id);
+    var a = parse_id ($(this).data ('id') || this.id);
     var type = a[0];
     $('a', this).blur ();
 
