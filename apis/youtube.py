@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -39,9 +39,9 @@ class API (webfeed.API):
             vid = None
 
         if vid and 'media_thumbnail' in ent and len (ent.media_thumbnail):
-            if len (ent.media_thumbnail) > 4 and \
-               'hqdefault' in ent.media_thumbnail[4]['url']:
-                tn = ent.media_thumbnail[4]
+            if len (ent.media_thumbnail) > 1 and \
+               'hqdefault' in ent.media_thumbnail[1]['url']:
+                tn = ent.media_thumbnail[1]
                 tn['width'], tn['height'] = 200, 150
             else:
                 tn = ent.media_thumbnail[0]
