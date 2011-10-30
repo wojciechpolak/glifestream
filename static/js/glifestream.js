@@ -436,7 +436,7 @@
 
   function get_map_embed (lat, lng) {
     if (settings.maps_engine == 'google') {
-      return '<img src="http://maps.google.com/maps/api/staticmap?sensor=false&zoom=12&size=175x120&markers='+ lat +','+ lng +'" alt="Map" width="175" height="120" />';
+      return '<img src="https://maps.googleapis.com/maps/api/staticmap?sensor=false&zoom=12&size=175x120&markers='+ lat +','+ lng +'" alt="Map" width="175" height="120" />';
     }
     return '';
   }
@@ -1484,10 +1484,10 @@
   };
   var video_embeds = {
     'youtube': '<iframe width="560" height="349" src="http://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
-    'vimeo': '<iframe width="560" height="315" src="http://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0"></iframe>',
+    'vimeo': '<iframe width="560" height="315" src="http://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
     'chtv': '<iframe width="560" height="315" src="http://www.collegehumor.com/e/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
-    'ustream': '<object type="application/x-shockwave-flash" width="480" height="386" data="http://www.ustream.tv/flash/video/{ID}"><param name="movie" value="http://www.ustream.tv/flash/video/{ID}"/><param name="flashvars" value="loc=%2F&autoplay=true&vid={ID}"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
-    'dailymotion': '<object type="application/x-shockwave-flash" width="480" height="381" data="http://www.dailymotion.com/swf/{ID}?autoplay=1"><param name="movie" value="http://www.dailymotion.com/swf/{ID}?autoplay=1"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
+    'ustream': '<iframe width="560" height="341" src="http://www.ustream.tv/embed/recorded/{ID}" scrolling="no" frameborder="0"></iframe>',
+    'dailymotion': '<iframe width="560" height="315" src="http://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',
     'metacafe': '<object type="application/x-shockwave-flash" width="400" height="348" data="http://www.metacafe.com/fplayer/{ID}/video.swf"><param name="movie" value="http://www.metacafe.com/fplayer/{ID}/video.swf"/><param name="name" value="Metacafe_{ID}"/><param name="flashvars" value="playerVars=showStats=no|autoPlay=yes"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
     'twitvid': '<iframe width="480" height="360" src="http://www.twitvid.com/embed.php?guid={ID}&autoplay=1" frameborder="0"></iframe>',
     'facebook': '<object type="application/x-shockwave-flash" width="560" height="315" data="http://www.facebook.com/v/{ID}"><param name="movie" value="http://www.facebook.com/v/{ID}"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
