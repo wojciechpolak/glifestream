@@ -17,6 +17,14 @@ a:active {
 a:hover {
   text-decoration: underline;
 }
+span.link {
+  text-decoration: none;
+  color: #0000f0;
+  cursor: pointer;
+}
+span.link:hover {
+  text-decoration: underline;
+}
 
 body {
   font-family: "Nimbus Sans L", Arial;
@@ -223,11 +231,12 @@ p.subtitle a:hover { text-decoration: none; }
   margin: 4px 0 0 60px;
   text-align: right;
 }
-#stream .entry-info a {
+#stream .entry-info a,
+#stream .entry-info span.link {
   color: #999999;
 }
 
-#stream a.entry-controls-switch {
+#stream span.entry-controls-switch {
   font-family: Arial;
   font-style: normal;
   padding-right: 10px;
@@ -250,12 +259,14 @@ p.subtitle a:hover { text-decoration: none; }
   -khtml-border-radius: 5px;
   -webkit-border-radius: 5px;
 }
-#stream .entry-controls a {
+#stream .entry-controls a,
+#stream .entry-controls span.link {
   display: block;
   padding: 2px 4px 2px 5px;
   color: #666666;
 }
-#stream .entry-controls a:hover {
+#stream .entry-controls a:hover,
+#stream .entry-controls span.link:hover {
   color: white;
   background-color: #666666;
   text-decoration: none;
@@ -360,7 +371,7 @@ div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -
   padding: 1em;
   margin-bottom: 16px;
 }
-#foot a { color: black !important; }
+#foot a, #foot span.link { color: black !important; }
 
 .fleft { float: left; }
 .fright { float: right; }
@@ -731,7 +742,7 @@ ul.files {
   #head { height: 60px; }
   #head h1 { margin: 0; }
   #foot, #sidebar, #share, #ashare { display: none; }
-  #stream a.entry-controls-switch { display: none; }
+  #stream span.entry-controls-switch { display: none; }
   #stream {
     margin-right: auto;
     border-right: none;

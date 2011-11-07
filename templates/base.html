@@ -45,7 +45,7 @@
 <footer id="foot">
   {% block copyright %}{% endblock copyright %}
   <p id="poweredby">{% trans "Powered by" %} <a href="http://glifestream.org/" title="{% trans "A free and open source lifestream platform and social activity reader" %}">gLifestream</a>.
-  {% if page.themes_more %}<a href="#" id="change-theme">{% trans "Change theme" %}</a>.{% endif %}</p>
+  {% if page.themes_more %}<span tabindex="0" id="change-theme" class="link">{% trans "Change theme" %}</span>.{% endif %}</p>
 </footer>
 
 {% include "user-scripts.js" %}
