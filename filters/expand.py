@@ -175,7 +175,7 @@ def __sv_googlevideo (m):
 def videolinks (s):
     """Expand video links."""
     if 'youtube.com/' in s:
-        s = re.sub (r'http://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)',
+        s = re.sub (r'https?://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)',
                     __sv_youtube, s)
     if 'vimeo.com/' in s:
         s = re.sub (r'http://(www\.)?vimeo\.com/(\d+)', __sv_vimeo, s)
@@ -250,8 +250,8 @@ def __sm_googlemaps (m):
 
 def maplinks (s):
     """Expand map links."""
-    if 'http://maps.google.' in s:
-        s = re.sub (r'http://maps.google.[a-z]{2,3}/(maps)?(\S*)',
+    if '//maps.google.' in s:
+        s = re.sub (r'https?://maps.google.[a-z]{2,3}/(maps)?(\S*)',
                     __sm_googlemaps, s)
     return s
 
