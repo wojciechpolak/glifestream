@@ -43,7 +43,7 @@
 {% block main %}
 {% if authed %}
 <aside id="share">
-  <a href="#" id="ashare">{% trans "Add content" %}</a>
+  <span tabindex="0" class="link" id="ashare">{% trans "Add content" %}</span>
   <form action="{% url stream.views.api cmd='share' %}" method="post" enctype="multipart/form-data">
     <div class="fieldset" style="display:none">
       <h3><label for="status">{% trans "What's up?" %}</label></h3>
@@ -52,7 +52,7 @@
 	<div style="margin-top:1px">
 	  {% trans "Class:" %} <select id="status-class" name="sid"></select>
 	  <input id="post" type="submit" value="{% trans "Post" %}" />
-	  <a href="#" id="expand-sharing">{% trans "more options" %}</a>
+	  <span tabindex="0" class="link" id="expand-sharing">{% trans "more options" %}</span>
 	  <div id="more-sharing-options" style="display:none">
 	    <p>
 	      <label for="draft">{% trans "Mark as draft:" %}</label>

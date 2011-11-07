@@ -715,15 +715,15 @@
       var stream = $('#stream').get (0);
       alter_html (stream);
 
-      $('a.favorite-control', stream).live ('click', favorite_entry);
-      $('a.hide-control', stream).live ('click', hide_entry);
-      $('a.translate-control', stream).live ('click', translate_entry);
-      $('a.edit-control', stream).live ('click', edit_entry);
+      $('span.favorite-control', stream).live ('click', favorite_entry);
+      $('span.hide-control', stream).live ('click', hide_entry);
+      $('span.translate-control', stream).live ('click', translate_entry);
+      $('span.edit-control', stream).live ('click', edit_entry);
       $('a.shareit', stream).live ('click', shareit_entry);
       $('a.map', stream).each (render_map);
       $('a.show-map', stream).live ('click', show_map);
       $('a.expand-content', stream).live ('click', expand_content);
-      $('a.entry-controls-switch', stream).live ('click', show_menu_controls);
+      $('span.entry-controls-switch', stream).live ('click', show_menu_controls);
       $('div.play-video,span.play-video', stream).live ('click', toggle_video);
       $('span.play-audio', stream).live ('click', play_audio);
       $('#change-theme').click (change_theme);
@@ -807,6 +807,11 @@
 	$.extend (audio_embeds, window.audio_embeds);
       if (window.video_embeds)
 	$.extend (video_embeds, window.video_embeds);
+
+      $('span.link').live ('keypress', function (e) {
+	  if (e.keyCode == 13)
+	    $(this).click ();
+	});
 
       /* You may overwrite it in your user-scripts.js */
       social_sharing_sites = window.social_sharing_sites ||

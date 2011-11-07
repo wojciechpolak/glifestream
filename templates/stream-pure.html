@@ -29,17 +29,17 @@
       {% if authed %}
       {% if entry.only_for_friends %}<span class="friends-only-lock" title="{% trans "Friends-only" %}"></span>{% endif %}
       {% if entry.fav or page.favorites %}<span class="favorite"></span>{% endif %}
-      <a href="#" class="entry-controls-switch">{% trans "Menu" %}</a>
+      <span tabindex="0" class="link entry-controls-switch">{% trans "Menu" %}</span>
       <ul class="entry-controls">
         {% if entry.sms %}<li><a id="reply-{{ entry.id }}" class="reply-control" href="{{ ""|gls_reply_url:entry }}" rel="nofollow" target="_blank">{% trans "Reply" %}</a></li>{% endif %}
 	{% if entry.fav or page.favorites %}
-	<li><a id="favorite-{{ entry.id }}" class="favorite-control fav" href="#">{% trans "Unfavorite" %}</a></li>
+	<li><span tabindex="0" id="favorite-{{ entry.id }}" class="link favorite-control fav">{% trans "Unfavorite" %}</span></li>
 	{% else %}
-	<li><a id="favorite-{{ entry.id }}" class="favorite-control" href="#">{% trans "Favorite" %}</a></li>
+	<li><span tabindex="0" id="favorite-{{ entry.id }}" class="link favorite-control">{% trans "Favorite" %}</span></li>
 	{% endif %}
-        <li><a id="hide-{{ entry.id }}" class="hide-control" href="#">{% trans "Hide" %}</a></li>
-	<li><a id="translate-{{ entry.id }}" class="translate-control" href="#">{% trans "Translate" %}</a></li>
-	<li><a id="edit-{{ entry.id }}" class="edit-control" href="#">{% trans "Edit" %}</a></li>
+        <li><span id="hide-{{ entry.id }}" class="link hide-control">{% trans "Hide" %}</span></li>
+	<li><span id="translate-{{ entry.id }}" class="link translate-control">{% trans "Translate" %}</span></li>
+	<li><span id="edit-{{ entry.id }}" class="link edit-control">{% trans "Edit" %}</span></li>
 	<li><a href="{% url admin:index %}stream/entry/{{ entry.id }}" target="_blank">{% trans "Admin" %}</a></li>
       </ul>
       {% endif %}
