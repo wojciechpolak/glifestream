@@ -38,7 +38,7 @@ def shorturls (text):
     return re.sub (r'http://(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd' \
                    '|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd' \
                    '|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu' \
-                   ')(/\w+)', __su_subs, smart_unicode (text))
+                   ')(/[-\w]+)', __su_subs, smart_unicode (text))
 
 #
 # Short image services
