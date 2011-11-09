@@ -106,7 +106,7 @@ def gls_mediarss (e, entry):
 def gls_reply_url (e, entry):
     if entry.service.api == 'twitter':
         u = entry.link.split ('/')
-        return 'http://twitter.com/?status=@%s%%20&in_reply_to_status_id=%s&in_reply_to=%s' % (u[3], u[5], u[3])
+        return 'https://twitter.com/?status=@%s%%20&in_reply_to_status_id=%s&in_reply_to=%s' % (u[3], u[5], u[3])
     elif entry.service.api == 'identica':
         return 'http://identi.ca/notice/new?replyto=%s' % entry.author_name
     return '#'
