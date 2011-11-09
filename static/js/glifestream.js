@@ -583,7 +583,7 @@
       case 102: /* f */
 	var ent = articles[current_article];
 	if (ent) {
-	  var c = $('a.favorite-control', ent);
+	  var c = $('span.favorite-control', ent);
 	  if (c.length) favorite_entry.call (c[0]);
 	}
 	break;
@@ -595,7 +595,7 @@
 	  if (c.length)
 	    unhide_entry.call (c[0]);
 	  else {
-	    var c = $('a.hide-control', ent);
+	    var c = $('span.hide-control', ent);
 	    if (c.length) hide_entry.call (c[0]);
 	  }
 	}
@@ -603,7 +603,7 @@
       case 116: /* t */
 	var ent = articles[current_article];
 	if (ent) {
-	  var c = $('a.translate-control', ent);
+	  var c = $('span.translate-control', ent);
 	  if (c.length) translate_entry.call (c[0]);
 	}
 	break;
