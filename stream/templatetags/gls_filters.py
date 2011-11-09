@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -25,7 +25,8 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.template.defaultfilters import date as ddate
-from django.template.defaultfilters import urlencode, slugify
+from django.template.defaultfilters import urlencode
+from glifestream.utils.slugify import slugify
 from glifestream.stream import media
 from glifestream.apis import *
 
