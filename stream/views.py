@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -36,7 +36,6 @@ from glifestream.stream.models import Service, Entry, Favorite, List
 from glifestream.stream import media, pshb
 from glifestream.utils import common
 from glifestream.utils.time import pn_month_start
-from glifestream.utils.translate import translate
 from glifestream.apis import API_LIST, selfposts
 
 try:
@@ -571,23 +570,6 @@ def api (request, **args):
                         content=content)
                 entry = Entry.objects.get (id=int(entry))
                 if entry:
-                    content = fix_ampersands (gls_content ('', entry))
-                    return HttpResponse (content)
-        except Exception:
-            pass
-
-    elif cmd == 'translate':
-        try:
-            if entry:
-                entry = Entry.objects.get (id=int(entry))
-                if entry:
-                    accept_lang = request.META.get ('HTTP_ACCEPT_LANGUAGE',
-                                                    '').split (',')
-                    for i, lang in enumerate (accept_lang):
-                        accept_lang[i] = lang.split (';')[0]
-
-                    entry.content = translate (entry.content,
-                                               target=accept_lang[0])
                     content = fix_ampersands (gls_content ('', entry))
                     return HttpResponse (content)
         except Exception:
