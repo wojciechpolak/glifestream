@@ -626,7 +626,6 @@ ul.files {
   width: 16px;
   height: 16px;
 }
-#shareitbox .share-gbuzz { background: transparent url(master-share.png) no-repeat 0 0; }
 #shareitbox .share-delicious { background: transparent url(master-share.png) no-repeat -16px 0px; }
 #shareitbox .share-digg { background: transparent url(master-share.png) no-repeat -32px 0px; }
 #shareitbox .share-email { background: transparent url(master-share.png) no-repeat -48px 0px; }
@@ -817,7 +816,6 @@ span.digg { background: transparent url(master-favicons.png) no-repeat -16px 0px
 span.fb { background: transparent url(master-favicons.png) no-repeat -32px 0px; }
 span.flickr { background: transparent url(master-favicons.png) no-repeat -48px 0px; }
 span.friendfeed { background: transparent url(master-favicons.png) no-repeat -64px 0px; }
-span.gbuzz { background: transparent url(master-favicons.png) no-repeat -80px 0px; }
 span.greader { background: transparent url(master-favicons.png) no-repeat -96px 0px; }
 span.identica { background: transparent url(master-favicons.png) no-repeat -112px 0px; }
 span.lastfm { background: transparent url(master-favicons.png) no-repeat -128px 0px; }

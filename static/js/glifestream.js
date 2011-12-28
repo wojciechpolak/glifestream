@@ -822,8 +822,7 @@
 	 { name: 'FriendFeed', href: 'http://friendfeed.com/share?url={URL}&title={TITLE}', className: 'friendfeed'},
 	 { name: 'Delicious', href: 'http://delicious.com/save?url={URL}&title={TITLE}', className: 'delicious'},
 	 { name: 'Digg', href: 'http://digg.com/submit?phase=2&url={URL}&title={TITLE}', className: 'digg'},
-	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', className: 'reddit'},
-	 { name: 'Buzz', href: 'http://www.google.com/buzz/post?url={URL}', className: 'gbuzz'}];
+	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', className: 'reddit'}];
     });
 
   function init_settings () {
