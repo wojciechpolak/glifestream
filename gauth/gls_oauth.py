@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -84,8 +84,6 @@ class Client:
         body = {}
         if self.callback_url:
             body['oauth_callback'] = self.callback_url
-        if self.db.service.api == 'gbuzz':
-            body['scope'] = self.scope
 
         res, content = client.request (self.request_token_url, 'POST',
                                        body=urllib.urlencode (body))
@@ -105,9 +103,6 @@ class Client:
         if self.db.phase != 1:
             raise Exception ('Not ready to authorize.')
         url = '%s?oauth_token=%s' % (self.authorize_url, self.db.token)
-        if self.db.service.api == 'gbuzz':
-            url += '&' + urllib.urlencode ({'domain': 'glifestream',
-                                            'scope': self.scope})
         return url
 
     def get_access_token (self):

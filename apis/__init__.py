@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -19,7 +19,6 @@ __all__ = (
     'fb',
     'flickr',
     'friendfeed',
-    'gbuzz',
     'greader',
     'identica',
     'lastfm',
@@ -41,7 +40,6 @@ API_LIST = (
     ('fb',          'Facebook'),
     ('friendfeed',  'FriendFeed'),
     ('identica',    'Identi.ca'),
-    ('gbuzz',       'Google Buzz'),
     ('greader',     'Google Reader'),
     ('youtube',     'YouTube'),
     ('vimeo',       'Vimeo'),

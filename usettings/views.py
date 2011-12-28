@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2011 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -252,7 +252,6 @@ def oauth (request, **args):
     apis_help = {
         'twitter': 'http://dev.twitter.com/pages/auth',
         'friendfeed': 'http://friendfeed.com/api/documentation#authentication',
-        'gbuzz': 'http://code.google.com/apis/accounts/docs/OAuth.html',
     }
     v = {}
     id = args['id']
@@ -557,7 +556,7 @@ def api (request, **args):
                                  'value': s['url'], 'label': _('URL'),
                                  'miss': miss.get ('url', False)})
 
-        elif s['api'] in ('fb', 'friendfeed', 'twitter', 'identica', 'gbuzz'):
+        elif s['api'] in ('fb', 'friendfeed', 'twitter', 'identica'):
             v = 'user' if s['url'] else 'home'
             s['fields'].append ({'type': 'select', 'name': 'timeline',
                                  'options': (('user', _('User timeline')),
@@ -572,8 +571,7 @@ def api (request, **args):
                                  'value': s['url'], 'label': _('ID/Username'),
                                  'miss': miss.get ('url', False)})
 
-        if s['api'] in ('webfeed', 'friendfeed', 'gbuzz', 'identica',
-                        'twitter'):
+        if s['api'] in ('webfeed', 'friendfeed', 'identica', 'twitter'):
             basic_user = ''
             if s['creds'] == 'oauth':
                 v = 'oauth'
