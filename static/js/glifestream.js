@@ -250,19 +250,6 @@
     return false;
   }
 
-  function translate_entry (e) {
-    if (e) e.preventDefault ();
-    var that = this;
-    var id = this.id.split ('-')[1];
-    show_spinner ($M (this));
-    $.post (baseurl + 'api/translate', { entry: id }, function (html) {
-	hide_spinner ();
-	var ctx = $('#entry-'+ id +' .entry-content');
-	ctx.html (html);
-	alter_html (ctx);
-      });
-  }
-
   function edit_entry (e) {
     if (e) e.preventDefault ();
     var that = this;
@@ -600,13 +587,6 @@
 	  }
 	}
 	break;
-      case 116: /* t */
-	var ent = articles[current_article];
-	if (ent) {
-	  var c = $('span.translate-control', ent);
-	  if (c.length) translate_entry.call (c[0]);
-	}
-	break;
     }
   }
 
@@ -717,7 +697,6 @@
 
       $('span.favorite-control', stream).live ('click', favorite_entry);
       $('span.hide-control', stream).live ('click', hide_entry);
-      $('span.translate-control', stream).live ('click', translate_entry);
       $('span.edit-control', stream).live ('click', edit_entry);
       $('a.shareit', stream).live ('click', shareit_entry);
       $('a.map', stream).each (render_map);
