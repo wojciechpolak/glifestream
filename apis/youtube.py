@@ -39,11 +39,12 @@ class API (webfeed.API):
             vid = None
 
         if vid and 'media_thumbnail' in ent and len (ent.media_thumbnail):
-            if len (ent.media_thumbnail) > 1 and \
-               'hqdefault' in ent.media_thumbnail[1]['url']:
-                tn = ent.media_thumbnail[1]
-                tn['width'], tn['height'] = 200, 150
-            else:
+            tn = None
+            for mt in ent.media_thumbnail:
+                if 'name' in mt and mt['name'] == 'hqdefault':
+                    tn = mt
+                    tn['width'], tn['height'] = 200, 150
+            if not tn:
                 tn = ent.media_thumbnail[0]
 
             if self.service.public:
@@ -53,7 +54,9 @@ class API (webfeed.API):
             e.link = e.link.replace ('&feature=youtube_gdata', '')
             e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (vid, e.link, tn['url'], tn['width'], tn['height'])
         else:
-            e.content = ent.get ('yt_state', _('NO VIDEO'));
+            e.content = ent.get ('yt_state', '<a href="%s">%s</a>' % \
+                                     (ent.get ('link', '#').replace (
+                        '&feature=youtube_gdata', ''), ent.get ('title', '')));
 
 def filter_title (entry):
     if 'favorite' in entry.guid:
