@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2012 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -148,7 +148,9 @@ def xrds (request, **args):
     body = xrds_tpl % (request.build_absolute_uri ('openid'),
                        request.build_absolute_uri (
             urlresolvers.reverse ('glifestream.usettings.views.openid')))
-    return HttpResponse (body, mimetype='application/xrds+xml')
+    res = HttpResponse (body, mimetype='application/xrds+xml')
+    res['X-Robots-Tag'] = 'noindex'
+    return res
 
 @never_cache
 def openid (request, template_name='openid.html',
