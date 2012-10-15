@@ -83,7 +83,7 @@ class API:
 
     def process (self):
         for ent in self.json:
-            guid = 'tag:twitter.com,2007:http://twitter.com/%s/status/%s' % \
+            guid = 'tag:twitter.com,2007:http://twitter.com/%s/statuses/%s' % \
                 (ent['user']['screen_name'], ent['id'])
             if self.verbose:
                 print "ID: %s" % guid
