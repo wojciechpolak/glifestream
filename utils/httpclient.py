@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2012 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -50,7 +50,7 @@ def head (host, url='/', timeout=15):
     con.request ('HEAD', url)
     return con.getresponse ()
 
-def get (host, url='/', headers={}, etag=None, timeout=45):
+def get (host, url='/', headers={}, etag=None, timeout=45, https=False):
     _headers = {'User-Agent': AGENT}
     if gzip and zlib:
         _headers['Accept-Encoding'] = 'gzip, deflate'
@@ -62,7 +62,10 @@ def get (host, url='/', headers={}, etag=None, timeout=45):
         _headers['If-None-Match'] = etag
     _headers.update (headers)
 
-    con = httplib.HTTPConnection (host, timeout=timeout)
+    if https:
+        con = httplib.HTTPSConnection (host, timeout=timeout)
+    else:
+        con = httplib.HTTPConnection (host, timeout=timeout)
     con.request ('GET', url, headers=_headers)
     r = con.getresponse ()
     r.code = r.status
