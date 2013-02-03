@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -393,8 +393,13 @@ def index (request, **args):
         fs = {}
         if not authed or page['ctx'] == 'public':
             fs['public'] = True
-        classes = Service.objects.filter (**fs).order_by ('id').values ('api', 'cls')
-        classes.query.group_by = ['cls']
+        _classes = Service.objects.filter (**fs).order_by ('id')\
+            .values ('api', 'cls')
+        classes = {}
+        for item in _classes:
+            if item['cls'] not in classes:
+                classes[item['cls']] = item
+        classes = classes.values ()
 
         accept_lang = request.META.get ('HTTP_ACCEPT_LANGUAGE', '').split (',')
         for i, lang in enumerate (accept_lang):
@@ -461,9 +466,14 @@ def api (request, **args):
         Entry.objects.filter (id=int(entry)).update (active=True)
 
     elif cmd == 'gsc': # get selfposts classes
-        srvs = Service.objects.filter (api='selfposts').order_by ('cls')
-        srvs.query.group_by = ['cls']
-        srvs = srvs.values ('id', 'cls')
+        _srvs = Service.objects.filter (api='selfposts')\
+            .order_by ('cls').values ('id', 'cls')
+        srvs = {}
+        for item in _srvs:
+            if item['cls'] not in srvs:
+                srvs[item['cls']] = item
+        srvs = srvs.values ()
+
         d = []
         for s in srvs:
             d.append ({ 'id': s['id'], 'cls': s['cls'] })
