@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2012 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2012, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -112,6 +112,30 @@ class API:
             e.date_updated = t
             e.author_name = ent['user']['name']
             e.content = 'Tweet: %s' % expand.all (ent['text'])
+
+            if 'entities' in ent and 'media' in ent['entities']:
+                content = ' <p class="thumbnails">'
+                for t in ent['entities']['media']:
+                    if t['type'] == 'photo':
+                        tsize = 'thumb'
+                        if 'media_url_https' in t:
+                            image_url = '%s:%s' % (t['media_url_https'], tsize)
+                            large_url = '%s:large' % t['media_url_https']
+                        else:
+                            image_url = '%s:%s' % (t['media_url'], tsize)
+                            large_url = t['media_url']
+                        link = t['expanded_url']
+                        if self.service.public:
+                            image_url = media.save_image (image_url)
+                        if 'sizes' in t and tsize in t['sizes']:
+                            sizes = t['sizes'][tsize]
+                            iwh = ' width="%d" height="%d"' % (sizes['w'],
+                                                               sizes['h'])
+                        else:
+                            iwh = ''
+                        content += '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> ' % (link, large_url, image_url, iwh)
+                content += '</p>'
+                e.content += content
 
             try:
                 e.save ()
