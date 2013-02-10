@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
+ *  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -1222,6 +1222,10 @@
       }
       else if (href.match (/twitpic\.com\/(\w+)/)) {
 	href = 'http://twitpic.com/show/full/' + RegExp.$1;
+	type = 'image';
+      }
+      else if (href.match (/twitter\.com\//)) {
+	href = $(this).data ('imgurl');
 	type = 'image';
       }
       else if (href.match (/lockerz\.com\/s\/(\d+)/) ||
