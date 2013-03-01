@@ -315,9 +315,9 @@ def index (request, **args):
 
     if 'title' in page and page['title'] != '':
         if page_title:
-            page['title'] += ': ' + page_title
+            page['title'] += ' | ' + page_title
         else:
-            page['title'] += ': Lifestream'
+            page['title'] += ' | Lifestream'
     elif page_title:
         page['title'] = page_title
 
