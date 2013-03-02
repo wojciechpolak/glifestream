@@ -27,7 +27,7 @@ span.link:hover {
 }
 
 body {
-  font-family: "Nimbus Sans L", Arial;
+  font-family: Arial;
   font-size: 100%;
   width: 700px;
   width: auto;
@@ -921,7 +921,9 @@ fieldset .hint {
 
 /* mobile devices */
 @media screen and (max-width: 640px) {
-  #sidebar { float: none; }
+  #navtop { text-align: left; }
+  #sidebar { float: none; width: 95%; margin: 0 auto; }
+  #share { margin: 0; padding-bottom: 1em; }
   #stream {
       margin-right: auto;
       min-width: 0;
