@@ -17,21 +17,24 @@ from django.utils.translation import ugettext as _
 import urllib
 import webfeed
 
+
 class API (webfeed.API):
     name = 'Last.fm API'
     limit_sec = 180
 
-    def get_urls (self):
+    def get_urls(self):
         return ('http://ws.audioscrobbler.com/1.0/user/%s/recenttracks.rss' %
                 self.service.url,
                 'http://ws.audioscrobbler.com/2.0/user/%s/lovedtracks.rss' %
                 self.service.url)
 
-def filter_title (entry):
+
+def filter_title(entry):
     return _('Listened to %s') % ('<em><a href="%s" rel="nofollow">%s</a></em>' %
                                   (entry.link, entry.title))
 
-def filter_content (entry):
+
+def filter_content(entry):
     return _('Artist: %s') % ('<a href="%s" rel="nofollow">%s</a>' %
                               (entry.content,
-                               urllib.unquote_plus (entry.content[25:])))
+                               urllib.unquote_plus(entry.content[25:])))

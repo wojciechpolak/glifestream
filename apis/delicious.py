@@ -16,14 +16,16 @@
 from django.utils.translation import ugettext as _
 import webfeed
 
+
 class API (webfeed.API):
     name = 'Delicious API v2'
     limit_sec = 3600
 
-    def get_urls (self):
+    def get_urls(self):
         return ('http://feeds.delicious.com/v2/rss/%s?count=20' %
                 self.service.url,)
 
-def filter_title (entry):
+
+def filter_title(entry):
     return _('Bookmarked %s') % ('<a href="%s" rel="nofollow">%s</a>' %
                                  (entry.link, entry.title))

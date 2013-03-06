@@ -25,13 +25,14 @@ try:
 except ImportError:
     openid = None
 
-def start (request, identifier):
+
+def start(request, identifier):
     if not openid:
         return {}
 
-    oidconsumer = consumer.Consumer (request.session, __get_store ())
+    oidconsumer = consumer.Consumer(request.session, __get_store())
     try:
-        auth_request = oidconsumer.begin (identifier)
+        auth_request = oidconsumer.begin(identifier)
     except consumer.DiscoveryFailure, exc:
         return {'msg': _('OpenID authentication failed')}
     else:
@@ -39,25 +40,26 @@ def start (request, identifier):
             return {'msg': _('No OpenID services found for %s') % identifier}
         else:
             trust_root = settings.BASE_URL + '/'
-            if request.is_secure ():
-                trust_root = trust_root.replace ('http://', 'https://')
+            if request.is_secure():
+                trust_root = trust_root.replace('http://', 'https://')
 
-            return_to = request.build_absolute_uri ()
-            if auth_request.shouldSendRedirect ():
-                redirect_url = auth_request.redirectURL (
+            return_to = request.build_absolute_uri()
+            if auth_request.shouldSendRedirect():
+                redirect_url = auth_request.redirectURL(
                     trust_root, return_to, immediate=False)
-                return {'res': HttpResponseRedirect (redirect_url)}
+                return {'res': HttpResponseRedirect(redirect_url)}
             else:
-                form_html = auth_request.htmlMarkup (
+                form_html = auth_request.htmlMarkup(
                     trust_root, return_to,
-                    form_tag_attrs = {'id':'openid_message'},
-                    immediate = False)
-                return {'res': HttpResponse (form_html)}
+                    form_tag_attrs={'id': 'openid_message'},
+                    immediate=False)
+                return {'res': HttpResponse(form_html)}
 
-def finish (request):
-    oidconsumer = consumer.Consumer (request.session, __get_store ())
-    return_to = request.build_absolute_uri ()
-    auth_response = oidconsumer.complete (request.GET, return_to)
+
+def finish(request):
+    oidconsumer = consumer.Consumer(request.session, __get_store())
+    return_to = request.build_absolute_uri()
+    auth_response = oidconsumer.complete(request.GET, return_to)
 
     if auth_response.status == consumer.CANCEL:
         return {'status': 'cancel', 'msg': _('Verification cancelled')}
@@ -67,18 +69,19 @@ def finish (request):
         return {'status': 'success', 'identity_url': auth_response.identity_url}
     return {}
 
-def __get_store ():
-    mstore = getattr (settings, 'OPENID_STORE',
-                      'openid.store.filestore.FileOpenIDStore')
-    i = mstore.rfind ('.')
-    module, attr = mstore[:i], mstore[i+1:]
-    mod = __import__ (module, {}, {}, [attr])
-    cls = getattr (mod, attr)
 
-    if module.endswith ('filestore'):
-        arg = getattr (settings, 'OPENID_STORE_FILEPATH', '/tmp/gls_openid')
+def __get_store():
+    mstore = getattr(settings, 'OPENID_STORE',
+                     'openid.store.filestore.FileOpenIDStore')
+    i = mstore.rfind('.')
+    module, attr = mstore[:i], mstore[i+1:]
+    mod = __import__(module, {}, {}, [attr])
+    cls = getattr(mod, attr)
+
+    if module.endswith('filestore'):
+        arg = getattr(settings, 'OPENID_STORE_FILEPATH', '/tmp/gls_openid')
     else:
         from django.db import connection
-        c = connection.cursor ()
+        c = connection.cursor()
         arg = c.db.connection
-    return cls (arg)
+    return cls(arg)

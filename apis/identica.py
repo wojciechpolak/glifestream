@@ -17,11 +17,12 @@ from glifestream.filters import expand, truncate, twyntax
 from glifestream.stream import media
 import webfeed
 
+
 class API (webfeed.API):
     name = 'Identi.ca API'
     limit_sec = 180
 
-    def get_urls (self):
+    def get_urls(self):
         if not self.service.url and self.service.creds:
             return ('http://identi.ca/api/statuses/friends_timeline.rss?count=50',)
         else:
@@ -32,10 +33,11 @@ class API (webfeed.API):
                 return ('http://identi.ca/api/statuses/user_timeline/%s.rss' %
                         self.service.url,)
 
-    def custom_process (self, e, ent):
-        e.title = 'Tweet: %s' % truncate.smart (ent.title)
-        e.content = expand.all (ent.summary)
-        e.custom_mblob = media.mrss_scan (e.content)
+    def custom_process(self, e, ent):
+        e.title = 'Tweet: %s' % truncate.smart(ent.title)
+        e.content = expand.all(ent.summary)
+        e.custom_mblob = media.mrss_scan(e.content)
 
-def filter_content (entry):
-    return twyntax.parse (entry.content, type='identica')
+
+def filter_content(entry):
+    return twyntax.parse(entry.content, type='identica')

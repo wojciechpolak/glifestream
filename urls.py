@@ -16,21 +16,23 @@
 from django.conf import settings
 from django.conf.urls.defaults import *
 from django.contrib import admin
-admin.autodiscover ()
+admin.autodiscover()
 
 from glifestream.stream import views as sv
 
 handler404 = 'glifestream.stream.views.page_not_found'
 
-urlpatterns = patterns ('',
-
-    url (r'^$', sv.index, name='index'),
+urlpatterns = patterns(
+    '',
+    url(r'^$', sv.index, name='index'),
     (r'^(?P<year>\d{4})/$', sv.index),
     (r'^(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index),
-    (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index),
+    (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+     sv.index),
 
     (r'^public/$', sv.index, {'ctx': 'public'}, 'public'),
-    (r'^public/(?P<year>\d{4})/$', sv.index, {'ctx': 'public'}),
+    (r'^public/(?P<year>\d{4})/$', sv.index, {
+    'ctx': 'public'}),
     (r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index,
      {'ctx': 'public'}),
     (r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index,
@@ -39,8 +41,10 @@ urlpatterns = patterns ('',
     (r'^entry/(?P<entry>\d+)(/.*)?$', sv.index, {}, 'entry'),
     (r'^api/(?P<cmd>[a-z]+)$', sv.api),
 
-    (r'^favorites/$', sv.index, {'ctx': 'favorites'}, 'favorites'),
-    (r'^favorites/(?P<year>\d{4})/$', sv.index, {'ctx': 'favorites'}),
+    (r'^favorites/$', sv.index, {
+     'ctx': 'favorites'}, 'favorites'),
+    (r'^favorites/(?P<year>\d{4})/$', sv.index, {
+     'ctx': 'favorites'}),
     (r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/$',
      sv.index, {'ctx': 'favorites'}),
     (r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
@@ -50,19 +54,22 @@ urlpatterns = patterns ('',
     (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/$', sv.index),
     (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/$',
      sv.index),
-    (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index),
+    (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+     sv.index),
 
-    (r'^pshb/(?P<id>[a-f0-9]{20})$', sv.pshb_dispatcher, {}, 'pshb'),
+    (r'^pshb/(?P<id>[a-f0-9]{20})$',
+     sv.pshb_dispatcher, {}, 'pshb'),
 
     (r'^login/?$', 'glifestream.gauth.views.login'),
     (r'^logout/?$', 'django.contrib.auth.views.logout',
      {'next_page': './'}),
 
-    (r'^auth/', include ('glifestream.gauth.urls')),
-    (r'^bookmarklet/', include ('glifestream.bookmarklet.urls')),
-    (r'^settings/', include ('glifestream.usettings.urls')),
+    (r'^auth/', include('glifestream.gauth.urls')),
+    (r'^bookmarklet/', include(
+     'glifestream.bookmarklet.urls')),
+    (r'^settings/', include('glifestream.usettings.urls')),
 
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
      {'document_root': settings.MEDIA_ROOT}),
-    (r'^admin/', include (admin.site.urls)),
+    (r'^admin/', include(admin.site.urls)),
 )

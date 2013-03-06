@@ -17,34 +17,36 @@ from django.conf import settings
 from django.shortcuts import render_to_response
 from glifestream.stream.models import Service
 
-def js (request, **args):
+
+def js(request, **args):
     page = {
         'base_url': settings.BASE_URL,
-        'favicon': request.build_absolute_uri (settings.FAVICON),
+        'favicon': request.build_absolute_uri(settings.FAVICON),
     }
-    if request.is_secure ():
-        page['base_url'] = page['base_url'].replace ('http://', 'https://')
+    if request.is_secure():
+        page['base_url'] = page['base_url'].replace('http://', 'https://')
 
-    return render_to_response ('bookmarklet.js', { 'page': page },
-                               mimetype='application/javascript')
+    return render_to_response('bookmarklet.js', {'page': page},
+                              mimetype='application/javascript')
 
-def frame (request, **args):
+
+def frame(request, **args):
     page = {
         'base_url': settings.BASE_URL,
     }
-    if request.is_secure ():
-        page['base_url'] = page['base_url'].replace ('http://', 'https://')
+    if request.is_secure():
+        page['base_url'] = page['base_url'].replace('http://', 'https://')
 
-    authed = request.user.is_authenticated () and request.user.is_staff
+    authed = request.user.is_authenticated() and request.user.is_staff
     if authed:
-        srvs = Service.objects.filter (api='selfposts').order_by ('cls')
+        srvs = Service.objects.filter(api='selfposts').order_by('cls')
         srvs.query.group_by = ['cls']
-        srvs = srvs.values ('id', 'cls')
+        srvs = srvs.values('id', 'cls')
     else:
         srvs = None
 
-    return render_to_response ('frame.html',
-                               { 'authed': authed,
-                                 'page': page,
-                                 'is_secure': request.is_secure (),
-                                 'srvs': srvs })
+    return render_to_response('frame.html',
+                              {'authed': authed,
+                               'page': page,
+                               'is_secure': request.is_secure(),
+                               'srvs': srvs})

@@ -23,25 +23,26 @@ from glifestream.utils import httpclient
 from glifestream.utils.time import now
 from glifestream.stream.models import Pshb
 
-def subscribe (service, verbose=False):
+
+def subscribe(service, verbose=False):
     try:
-        webfeed = __import__ ('glifestream.apis.webfeed', {}, {}, ['API'])
+        webfeed = __import__('glifestream.apis.webfeed', {}, {}, ['API'])
     except ImportError:
         return {'rc': 1, 'error': 'ImportError apis.webfeed'}
-    webfeed_api = getattr (webfeed, 'API')
+    webfeed_api = getattr(webfeed, 'API')
 
     try:
-        mod = __import__ ('glifestream.apis.%s' % service.api, {}, {}, ['API'])
+        mod = __import__('glifestream.apis.%s' % service.api, {}, {}, ['API'])
     except ImportError:
         return {'rc': 1, 'error': 'ImportError apis.%s' % service.api}
-    mod_api = getattr (mod, 'API')
-    api = mod_api (service, False, False)
+    mod_api = getattr(mod, 'API')
+    api = mod_api(service, False, False)
 
-    if not isinstance (api, webfeed_api):
+    if not isinstance(api, webfeed_api):
         return {'rc': 1, 'error': 'PSHB is not supported by this API.'}
 
     api.fetch_only = True
-    api.run ()
+    api.run()
     if api.fp_error:
         return {'rc': 1, 'error': api.fp.bozo_exception}
 
@@ -53,156 +54,170 @@ def subscribe (service, verbose=False):
     if not hub:
         return {'rc': 2}
 
-    secret = hashlib.md5 ('%s:%d/%s/%s' % (hub, service.id, api.url,
-                                           settings.SECRET_KEY)).hexdigest ()
-    hash = hashlib.sha1 (secret).hexdigest ()[0:20]
+    secret = hashlib.md5('%s:%d/%s/%s' % (hub, service.id, api.url,
+                                          settings.SECRET_KEY)).hexdigest()
+    hash = hashlib.sha1(secret).hexdigest()[0:20]
     secret = secret[0:8] if 'https://' in hub else None
 
     save_db = False
     try:
-        db = Pshb.objects.get (hash=hash, service=service)
+        db = Pshb.objects.get(hash=hash, service=service)
     except Pshb.DoesNotExist:
-        db = Pshb (hash=hash, service=service, hub=hub, secret=secret)
+        db = Pshb(hash=hash, service=service, hub=hub, secret=secret)
         save_db = True
 
-    topic = __get_absolute_url (urlresolvers.reverse ('index')) + '?format=atom'
-    callback = __get_absolute_url (urlresolvers.reverse ('pshb', args=[hash]))
+    topic = __get_absolute_url(
+        urlresolvers.reverse('index')) + '?format=atom'
+    callback = __get_absolute_url(urlresolvers.reverse('pshb', args=[hash]))
 
     if settings.PSHB_HTTPS_CALLBACK:
-        callback = callback.replace ('http://', 'https://')
+        callback = callback.replace('http://', 'https://')
 
-    data = { 'hub.mode': 'subscribe',
-             'hub.topic': topic,
-             'hub.callback': callback,
-             'hub.verify': 'async' }
+    data = {'hub.mode': 'subscribe',
+            'hub.topic': topic,
+            'hub.callback': callback,
+            'hub.verify': 'async'}
     if secret:
         data['hub.secret'] = secret
 
     try:
-        r = httpclient.urlopen (hub, data)
-        if verbose: print 'Response code: %d' % r.code
-        if save_db: db.save ()
+        r = httpclient.urlopen(hub, data)
+        if verbose:
+            print 'Response code: %d' % r.code
+        if save_db:
+            db.save()
         return {'hub': hub, 'rc': r.code}
     except (IOError, httpclient.HTTPError), e:
         error = ''
-        if hasattr (e, 'read'):
-            error = e.read ()
+        if hasattr(e, 'read'):
+            error = e.read()
         if verbose:
             print '%s, Response: "%s"' % (e, error)
         return {'hub': hub, 'rc': error}
 
-def unsubscribe (id, verbose=False):
+
+def unsubscribe(id, verbose=False):
     try:
-        db = Pshb.objects.get (id=id)
+        db = Pshb.objects.get(id=id)
     except Pshb.DoesNotExist:
         return {'rc': 1}
 
-    topic = __get_absolute_url (urlresolvers.reverse ('index')) + '?format=atom'
-    callback = __get_absolute_url (urlresolvers.reverse ('pshb', args=[db.hash]))
+    topic = __get_absolute_url(
+        urlresolvers.reverse('index')) + '?format=atom'
+    callback = __get_absolute_url(
+        urlresolvers.reverse('pshb', args=[db.hash]))
 
     if settings.PSHB_HTTPS_CALLBACK:
-        callback = callback.replace ('http://', 'https://')
+        callback = callback.replace('http://', 'https://')
 
-    data = { 'hub.mode': 'unsubscribe',
-             'hub.topic': topic,
-             'hub.callback': callback,
-             'hub.verify': 'sync' }
+    data = {'hub.mode': 'unsubscribe',
+            'hub.topic': topic,
+            'hub.callback': callback,
+            'hub.verify': 'sync'}
 
     try:
-        r = httpclient.urlopen (db.hub, data)
-        if verbose: print 'Response code: %d' % r.code
+        r = httpclient.urlopen(db.hub, data)
+        if verbose:
+            print 'Response code: %d' % r.code
         return {'hub': db.hub, 'rc': r.code}
     except (IOError, httpclient.HTTPError), e:
         error = ''
-        if hasattr (e, 'read'):
-            error = e.read ()
+        if hasattr(e, 'read'):
+            error = e.read()
         if verbose:
             print '%s, Response: "%s"' % (e, error)
         return {'hub': db.hub, 'rc': error}
 
-def verify (id, GET):
-    mode = GET.get ('hub.mode', None)
-    lease_seconds = GET.get ('hub.lease_seconds', None)
+
+def verify(id, GET):
+    mode = GET.get('hub.mode', None)
+    lease_seconds = GET.get('hub.lease_seconds', None)
 
     if mode == 'subscribe':
         try:
-            db = Pshb.objects.get (hash=id)
+            db = Pshb.objects.get(hash=id)
             db.verified = True
             if lease_seconds:
-                db.expire = now () + timedelta (seconds=int(lease_seconds))
-            db.save ()
+                db.expire = now() + timedelta(seconds=int(lease_seconds))
+            db.save()
         except Pshb.DoesNotExist:
             return False
     elif mode == 'unsubscribe':
         try:
-            Pshb.objects.get (hash=id).delete ()
+            Pshb.objects.get(hash=id).delete()
         except Pshb.DoesNotExist:
             return False
 
-    return GET.get ('hub.challenge', '')
+    return GET.get('hub.challenge', '')
 
-def publish (hubs=None, verbose=False):
+
+def publish(hubs=None, verbose=False):
     hubs = hubs or settings.PSHB_HUBS
-    url = __get_absolute_url (urlresolvers.reverse ('index')) + '?format=atom'
+    url = __get_absolute_url(urlresolvers.reverse('index')) + '?format=atom'
     if 'localhost' in url:
         return
     for hub in hubs:
-        hub = hub.replace ('https://', 'http://') # it's just a ping.
+        hub = hub.replace('https://', 'http://')  # it's just a ping.
         data = {'hub.mode': 'publish', 'hub.url': url}
         try:
-            r = httpclient.urlopen (hub, data, timeout=7)
+            r = httpclient.urlopen(hub, data, timeout=7)
             if verbose:
                 if r.code == 204:
                     print '%s: Successfully pinged.' % hub
                 else:
                     print '%s: Pinged and got %d.' % (hub, r.code)
         except (IOError, httpclient.HTTPError), e:
-            if hasattr (e, 'code') and e.code == 204:
+            if hasattr(e, 'code') and e.code == 204:
                 continue
             if verbose:
                 error = ''
-                if hasattr (e, 'read'):
-                    error = e.read ()
+                if hasattr(e, 'read'):
+                    error = e.read()
                 print '%s, Response: "%s"' % (e, error)
 
-def accept_payload (id, payload, meta={}):
+
+def accept_payload(id, payload, meta={}):
     try:
-        db = Pshb.objects.get (hash=id)
+        db = Pshb.objects.get(hash=id)
     except Pshb.DoesNotExist:
         return False
     if db.secret:
-        s = hmac.new (str (db.secret), payload, hashlib.sha1).hexdigest ()
-        signature = meta.get ('HTTP_X_HUB_SIGNATURE', None)
+        s = hmac.new(str(db.secret), payload, hashlib.sha1).hexdigest()
+        signature = meta.get('HTTP_X_HUB_SIGNATURE', None)
         if signature and 'sha1=' in signature:
             signature = signature[5:]
         if s != signature:
-            return False # signature mismatch
+            return False  # signature mismatch
     try:
-        mod = __import__ ('glifestream.apis.%s' % db.service.api, {}, {}, ['API'])
+        mod = __import__('glifestream.apis.%s' %
+                         db.service.api, {}, {}, ['API'])
     except ImportError:
         return False
-    mod_api = getattr (mod, 'API')
-    api = mod_api (db.service, False, False)
+    mod_api = getattr(mod, 'API')
+    api = mod_api(db.service, False, False)
     api.payload = payload
-    api.run ()
+    api.run()
     return True
 
-def renew_subscriptions (force=False, verbose=False):
-    subscriptions = Pshb.objects.all ().order_by ('id')
+
+def renew_subscriptions(force=False, verbose=False):
+    subscriptions = Pshb.objects.all().order_by('id')
     for s in subscriptions:
         if s.expire:
-            d = s.expire - timedelta (days=7)
-            if now () > d or force:
-                subscribe (s.service, verbose)
+            d = s.expire - timedelta(days=7)
+            if now() > d or force:
+                subscribe(s.service, verbose)
 
-def list (raw=False):
-    subscriptions = Pshb.objects.all ().order_by ('id')
+
+def list(raw=False):
+    subscriptions = Pshb.objects.all().order_by('id')
     if raw:
         return subscriptions
     for s in subscriptions:
         print '%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s' % \
             (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire)
 
-def __get_absolute_url (path=''):
-    url = urlparse.urlsplit (settings.BASE_URL)
+
+def __get_absolute_url(path=''):
+    url = urlparse.urlsplit(settings.BASE_URL)
     return '%s://%s%s' % (url.scheme, url.netloc, path)

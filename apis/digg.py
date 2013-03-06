@@ -15,12 +15,14 @@
 
 import webfeed
 
+
 class API (webfeed.API):
     name = 'Digg API'
     limit_sec = 300
 
-    def get_urls (self):
+    def get_urls(self):
         return ('http://digg.com/users/%s/history.rss' % self.service.url,)
 
-def filter_title (entry):
+
+def filter_title(entry):
     return '<a href="%s" rel="nofollow">%s</a>' % (entry.link, entry.title)

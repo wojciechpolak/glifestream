@@ -25,19 +25,20 @@ providers = {
     'flickr': 'www.flickr.com/services/oembed'
 }
 
-def discover (url, provider, maxwidth=None, maxheight=None):
-    pro = providers.get (provider, None)
+
+def discover(url, provider, maxwidth=None, maxheight=None):
+    pro = providers.get(provider, None)
     if not pro:
         return None
-    q = '?url=%s&format=json' % urllib.quote (url)
+    q = '?url=%s&format=json' % urllib.quote(url)
     if maxwidth:
         q += '&maxwidth=%d' % maxwidth
     if maxheight:
         q += '&maxheight=%d' % maxheight
     try:
-        r = httpclient.urlopen (pro + q, timeout=15)
+        r = httpclient.urlopen(pro + q, timeout=15)
         if r.code == 200:
-            return json.loads (r.data)
+            return json.loads(r.data)
     except:
         pass
     return None

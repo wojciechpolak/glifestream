@@ -16,23 +16,26 @@
 from django.utils.translation import ugettext as _
 import webfeed
 
+
 class API (webfeed.API):
     name = 'Yelp API'
     limit_sec = 3600
 
-    def get_urls (self):
-        if self.service.url.startswith ('http://'):
+    def get_urls(self):
+        if self.service.url.startswith('http://'):
             return (self.service.url,)
         else:
             return ('http://www.yelp.com/syndicate/user/%s/atom.xml' %
                     self.service.url,)
 
-    def custom_process (self, e, ent):
-        e.title = ent.title.replace (' on Yelp.com', '')
+    def custom_process(self, e, ent):
+        e.title = ent.title.replace(' on Yelp.com', '')
 
-def filter_title (entry):
+
+def filter_title(entry):
     return _('Reviewed %s') % ('<em>' + entry.title + '</em>')
 
-def filter_content (entry):
+
+def filter_content(entry):
     return entry.content + (' <a href="%s" rel="nofollow" class="more">%s</a>' %
                             (entry.link, _('more')))

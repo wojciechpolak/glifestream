@@ -15,15 +15,17 @@
 
 import webfeed
 
+
 class API (webfeed.API):
     name = 'StumbleUpon API'
     limit_sec = 600
 
-    def get_urls (self):
+    def get_urls(self):
         return ('http://rss.stumbleupon.com/user/%s/favorites' %
                 self.service.url,
                 'http://rss.stumbleupon.com/user/%s/reviews' %
                 self.service.url)
 
-def filter_title (entry):
+
+def filter_title(entry):
     return '<a href="%s" rel="nofollow">%s</a>' % (entry.link, entry.title)

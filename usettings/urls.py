@@ -16,13 +16,16 @@
 from django.conf.urls.defaults import *
 from glifestream.usettings import views
 
-urlpatterns = patterns ('',
+urlpatterns = patterns(
+    '',
     (r'^$', 'django.views.generic.simple.redirect_to',
      {'url': 'services'}, 'settings'),
     (r'api/(?P<cmd>[a-z\-]+)$', views.api),
     (r'services$', views.services),
-    (r'services/import$', views.opml, {'cmd': 'import'}, 'opml-import'),
-    (r'services/export$', views.opml, {'cmd': 'export'}, 'opml-export'),
+    (r'services/import$', views.opml, {
+     'cmd': 'import'}, 'opml-import'),
+    (r'services/export$', views.opml, {
+     'cmd': 'export'}, 'opml-export'),
     (r'lists$', views.lists),
     (r'lists/(?P<list>[a-z0-9\-]+)$', views.lists),
     (r'pshb$', views.pshb),
