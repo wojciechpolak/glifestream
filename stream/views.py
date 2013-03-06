@@ -21,6 +21,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.http import HttpResponseNotFound
+from django.http import HttpResponsePermanentRedirect
 from django.http import Http404
 from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
@@ -325,7 +326,7 @@ def index(request, **args):
     if 'exactentry' in page:
         if len(entries):
             if entries[0].gls_link != request.path:
-                return HttpResponseRedirect(entries[0].gls_link)
+                return HttpResponsePermanentRedirect(entries[0].gls_link)
         else:
             raise Http404
 
