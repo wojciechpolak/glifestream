@@ -16,17 +16,19 @@
 from glifestream.stream import media
 import webfeed
 
+
 class API (webfeed.API):
     name = 'PicasaWeb API'
     limit_sec = 600
 
-    def get_urls (self):
+    def get_urls(self):
         return ('http://picasaweb.google.com/data/feed/base/user/%s?alt=rss&kind=album&access=public' %
                 self.service.url,)
 
-    def custom_process (self, e, ent):
-        if 'media_thumbnail' in ent and len (ent.media_thumbnail):
+    def custom_process(self, e, ent):
+        if 'media_thumbnail' in ent and len(ent.media_thumbnail):
             tn = ent.media_thumbnail[0]
             if self.service.public:
-                tn['url'] = media.save_image (tn['url'])
-            e.content = """<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a></p>\n""" % (ent.link, tn['url'], tn['width'], tn['height'])
+                tn['url'] = media.save_image(tn['url'])
+            e.content = """<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a></p>\n""" % (
+                ent.link, tn['url'], tn['width'], tn['height'])

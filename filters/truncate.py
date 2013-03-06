@@ -13,23 +13,25 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-def simple (content, max_length=36, suffix='...'):
-    content = content.strip ()
-    if len (content) <= max_length:
+
+def simple(content, max_length=36, suffix='...'):
+    content = content.strip()
+    if len(content) <= max_length:
         return content
     else:
-        content = content[:max_length].rsplit (' ', 1)[0].rstrip (' -/,:')
+        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:')
         return content + suffix
 
-def smart (content, max_words=7, max_length=36, suffix='...'):
+
+def smart(content, max_words=7, max_length=36, suffix='...'):
     sx = ''
-    content = content.strip ()
-    words = content.split (' ')
-    if len (words) > max_words:
-        content = ' '.join (words[:max_words])
+    content = content.strip()
+    words = content.split(' ')
+    if len(words) > max_words:
+        content = ' '.join(words[:max_words])
         sx = suffix
-    if len (content) <= max_length:
-        return content.rstrip (' -/,:') + sx
+    if len(content) <= max_length:
+        return content.rstrip(' -/,:') + sx
     else:
-        content = content[:max_length].rsplit (' ', 1)[0].rstrip (' -/,:')
+        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:')
         return content + suffix

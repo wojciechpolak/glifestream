@@ -28,12 +28,12 @@ try:
 except ImportError:
     workerpool = None
 
-SITE_ROOT = os.path.dirname (os.path.realpath (__file__))
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
-sys.path.insert (0, os.path.join (SITE_ROOT, '../'))
+sys.path.insert(0, os.path.join(SITE_ROOT, '../'))
 
 from django.core.management import setup_environ
-setup_environ (settings)
+setup_environ(settings)
 from django.conf import settings
 from glifestream.utils.time import unixnow
 from glifestream.stream.models import Service, Entry, Favorite
@@ -41,12 +41,14 @@ from glifestream.stream import media, pshb
 
 if workerpool:
     class WorkerJob (workerpool.Job):
-        def __init__ (self, fn):
+        def __init__(self, fn):
             self.fn = fn
-        def run (self):
-            self.fn ()
 
-def run ():
+        def run(self):
+            self.fn()
+
+
+def run():
     verbose = 0
     list = False
     force_check = False
@@ -59,21 +61,21 @@ def run ():
     fs = {}
 
     try:
-        opts, args = getopt.getopt (sys.argv[1:], 'i:a:lvf',
-                                    ['id=',
-                                     'api=',
-                                     'list',
-                                     'verbose',
-                                     'force-check',
-                                     'force-overwrite',
-                                     'delete-old=',
-                                     'list-old=',
-                                     'only-inactive',
-                                     'thumbs-list-orphans',
-                                     'thumbs-delete-orphans',
-                                     'pshb=',
-                                     'email2post',
-                                     'init-files-dirs'])
+        opts, args = getopt.getopt(sys.argv[1:], 'i:a:lvf',
+                                   ['id=',
+                                    'api=',
+                                    'list',
+                                    'verbose',
+                                    'force-check',
+                                    'force-overwrite',
+                                    'delete-old=',
+                                    'list-old=',
+                                    'only-inactive',
+                                    'thumbs-list-orphans',
+                                    'thumbs-delete-orphans',
+                                    'pshb=',
+                                    'email2post',
+                                    'init-files-dirs'])
         for o, arg in opts:
             if o in ('-a', '--api'):
                 fs['api'] = arg
@@ -88,9 +90,9 @@ def run ():
             elif o == '--force-overwrite':
                 force_overwrite = True
             elif o == '--list-old':
-                list_old = int (arg)
+                list_old = int(arg)
             elif o == '--delete-old':
-                delete_old = int (arg)
+                delete_old = int(arg)
             elif o == '--only-inactive':
                 only_inactive = True
             elif o == '--thumbs-list-orphans':
@@ -100,9 +102,9 @@ def run ():
             elif o == '--pshb':
                 pshb_cmd = arg
             elif o == '--email2post':
-                sys.exit (email2post ())
+                sys.exit(email2post())
             elif o == '--init-files-dirs':
-                sys.exit (init_files_dirs ())
+                sys.exit(init_files_dirs())
     except getopt.GetoptError:
         print "Usage: %s [OPTION...]" % sys.argv[0]
         print """%s -- gLifestream worker
@@ -120,17 +122,17 @@ def run ():
       --pshb=ACTION            PubSubHubbub's actions: (un)subscribe, list
       --email2post             Post things using e-mail (from stdin)
   """ % sys.argv[0]
-        sys.exit (0)
+        sys.exit(0)
 
     if list:
-        for service in Service.objects.all ().order_by ('id'):
+        for service in Service.objects.all().order_by('id'):
             print '%4d "%s"  API=%s' % (service.id, service.name, service.api)
-        sys.exit (0)
+        sys.exit(0)
 
     if pshb_cmd:
         if pshb_cmd == 'subscribe' and 'id' in fs:
-            service = Service.objects.get (id=fs['id'])
-            r = pshb.subscribe (service, verbose)
+            service = Service.objects.get(id=fs['id'])
+            r = pshb.subscribe(service, verbose)
             if r['rc'] == 1:
                 print '%s: %s' % (sys.argv[0], r['error'])
             elif r['rc'] == 2:
@@ -140,7 +142,7 @@ def run ():
             elif r['rc'] == 204:
                 print 'hub=%s: Subscription verified.' % r['hub']
         elif pshb_cmd == 'unsubscribe' and 'id' in fs:
-            r = pshb.unsubscribe (fs['id'], verbose)
+            r = pshb.unsubscribe(fs['id'], verbose)
             if r['rc'] == 1:
                 print '%s: No subscription found.' % sys.argv[0]
             elif r['rc'] == 202:
@@ -150,58 +152,60 @@ def run ():
             else:
                 print 'hub=%s: %s.' % (r['hub'], r['rc'])
         elif pshb_cmd == 'renew':
-            pshb.renew_subscriptions (force=force_check, verbose=verbose)
+            pshb.renew_subscriptions(force=force_check, verbose=verbose)
         elif pshb_cmd == 'list':
-            pshb.list ()
+            pshb.list()
         elif pshb_cmd == 'publish':
-            pshb.publish (verbose=verbose)
+            pshb.publish(verbose=verbose)
         else:
             print '%s: Unknown "%s" action.' % (sys.argv[0], pshb_cmd)
-            sys.exit (1)
-        sys.exit (0)
+            sys.exit(1)
+        sys.exit(0)
 
     if thumbs in ('list-orphans', 'delete-orphans'):
         import re
         ths = {}
-        for root, dirs, files in os.walk (os.path.join (settings.MEDIA_ROOT,
-                                                        'thumbs')):
+        for root, dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT,
+                                                      'thumbs')):
             for file in files:
                 if file[0] != '.':
-                    ths[media.get_thumb_info (file)['rel']] = True
-        entries = Entry.objects.all ()
+                    ths[media.get_thumb_info(file)['rel']] = True
+        entries = Entry.objects.all()
         for entry in entries:
-            hash = media.get_thumb_hash (entry.link_image)
-            t = media.get_thumb_info (hash)['rel'] if hash else ''
-            if t in ths: del ths[t]
-            for hash in re.findall ('\[GLS-THUMBS\]/([a-f0-9]{40})',
-                                    entry.content):
-                t = media.get_thumb_info (hash)['rel']
-                if t in ths: del ths[t]
+            hash = media.get_thumb_hash(entry.link_image)
+            t = media.get_thumb_info(hash)['rel'] if hash else ''
+            if t in ths:
+                del ths[t]
+            for hash in re.findall('\[GLS-THUMBS\]/([a-f0-9]{40})',
+                                   entry.content):
+                t = media.get_thumb_info(hash)['rel']
+                if t in ths:
+                    del ths[t]
         if thumbs == 'delete-orphans':
             if verbose:
-                print 'Files to remove: %d' % len (ths)
+                print 'Files to remove: %d' % len(ths)
             for file in ths:
-                file = os.path.join (settings.MEDIA_ROOT, file)
-                os.remove (file)
+                file = os.path.join(settings.MEDIA_ROOT, file)
+                os.remove(file)
         else:
             for file in ths:
                 print file
-        sys.exit (0)
+        sys.exit(0)
 
     if list_old or delete_old:
         days = list_old if list_old else delete_old
-        n = time.mktime (unixnow ()) - (86400 * days)
-        rt = datetime.datetime.fromtimestamp (n).date ()
+        n = time.mktime(unixnow()) - (86400 * days)
+        rt = datetime.datetime.fromtimestamp(n).date()
         if 'id' in fs:
-            lst = fs['id'].split (',')
-            if len (lst) > 1:
+            lst = fs['id'].split(',')
+            if len(lst) > 1:
                 fs['service__id__in'] = lst
             else:
-                fs['service__id'] = int (fs['id'])
+                fs['service__id'] = int(fs['id'])
             del fs['id']
         elif 'api' in fs:
-            lst = fs['api'].split (',')
-            if len (lst) > 1:
+            lst = fs['api'].split(',')
+            if len(lst) > 1:
                 fs['service__api__in'] = lst
             else:
                 fs['service__api'] = fs['api']
@@ -212,85 +216,88 @@ def run ():
         fs['date_inserted__lte'] = rt
         if only_inactive:
             fs['active'] = False
-        favs = Favorite.objects.all ().values ('entry')
+        favs = Favorite.objects.all().values('entry')
         if list_old:
-            for entry in Entry.objects.filter (**fs).exclude (id__in=favs):
+            for entry in Entry.objects.filter(**fs).exclude(id__in=favs):
                 print '%4d "%s" by %s' % (entry.id,
                                           entry.title,
                                           entry.author_name)
         elif delete_old:
-            Entry.objects.filter (**fs).exclude (id__in=favs).delete ()
-        sys.exit (0)
+            Entry.objects.filter(**fs).exclude(id__in=favs).delete()
+        sys.exit(0)
     else:
         if not force_check or not 'id' in fs:
             fs['active'] = True
 
     if force_overwrite:
-        sel = raw_input ("WARNING: This may create thumbnail orphans! Continue Y/N? ").strip ()
+        sel = raw_input(
+            "WARNING: This may create thumbnail orphans! Continue Y/N? ").strip()
         if sel != 'Y':
-            sys.exit (0)
+            sys.exit(0)
 
     try:
         last1 = Entry.objects.filter (service__public=True).\
-            order_by ('-date_published')[0]
+            order_by('-date_published')[0]
     except IndexError:
         last1 = None
 
     if workerpool:
-        pool = workerpool.WorkerPool (size=10)
+        pool = workerpool.WorkerPool(size=10)
     else:
         pool = None
 
-    for service in Service.objects.filter (**fs):
+    for service in Service.objects.filter(**fs):
         try:
-            mod = __import__ ('apis.%s' % service.api, {}, {}, ['API'])
+            mod = __import__('apis.%s' % service.api, {}, {}, ['API'])
         except ImportError:
             continue
-        mod_api = getattr (mod, 'API')
+        mod_api = getattr(mod, 'API')
 
-        if service.last_checked and hasattr (mod_api, 'limit_sec'):
+        if service.last_checked and hasattr(mod_api, 'limit_sec'):
             if not force_check:
-                d = datetime.datetime.now () - service.last_checked
+                d = datetime.datetime.now() - service.last_checked
                 if d.seconds < mod_api.limit_sec:
                     continue
 
-        api = mod_api (service, verbose, force_overwrite)
+        api = mod_api(service, verbose, force_overwrite)
         if pool:
-            pool.put (WorkerJob (api.run))
+            pool.put(WorkerJob(api.run))
         else:
-            api.run ()
+            api.run()
 
     if pool:
-        pool.shutdown ()
-        pool.wait ()
+        pool.shutdown()
+        pool.wait()
 
     try:
         last2 = Entry.objects.filter (service__public=True).\
-            order_by ('-date_published')[0]
+            order_by('-date_published')[0]
     except IndexError:
         last2 = None
 
     if last2 and last1 != last2:
-        pshb.publish (verbose=verbose)
+        pshb.publish(verbose=verbose)
 
-def email2post ():
+
+def email2post():
     from glifestream.apis import mail
-    api = mail.API ()
-    return api.share (sys.stdin)
+    api = mail.API()
+    return api.share(sys.stdin)
 
-def init_files_dirs ():
+
+def init_files_dirs():
     """Create initial directories and files."""
 
-    upload = os.path.join (settings.MEDIA_ROOT, 'upload')
-    _create_dir (upload)
+    upload = os.path.join(settings.MEDIA_ROOT, 'upload')
+    _create_dir(upload)
 
-    thumbs = os.path.join (settings.MEDIA_ROOT, 'thumbs')
-    _create_dir (thumbs)
+    thumbs = os.path.join(settings.MEDIA_ROOT, 'thumbs')
+    _create_dir(thumbs)
 
-    for i in range (0, 10):
-        _create_dir (os.path.join (thumbs, str (i)))
+    for i in range(0, 10):
+        _create_dir(os.path.join(thumbs, str(i)))
     for i in 'abcdef':
-        _create_dir (os.path.join (thumbs, i))
+        _create_dir(os.path.join(thumbs, i))
 
     print """
 Make sure that 'static/thumbs/*' and 'static/upload' directories exist
@@ -305,21 +312,22 @@ and all have write permissions by your webserver.
     )
     try:
         for i in template_files:
-            file = os.path.join (template_dir, i)
-            if not os.path.isfile (file):
+            file = os.path.join(template_dir, i)
+            if not os.path.isfile(file):
                 print "Creating empty file '%s'" % file
-                open (file, 'w').close ()
+                open(file, 'w').close()
     except Error, e:
         print e
         return 1
 
     return 0
 
-def _create_dir (d, verbose=True):
-    if not os.path.isdir (d):
+
+def _create_dir(d, verbose=True):
+    if not os.path.isdir(d):
         if verbose:
             print "Creating directory '%s'" % d
-        os.mkdir (d)
+        os.mkdir(d)
 
 if __name__ == '__main__':
-    run ()
+    run()

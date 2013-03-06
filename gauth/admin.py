@@ -16,8 +16,9 @@
 from django.contrib import admin
 from models import OpenId
 
+
 class OpenIdAdmin (admin.ModelAdmin):
     list_display = ('user', 'identity',)
     list_filter = ('user',)
 
-admin.site.register (OpenId, OpenIdAdmin)
+admin.site.register(OpenId, OpenIdAdmin)

@@ -18,22 +18,24 @@ try:
 except ImportError:
     BeautifulSoup = None
 
-def strip_script (s):
+
+def strip_script(s):
     try:
         if BeautifulSoup:
-            soup = BeautifulSoup (s)
-            to_extract = soup.findAll ('script')
+            soup = BeautifulSoup(s)
+            to_extract = soup.findAll('script')
             for item in to_extract:
-                item.extract ()
-            s = str (soup)
+                item.extract()
+            s = str(soup)
     except:
         pass
     return s
 
-def bytes_to_human (bytes, precision=2):
+
+def bytes_to_human(bytes, precision=2):
     suffixes = ('B', 'kB', 'MB', 'GB')
     format = '%.*f %s'
-    size = float (bytes)
+    size = float(bytes)
     for suffix in suffixes:
         if size >= 1024:
             size /= 1024

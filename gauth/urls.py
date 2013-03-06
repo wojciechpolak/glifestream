@@ -16,7 +16,8 @@
 from django.conf.urls.defaults import *
 from glifestream.gauth import views
 
-urlpatterns = patterns ('',
+urlpatterns = patterns(
+    '',
     (r'login-friend$', views.login_friend),
     (r'xrds$', views.xrds),
     (r'openid$', views.openid),

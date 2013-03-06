@@ -18,19 +18,20 @@ from django.utils.translation import ugettext as _
 from glifestream.stream import media
 import webfeed
 
+
 class API (webfeed.API):
     name = 'YouTube API v2'
     limit_sec = 3600
 
-    def get_urls (self):
-        if self.service.url.startswith ('http://'):
+    def get_urls(self):
+        if self.service.url.startswith('http://'):
             return (self.service.url,)
         else:
             h = 'http://gdata.youtube.com/feeds/api/users/%s' % self.service.url
             return ('%s/favorites?v=2' % h,
                     '%s/uploads?v=2' % h)
 
-    def custom_process (self, e, ent):
+    def custom_process(self, e, ent):
         if 'yt_videoid' in ent:
             vid = ent['yt_videoid']
         elif 'media_player' in ent and 'url' in ent['media_player']:
@@ -38,7 +39,7 @@ class API (webfeed.API):
         else:
             vid = None
 
-        if vid and 'media_thumbnail' in ent and len (ent.media_thumbnail):
+        if vid and 'media_thumbnail' in ent and len(ent.media_thumbnail):
             tn = None
             for mt in ent.media_thumbnail:
                 if 'name' in mt and mt['name'] == 'hqdefault':
@@ -48,18 +49,20 @@ class API (webfeed.API):
                 tn = ent.media_thumbnail[0]
 
             if self.service.public:
-                tn['url'] = media.save_image (tn['url'], downscale=True,
-                                              size=(200, 150))
+                tn['url'] = media.save_image(tn['url'], downscale=True,
+                                             size=(200, 150))
 
-            e.link = e.link.replace ('&feature=youtube_gdata', '')
-            e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (vid, e.link, tn['url'], tn['width'], tn['height'])
+            e.link = e.link.replace('&feature=youtube_gdata', '')
+            e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
+                vid, e.link, tn['url'], tn['width'], tn['height'])
         else:
-            e.content = ent.get ('yt_state', '<a href="%s">%s</a>' % \
-                                     (ent.get ('link', '#').replace (
-                        '&feature=youtube_gdata', ''), ent.get ('title', '')));
+            e.content = ent.get('yt_state', '<a href="%s">%s</a>' %
+                               (ent.get('link', '#').replace(
+                                '&feature=youtube_gdata', ''), ent.get('title', '')))
 
-def filter_title (entry):
+
+def filter_title(entry):
     if 'favorite' in entry.guid:
-        return _('Favorited %s') % ('<em>' + title (entry.title) + '</em>')
+        return _('Favorited %s') % ('<em>' + title(entry.title) + '</em>')
     else:
-        return _('Published %s') % ('<em>' + title (entry.title) + '</em>')
+        return _('Published %s') % ('<em>' + title(entry.title) + '</em>')

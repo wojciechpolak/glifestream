@@ -16,14 +16,16 @@
 from django.utils.translation import ugettext as _
 import webfeed
 
+
 class API (webfeed.API):
     name = 'Google Reader API'
     limit_sec = 600
 
-    def get_urls (self):
+    def get_urls(self):
         return ('http://www.google.com/reader/public/atom/user/%s/state/com.google/broadcast' %
                 self.service.url,)
 
-def filter_title (entry):
+
+def filter_title(entry):
     return _('Shared %s') % ('<a href="%s" rel="nofollow">%s</a>' %
                              (entry.link, entry.title))
