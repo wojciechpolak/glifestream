@@ -105,6 +105,8 @@ class API:
             e.guid = guid
             e.title = 'Tweet: %s' % truncate.smart(
                 strip_entities(strip_tags(ent['text'])), max_length=40)
+            e.title = e.title.replace('#', '').replace('@', '')
+
             e.link  = 'https://twitter.com/%s/status/%s' % \
                 (ent['user']['screen_name'], ent['id'])
             image_url = ent['user']['profile_image_url_https']
@@ -145,11 +147,6 @@ class API:
                 media.extract_and_register(e)
             except:
                 pass
-
-    def custom_process(self, e, ent):
-        e.title = 'Tweet: %s' % truncate.smart(ent.title.split(': ', 1)[1])
-        e.content = expand.all(e.content)
-        e.custom_mblob = media.mrss_scan(e.content)
 
 
 def filter_content(entry):
