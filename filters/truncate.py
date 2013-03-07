@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -19,7 +19,7 @@ def simple(content, max_length=36, suffix='...'):
     if len(content) <= max_length:
         return content
     else:
-        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:')
+        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:.')
         return content + suffix
 
 
@@ -31,7 +31,7 @@ def smart(content, max_words=7, max_length=36, suffix='...'):
         content = ' '.join(words[:max_words])
         sx = suffix
     if len(content) <= max_length:
-        return content.rstrip(' -/,:') + sx
+        return content.rstrip(' -/,:.') + sx
     else:
-        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:')
+        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:.')
         return content + suffix
