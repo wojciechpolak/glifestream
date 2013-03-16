@@ -931,4 +931,10 @@ fieldset .hint {
   .entry-content { word-wrap: break-word; }
   .entry-info { margin-top: 7px !important; }
   .player iframe { max-width: 100%; max-height: 200px; }
+  .photo img, .gallery img,
+  .screenshot img { max-width: 100%; height: auto; }
+}
+@media screen and (max-width: 320px) {
+  #stream .entry-content { margin-left: 0; }
+  .entry-icon { float: none; }
 }
