@@ -1234,6 +1234,10 @@
 	href = 'http://api.plixi.com/api/tpapi.svc/imagefromurl?size=big&url=http://lockerz.com/s/' + RegExp.$1;
 	type = 'image';
       }
+      else if (href.match (/instagram\.com\/p\/([\w\-]+)\/?/)) {
+	href = 'http://instagram.com/p/'+ RegExp.$1 +'/media/?size=l';
+	type = 'image';
+      }
       else if (href.match (/instagr\.am\/p\/([\w\-]+)\/?/)) {
 	href = 'http://instagr.am/p/'+ RegExp.$1 +'/media/?size=l';
 	type = 'image';
