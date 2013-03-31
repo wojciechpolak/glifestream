@@ -98,6 +98,7 @@ def shortpics(s):
     s = re.sub(r'http://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
     s = re.sub(r'http://lockerz\.com/s/(\d+)', __sp_lockerz, s)
     s = re.sub(r'http://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
+    s = re.sub(r'http://(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
     s = re.sub(r'http://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub(r'http://(www\.)?brizzly\.com/pic/(\w+)', __sp_brizzly, s)
     s = re.sub(r'http://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
