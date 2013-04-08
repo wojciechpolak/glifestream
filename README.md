@@ -1,8 +1,5 @@
-gLifestream -- README
-Copyright (C) 2009, 2010, 2011 Wojciech Polak
-
-* What is gLifestream?
-======================
+gLifestream
+===========
 
 gLifestream is a free lifestream platform and social activity reader.
 It is licensed under GPLv3.
@@ -24,7 +21,8 @@ ceases to exist.
 
 To install gLifestream read the INSTALL file.
 
-Supported services (out of the box):
+Supported services (out of the box)
+-----------------------------------
 
 Any RSS/Atom feed, Delicious, Digg, Facebook, Flickr, FriendFeed,
 Google Reader, Identi.ca, Last.FM, PicasaWeb, StumbleUpon, Twitter,
@@ -34,8 +32,8 @@ Any service not listed above can be added as an RSS/Atom stream (if it
 provides such feeds) or by extending gLifestream and writing custom
 APIs support.
 
-* Features
-==========
+Features
+--------
 
 - Free, self-hosted web application
 - Automatic imports of external streams
@@ -53,9 +51,3 @@ APIs support.
 - Customizable themes
 - Bookmarklet for easy webpage sharing
 - Localization
-
-
-Local Variables:
-mode: outline
-version-control: never
-End:
