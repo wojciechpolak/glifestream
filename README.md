@@ -4,6 +4,9 @@ gLifestream
 gLifestream is a free lifestream platform and social activity reader.
 It is licensed under GPLv3.
 
+Introduction
+------------
+
 gLifestream joins several external and/or internal streams into a
 single one.  External streams may be represented by RSS/Atom channels
 or popular services such as Twitter or Facebook.  The user decides

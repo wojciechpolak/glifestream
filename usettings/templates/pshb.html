@@ -1,5 +1,5 @@
 {% extends "settings.html" %}
-{% load i18n %}
+{% load i18n %}{% load url from future %}
 
 {% block settings %}
   <p class="bold">{% trans "PubSubHubbub subscriptions" %}
@@ -31,7 +31,7 @@
   {% endif %}
 
   {% if services %}
-  <form id="pshb-form" method="post" action="{% url glifestream.usettings.views.pshb %}">
+  <form id="pshb-form" method="post" action="{% url 'glifestream.usettings.views.pshb' %}">
     <select name="subscribe">
       <option value="">-- {% trans "service" %} --</option>
       {% for s in services %}

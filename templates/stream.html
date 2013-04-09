@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n %}{% load url from future %}
 
 {% block sidebar %}
 <aside id="sidebar">
@@ -9,12 +9,12 @@
   </section>
   <nav>
     <ul class="services">
-{% for cls in classes %}      <li><a href="{% if page.exactentry %}{% url index %}{% endif %}?class={% firstof cls.cls cls.api %}" class="e-{% firstof cls.cls cls.api %}" title="{{ cls.cls|capfirst }}" rel="nofollow"><span>{{ cls.cls|capfirst }}</span></a></li>
+{% for cls in classes %}      <li><a href="{% if page.exactentry %}{% url 'index' %}{% endif %}?class={% firstof cls.cls cls.api %}" class="e-{% firstof cls.cls cls.api %}" title="{{ cls.cls|capfirst }}" rel="nofollow"><span>{{ cls.cls|capfirst }}</span></a></li>
 {% endfor %}    </ul>
     <div class="clear bpadding"></div>
 {% if authed %}
     <ul class="links">
-      <li><a href="{% url favorites %}" accesskey="3">{% trans "Favorite entries" %}</a></li>
+      <li><a href="{% url 'favorites' %}" accesskey="3">{% trans "Favorite entries" %}</a></li>
     </ul>
 {% if lists %}
     <div class="lists">
@@ -32,7 +32,7 @@
       <div id="calendar"></div>
     </div>
     {% if has_search %}<div class="search">
-      <form name="searchform" action="{% ifequal page.ctx "public" %}{% url public %}{% else %}{% url index %}{% endifequal %}" method="get">
+      <form name="searchform" action="{% ifequal page.ctx "public" %}{% url 'public' %}{% else %}{% url 'index' %}{% endifequal %}" method="get">
 	<input type="search" name="s" value="{{ page.search }}" maxlength="64" placeholder="{% trans "Search this site" %}" /><span id="search-submit" title="{% trans "Search" %}"></span>
       </form>
     </div>{% endif %}
@@ -44,7 +44,7 @@
 {% if authed %}
 <aside id="share">
   <span tabindex="0" class="link" id="ashare">{% trans "Add content" %}</span>
-  <form action="{% url stream.views.api cmd='share' %}" method="post" enctype="multipart/form-data">
+  <form action="{% url 'stream.views.api' cmd='share' %}" method="post" enctype="multipart/form-data">
     <div class="fieldset" style="display:none">
       <h3><label for="status">{% trans "What's up?" %}</label></h3>
       <div class="editor">
@@ -80,7 +80,7 @@
 {% endif %}
 <section id="stream" class="hfeed">
 {% if page.subtitle %}
-  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% ifequal page.ctx "public" %}{% url public %}{% else %}{% if page.favorites %}{% url favorites %}{% else %}{% url index %}{% endif %}{% endifequal %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
+  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% ifequal page.ctx "public" %}{% url 'public' %}{% else %}{% if page.favorites %}{% url 'favorites' %}{% else %}{% url 'index' %}{% endif %}{% endifequal %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
 {% endif %}
 {% if page.after %}
   <nav class="pagination-top">

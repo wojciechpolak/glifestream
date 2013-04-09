@@ -1,5 +1,5 @@
 {% extends "settings.html" %}
-{% load i18n %}
+{% load i18n %}{% load url from future %}
 
 {% block settings %}
   <p class="bold">{% trans "Attached identities:" %}</p>
@@ -10,7 +10,7 @@
     {% endfor %}
   </ul>
 
-  <form id="oid-form" method="post" action="{% url glifestream.usettings.views.openid %}">
+  <form id="oid-form" method="post" action="{% url 'glifestream.usettings.views.openid' %}">
     <fieldset>
       {% if page.msg %}
       <ul class="errorlist">

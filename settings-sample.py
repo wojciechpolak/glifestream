@@ -22,7 +22,7 @@ DATABASES = {
     }
 }
 
-TIME_ZONE = 'Europe/Warsaw'
+TIME_ZONE = 'UTC'
 LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 USE_I18N = True
@@ -32,7 +32,13 @@ SESSION_COOKIE_NAME = 'glifestream_sid'
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
 # Caching, see http://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
-CACHE_BACKEND = 'memcached://127.0.0.1:11211/'
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:11211',
+        'KEY_PREFIX': 'gls',
+    },
+}
 CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
 # Site base URL (without a trailing slash).
@@ -53,7 +59,7 @@ MEDIA_ROOT = os.path.join(SITE_ROOT, 'static')
 # trailing slash if there is a path component (optional in other cases).
 # Examples: "http://media.lawrence.com", "http://example.com/media/"
 # Setting an absolute URL is recommended in a production use.
-MEDIA_URL = '/static'
+MEDIA_URL = '/static/'
 
 # URL prefix for admin media. Make sure to use a trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
@@ -98,6 +104,35 @@ INSTALLED_APPS = (
     'glifestream.usettings',
     'glifestream.bookmarklet',
 )
+
+# A sample logging configuration. The only tangible logging
+# performed by this configuration is to send an email to
+# the site admins on every HTTP 500 error when DEBUG=False.
+# See http://docs.djangoproject.com/en/dev/topics/logging for
+# more details on how to customize your logging configuration.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'mail_admins': {
+            'level': 'ERROR',
+            'filters': ['require_debug_false'],
+            'class': 'django.utils.log.AdminEmailHandler'
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    }
+}
 
 # A shortcut icon URL (favicon).
 FAVICON = '/favicon.ico'

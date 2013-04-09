@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009 Wojciech Polak
+#  gLifestream Copyright (C) 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -16,9 +16,9 @@
 import os
 import sys
 
-SITE_ROOT = os.path.dirname (os.path.realpath (__file__))
+SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
-sys.path.insert (0, os.path.join (SITE_ROOT, '../'))
+sys.path.insert(0, os.path.join(SITE_ROOT, '../'))
 
-from django.core.handlers.wsgi import WSGIHandler
-application = WSGIHandler ()
+from django.core.wsgi import get_wsgi_application
+application = get_wsgi_application()

@@ -1,4 +1,5 @@
 {% load i18n media gls_filters %}
+{% load url from future %}
 {% for entry in entries %}
   <article id="entry-{{ entry.id }}" class="hentry e-{% firstof entry.service.cls entry.service.api %}{% if not entry.service.public %} private{% endif %}">
   {% spaceless %}
@@ -39,7 +40,7 @@
 	{% endif %}
         <li><span id="hide-{{ entry.id }}" class="link hide-control">{% trans "Hide" %}</span></li>
 	<li><span id="edit-{{ entry.id }}" class="link edit-control">{% trans "Edit" %}</span></li>
-	<li><a href="{% url admin:index %}stream/entry/{{ entry.id }}" target="_blank">{% trans "Admin" %}</a></li>
+	<li><a href="{% url 'admin:index' %}stream/entry/{{ entry.id }}" target="_blank">{% trans "Admin" %}</a></li>
       </ul>
       {% endif %}
       {% if not entry.friends_only %}<a href="#" id="shareit-{{ entry.id }}" class="shareit{% if authed %} reshareit{% endif %}" title="{% trans "Share or bookmark this entry" %}"><span>{% trans "Share" %}</span></a>{% endif %}

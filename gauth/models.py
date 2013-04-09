@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -31,11 +31,10 @@ class OAuthClient (models.Model):
     token_secret = models.CharField('Token secret', max_length=128,
                                     null=True, blank=True)
     request_token_url = models.URLField('Request Token URL', null=True,
-                                        blank=True, verify_exists=False)
+                                        blank=True)
     access_token_url = models.URLField('Access Token URL', null=True,
-                                       blank=True, verify_exists=False)
-    authorize_url = models.URLField('Authorize URL', null=True, blank=True,
-                                    verify_exists=False)
+                                       blank=True)
+    authorize_url = models.URLField('Authorize URL', null=True, blank=True)
 
     class Meta:
         verbose_name = 'OAuth'

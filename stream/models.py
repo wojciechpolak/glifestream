@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -40,7 +40,7 @@ class Service (models.Model):
     creds = models.CharField(_('Credentials'), max_length=128, null=True,
                              blank=True)
     name = models.CharField(_('Short name'), max_length=48)
-    link = models.URLField(_('WWW Link'), verify_exists=False, blank=True)
+    link = models.URLField(_('WWW Link'), blank=True)
     etag = models.CharField('ETag', max_length=64, blank=True)
     last_modified = models.DateTimeField(_('Last modified'), null=True,
                                          blank=True)

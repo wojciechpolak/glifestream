@@ -1,5 +1,5 @@
 {% extends "settings.html" %}
-{% load media i18n %}
+{% load media i18n %}{% load url from future %}
 
 {% block settings %}
   <p id="add-service">
@@ -24,11 +24,11 @@
   </ul>
 
   <p id="opml-form">
-    <form action="{% url opml-import %}" method="post" enctype="multipart/form-data">
+    <form action="{% url 'opml-import' %}" method="post" enctype="multipart/form-data">
       <input type="file" name="opml" />
       <input type="submit" value="{% trans "Import OPML" %}"/>
       {% trans "or" %}
-      <a href="{% url opml-export %}">
+      <a href="{% url 'opml-export' %}">
 	{% trans "Export OPML" %}
       </a>
       <a href="http://www.wikipedia.org/wiki/OPML" target="_blank"

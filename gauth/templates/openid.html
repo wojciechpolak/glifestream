@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n %}{% load url from future %}
 
 {% block main %}
 <section id="login">
 
 <div id="loginbox">
 {% if page.msg %}<p class="error">{{ page.msg }}</p>{% endif %}
-<form name="loginform" method="post" action="{% url glifestream.gauth.views.openid %}">
+<form name="loginform" method="post" action="{% url 'glifestream.gauth.views.openid' %}">
   <p>
     <label>{% trans "OpenID" %}<br />
       <input type="text" name="openid_identifier" id="openid_identifier" maxlength="128" />

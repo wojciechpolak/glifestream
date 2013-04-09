@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -51,7 +51,7 @@ class MediaUrlHash (template.Node):
         url = settings.MEDIA_URL
         if 'is_secure' in ctx and ctx['is_secure']:
             url = url.replace('http://', 'https://')
-        url += '/' + self.path
+        url += self.path
         if self.hash:
             url += '?v=' + self.hash
         return url

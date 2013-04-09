@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n %}{% load url from future %}
 
 {% block main %}
 <section id="settings">
   <ul class="tabs">
-    <li><a href="{% url glifestream.usettings.views.services %}"{% ifequal page.menu "services" %} class="active"{% endifequal %}>{% trans "Services" %}</a></li>
-    <li><a href="{% url glifestream.usettings.views.lists %}"{% ifequal page.menu "lists" %} class="active"{% endifequal %}>{% trans "Lists" %}</a></li>
-    <li><a href="{% url glifestream.usettings.views.pshb %}"{% ifequal page.menu "pshb" %} class="active"{% endifequal %}>{% trans "PubSubHub" %}</a></li>
-    <li><a href="{% url glifestream.usettings.views.openid %}"{% ifequal page.menu "openid" %} class="active"{% endifequal %}>{% trans "OpenID" %}</a></li>
-    <li><a href="{% url glifestream.usettings.views.tools %}"{% ifequal page.menu "tools" %} class="active"{% endifequal %}>{% trans "Tools" %}</a></li>
+    <li><a href="{% url 'glifestream.usettings.views.services' %}"{% ifequal page.menu "services" %} class="active"{% endifequal %}>{% trans "Services" %}</a></li>
+    <li><a href="{% url 'glifestream.usettings.views.lists' %}"{% ifequal page.menu "lists" %} class="active"{% endifequal %}>{% trans "Lists" %}</a></li>
+    <li><a href="{% url 'glifestream.usettings.views.pshb' %}"{% ifequal page.menu "pshb" %} class="active"{% endifequal %}>{% trans "PubSubHub" %}</a></li>
+    <li><a href="{% url 'glifestream.usettings.views.openid' %}"{% ifequal page.menu "openid" %} class="active"{% endifequal %}>{% trans "OpenID" %}</a></li>
+    <li><a href="{% url 'glifestream.usettings.views.tools' %}"{% ifequal page.menu "tools" %} class="active"{% endifequal %}>{% trans "Tools" %}</a></li>
   </ul>
   {% block settings %}{% endblock %}
 </section>
