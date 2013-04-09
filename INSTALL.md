@@ -71,27 +71,28 @@ the following output:
     Development server is running at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
+
 Production server with mod_wsgi
 -------------------------------
 
 Apache configuration:
 
-`
-  LoadModule wsgi_module modules/mod_wsgi.so
-  WSGIScriptAlias / /usr/local/django/glifestream/wsgi.py
-  Alias /static "/usr/local/django/glifestream/static"
-  Alias /admin_static "/usr/local/django/contrib/admin/media"
+```
+LoadModule wsgi_module modules/mod_wsgi.so
+WSGIScriptAlias / /usr/local/django/glifestream/wsgi.py
+Alias /static "/usr/local/django/glifestream/static"
+Alias /admin_static "/usr/local/django/contrib/admin/media"
 
-  <Directory "/usr/local/django/glifestream/">
-     <IfModule mod_deflate.c>
-       AddOutputFilterByType DEFLATE application/javascript text/css text/html
-     </IfModule>
-     AllowOverride All
-     Options None
-     Order allow,deny
-     Allow from all
-  </Directory>
-`
+<Directory "/usr/local/django/glifestream/">
+   <IfModule mod_deflate.c>
+     AddOutputFilterByType DEFLATE application/javascript text/css text/html
+   </IfModule>
+   AllowOverride All
+   Options None
+   Order allow,deny
+   Allow from all
+</Directory>
+```
 
 More detailed information is available at:
 http://code.google.com/p/modwsgi/wiki/IntegrationWithDjango
@@ -107,7 +108,7 @@ To use the search functionality in GLS via Sphinx, you must add the
 following configuration to your `etc/sphinx.conf` (replace the
 `DATABASE_*` values with the proper ones from your `settings.py`):
 
-`...
+```
 source glifestream
 {
    type         = mysql
@@ -138,8 +139,7 @@ index glifestream
    charset_type = utf-8
    html_strip   = 1
 }
-...`
-
+```
 
 Receive postings via e-mail
 ===========================
