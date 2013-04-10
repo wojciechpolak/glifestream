@@ -197,7 +197,7 @@ def videolinks(s):
         s = re.sub(r'https?://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)',
                    __sv_youtube, s)
     if 'vimeo.com/' in s:
-        s = re.sub(r'http://(www\.)?vimeo\.com/(\d+)', __sv_vimeo, s)
+        s = re.sub(r'https?://(www\.)?vimeo\.com/(\d+)', __sv_vimeo, s)
     if 'http://www.ustream.tv/recorded/' in s:
         s = re.sub(r'http://www\.ustream\.tv/recorded/(\d+)', __sv_ustream, s)
     if 'http://www.dailymotion.' in s:

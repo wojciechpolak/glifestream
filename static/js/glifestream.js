@@ -34,7 +34,8 @@
       return true;
 
     $('.playbutton', this).removeClass ('playbutton').addClass ('stopbutton');
-    $VC (this).after ('<div class="player">' + embed + '</div>');
+    $VC (this).after ('<div class="player video ' +
+		      type + '">' + embed + '</div>');
     $('a', this).blur ();
     scroll_to_element (this);
     return false;
@@ -111,7 +112,7 @@
     embed = embed.replace (/{ID}/g, id);
 
     $('.player').remove ();
-    $(this.parentNode).append ('<div class="player">' + embed + '</div>');
+    $(this.parentNode).append ('<div class="player audio">' + embed + '</div>');
     return false;
   }
 
@@ -1475,8 +1476,8 @@
     'thesixtyone': '<object type="application/x-shockwave-flash" width="310" height="120" data="http://www.thesixtyone.com/site_media/swf/song_player_embed.swf?song_id={ID}&artist_username={ARTIST}&autoplay=1"><param name="movie" value="http://www.thesixtyone.com/site_media/swf/song_player_embed.swf?song_id={ID}&artist_username={ARTIST}&autoplay=1"/></object>'
   };
   var video_embeds = {
-    'youtube': '<iframe width="560" height="349" src="http://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
-    'vimeo': '<iframe width="560" height="315" src="http://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
+    'youtube': '<iframe width="560" height="349" src="//www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
+    'vimeo': '<iframe width="560" height="315" src="//player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
     'chtv': '<iframe width="560" height="315" src="http://www.collegehumor.com/e/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
     'ustream': '<iframe width="560" height="341" src="http://www.ustream.tv/embed/recorded/{ID}" scrolling="no" frameborder="0"></iframe>',
     'dailymotion': '<iframe width="560" height="315" src="http://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',

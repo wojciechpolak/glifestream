@@ -34,6 +34,7 @@ body {
   max-width: 900px;
   margin: 0 auto 0 auto;
   padding: 0;
+  color: #333;
   background-color: white;
 }
 
@@ -42,7 +43,7 @@ header, footer, aside, nav, section, article {
 }
 
 h1 a {
-  color: black !important;
+  color: #333 !important;
 }
 
 h2, h3, h4, h5, h6 {
@@ -50,11 +51,18 @@ h2, h3, h4, h5, h6 {
   font-weight: bold;
 }
 
+select, input, textarea {
+  font-family: Arial;
+  font-size: 100%;
+}
+select {
+  padding: 2px;
+}
+
 input[type="text"],
 input[type="password"],
 input[type="search"],
 textarea {
-  font-family: Arial;
   padding: 2px;
   background-color: white;
   border: 1px solid #9d9180;
@@ -75,7 +83,7 @@ input[type="search"] {
 }
 
 .tb {
-  border: 1px solid black;
+  border: 1px solid #333;
   border-radius: 5px;
   -moz-border-radius: 5px;
   -khtml-border-radius: 5px;
@@ -96,7 +104,7 @@ input[type="search"] {
   color: #669933;
 }
 #navtop .text {
-  color: black;
+  color: #333;
 }
 
 #head {
@@ -112,7 +120,7 @@ input[type="search"] {
   margin: 43px 0 0 20px;
   padding: 4px 7px 4px 7px;
 }
-#head h1 a { color: black; }
+#head h1 a { color: #333; }
 #head h1 a:hover { text-decoration: none; }
 
 #sidebar {
@@ -142,7 +150,7 @@ input[type="search"] {
 #sidebar .search input[name="s"] {
   font-size: 85%;
   width: 75%;
-  color: black;
+  color: #333;
   border-radius: 4px 0 0 4px;
   -moz-border-radius: 4px 0 0 4px;
   -webkit-border-radius: 4px;
@@ -154,7 +162,6 @@ input:-moz-placeholder { color: #999999 !important; }
 ::-webkit-input-placeholder { color: #999999 !important; }
 
 #search-submit {
-  font-family: Arial;
   font-size: 85%;
   cursor: pointer;
   padding: 2px 0 2px 24px;
@@ -371,7 +378,7 @@ div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -
   padding: 1em;
   margin-bottom: 16px;
 }
-#foot a, #foot span.link { color: black !important; }
+#foot a, #foot span.link { color: #333 !important; }
 
 .fleft { float: left; }
 .fright { float: right; }
@@ -453,8 +460,29 @@ table.vc td { padding: 0; }
   margin: -12px 0 0 -12px;
 }
 
-.player {
+div.player {
   margin-top: 0.8em;
+}
+div.player.video {
+  height: 0;
+  max-width: 900px;
+  overflow: hidden;
+  padding-bottom: 56.25%;
+  padding-top: 25px;
+  position: relative;
+}
+div.player.video iframe {
+  height: 100%;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 100%;
+}
+div.player.w43 {
+  padding-bottom: 67.5%;
+}
+div.player.vimeo {
+  padding-top: 0;
 }
 
 .thumbnails {
@@ -719,6 +747,7 @@ ul.files {
 #username, #password {
   font-size: 20px;
   width: 240px;
+  padding: 4px;
 }
 #openid_identifier {
   font-size: 20px;
@@ -727,7 +756,7 @@ ul.files {
   background-color: #fff;
   background-position: 0 50%;
   color: #000;
-  padding-left: 18px;
+  padding-left: 18px !important;
 }
 
 .http-error {
@@ -793,7 +822,7 @@ ul.files {
   clear: both;
   margin: 0 0 10px 0;
   padding-top: 8px;
-  font-size: 85%;
+  font-size: 90%;
 }
 #settings fieldset {
   border: none;
@@ -810,6 +839,16 @@ ul.files {
   margin: 1px 5px 0 0;
   line-height: 16px;
 }
+#settings #id_services {
+  min-width: 20em;
+  padding: 2px;
+  background-color: white;
+  border: 1px solid #9d9180;
+  border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-border-radius: 4px;
+}
+
 span.selfposts { background: transparent url(../../favicon.ico) no-repeat top left; }
 span.delicious { background: transparent url(master-favicons.png) no-repeat 0px 0px; }
 span.digg { background: transparent url(master-favicons.png) no-repeat -16px 0px; }
@@ -849,7 +888,7 @@ ul.tabs li a {
   color: #777;
   font-size: 100%;
   text-decoration: none;
-  padding: 2px 0.75em;
+  padding: 3px 0.75em 2px 0.75em;
 }
 ul.tabs li a.active {
   color: #000;
@@ -880,10 +919,11 @@ fieldset.aligned label.missing {
 fieldset .hint {
   display: none;
 }
-#settings fieldset input { font-size: 95%; }
+#settings fieldset input { font-size: 95%; padding: 4px; }
 #settings fieldset input[type="button"],
 #settings fieldset input[type="submit"] {
   margin-right: 2px;
+  padding: 2px;
 }
 #settings fieldset a,
 #openid_identifiers a {
@@ -930,7 +970,6 @@ fieldset .hint {
   }
   .entry-content { word-wrap: break-word; }
   .entry-info { margin-top: 7px !important; }
-  .player iframe { max-width: 100%; max-height: 200px; }
   .photo img, .gallery img,
   .screenshot img { max-width: 100%; height: auto; }
 }
