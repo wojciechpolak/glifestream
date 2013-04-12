@@ -338,8 +338,8 @@
 	      id = 'youtube-' + this.href.substr (31);
 	    else if (this.href.indexOf ('http://vimeo.com/') === 0)
 	      id = 'vimeo-' + this.href.substr (17);
-	    else if (this.href.indexOf ('http://www.collegehumor.com/video:') === 0)
-	      id = 'chtv-' + this.href.substr (34);
+	    else if (this.href.indexOf ('http://www.collegehumor.com/video') === 0)
+	      id = 'chtv-' + this.href.substr (34).split ('/')[0];
 	    else if (this.href.indexOf ('http://www.facebook.com/video/video.php?v=') === 0)
 	      id = 'facebook-' + this.href.substr (42);
 	    if (id) {
