@@ -48,6 +48,7 @@
 	<a href="{{ entry.gls_link }}" rel="bookmark">
 	  <time class="published" datetime="{{ entry.date_published|gls_hdate }}">{{ entry.date_published|gls_date }}</time>
 	</a>
+	{% if page.author_uri and entry.service.public %}<span class="vcard">{% trans "by" %} <a href="{{ page.author_uri }}" class="url fn" rel="author">{{ page.author_name }}</a></span>{% endif %}
 	{% ifnotequal entry.service.api "selfposts" %}{% trans "from" %} <a href="{{ entry.link }}" rel="nofollow">{{ entry.service.name|capfirst }}</a>{% endifnotequal %}
       </span>
     </footer>

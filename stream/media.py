@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -36,12 +36,12 @@ except ImportError:
 
 
 def set_upload_url(s):
-    return s.replace('[GLS-UPLOAD]/', settings.MEDIA_URL + '/upload/')
+    return s.replace('[GLS-UPLOAD]/', settings.MEDIA_URL + 'upload/')
 
 
 def set_thumbs_url(s):
     return re.sub(r'\[GLS-THUMBS\]/([a-f0-9])',
-                  settings.MEDIA_URL + '/thumbs/\\1/\\1', s)
+                  settings.MEDIA_URL + 'thumbs/\\1/\\1', s)
 
 
 def get_thumb_hash(s):
@@ -52,7 +52,7 @@ def get_thumb_hash(s):
 def get_thumb_info(hash):
     prefix = hash[0] + '/'
     return {'local': '%s/thumbs/%s%s' % (settings.MEDIA_ROOT, prefix, hash),
-            'url': '%s/thumbs/%s%s' % (settings.MEDIA_URL, prefix, hash),
+            'url': '%sthumbs/%s%s' % (settings.MEDIA_URL, prefix, hash),
             'rel': 'thumbs/%s%s' % (prefix, hash),
             'internal': '[GLS-THUMBS]/%s' % hash, }
 

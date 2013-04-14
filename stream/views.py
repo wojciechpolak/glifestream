@@ -58,6 +58,7 @@ def index(request, **args):
         'login_url': settings.LOGIN_URL,
         'favicon': settings.FAVICON,
         'author_name': settings.FEED_AUTHOR_NAME,
+        'author_uri': getattr(settings, 'FEED_AUTHOR_URI', False),
         'taguri': settings.FEED_TAGURI,
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
