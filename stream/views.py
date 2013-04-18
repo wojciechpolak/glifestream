@@ -326,16 +326,17 @@ def index(request, **args):
     # Check single-entry URL
     if 'exactentry' in page:
         if len(entries):
-            if entries[0].gls_link != request.path:
-                return HttpResponsePermanentRedirect(entries[0].gls_link)
+            gls_link = entries[0].gls_link
+            if gls_link != request.path:
+                return HttpResponsePermanentRedirect(gls_link)
+            page['canonical_link'] = '%s%s' % (page['site_url'], gls_link)
         else:
             raise Http404
 
     if 'title' in page and page['title'] != '':
         if page_title:
-            page['title'] += ' | ' + page_title
-        else:
-            page['title'] += ' | Lifestream'
+            page['title'] += getattr(settings, 'STREAM_TITLE_SUFFIX',
+                                     ' | ' + page_title)
     elif page_title:
         page['title'] = page_title
 

@@ -142,6 +142,7 @@ THEMES = (
 )
 
 STREAM_TITLE = 'Stream title'
+STREAM_TITLE_SUFFIX = ' | Lifestream'
 STREAM_DESCRIPTION = "A short description"
 
 # How many entries to display on one page.
