@@ -329,7 +329,7 @@ def index(request, **args):
             gls_link = entries[0].gls_link
             if gls_link != request.path:
                 return HttpResponsePermanentRedirect(gls_link)
-            page['canonical_link'] = '%s%s' % (page['site_url'], gls_link)
+            page['canonical_link'] = '%s%s' % (settings.BASE_URL, gls_link)
         else:
             raise Http404
 
