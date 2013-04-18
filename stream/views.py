@@ -15,6 +15,7 @@
 
 import time
 import datetime
+from urlparse import urljoin
 from django.conf import settings
 from django.core import urlresolvers
 from django.http import HttpResponse
@@ -329,7 +330,7 @@ def index(request, **args):
             gls_link = entries[0].gls_link
             if gls_link != request.path:
                 return HttpResponsePermanentRedirect(gls_link)
-            page['canonical_link'] = '%s%s' % (settings.BASE_URL, gls_link)
+            page['canonical_link'] = urljoin(settings.BASE_URL, gls_link)
         else:
             raise Http404
 
