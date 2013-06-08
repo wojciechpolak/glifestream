@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.template.defaultfilters import title
 from django.utils.translation import ugettext as _
 from glifestream.stream import media
 import webfeed
@@ -63,6 +62,6 @@ class API (webfeed.API):
 
 def filter_title(entry):
     if 'favorite' in entry.guid:
-        return _('Favorited %s') % ('<em>' + title(entry.title) + '</em>')
+        return _('Favorited %s') % ('<em>' + entry.title + '</em>')
     else:
-        return _('Published %s') % ('<em>' + title(entry.title) + '</em>')
+        return _('Published %s') % ('<em>' + entry.title + '</em>')
