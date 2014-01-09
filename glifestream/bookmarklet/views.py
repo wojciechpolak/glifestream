@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -27,7 +27,7 @@ def js(request, **args):
         page['base_url'] = page['base_url'].replace('http://', 'https://')
 
     return render_to_response('bookmarklet.js', {'page': page},
-                              mimetype='application/javascript')
+                              content_type='application/javascript')
 
 
 def frame(request, **args):

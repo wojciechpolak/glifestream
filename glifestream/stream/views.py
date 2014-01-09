@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -347,14 +347,14 @@ def index(request, **args):
         return render_to_response('stream.atom',
                                   {'entries': entries,
                                    'page': page},
-                                  mimetype='application/atom+xml')
+                                  content_type='application/atom+xml')
     elif format == 'json':
         cb = request.GET.get('callback', False)
         return render_to_response('stream.json',
                                   {'entries': entries,
                                    'page': page,
                                    'callback': cb},
-                                  mimetype='application/json')
+                                  content_type='application/json')
     elif format == 'html-pure' and request.is_ajax():
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
@@ -378,7 +378,7 @@ def index(request, **args):
         }
         if 'nextpage' in page:
             d['next'] = page['nextpage']
-        return HttpResponse(json.dumps(d), mimetype='application/json')
+        return HttpResponse(json.dumps(d), content_type='application/json')
     elif format != 'html':
         raise Http404
     else:
@@ -457,7 +457,7 @@ def pshb_dispatcher(request, **args):
         if res:
             return HttpResponse(res)
     elif request.method == 'POST':
-        pshb.accept_payload(args['id'], request.raw_post_data, request.META)
+        pshb.accept_payload(args['id'], request.body, request.META)
         return HttpResponse()
     raise Http404
 
@@ -504,7 +504,7 @@ def api(request, **args):
         d = []
         for s in srvs:
             d.append({'id': s['id'], 'cls': s['cls']})
-        return HttpResponse(json.dumps(d), mimetype='application/json')
+        return HttpResponse(json.dumps(d), content_type='application/json')
 
     elif cmd == 'share':
         images = []
@@ -530,7 +530,7 @@ def api(request, **args):
                 d = {'close_msg': _(
                     "You've successfully shared this web page at your stream.")}
                 return HttpResponse(json.dumps(d),
-                                    mimetype='application/json')
+                                    content_type='application/json')
             else:
                 entry.friends_only = False
                 if request.is_ajax():

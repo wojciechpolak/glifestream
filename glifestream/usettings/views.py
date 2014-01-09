@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010, 2011 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2011, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -383,7 +383,7 @@ def opml(request, **args):
                 pass
 
         res = render_to_response('opml.xml', {'services': srvs},
-                                 mimetype='text/xml')
+                                 content_type='text/xml')
         res['Content-Disposition'] = 'attachment; filename="gls-services.xml"'
         return res
 
@@ -647,7 +647,7 @@ def api(request, **args):
         s['cancel'] = _('Cancel')
 
         # print json.dumps (s, indent=2)
-        return HttpResponse(json.dumps(s), mimetype='application/json')
+        return HttpResponse(json.dumps(s), content_type='application/json')
 
     # Import
     elif cmd == 'import' and id:
