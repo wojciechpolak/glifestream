@@ -1,7 +1,7 @@
 Django >=1.4.5
 MySQL-python >=1.2.3
 feedparser
-PIL >=1.1.6
+Pillow >=2.2.1,<2.99
 workerpool
 python-openid >=2.2.5
 oauth2 >=1.5,<1.5.999

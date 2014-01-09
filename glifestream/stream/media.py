@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -30,9 +30,12 @@ except ImportError:
     import simplejson as json
 
 try:
-    import Image
+    from PIL import Image
 except ImportError:
-    Image = None
+    try:
+        import Image
+    except ImportError:
+        Image = None
 
 
 def set_upload_url(s):
