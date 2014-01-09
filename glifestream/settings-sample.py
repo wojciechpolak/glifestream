@@ -6,6 +6,10 @@ SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
+ALLOWED_HOSTS = [
+    'localhost'
+]
+
 ADMINS = (
     ('Your Name', 'your@email'),
 )
@@ -27,6 +31,11 @@ LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 USE_I18N = True
 USE_L10N = False
+
+# Directories where Django looks for translation files.
+LOCALE_PATHS = (
+    os.path.join(SITE_ROOT, '../locale'),
+)
 
 SESSION_COOKIE_NAME = 'glifestream_sid'
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
@@ -53,7 +62,7 @@ LOGIN_URL = '/login'
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.path.join(SITE_ROOT, 'static')
+MEDIA_ROOT = os.path.join(SITE_ROOT, '../static')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -87,6 +96,8 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'glifestream.urls'
+
+WSGI_APPLICATION = 'glifestream.wsgi.application'
 
 TEMPLATE_DIRS = (
     os.path.join(SITE_ROOT, 'templates'),

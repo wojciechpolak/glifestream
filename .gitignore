@@ -1,8 +1,11 @@
+*~
 *.pyc
 *.pyo
 *.mo
-*~
+bin/
+include/
+lib/
 settings.py
 static/thumbs
 static/upload
-templates/user-*
+glifestream/templates/user-*

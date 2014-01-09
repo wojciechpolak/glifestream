@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -21,7 +21,6 @@ import sys
 import time
 import datetime
 import getopt
-import settings
 
 try:
     import workerpool
@@ -30,10 +29,7 @@ except ImportError:
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
-sys.path.insert(0, os.path.join(SITE_ROOT, '../'))
 
-from django.core.management import setup_environ
-setup_environ(settings)
 from django.conf import settings
 from glifestream.utils.time import unixnow
 from glifestream.stream.models import Service, Entry, Favorite
@@ -248,7 +244,8 @@ def run():
 
     for service in Service.objects.filter(**fs):
         try:
-            mod = __import__('apis.%s' % service.api, {}, {}, ['API'])
+            mod = __import__('glifestream.apis.%s' % service.api,
+                             {}, {}, ['API'])
         except ImportError:
             continue
         mod_api = getattr(mod, 'API')
