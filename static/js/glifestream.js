@@ -92,7 +92,7 @@
     }
 
     if (type == 'audio')
-      var embed = '<audio src="'+ $('a', this).attr ('href') +'" controls="true" autoplay="autoplay">'+ _('Your browser does not support it.') +'</audio>';
+      var embed = '<audio src="'+ $('a', this).attr ('href') +'" controls="true">'+ _('Your browser does not support it.') +'</audio>';
     else if (type in audio_embeds)
       var embed = audio_embeds[type];
     else
@@ -113,6 +113,10 @@
 
     $('.player').remove ();
     $(this.parentNode).append ('<div class="player audio">' + embed + '</div>');
+    if (type == 'audio') {
+      var $au = $(this.parentNode).find ('audio');
+      if ($au.length) $au[0].play ();
+    }
     return false;
   }
 
