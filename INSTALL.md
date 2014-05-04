@@ -1,31 +1,31 @@
 gLifestream -- INSTALL
-Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
+Copyright (C) 2009, 2010, 2011, 2013, 2014 Wojciech Polak
 
 gLifestream requirements
 ========================
 
-- Django 1.4 or later -- a Python Web framework (http://www.djangoproject.com/)
+- Django 1.4 or later -- a Python Web framework (https://www.djangoproject.com/)
 - A database supported by Django (e.g. MySQL, PostgreSQL).
-- Universal Feed Parser (http://www.feedparser.org/)
+- Universal Feed Parser (https://pypi.python.org/pypi/feedparser)
 
 Optional (but recommended):
 
-- PIL -- Python Imaging Library
-  http://www.pythonware.com/products/pil/
+- Pillow -- Python Imaging Library
+  https://pypi.python.org/pypi/Pillow
 
 - workerpool -- a multithreaded job distribution module
-  http://code.google.com/p/workerpool/
+  https://pypi.python.org/pypi/workerpool
 
 - python-oauth2 -- Python OAuth library
-  https://github.com/simplegeo/python-oauth2
+  https://pypi.python.org/pypi/oauth2
 
 - python-markdown -- a text-to-HTML converter
   http://pypi.python.org/pypi/Markdown/
 
 - Beautiful Soup -- an HTML parser
-  http://www.crummy.com/software/BeautifulSoup/
+  https://pypi.python.org/pypi/BeautifulSoup
 
-- django-sphinx -- https://github.com/dcramer/django-sphinx
+- django-sphinx -- https://pypi.python.org/pypi/django-sphinx
 
 - Sphinx -- a free open-source SQL full-text search engine
   http://www.sphinxsearch.com/
@@ -36,7 +36,7 @@ Optional:
   https://github.com/pythonforfacebook/facebook-sdk
 
 - python-openid -- OpenID support for servers and consumers.
-  http://openidenabled.com/python-openid/
+  https://pypi.python.org/pypi/python-openid
 
 
 Installation instructions
