@@ -4,7 +4,7 @@
 <head>
   <title>{% firstof page.title "Lifestream" %}</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">{% if not page.exactentry and page.description %}
+  <meta name="viewport" content="width=device-width, initial-scale=1">{% if not page.exactentry and page.description %}
   <meta name="description" content="{{ page.description|safe }}">{% endif %}
   <meta name="generator" content="gLifestream">
   <meta name="robots" content="{{ page.robots }}">
