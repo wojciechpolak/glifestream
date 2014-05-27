@@ -25,6 +25,7 @@ except ImportError:
 
 
 class Client:
+
     def __init__(self, service, identifier=None, secret=None,
                  callback_url=None):
         if not oauth:

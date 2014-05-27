@@ -32,7 +32,7 @@ urlpatterns = patterns(
 
     (r'^public/$', sv.index, {'ctx': 'public'}, 'public'),
     (r'^public/(?P<year>\d{4})/$', sv.index, {
-    'ctx': 'public'}),
+        'ctx': 'public'}),
     (r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index,
      {'ctx': 'public'}),
     (r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index,

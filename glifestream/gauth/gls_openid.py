@@ -74,7 +74,7 @@ def __get_store():
     mstore = getattr(settings, 'OPENID_STORE',
                      'openid.store.filestore.FileOpenIDStore')
     i = mstore.rfind('.')
-    module, attr = mstore[:i], mstore[i+1:]
+    module, attr = mstore[:i], mstore[i + 1:]
     mod = __import__(module, {}, {}, [attr])
     cls = getattr(mod, attr)
 

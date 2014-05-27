@@ -67,6 +67,7 @@ def services(request, **args):
 
 
 class ListForm (ModelForm):
+
     class Meta:
         model = List
         exclude = ('user',)
@@ -449,6 +450,7 @@ def _import_service(url, title, cls='webfeed'):
 # XHR API
 #
 
+
 def api(request, **args):
     authed = request.user.is_authenticated() and request.user.is_staff
     if not authed:
@@ -571,8 +573,8 @@ def api(request, **args):
             v = 'user' if s['url'] else 'home'
             s['fields'].append({'type': 'select', 'name': 'timeline',
                                 'options': (('user', _('User timeline')),
-                              ('home', _('Home timeline'))),
-                'value': v, 'label': _('Timeline')})
+                                            ('home', _('Home timeline'))),
+                                'value': v, 'label': _('Timeline')})
             s['fields'].append({'type': 'text', 'name': 'url',
                                 'value': s['url'], 'label': _('ID/Username'),
                                 'deps': {'timeline': 'user'}})
@@ -594,9 +596,9 @@ def api(request, **args):
 
             s['fields'].append({'type': 'select', 'name': 'auth',
                                 'options': (('none', _('none')),
-                              ('basic', _('Basic')),
-                                    ('oauth', _('OAuth'))),
-                'value': v, 'label': _('Authorization')})
+                                            ('basic', _('Basic')),
+                                            ('oauth', _('OAuth'))),
+                                'value': v, 'label': _('Authorization')})
 
             if 'id' in s:
                 s['fields'].append({'type': 'link', 'name': 'oauth_conf',
@@ -607,42 +609,42 @@ def api(request, **args):
             s['fields'].append({'type': 'text', 'name': 'basic_user',
                                 'value': basic_user,
                                 'label': _('Basic username'),
-                                 'deps': {'auth': 'basic'}})
+                                'deps': {'auth': 'basic'}})
             s['fields'].append({'type': 'password', 'name': 'basic_pass',
-                                 'value': '', 'label': _('Basic password'),
-                                 'deps': {'auth': 'basic'}})
+                                'value': '', 'label': _('Basic password'),
+                                'deps': {'auth': 'basic'}})
 
         if s['api'] == 'fb':
             s['fields'].append({'type': 'text', 'name': 'access_token',
-                                 'value': s['creds'],
-                                 'label': _('Access token')})
+                                'value': s['creds'],
+                                'label': _('Access token')})
             s['need_fb_accesstoken'] = _('get')
 
         if s['api'] in ('webfeed', 'flickr', 'youtube', 'vimeo'):
             s['fields'].append({'type': 'select', 'name': 'display',
-                                 'options': (('both', _('Title and Contents')),
-                                             ('content', _('Contents only')),
-                                             ('title', _('Title only'))),
-                                 'value': s['display'],
-                                 'label': _("Display entries'")})
+                                'options': (('both', _('Title and Contents')),
+                                            ('content', _('Contents only')),
+                                            ('title', _('Title only'))),
+                                'value': s['display'],
+                                'label': _("Display entries'")})
 
         s['fields'].append({'type': 'checkbox', 'name': 'public',
-                             'checked': s['public'], 'label': _('Public'),
-                             'hint': _('Public services are visible to anyone.')})
+                            'checked': s['public'], 'label': _('Public'),
+                            'hint': _('Public services are visible to anyone.')})
 
         s['fields'].append({'type': 'checkbox', 'name': 'home',
-                             'checked': s['home'], 'label': _('Home'),
-                             'hint': _('If unchecked, this stream will be still active, but hidden and thus visible only via custom lists.')})
+                            'checked': s['home'], 'label': _('Home'),
+                            'hint': _('If unchecked, this stream will be still active, but hidden and thus visible only via custom lists.')})
 
         if s['api'] != 'selfposts':
             s['fields'].append({'type': 'checkbox', 'name': 'active',
-                                 'checked': s['active'], 'label': _('Active'),
-                                 'hint': _('If not active, this service will not be further updated.')})
+                                'checked': s['active'], 'label': _('Active'),
+                                'hint': _('If not active, this service will not be further updated.')})
 
         if 'creds' in s:
             del s['creds']
 
-        s['action'] = request.build_absolute_uri();
+        s['action'] = request.build_absolute_uri()
         s['save'] = _('Save')
         s['cancel'] = _('Cancel')
 
@@ -654,7 +656,7 @@ def api(request, **args):
         try:
             service = Service.objects.get(id=id)
             mod = __import__('glifestream.apis.%s' %
-                              service.api, {}, {}, ['API'])
+                             service.api, {}, {}, ['API'])
             mod_api = getattr(mod, 'API')
             api = mod_api(service, False, False)
             api.run()

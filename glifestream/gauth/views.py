@@ -150,7 +150,7 @@ def xrds(request, **args):
 """
     body = xrds_tpl % (request.build_absolute_uri('openid'),
                        request.build_absolute_uri(
-                       urlresolvers.reverse('glifestream.usettings.views.openid')))
+                           urlresolvers.reverse('glifestream.usettings.views.openid')))
     res = HttpResponse(body, content_type='application/xrds+xml')
     res['X-Robots-Tag'] = 'noindex'
     return res

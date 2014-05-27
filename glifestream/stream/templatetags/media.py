@@ -23,6 +23,7 @@ register = Library()
 
 
 class MediaUrl (template.Node):
+
     def render(self, ctx):
         url = settings.MEDIA_URL
         if 'is_secure' in ctx and ctx['is_secure']:
@@ -37,6 +38,7 @@ def static(parser, token):
 
 
 class MediaUrlHash (template.Node):
+
     def __init__(self, path):
         self.path = path
         self.hash = None

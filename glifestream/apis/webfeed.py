@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -14,7 +14,6 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import feedparser
-from django.conf import settings
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import strip_script

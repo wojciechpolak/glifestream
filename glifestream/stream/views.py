@@ -28,7 +28,6 @@ from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
 from django.template.defaultfilters import fix_ampersands
 from django.template.defaultfilters import truncatewords
-from django.contrib.auth.decorators import login_required
 from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
@@ -101,7 +100,7 @@ def index(request, **args):
         page['backtime'] = False
         page['title'] = dt
         page['subtitle'] = _(
-            'You are currently browsing the archive for %s') % ('<b>'+dt+'</b>')
+            'You are currently browsing the archive for %s') % ('<b>' + dt + '</b>')
         page['robots'] = 'noindex'
 
     if page['backtime']:
@@ -371,10 +370,10 @@ def index(request, **args):
             'next': page['start'],
             'stream': strip_spaces_between_tags(
                 render_to_string('stream-pure.html',
-            {'entries': entries,
-            'page': page,
-            'authed': authed,
-            'friend': friend})),
+                                 {'entries': entries,
+                                  'page': page,
+                                  'authed': authed,
+                                  'friend': friend})),
         }
         if 'nextpage' in page:
             d['next'] = page['nextpage']
@@ -476,6 +475,7 @@ def page_not_found(request, **args):
 #
 # XHR API
 #
+
 
 def api(request, **args):
     cmd = args.get('cmd', '')

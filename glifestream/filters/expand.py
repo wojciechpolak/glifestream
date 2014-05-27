@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -14,7 +14,6 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import urllib
 import hashlib
 from django.conf import settings
 from django.utils.html import strip_tags
@@ -25,6 +24,7 @@ from glifestream.utils import httpclient, oembed
 #
 # Short link services
 #
+
 
 def __su_subs(m):
     try:
@@ -37,13 +37,14 @@ def __su_subs(m):
 def shorturls(text):
     """Expand short URLs."""
     return re.sub(r'http://(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
-                  '|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
-                  '|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu'
-                  ')(/[\-\w]+)', __su_subs, smart_unicode(text))
+                  r'|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
+                  r'|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu'
+                  r')(/[\-\w]+)', __su_subs, smart_unicode(text))
 
 #
 # Short image services
 #
+
 
 def __gen_tai(link, img_src):
     return '<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></p>' % (link, img_src)
@@ -114,6 +115,7 @@ def imgloc(s):
 #
 # Video services
 #
+
 
 def __sv_youtube(m):
     if m.start() > 0 and m.string[m.start() - 1] == '"':
@@ -221,6 +223,7 @@ def videolinks(s):
 # Audio services
 #
 
+
 def __sa_ogg(m):
     link = m.group(1)
     name = m.group(2)
@@ -254,10 +257,10 @@ from cgi import parse_qsl
 
 
 def __parse_qs(qs, keep_blank_values=0, strict_parsing=0):
-    dict = {}
+    d = {}
     for name, value in parse_qsl(qs, keep_blank_values, strict_parsing):
-        dict[name] = value
-    return dict
+        d[name] = value
+    return d
 
 
 def __sm_googlemaps(m):
@@ -286,6 +289,7 @@ def maplinks(s):
 #
 # Summary
 #
+
 
 def shorts(s):
     s = shorturls(s)

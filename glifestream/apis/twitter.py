@@ -27,8 +27,8 @@ except ImportError:
     import simplejson as json
 
 OAUTH_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
-OAUTH_AUTHORIZE_URL     = 'https://api.twitter.com/oauth/authorize'
-OAUTH_ACCESS_TOKEN_URL  = 'https://api.twitter.com/oauth/access_token'
+OAUTH_AUTHORIZE_URL = 'https://api.twitter.com/oauth/authorize'
+OAUTH_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
 
 
 class API:

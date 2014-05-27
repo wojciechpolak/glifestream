@@ -118,7 +118,7 @@ class API:
                 content += '<a href="%s" rel="nofollow">' \
                     '<img src="%s" alt="thumbnail" /></a> ' \
                     % (ent['link'], media.save_image(ent['picture'],
-                    downscale=True))
+                                                     downscale=True))
 
                 if 'description' in ent:
                     content += '<div class="fb-description">%s</div>' % \

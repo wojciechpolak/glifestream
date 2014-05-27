@@ -121,7 +121,7 @@ def downsave_uploaded_image(file):
 
 
 def extract_and_register(entry):
-    for hash in re.findall('\[GLS-THUMBS\]/([a-f0-9]{40})', entry.content):
+    for hash in re.findall(r'\[GLS-THUMBS\]/([a-f0-9]{40})', entry.content):
         md = Media(entry=entry)
         md.file.name = get_thumb_info(hash)['rel']
         try:

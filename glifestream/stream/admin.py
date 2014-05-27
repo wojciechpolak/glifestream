@@ -63,6 +63,7 @@ class EntryAdmin (admin.ModelAdmin):
 
 
 class AdminImageWidget (AdminFileWidget):
+
     def render(self, name, value, attrs=None):
         output = []
         file_name = str(value)
