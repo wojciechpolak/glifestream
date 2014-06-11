@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2012, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2012, 2013, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -115,7 +115,9 @@ class API:
             e.date_published = t
             e.date_updated = t
             e.author_name = ent['user']['name']
-            e.content = 'Tweet: %s' % expand.all(ent['text'])
+
+            # double expand
+            e.content = 'Tweet: %s' % expand.all(expand.all(ent['text']))
 
             if 'entities' in ent and 'media' in ent['entities']:
                 content = ' <p class="thumbnails">'
