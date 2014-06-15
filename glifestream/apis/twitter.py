@@ -117,7 +117,7 @@ class API:
             e.author_name = ent['user']['name']
 
             # double expand
-            e.content = 'Tweet: %s' % expand.all(expand.all(ent['text']))
+            e.content = 'Tweet: %s' % expand.all(expand.shorturls(ent['text']))
 
             if 'entities' in ent and 'media' in ent['entities']:
                 content = ' <p class="thumbnails">'
