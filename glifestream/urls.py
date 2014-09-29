@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -69,7 +69,11 @@ urlpatterns = patterns(
      'glifestream.bookmarklet.urls')),
     (r'^settings/', include('glifestream.usettings.urls')),
 
+    (r'^admin/', include(admin.site.urls)),
+)
+
+urlpatterns += patterns(
+    '',
     (r'^static/(?P<path>.*)$', 'django.views.static.serve',
      {'document_root': settings.MEDIA_ROOT}),
-    (r'^admin/', include(admin.site.urls)),
 )

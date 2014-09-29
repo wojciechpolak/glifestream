@@ -30,7 +30,12 @@ except ImportError:
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
 
+import django
+if hasattr(django, 'setup'):
+    django.setup()
+
 from django.conf import settings
+
 from glifestream.utils.time import unixnow
 from glifestream.stream.models import Service, Entry, Favorite
 from glifestream.stream import media, pshb

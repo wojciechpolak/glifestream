@@ -2,6 +2,7 @@
 
 import os
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+BASE_DIR = SITE_ROOT
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -28,7 +29,6 @@ DATABASES = {
 
 TIME_ZONE = 'UTC'
 LANGUAGE_CODE = 'en-us'
-SITE_ID = 1
 USE_I18N = True
 USE_L10N = False
 
@@ -48,7 +48,6 @@ CACHES = {
         'KEY_PREFIX': 'gls',
     },
 }
-CACHE_MIDDLEWARE_ANONYMOUS_ONLY = True
 
 # Site base URL (without a trailing slash).
 # For example:
@@ -77,14 +76,6 @@ ADMIN_MEDIA_PREFIX = '/admin_static/'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'YOUR-SECRET-KEY'
 
-# List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
-    ('django.template.loaders.cached.Loader',
-     ('django.template.loaders.filesystem.Loader',
-      'django.template.loaders.app_directories.Loader',)
-     ),
-)
-
 MIDDLEWARE_CLASSES = (
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -107,7 +98,6 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.admin',
     'glifestream.gauth',
     'glifestream.apis',

@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -37,7 +37,7 @@ def truncate_title(self):
     return self.title[0:70]
 
 
-class ServiceAdmin (admin.ModelAdmin):
+class ServiceAdmin(admin.ModelAdmin):
     list_display = ('name', 'api', 'url', 'last_modified', 'public',
                     'active', 'home')
     fieldsets = (
@@ -55,14 +55,14 @@ class ServiceAdmin (admin.ModelAdmin):
     actions = [deactivate, activate]
 
 
-class EntryAdmin (admin.ModelAdmin):
+class EntryAdmin(admin.ModelAdmin):
     list_display = (truncate_title, 'service', 'active',)
     list_filter = ('service',)
     search_fields = ['title', 'content']
     actions = [deactivate, activate]
 
 
-class AdminImageWidget (AdminFileWidget):
+class AdminImageWidget(AdminFileWidget):
 
     def render(self, name, value, attrs=None):
         output = []
@@ -74,32 +74,33 @@ class AdminImageWidget (AdminFileWidget):
             else:
                 thumbnail = ''
             output.append('<p><a target="_blank" href="%s">%s</a></p>%s <a target="_blank" href="%s">%s</a><br />%s ' %
-                         (file_path, thumbnail, _('Currently:'), file_path, file_path, _('Change:')))
+                          (file_path, thumbnail, _('Currently:'), file_path, file_path, _('Change:')))
         output.append(super(
             AdminFileWidget, self).render(name, value, attrs))
         return mark_safe(''.join(output))
 
 
-class MediaForm (forms.ModelForm):
+class MediaForm(forms.ModelForm):
     file = forms.FileField(widget=AdminImageWidget)
 
     class Meta:
         model = Media
+        fields = ('file', )
 
 
-class MediaAdmin (admin.ModelAdmin):
+class MediaAdmin(admin.ModelAdmin):
     list_display = ('entry', 'file',)
     raw_id_fields = ('entry',)
     form = MediaForm
 
 
-class FavoriteAdmin (admin.ModelAdmin):
+class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('user', 'entry',)
     list_filter = ('user',)
     raw_id_fields = ('entry',)
 
 
-class ListAdmin (admin.ModelAdmin):
+class ListAdmin(admin.ModelAdmin):
     list_display = ('user', 'name',)
     list_filter = ('user',)
 
