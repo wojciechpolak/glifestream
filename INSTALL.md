@@ -1,10 +1,10 @@
 gLifestream -- INSTALL
-Copyright (C) 2009, 2010, 2011, 2013, 2014 Wojciech Polak
+Copyright (C) 2009-2015 Wojciech Polak
 
 gLifestream requirements
 ========================
 
-- Django 1.5 or later -- a Python Web framework (https://www.djangoproject.com/)
+- Django 1.7 or later -- a Python Web framework (https://www.djangoproject.com/)
 - A database supported by Django (e.g. MySQL, PostgreSQL).
 - Universal Feed Parser (https://pypi.python.org/pypi/feedparser)
 
@@ -23,7 +23,7 @@ Optional (but recommended):
   http://pypi.python.org/pypi/Markdown/
 
 - Beautiful Soup -- an HTML parser
-  https://pypi.python.org/pypi/BeautifulSoup
+  https://pypi.python.org/pypi/beautifulsoup4
 
 - django-sphinx -- https://pypi.python.org/pypi/django-sphinx
 
@@ -64,11 +64,12 @@ Change the current working directory into the `glifestream` directory
 and run the command `python manage.py runserver`. You will see
 the following output:
 
-    Validating models...
-    0 errors found.
-    
-    Django version 1.5.1, using settings 'glifestream.settings'
-    Development server is running at http://127.0.0.1:8000/
+    Performing system checks...
+
+    System check identified no issues (0 silenced).
+    March 09, 2015 - 17:54:57
+    Django version 1.7.6, using settings 'glifestream.settings'
+    Starting development server at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 
 
