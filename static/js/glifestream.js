@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
+ *  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2015 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -14,6 +14,9 @@
  *  You should have received a copy of the GNU General Public License along
  *  with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+/*jshint indent: 2, white: true, browser: true */
+/*global $, FB, tinyMCE, settings, gettext_msg */
 
 (function () {
   function parse_id (id) {
@@ -454,7 +457,7 @@
       this.href = 'http://maps.google.com/?q=' + lat +','+ lng;
     }
 
-    p = this.parentNode;
+    var p = this.parentNode;
     $('a', p).html (get_map_embed (lat, lng));
     $(p).css ('paddingLeft', '0');
     this.folded = true;
@@ -547,7 +550,7 @@
 
   function kshortcuts (e) {
     var code;
-    if (!e) var e = window.event;
+    if (!e) e = window.event;
     if (e.keyCode) code = e.keyCode;
     else if (e.which) code = e.which;
     if (e.ctrlKey || e.metaKey || e.altKey)
@@ -803,7 +806,6 @@
 	[{ name: 'E-mail', href: 'mailto:?subject={URL}&body={TITLE}', className: 'email'},
 	 { name: 'Twitter', href: 'http://twitter.com/?status={TITLE}:%20{URL}', className: 'twitter'},
 	 { name: 'Facebook', href: 'http://www.facebook.com/sharer.php?u={URL}&t={TITLE}', className: 'facebook'},
-	 { name: 'FriendFeed', href: 'http://friendfeed.com/share?url={URL}&title={TITLE}', className: 'friendfeed'},
 	 { name: 'Delicious', href: 'http://delicious.com/save?url={URL}&title={TITLE}', className: 'delicious'},
 	 { name: 'Digg', href: 'http://digg.com/submit?phase=2&url={URL}&title={TITLE}', className: 'digg'},
 	 { name: 'Reddit', href: 'http://reddit.com/submit?url={URL}&title={TITLE}', className: 'reddit'}];
@@ -923,7 +925,7 @@
 	}
       }
     }
-  }
+  };
 
   function prepare_service_form (data) {
     var form = document.getElementById ('service-form');
@@ -967,7 +969,7 @@
 	    obj.onclick = function () {
 	      oauth_configure (data.id);
 	      return false;
-	    }
+	    };
 	}
 	else {
 	  var obj = DCE ('input', {type: f.type, id: f.name, name: f.name,
@@ -994,7 +996,7 @@
 	  for (var name in f.deps) {
 	    if (!settings_deps[name])
 	      settings_deps[name] = [];
-	    settings_deps[name].push ([f.deps[name], row])
+	    settings_deps[name].push ([f.deps[name], row]);
 	  }
 	}
 	fs.append (row);
@@ -1118,7 +1120,7 @@
       sbox.style.display = 'none';
       document.body.appendChild (sbox);
       initied = true;
-    }
+    };
 
     this.open = function (opts) {
       self.init ();
@@ -1174,7 +1176,7 @@
       $('#overlay').click (this.close);
       document.onkeydown = function (e) {
 	var code;
-	if (!e) var e = window.event;
+	if (!e) e = window.event;
 	if (e.keyCode) code = e.keyCode;
 	else if (e.which) code = e.which;
 	if (code == 27) { /* escape */
@@ -1211,7 +1213,7 @@
 
     this.scan = function (ctx) {
       self.init ();
-      $imgs = $('.thumbnails > a:has(img)', ctx);
+      var $imgs = $('.thumbnails > a:has(img)', ctx);
       $imgs.each (function (i, v) {
 	  this.rel = $(v).closest ('article').get (0).id;
       });
@@ -1258,7 +1260,7 @@
 	href = href.replace (/-h\//, '/');
 
       return self.open ({src: href, type: type, obj: this});
-    }
+    };
 
     this.open = function (opts) {
       var src    = opts.src;
@@ -1320,7 +1322,7 @@
       $('#overlay').click (this.close);
       document.onkeydown = function (e) {
 	var code;
-	if (!e) var e = window.event;
+	if (!e) e = window.event;
 	if (e.keyCode) code = e.keyCode;
 	else if (e.which) code = e.which;
 	if (code == 27) { /* escape */
@@ -1379,7 +1381,7 @@
     var ovl = null;
     this.enable = function (level) {
       if (typeof level == 'undefined')
-	level = '80'
+	level = '80';
       if (visible) return;
       ovl = document.createElement ('div');
       if (ovl) {
@@ -1456,7 +1458,7 @@
 	for (var p in props) {
 	  if (p == 'style') {
 	    for (var s in props[p])
-	      obj.style[s] = props.style[s]
+	      obj.style[s] = props.style[s];
 	  }
 	  else
 	    obj[p] = props[p];

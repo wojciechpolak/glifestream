@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,11 +13,15 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import unicode_literals
+
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import python_2_unicode_compatible, smart_text
+
 from glifestream.apis import API_LIST
 from glifestream.utils.time import now
 
@@ -31,6 +35,7 @@ except ImportError:
             pass
 
 
+@python_2_unicode_compatible
 class Service (models.Model):
     api = models.CharField(_('API'), max_length=16, choices=API_LIST,
                            default='feed', db_index=True)
@@ -71,10 +76,11 @@ class Service (models.Model):
             self.cls = self.api
         super(Service, self).save()
 
-    def __unicode__(self):
-        return u'%s' % self.name
+    def __str__(self):
+        return '%s' % self.name
 
 
+@python_2_unicode_compatible
 class Entry (models.Model):
     service = models.ForeignKey(Service, verbose_name=_('Service'),
                                 null=False, blank=False)
@@ -120,10 +126,11 @@ class Entry (models.Model):
         ordering = '-date_published',
         unique_together = (('service', 'guid'),)
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.service.name, self.title[0:60])
+    def __str__(self):
+        return '%s: %s' % (self.service.name, smart_text(self.title))
 
 
+@python_2_unicode_compatible
 class Media (models.Model):
     entry = models.ForeignKey(Entry, verbose_name=_('Entry'),
                               null=False, blank=False)
@@ -134,10 +141,11 @@ class Media (models.Model):
         verbose_name_plural = _('Media')
         unique_together = (('entry', 'file'),)
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.entry.title, self.file.name)
+    def __str__(self):
+        return '%s: %s' % (smart_text(self.entry.title), self.file.name)
 
 
+@python_2_unicode_compatible
 class Favorite (models.Model):
     user = models.ForeignKey(User, db_index=True)
     entry = models.ForeignKey(Entry, verbose_name=_('Entry'),
@@ -150,10 +158,11 @@ class Favorite (models.Model):
         ordering = '-date_added',
         unique_together = (('user', 'entry'),)
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.user, self.entry.title[0:60])
+    def __str__(self):
+        return '%s: %s' % (self.user, smart_text(self.entry.title))
 
 
+@python_2_unicode_compatible
 class List (models.Model):
     user = models.ForeignKey(User, db_index=True)
     name = models.CharField(_('Name'), max_length=48, null=False, blank=False)
@@ -171,8 +180,8 @@ class List (models.Model):
         self.slug = slugify(self.name)
         super(List, self).save()
 
-    def __unicode__(self):
-        return u'%s: %s' % (self.user, self.name)
+    def __str__(self):
+        return '%s: %s' % (self.user, self.name)
 
 
 class Pshb (models.Model):

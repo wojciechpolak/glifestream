@@ -402,12 +402,6 @@ def _import_service(url, title, cls='webfeed'):
         url = url.replace('format=atom', 'format=rss_200')
         api = 'flickr'
         cls = 'photos'
-    elif 'friendfeed.com' in url:
-        m = re.search(r'friendfeed.com/([\w/]+)\?format=atom', url)
-        if m:
-            url = m.groups()[0]
-            api = 'friendfeed'
-            cls = 'links'
     elif 'twitter.com' in url:
         m = re.search(r'twitter.com/1/statuses/user_timeline/(\w+)\.', url)
         if m:

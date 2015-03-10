@@ -71,7 +71,7 @@ MEDIA_URL = '/static/'
 
 # URL prefix for admin media. Make sure to use a trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
-ADMIN_MEDIA_PREFIX = '/admin_static/'
+STATIC_URL = '/stream/admin_static/'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'YOUR-SECRET-KEY'
@@ -99,6 +99,7 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.admin',
+    'django.contrib.staticfiles',
     'glifestream.gauth',
     'glifestream.apis',
     'glifestream.stream',
