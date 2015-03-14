@@ -24,7 +24,15 @@ DATABASES = {
         'PASSWORD': 'pass',
         'HOST': '',
         'PORT': '',
-    }
+    },
+    'sphinx': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': '',
+        'USER': '',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '9306',
+    },
 }
 
 TIME_ZONE = 'UTC'
@@ -161,10 +169,6 @@ MAPS_ENGINE = 'google'
 # Search functionality
 SEARCH_ENABLE = True
 SEARCH_ENGINE = 'sphinx'  # db, sphinx
-
-SPHINX_API_VERSION = 0x116  # version 0.9.9
-SPHINX_SERVER = 'localhost'
-SPHINX_PORT = 9312
 SPHINX_INDEX_NAME = 'glifestream'
 
 # PubSubHubbub - Hubs to ping (use empty tuple () to disable)

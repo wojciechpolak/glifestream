@@ -25,8 +25,6 @@ Optional (but recommended):
 - Beautiful Soup -- an HTML parser
   https://pypi.python.org/pypi/beautifulsoup4
 
-- django-sphinx -- https://pypi.python.org/pypi/django-sphinx
-
 - Sphinx -- a free open-source SQL full-text search engine
   http://www.sphinxsearch.com/
 
@@ -106,7 +104,7 @@ The search functionality via Sphinx
 ===================================
 
 To use the search functionality in GLS via Sphinx, you must add the
-following configuration to your `etc/sphinx.conf` (replace the
+following configuration to your `/etc/sphinx/sphinx.conf` (replace the
 `DATABASE_*` values with the proper ones from your `settings.py`):
 
 ```
@@ -118,6 +116,7 @@ source glifestream
    sql_pass     = DATABASE_PASSWORD
    sql_db       = DATABASE_NAME
    sql_port     = 3306
+
    sql_query    = \
 	SELECT stream_entry.id, stream_entry.title, stream_entry.content, \
 	UNIX_TIMESTAMP(stream_entry.date_published) AS date_published, \
@@ -128,14 +127,12 @@ source glifestream
    sql_attr_timestamp = date_published
    sql_attr_bool      = public
    sql_attr_bool      = friends_only
-
-   sql_query_info     = SELECT * FROM stream_entry WHERE id=$id
 }
 
 index glifestream
 {
    source       = glifestream
-   path         = /usr/local/sphinx/var/data/glifestream
+   path         = /var/lib/sphinx/glifestream
    docinfo      = extern
    charset_type = utf-8
    html_strip   = 1

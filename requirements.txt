@@ -6,6 +6,5 @@ workerpool
 python-memcached
 python-openid >=2.2.5
 oauth2 >=1.5,<1.5.999
-django-sphinx
 markdown
 beautifulsoup4

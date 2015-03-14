@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -17,6 +17,7 @@ import time
 import datetime
 from urlparse import urljoin
 from django.conf import settings
+from django.db import connections
 from django.core import urlresolvers
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
@@ -45,6 +46,7 @@ except ImportError:
     import simplejson as json
 
 
+@never_cache
 def index(request, **args):
     site_url = '%s://%s' % (request.is_secure() and 'https' or 'http',
                             request.get_host())
@@ -226,12 +228,21 @@ def index(request, **args):
         offset = (page_number - 1) * entries_on_page
 
         try:
-            if search_engine == 'sphinx' and Entry.sphinx.query:
+            if search_engine == 'sphinx':
+                select = "SELECT * FROM %s WHERE MATCH('%s')"
                 if page['public']:
-                    sfs['public'] = True
-                entries = Entry.sphinx.query(
-                    search_query).filter(**sfs).select_related()
-            else:
+                    select += ' AND public=1'
+                if 'friends_only' in sfs and sfs['friends_only'] == False:
+                    select += ' AND friends_only=0'
+                select += ' LIMIT 1000'
+
+                cursor = connections['sphinx'].cursor()
+                cursor.execute(select % (settings.SPHINX_INDEX_NAME,
+                                         search_query))
+                res = __dictfetchall(cursor)
+                uids = [ent['id'] for ent in res]
+                entries = entries.filter(id__in=uids).select_related()
+            else:  # db search
                 if page['public']:
                     sfs['service__public'] = True
                 sfs['content__icontains'] = search_query
@@ -614,3 +625,12 @@ def api(request, **args):
             pass
 
     return HttpResponse()
+
+
+def __dictfetchall(cursor):
+    "Returns all rows from a cursor as a dict"
+    desc = cursor.description
+    return [
+        dict(zip([col[0] for col in desc], row))
+        for row in cursor.fetchall()
+    ]

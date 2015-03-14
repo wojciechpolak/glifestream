@@ -25,15 +25,6 @@ from django.utils.encoding import python_2_unicode_compatible, smart_text
 from glifestream.apis import API_LIST
 from glifestream.utils.time import now
 
-try:
-    from djangosphinx.models import SphinxSearch
-except ImportError:
-    class SphinxSearch:
-        query = None
-
-        def __init__(self, **va):
-            pass
-
 
 @python_2_unicode_compatible
 class Service (models.Model):
@@ -116,9 +107,6 @@ class Entry (models.Model):
     friends_only = models.BooleanField(_('Friends-only'), default=False,
                                        help_text=_('Entry will only be visible to you and your friends.'))
     mblob = models.TextField('Media', null=True, blank=True, editable=False)
-
-    sphinx = SphinxSearch(index=getattr(settings, 'SPHINX_INDEX_NAME',
-                                        'glifestream'))
 
     class Meta:
         verbose_name = _('Entry')
