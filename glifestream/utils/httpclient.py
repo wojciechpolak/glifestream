@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2012 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2012, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -14,107 +14,48 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import base64
-import httplib
-import urllib
-import urllib2
+import os
 import urlparse
-from email.utils import parsedate
+import requests
 from django.conf import settings
-from glifestream.gauth import gls_oauth
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
-try:
-    import gzip
-except ImportError:
-    gzip = None
-try:
-    import zlib
-except ImportError:
-    zlib = None
-
-AGENT = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (compatible; gLifestream; +%s/)' %
+    settings.BASE_URL
+}
 
 
-class URLopener (urllib.FancyURLopener):
-    version = AGENT
-
-
-class HTTPError (urllib2.HTTPError):
+class HTTPError(requests.exceptions.RequestException):
     pass
 
 
-def head(host, url='/', timeout=15):
-    con = httplib.HTTPConnection(host, timeout=timeout)
-    con.request('HEAD', url)
-    return con.getresponse()
-
-
-def get(host, url='/', headers={}, etag=None, timeout=45, https=False):
-    _headers = {'User-Agent': AGENT}
-    if gzip and zlib:
-        _headers['Accept-Encoding'] = 'gzip, deflate'
-    elif gzip:
-        _headers['Accept-Encoding'] = 'gzip'
-    elif zlib:
-        _headers['Accept-Encoding'] = 'deflate'
-    if etag:
-        _headers['If-None-Match'] = etag
-    _headers.update(headers)
-
-    if https:
-        con = httplib.HTTPSConnection(host, timeout=timeout)
-    else:
-        con = httplib.HTTPConnection(host, timeout=timeout)
-    con.request('GET', url, headers=_headers)
-    r = con.getresponse()
-    r.code = r.status
-    r.data = __decompress(r.read(),
-                          r.getheader('content-encoding', ''))
-    modified = r.getheader('last-modified')
-    r.modified = parsedate(modified) if modified else None
-    r.etag = r.getheader('etag')
-    return r
-
-
-def retrieve(url, filename):
-    opener = URLopener()
-    return opener.retrieve(url, filename)[1]
-
-
-def urlopen(url, data=None, headers={}, etag=None, timeout=45):
-    _headers = {'User-Agent': AGENT}
-    if gzip and zlib:
-        _headers['Accept-Encoding'] = 'gzip, deflate'
-    elif gzip:
-        _headers['Accept-Encoding'] = 'gzip'
-    elif zlib:
-        _headers['Accept-Encoding'] = 'deflate'
-    if etag:
-        _headers['If-None-Match'] = etag
-    _headers.update(headers)
-
+def head(url, timeout=15):
     if not url.startswith('http'):
         url = 'http://' + url
-    if data:
-        data = urllib.urlencode(data)
-
-    req = urllib2.Request(url, data, _headers)
     try:
-        f = urllib2.urlopen(req, timeout=timeout)
-        f.status = f.code
-        f.data = __decompress(f.read(),
-                              f.headers.get('content-encoding', ''))
-        modified = f.headers.get('last-modified')
-        f.modified = parsedate(modified) if modified else None
-        f.etag = f.headers.get('etag')
-        return f
-    except urllib2.HTTPError, e:
-        raise HTTPError(e.url, e.code, e.msg, e.hdrs, e.fp)
+        return requests.head(url, headers=HEADERS, timeout=timeout)
+    except requests.exceptions.RequestException as e:
+        raise HTTPError(*e.args)
+
+
+def get(url, data=None, auth=None, timeout=45):
+    if not url.startswith('http'):
+        url = 'http://' + url
+    try:
+        return requests.get(url, params=data, headers=HEADERS, auth=auth,
+                            timeout=timeout)
+    except requests.exceptions.RequestException as e:
+        raise HTTPError(*e.args)
+
+
+def retrieve(url, filename, timeout=15):
+    r = requests.get(url, headers=HEADERS, stream=True, timeout=timeout)
+    with open(filename, 'wb') as fp:
+        for chunk in r.iter_content(4096):
+            fp.write(chunk)
+            fp.flush()
+            os.fsync(fp.fileno())
+    return r
 
 
 def get_alturl_if_html(r):
@@ -125,7 +66,7 @@ def get_alturl_if_html(r):
     if ';' in ct:
         ct = ct.split(';', 1)[0]
     if ct in ('text/html', 'application/xhtml+xml'):
-        shortdata = r.data[:2048]
+        shortdata = r.text[:2048]
         for link in re.findall(r'<link(.*?)>', shortdata):
             if 'alternate' in link:
                 rx = re.search('type=[\'"](.*?)[\'"]', link)
@@ -143,23 +84,8 @@ def get_alturl_if_html(r):
     return None
 
 
-def gen_auth_hs(service, url):
-    """Generate authentication headers."""
+def gen_auth(service, url):
+    """Generate web authentication."""
     if service.creds and len(service.creds) and service.creds != 'oauth':
-        return {'Authorization': 'Basic ' +
-                base64.encodestring(service.creds).strip()}
-    return {}
-
-
-def __decompress(data, encoding):
-    if gzip and encoding == 'gzip':
-        try:
-            return gzip.GzipFile(fileobj=StringIO(data)).read()
-        except:
-            pass
-    elif zlib and encoding == 'deflate':
-        try:
-            return zlib.decompress(data, -zlib.MAX_WBITS)
-        except:
-            pass
-    return data
+        return service.creds.split(':')
+    return None

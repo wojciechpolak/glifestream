@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -16,13 +16,8 @@
 import urllib
 from glifestream.utils import httpclient
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 providers = {
-    'flickr': 'www.flickr.com/services/oembed'
+    'flickr': 'https://www.flickr.com/services/oembed'
 }
 
 
@@ -36,9 +31,9 @@ def discover(url, provider, maxwidth=None, maxheight=None):
     if maxheight:
         q += '&maxheight=%d' % maxheight
     try:
-        r = httpclient.urlopen(pro + q, timeout=15)
-        if r.code == 200:
-            return json.loads(r.data)
+        r = httpclient.get(pro + q, timeout=15)
+        if r.status_code == 200:
+            return r.json()
     except:
         pass
     return None

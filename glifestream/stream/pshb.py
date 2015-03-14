@@ -81,15 +81,17 @@ def subscribe(service, verbose=False):
         data['hub.secret'] = secret
 
     try:
-        r = httpclient.urlopen(hub, data)
+        r = httpclient.get(hub, data=data)
         if verbose:
-            print 'Response code: %d' % r.code
+            print 'Response code: %d' % r.status_code
         if save_db:
             db.save()
-        return {'hub': hub, 'rc': r.code}
-    except (IOError, httpclient.HTTPError), e:
+        return {'hub': hub, 'rc': r.status_code}
+    except (IOError, httpclient.HTTPError) as e:
         error = ''
-        if hasattr(e, 'read'):
+        if hasattr(e, 'message'):
+            error = e.message
+        elif hasattr(e, 'read'):
             error = e.read()
         if verbose:
             print '%s, Response: "%s"' % (e, error)
@@ -116,13 +118,15 @@ def unsubscribe(id, verbose=False):
             'hub.verify': 'sync'}
 
     try:
-        r = httpclient.urlopen(db.hub, data)
+        r = httpclient.get(db.hub, data=data)
         if verbose:
-            print 'Response code: %d' % r.code
-        return {'hub': db.hub, 'rc': r.code}
-    except (IOError, httpclient.HTTPError), e:
+            print 'Response code: %d' % r.status_code
+        return {'hub': db.hub, 'rc': r.status_code}
+    except (IOError, httpclient.HTTPError) as e:
         error = ''
-        if hasattr(e, 'read'):
+        if hasattr(e, 'message'):
+            error = e.message
+        elif hasattr(e, 'read'):
             error = e.read()
         if verbose:
             print '%s, Response: "%s"' % (e, error)
@@ -160,18 +164,20 @@ def publish(hubs=None, verbose=False):
         hub = hub.replace('https://', 'http://')  # it's just a ping.
         data = {'hub.mode': 'publish', 'hub.url': url}
         try:
-            r = httpclient.urlopen(hub, data, timeout=7)
+            r = httpclient.get(hub, data=data, timeout=7)
             if verbose:
-                if r.code == 204:
+                if r.status_code == 204:
                     print '%s: Successfully pinged.' % hub
                 else:
-                    print '%s: Pinged and got %d.' % (hub, r.code)
-        except (IOError, httpclient.HTTPError), e:
-            if hasattr(e, 'code') and e.code == 204:
+                    print '%s: Pinged and got %d.' % (hub, r.status_code)
+        except (IOError, httpclient.HTTPError) as e:
+            if hasattr(e, 'status_code') and e.status_code == 204:
                 continue
             if verbose:
                 error = ''
-                if hasattr(e, 'read'):
+                if hasattr(e, 'message'):
+                    error = e.message
+                elif hasattr(e, 'read'):
                     error = e.read()
                 print '%s, Response: "%s"' % (e, error)
 

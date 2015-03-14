@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.contrib.admin.widgets import AdminFileWidget
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
-from models import Service, Entry, Media, Favorite, List
+from glifestream.stream.models import Service, Entry, Media, Favorite, List
 from glifestream.stream import media
 
 

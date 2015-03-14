@@ -48,18 +48,18 @@ class API:
         self.fp_error = False
         if not self.payload:
             try:
-                hs = httpclient.gen_auth_hs(self.service, url)
-                r = httpclient.urlopen(url, headers=hs)
+                hs = httpclient.gen_auth(self.service, url)
+                r = httpclient.get(url, auth=hs)
                 alturl = httpclient.get_alturl_if_html(r)
                 if alturl:
-                    r = httpclient.urlopen(alturl, headers=hs)
-                self.fp = feedparser.parse(r.data)
+                    r = httpclient.get(alturl, auth=hs)
+                self.fp = feedparser.parse(r.text)
                 self.fp.etag = r.etag
                 self.fp.modified = r.modified
-            except (IOError, httpclient.HTTPError), e:
+            except (IOError, httpclient.HTTPError) as e:
                 self.fp_error = True
                 if self.verbose:
-                    error = e.code if hasattr(e, 'code') else ''
+                    error = e.message if hasattr(e, 'message') else ''
                     print '%s (%d) HTTPError: %s' % (self.service.api,
                                                      self.service.id,
                                                      error)

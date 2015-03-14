@@ -77,7 +77,7 @@ def save_image(url, direct_image=True, force=False, downscale=False,
         tmp = tempfile.mktemp('_gls')
         try:
             resp = httpclient.retrieve(url, tmp)
-            if not 'image/' in resp.getheader('Content-Type', ''):
+            if not 'image/' in resp.headers.get('content-type', ''):
                 if not force and Image:
                     try:
                         Image.open(tmp)

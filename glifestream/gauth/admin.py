@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.contrib import admin
-from models import OpenId
+from glifestream.gauth.models import OpenId
 
 
 class OpenIdAdmin (admin.ModelAdmin):

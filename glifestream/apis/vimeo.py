@@ -19,11 +19,6 @@ from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 
 class API:
     name = 'Vimeo Simple API v2'
@@ -59,9 +54,9 @@ class API:
 
     def fetch(self, url):
         try:
-            r = httpclient.get('vimeo.com', url)
-            if r.status == 200:
-                self.json = json.loads(r.data)
+            r = httpclient.get('https://vimeo.com' + url)
+            if r.status_code == 200:
+                self.json = r.json()
                 self.service.last_checked = now()
                 self.service.save()
                 self.process()
@@ -167,9 +162,9 @@ class API:
 
 def get_thumbnail_url(id):
     try:
-        r = httpclient.urlopen('vimeo.com/api/v2/video/%s.json' % id)
-        if r.code == 200:
-            jsn = json.loads(r.data)
+        r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id)
+        if r.status_code == 200:
+            jsn = r.json()
             if 'thumbnail_medium' in jsn[0]:
                 return jsn[0]['thumbnail_medium']
     except:

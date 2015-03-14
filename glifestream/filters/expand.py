@@ -28,15 +28,16 @@ from glifestream.utils import httpclient, oembed
 
 def __su_subs(m):
     try:
-        res = httpclient.head(m.group(1), m.group(2))
-        return res.getheader('location') or m.group(0)
+        url = m.group(1) + m.group(2) + m.group(3)
+        res = httpclient.head(url)
+        return res.headers.get('location') or m.group(0)
     except:
         return m.group(0)
 
 
 def shorturls(text):
     """Expand short URLs."""
-    return re.sub(r'https?://(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
+    return re.sub(r'(https?://)(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
                   r'|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
                   r'|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu'
                   r')(/[\-\w]+)', __su_subs, smart_unicode(text))
