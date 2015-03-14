@@ -1,5 +1,5 @@
 {% load i18n media gls_filters %}
-{% load url from future %}
+{% load url from future %}{% load firstof from future %}
 {% for entry in entries %}
   <article id="entry-{{ entry.id }}" class="hentry e-{% firstof entry.service.cls entry.service.api %}{% if not entry.service.public %} private{% endif %}">
   {% spaceless %}
@@ -17,13 +17,13 @@
   {% endspaceless %}
   {% ifequal entry.service.display "both" %}
     <header class="entry-title">{{ ""|gls_title:entry }}</header>
-    <div class="entry-content">{{ ""|gls_content:entry|fix_ampersands }}</div>
+    <div class="entry-content">{{ ""|gls_content:entry|gls_fix_ampersands }}</div>
   {% else %}
     {% ifequal entry.service.display "title" %}
     <header class="entry-title">{{ ""|gls_title:entry }} <a href="#" class="expand-content" title="{% trans "Expand content" %}"></a></header>
     <div class="entry-content" style="display:none"></div>
     {% else %}
-    <div class="entry-content">{{ ""|gls_content:entry|fix_ampersands }}</div>
+    <div class="entry-content">{{ ""|gls_content:entry|gls_fix_ampersands }}</div>
     {% endifequal %}
   {% endifequal %}
     <footer class="entry-info">

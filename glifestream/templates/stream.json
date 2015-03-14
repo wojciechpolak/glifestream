@@ -1,4 +1,4 @@
-{% load gls_filters %}{% if callback %}{{ callback }}({% endif %}{
+{% load firstof from future %}{% load gls_filters %}{% if callback %}{{ callback }}({% endif %}{
   "title": "{% firstof page.title "Lifestream" %}",
   "updated": "{{ page.updated|gls_hdate }}",
   "generator": "gLifestream",

@@ -27,13 +27,12 @@ from django.http import HttpResponsePermanentRedirect
 from django.http import Http404
 from django.shortcuts import render_to_response
 from django.template.loader import render_to_string
-from django.template.defaultfilters import fix_ampersands
 from django.template.defaultfilters import truncatewords
 from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
-from glifestream.stream.templatetags.gls_filters import gls_content
-from glifestream.stream.templatetags.gls_filters import gls_slugify
+from glifestream.stream.templatetags.gls_filters import \
+    (gls_content, gls_slugify, fix_ampersands)
 from glifestream.stream.models import Service, Entry, Favorite, List
 from glifestream.stream import media, pshb
 from glifestream.utils import common

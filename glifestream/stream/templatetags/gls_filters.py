@@ -16,16 +16,18 @@
 from django import template
 register = template.Library()
 
+import re
 import math
 import time
 import datetime
 import calendar
 from django.conf import settings
+from django.utils.encoding import force_text
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.template.defaultfilters import date as ddate
-from django.template.defaultfilters import urlencode
+from django.template.defaultfilters import urlencode, stringfilter
 from glifestream.utils.slugify import slugify
 from glifestream.stream import media
 from glifestream.apis import *
@@ -162,3 +164,16 @@ def get_relative_time(t):
 def encode_json(content):
     enc = json.JSONEncoder()
     return mark_safe(enc.encode(content))
+
+
+unencoded_ampersands_re = re.compile(r'&(?!(\w+|#\d+);)')
+
+def fix_ampersands(value):
+    return unencoded_ampersands_re.sub('&amp;', force_text(value))
+
+
+@register.filter('gls_fix_ampersands', is_safe=True)
+@stringfilter
+def fix_ampersands_filter(value):
+    """Replaces ampersands with ``&amp;`` entities."""
+    return fix_ampersands(value)

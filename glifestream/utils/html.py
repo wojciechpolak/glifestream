@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 try:
-    from BeautifulSoup import BeautifulSoup
+    from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
 
