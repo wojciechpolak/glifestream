@@ -17,7 +17,7 @@ import re
 import datetime
 from django.utils.html import strip_tags, strip_entities
 from glifestream.filters import truncate
-from glifestream.utils import httpclient
+from glifestream.gauth import gls_oauth
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import bytes_to_human
 from glifestream.stream.models import Entry
@@ -61,11 +61,10 @@ class API:
 
     def fetch(self, url):
         try:
-            hs = httpclient.gen_auth_hs(self.service,
-                                        'http://friendfeed-api.com' + url)
-            r = httpclient.get('friendfeed-api.com', url, headers=hs)
-            if r.status == 200:
-                self.json = json.loads(r.data.decode('utf_8'))
+            oauth = gls_oauth.OAuth1Client(self.service)
+            r = oauth.consumer.get('http://friendfeed-api.com' + url)
+            if r.status_code == 200:
+                self.json = r.json()
                 self.service.last_checked = now()
                 self.service.save()
                 self.process()

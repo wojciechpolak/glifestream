@@ -16,8 +16,8 @@ Optional (but recommended):
 - workerpool -- a multithreaded job distribution module
   https://pypi.python.org/pypi/workerpool
 
-- python-oauth2 -- Python OAuth library
-  https://pypi.python.org/pypi/oauth2
+- requests-oauthlib -- OAuthlib authentication support for Requests
+  https://pypi.python.org/pypi/requests-oauthlib
 
 - python-markdown -- a text-to-HTML converter
   http://pypi.python.org/pypi/Markdown/

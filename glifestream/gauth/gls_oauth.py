@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010, 2011 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2011, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,23 +13,24 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
-import urlparse
+from django.conf import settings
 from django.utils.translation import ugettext as _
 from glifestream.gauth import models
 
 try:
-    import oauth2 as oauth
+    from requests_oauthlib import OAuth1Session
 except ImportError:
-    oauth = None
+    OAuth1Session = None
+
+AGENT = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
 
 
-class Client:
+class OAuth1Client:
 
     def __init__(self, service, identifier=None, secret=None,
                  callback_url=None):
-        if not oauth:
-            raise Exception('python-oauth2 is required.')
+        if not OAuth1Session:
+            raise Exception('requests-oauthlib is required.')
 
         try:
             self.db = models.OAuthClient.objects.get(service=service)
@@ -48,11 +49,16 @@ class Client:
         self.request_token_url = getattr(mod, 'OAUTH_REQUEST_TOKEN_URL', None)
         self.authorize_url = getattr(mod, 'OAUTH_AUTHORIZE_URL', None)
         self.access_token_url = getattr(mod, 'OAUTH_ACCESS_TOKEN_URL', None)
-        self.scope = getattr(mod, 'OAUTH_SCOPE', None)
-
         self.verifier = None
-        self.consumer = oauth.Consumer(self.db.identifier,
-                                       self.db.secret)
+
+        self.consumer = OAuth1Session(
+            client_key=self.db.identifier,
+            client_secret=self.db.secret,
+            resource_owner_key=self.db.token or None,
+            resource_owner_secret=self.db.token_secret or None,
+            verifier=self.verifier,
+            callback_uri=self.callback_url)
+        self.consumer.headers['User-Agent'] = AGENT
 
     def save(self):
         self.db.save()
@@ -66,12 +72,6 @@ class Client:
         self.authorize_url = authorize_url
         self.access_token_url = access_token_url
 
-    def set_creds(self, identifier, secret):
-        self.db.identifier = identifier
-        self.db.secret = secret
-        self.consumer = oauth.Consumer(self.db.identifier,
-                                       self.db.secret)
-
     def reset(self):
         self.db.phase = 0
         self.db.token = None
@@ -81,70 +81,31 @@ class Client:
     def get_request_token(self):
         if not self.request_token_url:
             raise Exception(_('Request token URL not set.'))
-        client = oauth.Client(self.consumer)
 
-        body = {}
-        if self.callback_url:
-            body['oauth_callback'] = self.callback_url
-
-        res, content = client.request(self.request_token_url, 'POST',
-                                      body=urllib.urlencode(body))
-        if res['status'] != '200':
-            raise Exception(_('Invalid response %s.') % res['status'])
-
-        content = dict(urlparse.parse_qsl(content))
-        if 'oauth_token' in content and \
-           'oauth_token_secret' in content:
+        res = self.consumer.fetch_request_token(self.request_token_url)
+        if 'oauth_token' in res and 'oauth_token_secret' in res:
             self.db.phase = 1
-            self.db.token = content['oauth_token']
-            self.db.token_secret = content['oauth_token_secret']
+            self.db.token = res['oauth_token']
+            self.db.token_secret = res['oauth_token_secret']
         else:
             raise Exception(_('Invalid OAuth response. No tokens found.'))
 
     def get_authorize_url(self):
         if self.db.phase != 1:
             raise Exception('Not ready to authorize.')
-        url = '%s?oauth_token=%s' % (self.authorize_url, self.db.token)
-        return url
+        return self.consumer.authorization_url(self.authorize_url)
 
     def get_access_token(self):
         if self.db.phase != 2:
             raise Exception('Not ready to get access token.')
 
-        token = oauth.Token(self.db.token, self.db.token_secret)
-        if self.verifier:
-            token.set_verifier(self.verifier)
+        res = self.consumer.fetch_access_token(self.access_token_url)
 
-        client = oauth.Client(self.consumer, token)
-        res, content = client.request(self.access_token_url, 'POST')
-        if res['status'] != '200':
-            raise Exception(_('Invalid response %s.') % res['status'])
-
-        content = dict(urlparse.parse_qsl(content))
-        if 'oauth_token' in content and \
-           'oauth_token_secret' in content:
+        if 'oauth_token' in res and 'oauth_token_secret' in res:
             self.db.phase = 3
-            self.db.token = content['oauth_token']
-            self.db.token_secret = content['oauth_token_secret']
+            self.db.token = res['oauth_token']
+            self.db.token_secret = res['oauth_token_secret']
+            self.content = res
             self.verifier = None
         else:
             raise Exception(_('Invalid OAuth response. No tokens found.'))
-
-    def sign_request(self, url, postdata=None):
-        if self.db.phase != 3:
-            raise Exception('Not ready to sign any request.')
-        params = {
-            'oauth_version': '1.0',
-            'oauth_nonce': oauth.generate_nonce(),
-            'oauth_timestamp': oauth.generate_timestamp(),
-            'oauth_consumer_key': self.db.identifier,
-            'oauth_token': self.db.token,
-        }
-        if postdata:
-            params.update(postdata)
-
-        token = oauth.Token(self.db.token, self.db.token_secret)
-        req = oauth.Request(method='GET', url=url, parameters=params)
-        req.sign_request(oauth.SignatureMethod_HMAC_SHA1(),
-                         self.consumer, token)
-        return req

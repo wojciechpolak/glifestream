@@ -247,6 +247,7 @@ def tools(request, **args):
 
 
 @login_required
+@never_cache
 def oauth(request, **args):
     authed = request.user.is_authenticated() and request.user.is_staff
     if not authed:
@@ -269,10 +270,10 @@ def oauth(request, **args):
         urlresolvers.reverse('glifestream.usettings.views.oauth', args=[id]))
 
     service = Service.objects.get(id=id)
-    c = gls_oauth.Client(service=service, callback_url=callback_url)
-
-    v['identifier'] = request.POST.get('identifier', c.db.identifier)
-    v['secret'] = request.POST.get('secret', c.db.secret)
+    c = gls_oauth.OAuth1Client(service=service,
+                               identifier=request.POST.get('identifier'),
+                               secret=request.POST.get('secret'),
+                               callback_url=callback_url)
 
     if c.db.phase == 0 and (not c.request_token_url or
                             not c.authorize_url or
@@ -286,10 +287,10 @@ def oauth(request, **args):
         c.reset()
         c.save()
     elif request.method == 'POST':
-        if c.db.phase == 0 and v['identifier'] and v['secret']:
-            c.set_creds(v['identifier'], v['secret'])
+        if c.db.phase == 0:
             if not c.request_token_url:
-                c.set_urls(v['request_token_url'], v['authorize_url'],
+                c.set_urls(v['request_token_url'],
+                           v['authorize_url'],
                            v['access_token_url'])
             try:
                 c.get_request_token()
@@ -302,6 +303,8 @@ def oauth(request, **args):
     if request.method == 'GET':
         if c.db.phase == 1:
             if request.GET.get('oauth_token', '') == c.db.token:
+                c.consumer.parse_authorization_response(
+                    request.get_full_path())
                 c.verifier = request.GET.get('oauth_verifier', None)
                 c.db.phase = 2
 

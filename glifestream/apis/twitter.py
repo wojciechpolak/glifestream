@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2012, 2013, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -16,7 +16,7 @@
 import datetime
 from django.utils.html import strip_tags, strip_entities
 from glifestream.filters import expand, truncate, twyntax
-from glifestream.utils import httpclient
+from glifestream.gauth import gls_oauth
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
@@ -64,11 +64,10 @@ class API:
 
     def fetch(self, url):
         try:
-            hs = httpclient.gen_auth_hs(self.service,
-                                        'https://api.twitter.com' + url)
-            r = httpclient.get('api.twitter.com', url, headers=hs, https=True)
-            if r.status == 200:
-                self.json = json.loads(r.data.decode('utf_8'))
+            oauth = gls_oauth.OAuth1Client(self.service)
+            r = oauth.consumer.get('https://api.twitter.com' + url)
+            if r.status_code == 200:
+                self.json = r.json()
                 self.service.last_checked = now()
                 self.service.save()
                 self.process()

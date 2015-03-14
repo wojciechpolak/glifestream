@@ -148,9 +148,6 @@ def gen_auth_hs(service, url):
     if service.creds and len(service.creds) and service.creds != 'oauth':
         return {'Authorization': 'Basic ' +
                 base64.encodestring(service.creds).strip()}
-    elif service.creds == 'oauth':
-        client = gls_oauth.Client(service)
-        return client.sign_request(url).to_header()
     return {}
 
 
