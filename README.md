@@ -27,9 +27,8 @@ To install gLifestream read the INSTALL file.
 Supported services (out of the box)
 -----------------------------------
 
-Any RSS/Atom feed, Delicious, Digg, Facebook, Flickr, FriendFeed,
-Identi.ca, Last.FM, PicasaWeb, StumbleUpon, Twitter, Vimeo, Yelp,
-YouTube.
+Any RSS/Atom feed, Delicious, Digg, Facebook, Flickr, Identi.ca,
+Last.FM, PicasaWeb, StumbleUpon, Twitter, Vimeo, Yelp, YouTube.
 
 Any service not listed above can be added as an RSS/Atom stream (if it
 provides such feeds) or by extending gLifestream and writing custom

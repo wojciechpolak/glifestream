@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2013, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -18,9 +18,10 @@ import re
 import hashlib
 import tempfile
 import time
-import types
 import shutil
 from django.conf import settings
+from django.utils import six
+from django.utils.encoding import force_bytes
 from glifestream.stream.models import Media
 from glifestream.utils import httpclient
 
@@ -64,7 +65,7 @@ def save_image(url, direct_image=True, force=False, downscale=False,
                size=None):
     if settings.BASE_URL in url:
         return url
-    thumb = get_thumb_info(hashlib.sha1(url).hexdigest())
+    thumb = get_thumb_info(hashlib.sha1(force_bytes(url)).hexdigest())
     stale = False
 
     is_file = os.path.isfile(thumb['local'])
@@ -141,8 +142,7 @@ def transform_to_local(entry):
 
 def mrss_init(mblob=None):
     if mblob:
-        if isinstance (mblob, types.StringType) or \
-           isinstance(mblob, types.UnicodeType):
+        if isinstance(mblob, six.string_types):
             mblob = json.loads(mblob)
         if 'content' in mblob:
             return mblob

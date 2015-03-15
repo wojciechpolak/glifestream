@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -29,7 +29,7 @@ class API:
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
-            print '%s: %s' % (self.name, self.service)
+            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self):
         if '/' in self.service.url:
@@ -61,14 +61,14 @@ class API:
                 self.service.save()
                 self.process()
             elif self.verbose:
-                print '%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason)
-        except Exception, e:
+                print('%s (%d) HTTP: %s' % (self.service.api,
+                                            self.service.id, r.reason))
+        except Exception as e:
             if self.verbose:
                 import sys
                 import traceback
-                print '%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e)
+                print('%s (%d) Exception: %s' % (self.service.api,
+                                                 self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process_userdid(self):
@@ -78,7 +78,7 @@ class API:
                 date = ent['date'][:10]
                 guid = 'tag:vimeo,%s:clip%s' % (date, ent['video_id'])
                 if self.verbose:
-                    print "ID: %s" % guid
+                    print("ID: %s" % guid)
                 try:
                     e = Entry.objects.get(service=self.service, guid=guid)
                     if not self.force_overwrite and e.date_updated \
@@ -122,7 +122,7 @@ class API:
             date = ent['upload_date'][:10]
             guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
             if self.verbose:
-                print "ID: %s" % guid
+                print("ID: %s" % guid)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and e.date_updated \

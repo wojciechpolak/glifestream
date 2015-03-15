@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  gLifestream Copyright (C) 2009, 2010, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -21,6 +21,7 @@ import sys
 import time
 import datetime
 import getopt
+from django.utils.six.moves import range, input
 
 try:
     import workerpool
@@ -42,6 +43,7 @@ from glifestream.stream import media, pshb
 
 if workerpool:
     class WorkerJob (workerpool.Job):
+
         def __init__(self, fn):
             self.fn = fn
 
@@ -107,8 +109,8 @@ def run():
             elif o == '--init-files-dirs':
                 sys.exit(init_files_dirs())
     except getopt.GetoptError:
-        print "Usage: %s [OPTION...]" % sys.argv[0]
-        print """%s -- gLifestream worker
+        print("Usage: %s [OPTION...]" % sys.argv[0])
+        print("""%s -- gLifestream worker
 
   -a, --api=NAME               API name of services to update
   -i, --id=ID                  ID of the service to update
@@ -122,12 +124,12 @@ def run():
       --thumbs-delete-orphans  Delete orphaned thumbnails
       --pshb=ACTION            PubSubHubbub's actions: (un)subscribe, list
       --email2post             Post things using e-mail (from stdin)
-  """ % sys.argv[0]
+  """ % sys.argv[0])
         sys.exit(0)
 
     if list:
         for service in Service.objects.all().order_by('id'):
-            print '%4d "%s"  API=%s' % (service.id, service.name, service.api)
+            print('%4d "%s"  API=%s' % (service.id, service.name, service.api))
         sys.exit(0)
 
     if pshb_cmd:
@@ -135,23 +137,23 @@ def run():
             service = Service.objects.get(id=fs['id'])
             r = pshb.subscribe(service, verbose)
             if r['rc'] == 1:
-                print '%s: %s' % (sys.argv[0], r['error'])
+                print('%s: %s' % (sys.argv[0], r['error']))
             elif r['rc'] == 2:
-                print '%s: Hub not found.' % sys.argv[0]
+                print('%s: Hub not found.' % sys.argv[0])
             elif r['rc'] == 202:
-                print 'hub=%s: Accepted for verification.' % r['hub']
+                print('hub=%s: Accepted for verification.' % r['hub'])
             elif r['rc'] == 204:
-                print 'hub=%s: Subscription verified.' % r['hub']
+                print('hub=%s: Subscription verified.' % r['hub'])
         elif pshb_cmd == 'unsubscribe' and 'id' in fs:
             r = pshb.unsubscribe(fs['id'], verbose)
             if r['rc'] == 1:
-                print '%s: No subscription found.' % sys.argv[0]
+                print('%s: No subscription found.' % sys.argv[0])
             elif r['rc'] == 202:
-                print 'hub=%s: Accepted for verification.' % r['hub']
+                print('hub=%s: Accepted for verification.' % r['hub'])
             elif r['rc'] == 204:
-                print 'hub=%s: Unsubscribed.' % r['hub']
+                print('hub=%s: Unsubscribed.' % r['hub'])
             else:
-                print 'hub=%s: %s.' % (r['hub'], r['rc'])
+                print('hub=%s: %s.' % (r['hub'], r['rc']))
         elif pshb_cmd == 'renew':
             pshb.renew_subscriptions(force=force_check, verbose=verbose)
         elif pshb_cmd == 'list':
@@ -159,7 +161,7 @@ def run():
         elif pshb_cmd == 'publish':
             pshb.publish(verbose=verbose)
         else:
-            print '%s: Unknown "%s" action.' % (sys.argv[0], pshb_cmd)
+            print('%s: Unknown "%s" action.' % (sys.argv[0], pshb_cmd))
             sys.exit(1)
         sys.exit(0)
 
@@ -184,13 +186,13 @@ def run():
                     del ths[t]
         if thumbs == 'delete-orphans':
             if verbose:
-                print 'Files to remove: %d' % len(ths)
+                print('Files to remove: %d' % len(ths))
             for file in ths:
                 file = os.path.join(settings.MEDIA_ROOT, file)
                 os.remove(file)
         else:
             for file in ths:
-                print file
+                print(file)
         sys.exit(0)
 
     if list_old or delete_old:
@@ -220,9 +222,9 @@ def run():
         favs = Favorite.objects.all().values('entry')
         if list_old:
             for entry in Entry.objects.filter(**fs).exclude(id__in=favs):
-                print '%4d "%s" by %s' % (entry.id,
+                print('%4d "%s" by %s' % (entry.id,
                                           entry.title,
-                                          entry.author_name)
+                                          entry.author_name))
         elif delete_old:
             Entry.objects.filter(**fs).exclude(id__in=favs).delete()
         sys.exit(0)
@@ -231,7 +233,7 @@ def run():
             fs['active'] = True
 
     if force_overwrite:
-        sel = raw_input(
+        sel = input(
             "WARNING: This may create thumbnail orphans! Continue Y/N? ").strip()
         if sel != 'Y':
             sys.exit(0)
@@ -301,10 +303,10 @@ def init_files_dirs():
     for i in 'abcdef':
         _create_dir(os.path.join(thumbs, i))
 
-    print """
+    print("""
 Make sure that 'static/thumbs/*' and 'static/upload' directories exist
 and all have write permissions by your webserver.
-"""
+""")
 
     template_dir = settings.TEMPLATE_DIRS[0]
     template_files = (
@@ -316,10 +318,10 @@ and all have write permissions by your webserver.
         for i in template_files:
             file = os.path.join(template_dir, i)
             if not os.path.isfile(file):
-                print "Creating empty file '%s'" % file
+                print("Creating empty file '%s'" % file)
                 open(file, 'w').close()
-    except Error, e:
-        print e
+    except Error as e:
+        print(e)
         return 1
 
     return 0
@@ -328,7 +330,7 @@ and all have write permissions by your webserver.
 def _create_dir(d, verbose=True):
     if not os.path.isdir(d):
         if verbose:
-            print "Creating directory '%s'" % d
+            print("Creating directory '%s'" % d)
         os.mkdir(d)
 
 if __name__ == '__main__':

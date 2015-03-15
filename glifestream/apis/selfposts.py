@@ -17,7 +17,7 @@ from django.conf import settings
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
 from django.utils.datastructures import MultiValueDict
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_text
 from glifestream.utils.time import mtime, utcnow
 from glifestream.utils.html import strip_script, bytes_to_human
 from glifestream.stream.models import Service, Entry, Media
@@ -71,7 +71,7 @@ class API:
         if user and user.first_name and user.last_name:
             e.author_name = user.first_name + ' ' + user.last_name
 
-        content = smart_unicode(content)
+        content = smart_text(content)
 
         editor_syntax = getattr(settings, 'EDITOR_SYNTAX', 'markdown')
         if source == 'bookmarklet':
@@ -85,7 +85,7 @@ class API:
 
         e.content = strip_script(e.content)
         e.content = expand.imgloc(e.content)
-        e.content = smart_unicode(e.content)
+        e.content = smart_text(e.content)
 
         if images:
             thumbs = '\n<p class="thumbnails">\n'
@@ -97,7 +97,7 @@ class API:
             e.content += thumbs
 
         if title:
-            e.title = smart_unicode(title)
+            e.title = smart_text(title)
         else:
             e.title = truncate.smart(strip_tags(e.content)).strip()
         if e.title == '':

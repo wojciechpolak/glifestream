@@ -15,9 +15,9 @@
 
 import re
 import os
-import urlparse
 import requests
 from django.conf import settings
+from django.utils.six.moves import urllib
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (compatible; gLifestream; +%s/)' %
@@ -80,7 +80,7 @@ def get_alturl_if_html(r):
                     rx = re.search('href=[\'"](.*?)[\'"]', link)
                     if rx:
                         alt_href = rx.groups()[0]
-                        return urlparse.urljoin(r.url, alt_href)
+                        return urllib.parse.urljoin(r.url, alt_href)
     return None
 
 

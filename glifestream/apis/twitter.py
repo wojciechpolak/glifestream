@@ -14,6 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+from django.utils.encoding import force_text
 from django.utils.html import strip_tags, strip_entities
 from glifestream.filters import expand, truncate, twyntax
 from glifestream.gauth import gls_oauth
@@ -40,7 +41,7 @@ class API:
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
-            print '%s: %s' % (self.name, self.service)
+            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self):
         if not self.service.creds:
@@ -72,14 +73,14 @@ class API:
                 self.service.save()
                 self.process()
             elif self.verbose:
-                print '%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason)
-        except Exception, e:
+                print('%s (%d) HTTP: %s' % (self.service.api,
+                                            self.service.id, r.reason))
+        except Exception as e:
             if self.verbose:
                 import sys
                 import traceback
-                print '%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e)
+                print('%s (%d) Exception: %s' % (self.service.api,
+                                                 self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self):
@@ -87,7 +88,7 @@ class API:
             guid = 'tag:twitter.com,2007:http://twitter.com/%s/statuses/%s' % \
                 (ent['user']['screen_name'], ent['id'])
             if self.verbose:
-                print "ID: %s" % guid
+                print("ID: %s" % guid)
 
             t = datetime.datetime.strptime(ent['created_at'],
                                            '%a %b %d %H:%M:%S +0000 %Y')
@@ -151,4 +152,4 @@ class API:
 
 
 def filter_content(entry):
-    return twyntax.parse(entry.content)
+    return twyntax.parse(force_text(entry.content))

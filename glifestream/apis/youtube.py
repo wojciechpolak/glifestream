@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,7 +15,7 @@
 
 from django.utils.translation import ugettext as _
 from glifestream.stream import media
-import webfeed
+from glifestream.apis import webfeed
 
 
 class API (webfeed.API):
@@ -56,8 +56,8 @@ class API (webfeed.API):
                 vid, e.link, tn['url'], tn['width'], tn['height'])
         else:
             e.content = ent.get('yt_state', '<a href="%s">%s</a>' %
-                               (ent.get('link', '#').replace(
-                                '&feature=youtube_gdata', ''), ent.get('title', '')))
+                                (ent.get('link', '#').replace(
+                                    '&feature=youtube_gdata', ''), ent.get('title', '')))
 
 
 def filter_title(entry):

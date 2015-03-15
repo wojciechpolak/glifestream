@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,9 +15,11 @@
 
 import re
 import hashlib
+from cgi import parse_qsl
 from django.conf import settings
 from django.utils.html import strip_tags
-from django.utils.encoding import smart_unicode
+from django.utils.encoding import smart_text
+from django.utils.six.moves import urllib
 from glifestream.stream import media
 from glifestream.utils import httpclient, oembed
 
@@ -40,7 +42,7 @@ def shorturls(text):
     return re.sub(r'(https?://)(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
                   r'|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
                   r'|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu'
-                  r')(/[\-\w]+)', __su_subs, smart_unicode(text))
+                  r')(/[\-\w]+)', __su_subs, smart_text(text))
 
 #
 # Short image services
@@ -53,31 +55,31 @@ def __gen_tai(link, img_src):
 
 def __sp_twitpic(m):
     url = media.save_image('http://%s/show/full/%s' %
-                          (m.group(2), m.group(3)), downscale=True)
+                           (m.group(2), m.group(3)), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
 def __sp_lockerz(m):
     url = media.save_image('http://api.plixi.com/api/tpapi.svc/imagefromurl?size=mobile&url=http://lockerz.com/s/%s' %
-                          (m.group(1)), downscale=True)
+                           (m.group(1)), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
 def __sp_instagram(m):
     url = media.save_image('http://%s/p/%s/media/?size=t' %
-                          (m.group(1), m.group(2)), downscale=True)
+                           (m.group(1), m.group(2)), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
 def __sp_yfrog(m):
     url = media.save_image('http://%s/%s:iphone' %
-                          (m.group(1), m.group(2)), downscale=True)
+                           (m.group(1), m.group(2)), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
 def __sp_brizzly(m):
     url = media.save_image('http://pics.brizzly.com/thumb_lg_%s.jpg' %
-                          (m.group(2)), downscale=True)
+                           (m.group(2)), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
@@ -253,9 +255,6 @@ def audiolinks(s):
 # Map services
 #
 
-from urlparse import urlparse
-from cgi import parse_qsl
-
 
 def __parse_qs(qs, keep_blank_values=0, strict_parsing=0):
     d = {}
@@ -269,7 +268,7 @@ def __sm_googlemaps(m):
     rest = m.group(2)
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
-    params = __parse_qs(urlparse(link).query)
+    params = __parse_qs(urllib.parse.urlparse(link).query)
     ll = params.get('ll', None)
     if ll:
         ll = ll.split(',')

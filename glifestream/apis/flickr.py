@@ -18,7 +18,7 @@ from django.utils.translation import ugettext as _
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
-import webfeed
+from glifestream.apis import webfeed
 
 
 class API (webfeed.API):
@@ -44,7 +44,7 @@ class API (webfeed.API):
                     firstent = ent
                     first = False
                 if self.verbose:
-                    print "ID: %s" % ent.id
+                    print("ID: %s" % ent.id)
 
                 if 'media_thumbnail' in ent:
                     tn = ent.media_thumbnail[0]

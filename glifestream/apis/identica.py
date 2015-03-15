@@ -15,7 +15,7 @@
 
 from glifestream.filters import expand, truncate, twyntax
 from glifestream.stream import media
-import webfeed
+from glifestream.apis import webfeed
 
 
 class API (webfeed.API):

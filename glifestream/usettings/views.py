@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010, 2011, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2011, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -23,6 +23,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.forms import ModelForm
+from django.utils import six
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service, List
@@ -294,7 +295,7 @@ def oauth(request, **args):
                            v['access_token_url'])
             try:
                 c.get_request_token()
-            except Exception, e:
+            except Exception as e:
                 page['msg'] = e
             c.save()
         if c.db.phase == 1:
@@ -314,7 +315,7 @@ def oauth(request, **args):
                 c.save()
                 return HttpResponseRedirect(urlresolvers.reverse(
                     'glifestream.usettings.views.oauth', args=[id]))
-            except Exception, e:
+            except Exception as e:
                 page['msg'] = e
 
     api_help = apis_help.get(service.api,
@@ -322,7 +323,7 @@ def oauth(request, **args):
 
     return render_to_response('oauth.html', {'page': page,
                                              'is_secure': request.is_secure(),
-                                             'title': unicode(service),
+                                             'title': six.text_type(service),
                                              'api_help': api_help,
                                              'callback_url': callback_url,
                                              'phase': c.db.phase,
@@ -645,7 +646,7 @@ def api(request, **args):
         s['save'] = _('Save')
         s['cancel'] = _('Cancel')
 
-        # print json.dumps (s, indent=2)
+        # print(json.dumps(s, indent=2))
         return HttpResponse(json.dumps(s), content_type='application/json')
 
     # Import

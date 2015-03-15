@@ -34,7 +34,8 @@ Optional:
   https://github.com/pythonforfacebook/facebook-sdk
 
 - python-openid -- OpenID support for servers and consumers.
-  https://pypi.python.org/pypi/python-openid
+  https://pypi.python.org/pypi/python-openid (Python 2.x)
+  https://pypi.python.org/pypi/python3-openid (Python 3.x)
 
 
 Installation instructions

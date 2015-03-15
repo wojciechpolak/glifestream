@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2013, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -16,9 +16,11 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext as _
+from django.utils.encoding import python_2_unicode_compatible
 from glifestream.stream.models import Service
 
 
+@python_2_unicode_compatible
 class OAuthClient (models.Model):
     service = models.ForeignKey(Service, verbose_name=_('Service'),
                                 null=False, blank=False, unique=True)
@@ -41,10 +43,11 @@ class OAuthClient (models.Model):
         verbose_name_plural = 'OAuth'
         ordering = 'service',
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s: %s' % (self.service, self.identifier)
 
 
+@python_2_unicode_compatible
 class OpenId (models.Model):
     user = models.ForeignKey(User, db_index=True)
     identity = models.CharField(_('Identity'), max_length=128, null=False,
@@ -56,5 +59,5 @@ class OpenId (models.Model):
         ordering = 'user',
         unique_together = (('user', 'identity'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return u'%s: %s' % (self.user, self.identity)

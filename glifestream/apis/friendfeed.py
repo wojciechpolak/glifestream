@@ -42,7 +42,7 @@ class API:
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
-            print '%s: %s' % (self.name, self.service)
+            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self):
         if self.service.url:
@@ -69,14 +69,14 @@ class API:
                 self.service.save()
                 self.process()
             elif self.verbose:
-                print '%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason)
-        except Exception, e:
+                print('%s (%d) HTTP: %s' % (self.service.api,
+                                            self.service.id, r.reason))
+        except Exception as e:
             if self.verbose:
                 import sys
                 import traceback
-                print '%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e)
+                print('%s (%d) Exception: %s' % (self.service.api,
+                                                 self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self):
@@ -86,7 +86,7 @@ class API:
                                        id[16:20], id[20:])
             guid = 'tag:friendfeed.com,2007:%s' % uuid
             if self.verbose:
-                print "ID: %s" % guid
+                print("ID: %s" % guid)
 
             t = datetime.datetime.strptime(ent['date'], '%Y-%m-%dT%H:%M:%SZ')
             try:

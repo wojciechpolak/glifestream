@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2011 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2011, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -105,7 +105,7 @@ def gls_content(e, entry):
             return mark_safe(gls_media(s))
     except:
         pass
-    return mark_safe(gls_media(entry.content))
+    return mark_safe(gls_media(force_text(entry.content)))
 
 
 @register.filter
@@ -167,6 +167,7 @@ def encode_json(content):
 
 
 unencoded_ampersands_re = re.compile(r'&(?!(\w+|#\d+);)')
+
 
 def fix_ampersands(value):
     return unencoded_ampersands_re.sub('&amp;', force_text(value))

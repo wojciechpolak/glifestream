@@ -33,7 +33,7 @@ def start(request, identifier):
     oidconsumer = consumer.Consumer(request.session, __get_store())
     try:
         auth_request = oidconsumer.begin(identifier)
-    except consumer.DiscoveryFailure, exc:
+    except consumer.DiscoveryFailure as exc:
         return {'msg': _('OpenID authentication failed')}
     else:
         if auth_request is None:

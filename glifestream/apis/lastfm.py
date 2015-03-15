@@ -14,8 +14,8 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.utils.translation import ugettext as _
-import urllib
-import webfeed
+from django.utils.six.moves import urllib
+from glifestream.apis import webfeed
 
 
 class API (webfeed.API):
@@ -37,4 +37,4 @@ def filter_title(entry):
 def filter_content(entry):
     return _('Artist: %s') % ('<a href="%s" rel="nofollow">%s</a>' %
                               (entry.content,
-                               urllib.unquote_plus(entry.content[25:])))
+                               urllib.parse.unquote_plus(entry.content[25:])))

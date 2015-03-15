@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -13,13 +13,13 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import types
 import datetime
 import calendar
+from django.utils import six
 
 
 def mtime(t):
-    if isinstance(t, types.StringType) or isinstance(t, types.UnicodeType):
+    if isinstance(t, six.string_types):
         t = datetime.datetime.strptime(t, '%Y-%m-%d %H:%M:%S').timetuple()
     return datetime.datetime.utcfromtimestamp(calendar.timegm(t))
 

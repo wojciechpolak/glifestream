@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,10 +15,10 @@
 
 import hmac
 import hashlib
-import urlparse
 from datetime import timedelta
 from django.conf import settings
 from django.core import urlresolvers
+from django.utils.six.moves import urllib
 from glifestream.utils import httpclient
 from glifestream.utils.time import now
 from glifestream.stream.models import Pshb
@@ -83,7 +83,7 @@ def subscribe(service, verbose=False):
     try:
         r = httpclient.get(hub, data=data)
         if verbose:
-            print 'Response code: %d' % r.status_code
+            print('Response code: %d' % r.status_code)
         if save_db:
             db.save()
         return {'hub': hub, 'rc': r.status_code}
@@ -94,7 +94,7 @@ def subscribe(service, verbose=False):
         elif hasattr(e, 'read'):
             error = e.read()
         if verbose:
-            print '%s, Response: "%s"' % (e, error)
+            print('%s, Response: "%s"' % (e, error))
         return {'hub': hub, 'rc': error}
 
 
@@ -120,7 +120,7 @@ def unsubscribe(id, verbose=False):
     try:
         r = httpclient.get(db.hub, data=data)
         if verbose:
-            print 'Response code: %d' % r.status_code
+            print('Response code: %d' % r.status_code)
         return {'hub': db.hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
         error = ''
@@ -129,7 +129,7 @@ def unsubscribe(id, verbose=False):
         elif hasattr(e, 'read'):
             error = e.read()
         if verbose:
-            print '%s, Response: "%s"' % (e, error)
+            print('%s, Response: "%s"' % (e, error))
         return {'hub': db.hub, 'rc': error}
 
 
@@ -167,9 +167,9 @@ def publish(hubs=None, verbose=False):
             r = httpclient.get(hub, data=data, timeout=7)
             if verbose:
                 if r.status_code == 204:
-                    print '%s: Successfully pinged.' % hub
+                    print('%s: Successfully pinged.' % hub)
                 else:
-                    print '%s: Pinged and got %d.' % (hub, r.status_code)
+                    print('%s: Pinged and got %d.' % (hub, r.status_code))
         except (IOError, httpclient.HTTPError) as e:
             if hasattr(e, 'status_code') and e.status_code == 204:
                 continue
@@ -179,7 +179,7 @@ def publish(hubs=None, verbose=False):
                     error = e.message
                 elif hasattr(e, 'read'):
                     error = e.read()
-                print '%s, Response: "%s"' % (e, error)
+                print('%s, Response: "%s"' % (e, error))
 
 
 def accept_payload(id, payload, meta={}):
@@ -220,10 +220,10 @@ def list(raw=False):
     if raw:
         return subscriptions
     for s in subscriptions:
-        print '%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s' % \
-            (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire)
+        print('%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s' %
+              (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire))
 
 
 def __get_absolute_url(path=''):
-    url = urlparse.urlsplit(settings.BASE_URL)
+    url = urllib.parse.urlsplit(settings.BASE_URL)
     return '%s://%s%s' % (url.scheme, url.netloc, path)

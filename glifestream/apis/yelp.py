@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.utils.translation import ugettext as _
-import webfeed
+from glifestream.apis import webfeed
 
 
 class API (webfeed.API):

@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -32,7 +32,7 @@ class API:
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
-            print '%s: %s' % (self.name, self.service)
+            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self):
         return (self.service.url,)
@@ -60,9 +60,9 @@ class API:
                 self.fp_error = True
                 if self.verbose:
                     error = e.message if hasattr(e, 'message') else ''
-                    print '%s (%d) HTTPError: %s' % (self.service.api,
+                    print('%s (%d) HTTPError: %s' % (self.service.api,
                                                      self.service.id,
-                                                     error)
+                                                     error))
                 return
         else:
             self.fp = feedparser.parse(self.payload)
@@ -73,8 +73,8 @@ class API:
                           feedparser.CharacterEncodingOverride):
                 self.fp_error = False
             if self.verbose:
-                print '%s (%d) Bozo: %s' % (self.service.api,
-                                            self.service.id, self.fp)
+                print('%s (%d) Bozo: %s' % (self.service.api,
+                                            self.service.id, self.fp))
 
         if not self.fp_error:
             self.service.etag = self.fp.get('etag', '')
@@ -95,7 +95,7 @@ class API:
         for ent in self.fp.entries:
             guid = ent.id if 'id' in ent else ent.link
             if self.verbose:
-                print 'ID: %s' % guid
+                print('ID: %s' % guid)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and 'updated_parsed' in ent:

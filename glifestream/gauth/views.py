@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2012, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2012, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -114,7 +114,7 @@ def login_friend(request, template_name='registration/login.html',
                     request.session['fb_profile_url'] = profile['link']
             else:
                 are_friends = True
-    except Exception, e:
+    except Exception as e:
         raise e
 
     if not are_friends:

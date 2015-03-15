@@ -15,7 +15,6 @@
 
 import time
 import datetime
-from urlparse import urljoin
 from django.conf import settings
 from django.db import connections
 from django.core import urlresolvers
@@ -31,6 +30,8 @@ from django.template.defaultfilters import truncatewords
 from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
+from django.utils.six.moves import urllib, range, reduce, zip
+from django.utils import six
 from glifestream.stream.templatetags.gls_filters import \
     (gls_content, gls_slugify, fix_ampersands)
 from glifestream.stream.models import Service, Entry, Favorite, List
@@ -286,8 +287,8 @@ def index(request, **args):
 
     # Build URL params for links.
     if len(urlparams):
-        urlparams = '?' + reduce(lambda x, y: unicode(x) + '&' + unicode(y),
-                                 urlparams, '')[1:] + '&'
+        urlparams = '?' + reduce(lambda x, y: six.text_type(x) + '&' +
+                                 six.text_type(y), urlparams, '')[1:] + '&'
     else:
         urlparams = '?'
 
@@ -339,7 +340,8 @@ def index(request, **args):
             gls_link = entries[0].gls_link
             if gls_link != request.path:
                 return HttpResponsePermanentRedirect(gls_link)
-            page['canonical_link'] = urljoin(settings.BASE_URL, gls_link)
+            page['canonical_link'] = urllib.parse.urljoin(
+                settings.BASE_URL, gls_link)
         else:
             raise Http404
 
@@ -432,7 +434,7 @@ def index(request, **args):
         for item in _classes:
             if item['cls'] not in classes:
                 classes[item['cls']] = item
-        classes = classes.values()
+        classes = list(classes.values())
 
         accept_lang = request.META.get('HTTP_ACCEPT_LANGUAGE', '').split(',')
         for i, lang in enumerate(accept_lang):
@@ -509,7 +511,7 @@ def api(request, **args):
         for item in _srvs:
             if item['cls'] not in srvs:
                 srvs[item['cls']] = item
-        srvs = srvs.values()
+        srvs = list(srvs.values())
 
         d = []
         for s in srvs:
@@ -630,6 +632,6 @@ def __dictfetchall(cursor):
     "Returns all rows from a cursor as a dict"
     desc = cursor.description
     return [
-        dict(zip([col[0] for col in desc], row))
+        dict(list(zip([col[0] for col in desc], row)))
         for row in cursor.fetchall()
     ]
