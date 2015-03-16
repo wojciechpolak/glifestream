@@ -59,14 +59,8 @@ def __sp_twitpic(m):
     return __gen_tai(m.group(0), url)
 
 
-def __sp_lockerz(m):
-    url = media.save_image('http://api.plixi.com/api/tpapi.svc/imagefromurl?size=mobile&url=http://lockerz.com/s/%s' %
-                           (m.group(1)), downscale=True)
-    return __gen_tai(m.group(0), url)
-
-
 def __sp_instagram(m):
-    url = media.save_image('http://%s/p/%s/media/?size=t' %
+    url = media.save_image('https://%s/p/%s/media/?size=t' %
                            (m.group(1), m.group(2)), downscale=True)
     return __gen_tai(m.group(0), url)
 
@@ -74,12 +68,6 @@ def __sp_instagram(m):
 def __sp_yfrog(m):
     url = media.save_image('http://%s/%s:iphone' %
                            (m.group(1), m.group(2)), downscale=True)
-    return __gen_tai(m.group(0), url)
-
-
-def __sp_brizzly(m):
-    url = media.save_image('http://pics.brizzly.com/thumb_lg_%s.jpg' %
-                           (m.group(2)), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
@@ -99,13 +87,11 @@ def __sp_imgloc(m):
 
 def shortpics(s):
     """Expand short picture-URLs."""
-    s = re.sub(r'http://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
-    s = re.sub(r'http://lockerz\.com/s/(\d+)', __sp_lockerz, s)
-    s = re.sub(r'http://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
-    s = re.sub(r'http://(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
-    s = re.sub(r'http://(yfrog\.com)/(\w+)', __sp_yfrog, s)
-    s = re.sub(r'http://(www\.)?brizzly\.com/pic/(\w+)', __sp_brizzly, s)
-    s = re.sub(r'http://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
+    s = re.sub(r'https?://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
+    s = re.sub(r'https?://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
+    s = re.sub(r'https?://(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
+    s = re.sub(r'https?://(yfrog\.com)/(\w+)', __sp_yfrog, s)
+    s = re.sub(r'https?://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
     return s
 
 
@@ -127,7 +113,7 @@ def __sv_youtube(m):
     rest = m.group(3)
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
-    link = 'http://www.youtube.com/watch?v=%s' % id
+    link = 'https://www.youtube.com/watch?v=%s' % id
     imgurl = 'http://i.ytimg.com/vi/%s/hqdefault.jpg' % id
     imgurl = media.save_image(imgurl, downscale=True, size=(200, 150))
     return '<table class="vc"><tr><td><div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
