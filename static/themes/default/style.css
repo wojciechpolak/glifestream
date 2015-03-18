@@ -961,19 +961,17 @@ fieldset .hint {
 
 /* mobile devices */
 @media screen and (max-width: 640px) {
+  body { font-size: 90%; }
   #navtop { text-align: left; }
   #sidebar { float: none; width: 95%; margin: 0 auto; }
   #share { margin: 0; padding-bottom: 1em; }
   #stream {
       margin-right: auto;
       min-width: 0;
+      padding: 0.5em;
   }
   .entry-content { word-wrap: break-word; }
   .entry-info { margin-top: 7px !important; }
-  .photo img, .gallery img,
+  .photo img, .gallery img, .thumbnails img,
   .screenshot img { max-width: 100%; height: auto; }
-}
-@media screen and (max-width: 320px) {
-  #stream .entry-content { margin-left: 0; }
-  .entry-icon { float: none; }
 }
