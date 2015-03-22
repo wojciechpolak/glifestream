@@ -16,6 +16,9 @@ Optional (but recommended):
 - workerpool -- a multithreaded job distribution module
   https://pypi.python.org/pypi/workerpool
 
+- django-pipeline -- Pipeline is an asset packaging library for Django
+  https://pypi.python.org/pypi/django-pipeline/
+
 - requests-oauthlib -- OAuthlib authentication support for Requests
   https://pypi.python.org/pypi/requests-oauthlib
 
@@ -48,7 +51,7 @@ Installation instructions
 4. Run `python manage.py compilemessages` (if you have 'gettext' installed)
 5. Run `./worker.py --init-files-dirs`
 
-Make sure that `static/thumbs/*` and `static/upload` directories exist
+Make sure that `media/thumbs/*` and `media/upload` directories exist
 and all have write permissions by your webserver.
 
 Use `glifestream/worker.py` to automatically fetch external streams
@@ -80,8 +83,8 @@ Apache configuration:
 ```
 LoadModule wsgi_module modules/mod_wsgi.so
 WSGIScriptAlias / /usr/local/django/glifestream/wsgi.py
+Alias /media "/usr/local/django/glifestream/media"
 Alias /static "/usr/local/django/glifestream/static"
-Alias /admin_static "/usr/local/django/contrib/admin/media"
 
 <Directory "/usr/local/django/glifestream/">
    <IfModule mod_deflate.c>

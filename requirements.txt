@@ -1,4 +1,5 @@
 Django >=1.7.6
+django-pipeline >=1.4
 mysqlclient >=1.3.4
 feedparser
 Pillow >=2.2.1,<2.99

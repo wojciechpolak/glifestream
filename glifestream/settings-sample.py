@@ -67,35 +67,6 @@ BASE_URL = 'http://localhost:8000'
 # For HTTPS use an absolute URL.
 LOGIN_URL = '/login'
 
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../media'))
-
-# URL that handles the media served from MEDIA_ROOT.
-# Make sure to use a trailing slash.
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-# Setting an absolute URL is recommended in a production use.
-MEDIA_URL = '/media/'
-
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/var/www/example.com/static/"
-STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
-
-# URL prefix for admin media. Make sure to use a trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
-STATIC_URL = '/static/'
-
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-)
-STATICFILES_DIRS = (
-    os.path.join(SITE_ROOT, 'static'),
-)
-
-
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'YOUR-SECRET-KEY'
 
@@ -123,12 +94,64 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.admin',
     'django.contrib.staticfiles',
+    'pipeline',
     'glifestream.gauth',
     'glifestream.apis',
     'glifestream.stream',
     'glifestream.usettings',
     'glifestream.bookmarklet',
 )
+
+# Absolute path to the directory that holds media.
+# Example: "/home/media/media.lawrence.com/"
+MEDIA_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../media'))
+
+# URL that handles the media served from MEDIA_ROOT.
+# Make sure to use a trailing slash.
+# Examples: "http://media.lawrence.com", "http://example.com/media/"
+# Setting an absolute URL is recommended in a production use.
+MEDIA_URL = '/media/'
+
+# Absolute path to the directory static files should be collected to.
+# Don't put anything in this directory yourself; store your static files
+# in apps' "static/" subdirectories and in STATICFILES_DIRS.
+# Example: "/var/www/example.com/static/"
+STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
+
+# URL prefix for admin media. Make sure to use a trailing slash.
+# Examples: "http://foo.com/media/", "/media/".
+STATIC_URL = '/static/'
+
+STATICFILES_STORAGE = 'pipeline.storage.PipelineCachedStorage'
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'pipeline.finders.CachedFileFinder',
+    'pipeline.finders.PipelineFinder',
+)
+STATICFILES_DIRS = (
+    os.path.join(SITE_ROOT, 'static'),
+)
+
+PIPELINE_DISABLE_WRAPPER = True
+PIPELINE_JS_COMPRESSOR = None
+PIPELINE_CSS_COMPRESSOR = None
+
+PIPELINE_JS = {
+    'main': {
+        'source_filenames': (
+            'js/jquery.js',
+            'js/glifestream.js',
+        ),
+        'output_filename': 'js/main.js',
+    },
+    'tinymce': {
+        'source_filenames': (
+            'js/tinymce/tinymce.min.js',
+        ),
+        'output_filename': 'js/tinymce.js',
+    }
+}
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to

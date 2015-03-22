@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,6 +15,7 @@
 
 from django.conf import settings
 from django.shortcuts import render_to_response
+from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service
 
 
@@ -30,6 +31,7 @@ def js(request, **args):
                               content_type='application/javascript')
 
 
+@never_cache
 def frame(request, **args):
     page = {
         'base_url': settings.BASE_URL,

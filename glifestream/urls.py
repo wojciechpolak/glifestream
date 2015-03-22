@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2013, 2014 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2014, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -75,7 +75,5 @@ urlpatterns = patterns(
 urlpatterns += patterns(
     '',
     (r'^media/(?P<path>.*)$', 'django.views.static.serve',
-     {'document_root': settings.MEDIA_ROOT}),
-    (r'^static/(?P<path>.*)$', 'django.views.static.serve',
-     {'document_root': settings.STATIC_ROOT}),
+     {'document_root': settings.MEDIA_ROOT})
 )

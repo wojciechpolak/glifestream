@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2015 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -31,26 +31,41 @@ class MediaUrl (template.Node):
         return url
 
 
+class StaticUrl (template.Node):
+
+    def render(self, ctx):
+        url = settings.STATIC_URL
+        if 'is_secure' in ctx and ctx['is_secure']:
+            url = url.replace('http://', 'https://')
+        return url
+
+
 @register.tag
-def static(parser, token):
+def media(parser, token):
     """Return the string contained in the setting MEDIA_URL."""
     return MediaUrl()
 
 
-class MediaUrlHash (template.Node):
+@register.tag
+def static(parser, token):
+    """Return the string contained in the setting STATIC_URL."""
+    return StaticUrl()
+
+
+class StaticUrlHash (template.Node):
 
     def __init__(self, path):
         self.path = path
         self.hash = None
         try:
-            f = open(os.path.join(settings.MEDIA_ROOT, path))
+            f = open(os.path.join(settings.STATIC_ROOT, path))
             self.hash = hashlib.md5(f.read()).hexdigest()[:5]
             f.close()
         except:
             pass
 
     def render(self, ctx):
-        url = settings.MEDIA_URL
+        url = settings.STATIC_URL
         if 'is_secure' in ctx and ctx['is_secure']:
             url = url.replace('http://', 'https://')
         url += self.path
@@ -67,4 +82,4 @@ def static_hash(parser, token):
     except ValueError:
         raise template.TemplateSyntaxError(
             "%r tag requires a single argument" % token.contents.split()[0])
-    return MediaUrlHash(path)
+    return StaticUrlHash(path)
