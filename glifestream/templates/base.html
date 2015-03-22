@@ -1,4 +1,4 @@
-{% load i18n media %}{% load url from future %}{% load firstof from future %}<!DOCTYPE html>
+{% load i18n static %}{% load url from future %}{% load firstof from future %}<!DOCTYPE html>
 <html>
 
 <head>
@@ -11,10 +11,10 @@
   <link rel="shortcut icon" href="{{ page.favicon }}">{% if page.canonical_link %}
   <link rel="canonical" href="{{ page.canonical_link }}">{% endif %}
   <link rel="alternate" type="application/atom+xml" title="Webfeed" href="{% if page.exactentry %}{% url 'index' %}{% endif %}?format=atom">
-  <link rel="stylesheet" type="text/css" href="{% static %}themes/{% firstof page.theme "default" %}/style.css">
-  <script type="text/javascript" src="{% static_hash js/jquery.js %}"></script>
-  <script type="text/javascript" src="{% static_hash js/glifestream.js %}"></script>{% if authed %}
-  <script type="text/javascript" src="{% static_hash js/tiny_mce/tiny_mce.js %}"></script>{% endif %}
+  <link rel="stylesheet" type="text/css" href="{% get_static_prefix %}themes/{% firstof page.theme "default" %}/style.css">
+  <script type="text/javascript" src="{% static "js/jquery.js" %}"></script>
+  <script type="text/javascript" src="{% static "js/glifestream.js" %}"></script>{% if authed %}
+  <script type="text/javascript" src="{% static "js/tiny_mce/tiny_mce.js" %}"></script>{% endif %}
 </head>
 
 <body>

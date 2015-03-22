@@ -6,7 +6,7 @@ bin/
 include/
 lib/
 lib64
+media/
+static/
 settings.py
-static/thumbs
-static/upload
 glifestream/templates/user-*
