@@ -54,8 +54,8 @@ class API:
                 if alturl:
                     r = httpclient.get(alturl, auth=hs)
                 self.fp = feedparser.parse(r.text)
-                self.fp.etag = r.etag
-                self.fp.modified = r.modified
+                self.fp.etag = r.headers.get('etag')
+                self.fp.modified = r.headers.get('last-modified')
             except (IOError, httpclient.HTTPError) as e:
                 self.fp_error = True
                 if self.verbose:
