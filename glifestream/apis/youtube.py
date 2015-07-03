@@ -13,51 +13,130 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
 from django.utils.translation import ugettext as _
 from glifestream.stream import media
-from glifestream.apis import webfeed
+from glifestream.stream.models import Entry
+from glifestream.utils import httpclient
+from glifestream.utils.time import mtime, now
 
 
-class API (webfeed.API):
-    name = 'YouTube API v2'
+class API:
+    name = 'YouTube API v3'
     limit_sec = 3600
+    playlist_types = {}
+
+    def __init__(self, service, verbose=0, force_overwrite=False):
+        self.service = service
+        self.verbose = verbose
+        self.force_overwrite = force_overwrite
+        if self.verbose:
+            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self):
-        if self.service.url.startswith('http://'):
+        if self.service.url.startswith('http://') or \
+           self.service.url.startswith('https://'):
             return (self.service.url,)
         else:
-            h = 'http://gdata.youtube.com/feeds/api/users/%s' % self.service.url
-            return ('%s/favorites?v=2' % h,
-                    '%s/uploads?v=2' % h)
+            urls = []
+            if ':' in self.service.url:
+                apikey, playlists = self.service.url.split(':')
+                for playlist in playlists.split(','):
+                    if '#' in playlist:
+                        playlist, kind = playlist.split('#')
+                    else:
+                        kind = 'video'
+                    url = ('https://www.googleapis.com/youtube/v3/'
+                           'playlistItems?part=snippet,contentDetails,status&'
+                           'playlistId=%s&'
+                           'maxResults=25&'
+                           'key=%s' % (playlist, apikey))
+                    self.playlist_types[url] = kind
+                    urls.append(url)
+            return urls
 
-    def custom_process(self, e, ent):
-        if 'yt_videoid' in ent:
-            vid = ent['yt_videoid']
-        elif 'media_player' in ent and 'url' in ent['media_player']:
-            vid = ent['media_player']['url'][22:]
-        else:
-            vid = None
+    def run(self):
+        for url in self.get_urls():
+            try:
+                self.fetch(url)
+            except:
+                pass
 
-        if vid and 'media_thumbnail' in ent and len(ent.media_thumbnail):
-            tn = None
-            for mt in ent.media_thumbnail:
-                if 'name' in mt and mt['name'] == 'hqdefault':
-                    tn = mt
+    def fetch(self, url):
+        try:
+            r = httpclient.get(url)
+            if r.status_code == 200:
+                self.json = r.json()
+                self.service.last_checked = now()
+                self.service.save()
+                self.process(url)
+            elif self.verbose:
+                print('%s (%d) HTTP: %s' % (self.service.api,
+                                            self.service.id, r.reason))
+        except Exception as e:
+            if self.verbose:
+                import sys
+                import traceback
+                print('%s (%d) Exception: %s' % (self.service.api,
+                                                 self.service.id, e))
+                traceback.print_exc(file=sys.stdout)
+
+    def process(self, url):
+        for ent in self.json.get('items', ()):
+            snippet = ent.get('snippet', {})
+            date = snippet['publishedAt'][:10]
+
+            vid = ent['contentDetails']['videoId']
+            if self.playlist_types[url] == 'favorite':
+                guid = 'tag:youtube.com,2008:favorite:%s' % ent.get('id')
+            else:
+                guid = 'tag:youtube.com,2008:video:%s' % vid
+
+            t = datetime.datetime.strptime(snippet['publishedAt'],
+                                           '%Y-%m-%dT%H:%M:%S.000Z')
+
+            if self.verbose:
+                print("ID: %s" % guid)
+            try:
+                e = Entry.objects.get(service=self.service, guid=guid)
+                if not self.force_overwrite and e.date_updated \
+                   and mtime(t.timetuple()) <= e.date_updated:
+                    continue
+                if e.protected:
+                    continue
+            except Entry.DoesNotExist:
+                e = Entry(service=self.service, guid=guid)
+
+            e.title = snippet['title']
+            e.link = 'https://www.youtube.com/watch?v=%s' % vid
+            e.date_published = t
+            e.date_updated = t
+            e.author_name = snippet['channelTitle']
+
+            if vid and 'thumbnails' in snippet:
+                tn = None
+                if 'high' in snippet['thumbnails']:
+                    tn = snippet['thumbnails']['high']
                     tn['width'], tn['height'] = 200, 150
-            if not tn:
-                tn = ent.media_thumbnail[0]
+                elif 'medium' in snippet['thumbnails']:
+                    tn = snippet['thumbnails']['medium']
+                    tn['width'], tn['height'] = 200, 150
+                if not tn:
+                    tn = snippet['thumbnails']['default']
 
-            if self.service.public:
-                tn['url'] = media.save_image(tn['url'], downscale=True,
-                                             size=(200, 150))
+                if self.service.public:
+                    tn['url'] = media.save_image(tn['url'], downscale=True,
+                                                 size=(200, 150))
 
-            e.link = e.link.replace('&feature=youtube_gdata', '')
-            e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
-                vid, e.link, tn['url'], tn['width'], tn['height'])
-        else:
-            e.content = ent.get('yt_state', '<a href="%s">%s</a>' %
-                                (ent.get('link', '#').replace(
-                                    '&feature=youtube_gdata', ''), ent.get('title', '')))
+                e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
+                    vid, e.link, tn['url'], tn['width'], tn['height'])
+            else:
+                e.content = '<a href="%s">%s</a>' % (e.link, e.title)
+
+            try:
+                e.save()
+            except Exception as exc:
+                print(exc)
 
 
 def filter_title(entry):
