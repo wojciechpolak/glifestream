@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009-2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2016 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -60,8 +60,8 @@ def __sp_twitpic(m):
 
 
 def __sp_instagram(m):
-    url = media.save_image('https://%s/p/%s/media/?size=t' %
-                           (m.group(1), m.group(2)), downscale=True)
+    url = media.save_image('https://www.instagram.com/p/%s/media/?size=t' %
+                           m.group(3), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
@@ -89,7 +89,7 @@ def shortpics(s):
     """Expand short picture-URLs."""
     s = re.sub(r'https?://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
     s = re.sub(r'https?://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
-    s = re.sub(r'https?://(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
+    s = re.sub(r'https?://(www\.)?(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
     s = re.sub(r'https?://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub(r'https?://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
     return s
