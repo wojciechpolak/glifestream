@@ -140,11 +140,11 @@ class API:
             e.author_name = ent['user_name']
 
             if self.service.public:
-                ent['thumbnail_medium'] = media.save_image(
-                    ent['thumbnail_medium'])
+                ent['thumbnail_large'] = media.save_image(
+                    ent['thumbnail_large'], downscale=True, size=(320, 180))
 
-            e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
-                ent['id'], e.link, ent['thumbnail_medium'], ent['title'])
+            e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
+                ent['id'], e.link, ent['thumbnail_large'], ent['title'])
 
             mblob = media.mrss_init()
             mblob[
@@ -165,7 +165,9 @@ def get_thumbnail_url(id):
         r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id)
         if r.status_code == 200:
             jsn = r.json()
-            if 'thumbnail_medium' in jsn[0]:
+            if 'thumbnail_large' in jsn[0]:
+                return jsn[0]['thumbnail_large']
+            elif 'thumbnail_medium' in jsn[0]:
                 return jsn[0]['thumbnail_medium']
     except:
         pass

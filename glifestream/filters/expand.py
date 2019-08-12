@@ -114,9 +114,11 @@ def __sv_youtube(m):
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
     link = 'https://www.youtube.com/watch?v=%s' % id
-    imgurl = 'http://i.ytimg.com/vi/%s/hqdefault.jpg' % id
-    imgurl = media.save_image(imgurl, downscale=True, size=(200, 150))
-    return '<table class="vc"><tr><td><div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
+    imgurl = 'http://i.ytimg.com/vi/%s/mqdefault.jpg' % id
+    imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
+    return '<table class="vc"><tr><td><div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">' \
+           '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">' \
+           '</div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 
 def __sv_vimeo(m):
@@ -127,8 +129,10 @@ def __sv_vimeo(m):
     link = m.group(0)
     imgurl = vimeo.get_thumbnail_url(id)
     if imgurl:
-        imgurl = media.save_image(imgurl)
-        return '<table class="vc"><tr><td><div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="Vimeo Video" /></a><div class="playbutton"></div></div></td></tr></table>' % (id, link, imgurl)
+        imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
+        return '<table class="vc"><tr><td><div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">' \
+               '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>' \
+               '<div class="playbutton"></div></div></td></tr></table>' % (id, link, imgurl)
     else:
         return link
 
@@ -136,19 +140,22 @@ def __sv_vimeo(m):
 def __sv_chtv(m):
     id = m.group(1)
     link = m.group(0)
-    return '<span data-id="chtv-%s" class="play-video video-inline"><a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
+    return '<span data-id="chtv-%s" class="play-video video-inline">' \
+           '<a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
 
 
 def __sv_ustream(m):
     id = m.group(1)
     link = m.group(0)
-    return '<span data-id="ustream-%s" class="play-video video-inline"><a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
+    return '<span data-id="ustream-%s" class="play-video video-inline">' \
+           '<a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
 
 
 def __sv_twitvid(m):
     id = m.group(2)
     link = m.group(0)
-    return '<span data-id="twitvid-%s" class="play-video video-inline"><a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
+    return '<span data-id="twitvid-%s" class="play-video video-inline">' \
+           '<a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
 
 
 def __sv_dailymotion(m):
@@ -159,7 +166,9 @@ def __sv_dailymotion(m):
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'http://www.dailymotion.com/thumbnail/160x120/video/%s' % id
     imgurl = media.save_image(imgurl)
-    return '<table class="vc"><tr><td><div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="160" height="120" alt="Dailymotion Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
+    return '<table class="vc"><tr><td><div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">' \
+           '<img src="%s" width="160" height="120" alt="Dailymotion Video" />' \
+           '</a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 
 def __sv_metacafe(m):
@@ -170,7 +179,9 @@ def __sv_metacafe(m):
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'http://www.metacafe.com/thumb/%s.jpg' % id
     imgurl = media.save_image(imgurl)
-    return '<table class="vc"><tr><td><div data-id="metacafe-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="136" height="81" alt="Metacafe Video" /></a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
+    return '<table class="vc"><tr><td><div data-id="metacafe-%s" class="play-video"><a href="%s" rel="nofollow">' \
+           '<img src="%s" width="136" height="81" alt="Metacafe Video" /></a>' \
+           '<div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
 
 
 def __sv_googlevideo(m):
@@ -179,7 +190,8 @@ def __sv_googlevideo(m):
     rest = m.group(2)
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
-    return '<div data-id="googlevideo-%s" class="play-video video-inline"><a href="%s" rel="nofollow">Google Video %s</a></div>%s' % (id, link, id, rest)
+    return '<div data-id="googlevideo-%s" class="play-video video-inline">' \
+           '<a href="%s" rel="nofollow">Google Video %s</a></div>%s' % (id, link, id, rest)
 
 
 def videolinks(s):
@@ -223,7 +235,8 @@ def __sa_ogg(m):
 def __sa_thesixtyone(m):
     link = m.group(0)
     songid = m.group(1)
-    return '<span data-id="thesixtyone-art-%s" class="play-audio"><a href="%s" rel="nofollow">%s</a></span>' % (songid, link, link)
+    return '<span data-id="thesixtyone-art-%s" class="play-audio">' \
+           '<a href="%s" rel="nofollow">%s</a></span>' % (songid, link, link)
 
 
 def audiolinks(s):
@@ -260,7 +273,8 @@ def __sm_googlemaps(m):
         ll = ll.split(',')
         geolat = float(ll[0])
         geolng = float(ll[1])
-        return '<div class="geo"><a href="%s" class="map"><span class="latitude">%.10f</span> <span class="longitude">%.10f</span></a></div>%s' % (link, geolat, geolng, rest)
+        return '<div class="geo"><a href="%s" class="map"><span class="latitude">%.10f</span> ' \
+               '<span class="longitude">%.10f</span></a></div>%s' % (link, geolat, geolng, rest)
     else:
         return link
 
