@@ -35,14 +35,14 @@ class API:
         if '/' in self.service.url:
             url = self.service.url.replace('channel/', 'channels/')
             url = url.replace('group/', 'groups/')
-            return ('http://vimeo.com/%s/videos/rss' % url,)
+            return ('https://vimeo.com/%s/videos/rss' % url,)
         else:
-            return ('http://vimeo.com/%s/likes/rss' % self.service.url,
-                    'http://vimeo.com/%s/videos/rss' % self.service.url)
+            return ('https://vimeo.com/%s/likes/rss' % self.service.url,
+                    'https://vimeo.com/%s/videos/rss' % self.service.url)
 
     def run(self):
         if not self.service.link:
-            self.service.link = 'http://vimeo.com/%s' % self.service.url
+            self.service.link = 'https://vimeo.com/%s' % self.service.url
         if '/' in self.service.url:
             self.process = self.process_videos
             self.fetch('/api/v2/%s/videos.json' % self.service.url)
@@ -106,7 +106,7 @@ class API:
 
                 mblob = media.mrss_init()
                 mblob[
-                    'content'].append([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=%s' % ent['video_id'],
+                    'content'].append([{'url': 'https://vimeo.com/moogaloop.swf?clip_id=%s' % ent['video_id'],
                                         'type': 'application/x-shockwave-flash',
                                         'medium': 'video'}])
                 e.mblob = media.mrss_gen_json(mblob)
@@ -148,7 +148,7 @@ class API:
 
             mblob = media.mrss_init()
             mblob[
-                'content'].append([{'url': 'http://vimeo.com/moogaloop.swf?clip_id=%s' % ent['id'],
+                'content'].append([{'url': 'https://vimeo.com/moogaloop.swf?clip_id=%s' % ent['id'],
                                     'type': 'application/x-shockwave-flash',
                                     'medium': 'video'}])
             e.mblob = media.mrss_gen_json(mblob)
