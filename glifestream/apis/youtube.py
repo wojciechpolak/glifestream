@@ -115,18 +115,19 @@ class API:
 
             if vid and 'thumbnails' in snippet:
                 tn = None
-                if 'high' in snippet['thumbnails']:
-                    tn = snippet['thumbnails']['high']
-                    tn['width'], tn['height'] = 200, 150
-                elif 'medium' in snippet['thumbnails']:
+                if 'medium' in snippet['thumbnails']:
                     tn = snippet['thumbnails']['medium']
+                    tn['width'], tn['height'] = 320, 180
+                elif 'high' in snippet['thumbnails']:
+                    tn = snippet['thumbnails']['high']
                     tn['width'], tn['height'] = 200, 150
                 if not tn:
                     tn = snippet['thumbnails']['default']
+                    tn['width'], tn['height'] = 200, 150
 
                 if self.service.public:
                     tn['url'] = media.save_image(tn['url'], downscale=True,
-                                                 size=(200, 150))
+                                                 size=(tn['width'], tn['height']))
 
                 e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
                     vid, e.link, tn['url'], tn['width'], tn['height'])
