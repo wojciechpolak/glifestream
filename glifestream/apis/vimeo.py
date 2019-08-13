@@ -47,8 +47,8 @@ class API:
             self.process = self.process_videos
             self.fetch('/api/v2/%s/videos.json' % self.service.url)
         else:
-            self.process = self.process_userdid
-            self.fetch('/api/v2/activity/%s/user_did.json' % self.service.url)
+            self.process = self.process_likes
+            self.fetch('/api/v2/%s/likes.json' % self.service.url)
             self.process = self.process_videos
             self.fetch('/api/v2/%s/videos.json' % self.service.url)
 
@@ -71,50 +71,49 @@ class API:
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
-    def process_userdid(self):
-        """Process what user did."""
+    def process_likes(self):
+        """Process what user did like."""
         for ent in self.json:
-            if 'type' in ent and ent['type'] == 'like':
-                date = ent['date'][:10]
-                guid = 'tag:vimeo,%s:clip%s' % (date, ent['video_id'])
-                if self.verbose:
-                    print("ID: %s" % guid)
-                try:
-                    e = Entry.objects.get(service=self.service, guid=guid)
-                    if not self.force_overwrite and e.date_updated \
-                       and mtime(ent['date']) <= e.date_updated:
-                        continue
-                    if e.protected:
-                        continue
-                except Entry.DoesNotExist:
-                    e = Entry(service=self.service, guid=guid)
+            date = ent['liked_on'][:10]
+            guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
+            if self.verbose:
+                print("ID: %s" % guid)
+            try:
+                e = Entry.objects.get(service=self.service, guid=guid)
+                if not self.force_overwrite and e.date_updated \
+                        and mtime(ent['date']) <= e.date_updated:
+                    continue
+                if e.protected:
+                    continue
+            except Entry.DoesNotExist:
+                e = Entry(service=self.service, guid=guid)
 
-                e.title = ent['video_title']
-                e.link = ent['video_url']
-                e.date_published = ent['date']
-                e.date_updated = ent['date']
-                e.author_name = ent['user_name']
+            e.title = ent['title']
+            e.link = ent['url']
+            e.date_published = ent['liked_on']
+            e.date_updated = ent['liked_on']
+            e.author_name = ent['user_name']
 
-                e.idata = 'liked'
+            e.idata = 'liked'
 
-                if self.service.public:
-                    ent['video_thumbnail_medium'] = media.save_image(
-                        ent['video_thumbnail_medium'])
+            if self.service.public:
+                ent['thumbnail_large'] = media.save_image(
+                    ent['thumbnail_large'], downscale=True, size=(320, 180))
 
-                e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="200" height="150" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
-                    ent['video_id'], e.link, ent['video_thumbnail_medium'], ent['video_title'])
+            e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
+                ent['id'], e.link, ent['thumbnail_large'], ent['title'])
 
-                mblob = media.mrss_init()
-                mblob[
-                    'content'].append([{'url': 'https://vimeo.com/moogaloop.swf?clip_id=%s' % ent['video_id'],
-                                        'type': 'application/x-shockwave-flash',
-                                        'medium': 'video'}])
-                e.mblob = media.mrss_gen_json(mblob)
+            mblob = media.mrss_init()
+            mblob[
+                'content'].append([{'url': 'https://vimeo.com/moogaloop.swf?clip_id=%s' % ent['id'],
+                                    'type': 'application/x-shockwave-flash',
+                                    'medium': 'video'}])
+            e.mblob = media.mrss_gen_json(mblob)
 
-                try:
-                    e.save()
-                except:
-                    pass
+            try:
+                e.save()
+            except:
+                pass
 
     def process_videos(self):
         """Process videos uploaded by user."""
