@@ -28,6 +28,7 @@ from django.utils.translation import ugettext as _
 from django.utils.translation import ungettext
 from django.template.defaultfilters import date as ddate
 from django.template.defaultfilters import urlencode, stringfilter
+from glifestream.utils.html import urlize as _urlize
 from glifestream.utils.slugify import slugify
 from glifestream.stream import media
 from glifestream.apis import *
@@ -178,3 +179,16 @@ def fix_ampersands(value):
 def fix_ampersands_filter(value):
     """Replaces ampersands with ``&amp;`` entities."""
     return fix_ampersands(value)
+
+
+@register.filter('gls_urlizetrunc', is_safe=True, needs_autoescape=True)
+@stringfilter
+def gls_urlizetrunc(value, limit, autoescape=None):
+    """
+    Converts URLs into clickable links, truncating URLs to the given character
+    limit, and adding 'rel=nofollow' attribute to discourage spamming.
+
+    Argument: Length to truncate URLs to.
+    """
+    return mark_safe(_urlize(value, trim_url_limit=int(limit), nofollow=True,
+                             autoescape=autoescape))

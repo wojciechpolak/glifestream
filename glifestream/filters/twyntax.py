@@ -14,15 +14,14 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-from django.template.defaultfilters import urlizetrunc
-
 
 def parse(s, type='twitter'):
+    from glifestream.stream.templatetags.gls_filters import gls_urlizetrunc
     if type == 'twitter':
         s = s.split(': ', 1)[1]
     s = hash_tag(s, type)
     s = at_reply(s, type)
-    s = urlizetrunc(s, 45)
+    s = gls_urlizetrunc(s, 45)
     return s
 
 
