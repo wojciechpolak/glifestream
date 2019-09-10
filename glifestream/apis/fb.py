@@ -13,10 +13,10 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf import settings
-from django.utils.html import strip_tags, strip_entities
+from django.utils.html import strip_tags
 from django.template.defaultfilters import urlizetrunc
 from glifestream.filters import expand, truncate
+from glifestream.utils.html import strip_entities
 from glifestream.utils.time import from_rfc3339, mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media

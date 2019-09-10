@@ -13,12 +13,11 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from glifestream.gauth import views
 
-urlpatterns = patterns(
-    '',
-    (r'login-friend$', views.login_friend),
-    (r'xrds$', views.xrds),
-    (r'openid$', views.openid),
-)
+urlpatterns = [
+    url(r'login-friend$', views.login_friend, name='login-friend'),
+    url(r'xrds$', views.xrds, name='xrds'),
+    url(r'openid$', views.openid, name='openid'),
+]

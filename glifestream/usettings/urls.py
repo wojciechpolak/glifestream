@@ -13,23 +13,22 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.views.generic.base import RedirectView
 from glifestream.usettings import views
 
-urlpatterns = patterns(
-    '',
-    url(r'^$', RedirectView.as_view(url='services'), name='settings'),
-    (r'api/(?P<cmd>[a-z\-]+)$', views.api),
-    (r'services$', views.services),
-    (r'services/import$', views.opml, {
-     'cmd': 'import'}, 'opml-import'),
-    (r'services/export$', views.opml, {
-     'cmd': 'export'}, 'opml-export'),
-    (r'lists$', views.lists),
-    (r'lists/(?P<list>[a-z0-9\-]+)$', views.lists),
-    (r'pshb$', views.pshb),
-    (r'openid$', views.openid),
-    (r'tools$', views.tools),
-    (r'oauth/(?P<id>[0-9]+)$', views.oauth),
-)
+urlpatterns = [
+    url(r'^$', RedirectView.as_view(url='services', permanent=False), name='settings'),
+    url(r'api/(?P<cmd>[a-z\-]+)$', views.api),
+    url(r'services$', views.services, name='usettings-services'),
+    url(r'services/import$', views.opml, {
+        'cmd': 'import'}, 'opml-import'),
+    url(r'services/export$', views.opml, {
+        'cmd': 'export'}, 'opml-export'),
+    url(r'lists$', views.lists, name='usettings-lists'),
+    url(r'lists/(?P<list>[a-z0-9\-]+)$', views.lists, name='usettings-lists-slug'),
+    url(r'pshb$', views.pshb, name='usettings-pshb'),
+    url(r'openid$', views.openid, name='usettings-openid'),
+    url(r'tools$', views.tools, name='usettings-tools'),
+    url(r'oauth/(?P<id>[0-9]+)$', views.oauth, name='usettings-oauth'),
+]

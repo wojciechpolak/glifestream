@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% load i18n %}{% load url from future %}
+{% load i18n %}
 
 {% block main %}
 <section id="login">
 
 <div id="loginbox">
 {% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
-<form name="loginform" method="post" action="{% url 'glifestream.gauth.views.login' %}">
+<form name="loginform" method="post" action="{% url 'login' %}">
   <p>
     <label>{% trans "Username" %}<br />
       <input type="text" name="username" id="username" size="20" />

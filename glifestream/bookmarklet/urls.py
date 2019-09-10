@@ -13,11 +13,10 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from glifestream.bookmarklet import views
 
-urlpatterns = patterns(
-    '',
-    (r'js$', views.js),
-    (r'frame$', views.frame),
-)
+urlpatterns = [
+    url(r'js$', views.js),
+    url(r'frame$', views.frame),
+]

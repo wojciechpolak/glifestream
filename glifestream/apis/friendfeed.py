@@ -15,11 +15,11 @@
 
 import re
 import datetime
-from django.utils.html import strip_tags, strip_entities
+from django.utils.html import strip_tags
 from glifestream.filters import truncate
 from glifestream.gauth import gls_oauth
 from glifestream.utils.time import mtime, now
-from glifestream.utils.html import bytes_to_human
+from glifestream.utils.html import bytes_to_human, strip_entities
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 

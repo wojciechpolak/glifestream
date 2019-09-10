@@ -73,7 +73,8 @@ class Service (models.Model):
 
 @python_2_unicode_compatible
 class Entry (models.Model):
-    service = models.ForeignKey(Service, verbose_name=_('Service'),
+    service = models.ForeignKey(Service, on_delete=models.CASCADE,
+                                verbose_name=_('Service'),
                                 null=False, blank=False)
     title = models.CharField(_('Title'), max_length=255)
     link = models.URLField(_('Link'),)
@@ -120,7 +121,7 @@ class Entry (models.Model):
 
 @python_2_unicode_compatible
 class Media (models.Model):
-    entry = models.ForeignKey(Entry, verbose_name=_('Entry'),
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE, verbose_name=_('Entry'),
                               null=False, blank=False)
     file = models.FileField(upload_to='upload/%Y/%m/%d')
 
@@ -135,8 +136,8 @@ class Media (models.Model):
 
 @python_2_unicode_compatible
 class Favorite (models.Model):
-    user = models.ForeignKey(User, db_index=True)
-    entry = models.ForeignKey(Entry, verbose_name=_('Entry'),
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
+    entry = models.ForeignKey(Entry, on_delete=models.CASCADE, verbose_name=_('Entry'),
                               null=False, blank=False)
     date_added = models.DateTimeField(auto_now_add=True)
 
@@ -152,7 +153,7 @@ class Favorite (models.Model):
 
 @python_2_unicode_compatible
 class List (models.Model):
-    user = models.ForeignKey(User, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     name = models.CharField(_('Name'), max_length=48, null=False, blank=False)
     slug = models.CharField(_('Slug'), max_length=48, null=False, blank=True,
                             editable=False)
@@ -174,7 +175,7 @@ class List (models.Model):
 
 class Pshb (models.Model):
     hash = models.CharField('ID', max_length=20, unique=True)
-    service = models.ForeignKey(Service, verbose_name=_('Service'),
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name=_('Service'),
                                 null=False, blank=False)
     hub = models.CharField('Hub', max_length=128)
     secret = models.CharField('Secret', max_length=16, null=True, blank=True)

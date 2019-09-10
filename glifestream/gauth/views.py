@@ -17,10 +17,10 @@ from django.conf import settings
 from django.core import urlresolvers
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
-from django.contrib.sites.models import RequestSite, Site
+from django.contrib.sites.models import Site
+from django.contrib.sites.requests import RequestSite
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template import RequestContext
+from django.shortcuts import render
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.gauth import gls_openid
@@ -40,8 +40,7 @@ except ImportError:
 def login(request, template_name='login.html',
           redirect_field_name=REDIRECT_FIELD_NAME):
 
-    redirect_to = request.REQUEST.get(redirect_field_name,
-                                      urlresolvers.reverse('index'))
+    redirect_to = request.GET.get(redirect_field_name, urlresolvers.reverse('index'))
 
     if request.method == 'POST':
         form = AuthenticationRememberMeForm(data=request.POST,)
@@ -75,22 +74,20 @@ def login(request, template_name='login.html',
         'theme': common.get_theme(request),
     }
 
-    return render_to_response(template_name,
-                              {'page': page,
-                               'form': form,
-                               'site': current_site,
-                               'site_name': current_site.name,
-                               'is_secure': request.is_secure(),
-                               redirect_field_name: redirect_to},
-                              context_instance=RequestContext(request))
+    return render(request, template_name,
+                  {'page': page,
+                   'form': form,
+                   'site': current_site,
+                   'site_name': current_site.name,
+                   'is_secure': request.is_secure(),
+                   redirect_field_name: redirect_to})
 
 
 @never_cache
 def login_friend(request, template_name='registration/login.html',
                  redirect_field_name=REDIRECT_FIELD_NAME):
 
-    redirect_to = request.REQUEST.get(redirect_field_name,
-                                      urlresolvers.reverse('index'))
+    redirect_to = request.GET.get(redirect_field_name, urlresolvers.reverse('index'))
     if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
         redirect_to = settings.BASE_URL + '/'
 
@@ -150,7 +147,7 @@ def xrds(request, **args):
 """
     body = xrds_tpl % (request.build_absolute_uri('openid'),
                        request.build_absolute_uri(
-                           urlresolvers.reverse('glifestream.usettings.views.openid')))
+                           urlresolvers.reverse('usettings-openid')))
     res = HttpResponse(body, content_type='application/xrds+xml')
     res['X-Robots-Tag'] = 'noindex'
     return res
@@ -220,11 +217,10 @@ def openid(request, template_name='openid.html',
         'msg': msg,
     }
 
-    return render_to_response(template_name,
-                              {'page': page,
-                               'form': form,
-                               'site': current_site,
-                               'site_name': current_site.name,
-                               'is_secure': request.is_secure(),
-                               redirect_field_name: redirect_to},
-                              context_instance=RequestContext(request))
+    return render(request, template_name,
+                  {'page': page,
+                   'form': form,
+                   'site': current_site,
+                   'site_name': current_site.name,
+                   'is_secure': request.is_secure(),
+                   redirect_field_name: redirect_to})
