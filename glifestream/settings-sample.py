@@ -5,7 +5,6 @@ SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = SITE_ROOT
 
 DEBUG = True
-TEMPLATE_DEBUG = DEBUG
 
 ALLOWED_HOSTS = [
     'localhost'
@@ -80,6 +79,24 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.cache.FetchFromCacheMiddleware',
 )
 
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [
+            os.path.join(SITE_ROOT, 'templates'),
+        ],
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.request',
+                'django.contrib.auth.context_processors.auth',
+                'django.contrib.messages.context_processors.messages',
+            ],
+        },
+    },
+]
+
 ROOT_URLCONF = 'glifestream.urls'
 
 WSGI_APPLICATION = 'glifestream.wsgi.application'
@@ -89,10 +106,11 @@ TEMPLATE_DIRS = (
 )
 
 INSTALLED_APPS = (
+    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.admin',
+    'django.contrib.sites',
     'django.contrib.staticfiles',
     'pipeline',
     'glifestream.gauth',
@@ -101,6 +119,8 @@ INSTALLED_APPS = (
     'glifestream.usettings',
     'glifestream.bookmarklet',
 )
+
+SITE_ID = 1
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -133,23 +153,24 @@ STATICFILES_DIRS = (
     os.path.join(SITE_ROOT, 'static'),
 )
 
-PIPELINE_DISABLE_WRAPPER = True
-PIPELINE_JS_COMPRESSOR = None
-PIPELINE_CSS_COMPRESSOR = None
-
-PIPELINE_JS = {
-    'main': {
-        'source_filenames': (
-            'js/jquery.js',
-            'js/glifestream.js',
-        ),
-        'output_filename': 'js/main.js',
-    },
-    'tinymce': {
-        'source_filenames': (
-            'js/tinymce/tinymce.min.js',
-        ),
-        'output_filename': 'js/tinymce.js',
+PIPELINE = {
+    'DISABLE_WRAPPER': True,
+    'JS_COMPRESSOR': None,
+    'CSS_COMPRESSOR': None,
+    'JAVASCRIPT': {
+        'main': {
+            'source_filenames': (
+                'js/jquery.js',
+                'js/glifestream.js',
+            ),
+            'output_filename': 'js/main.js',
+        },
+        'tinymce': {
+            'source_filenames': (
+                'js/tinymce/tinymce.min.js',
+            ),
+            'output_filename': 'js/tinymce.js',
+        }
     }
 }
 

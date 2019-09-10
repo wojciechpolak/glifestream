@@ -1,10 +1,10 @@
 gLifestream -- INSTALL
-Copyright (C) 2009-2015 Wojciech Polak
+Copyright (C) 2009-2019 Wojciech Polak
 
 gLifestream requirements
 ========================
 
-- Django 1.7 or later -- a Python Web framework (https://www.djangoproject.com/)
+- Django 1.11 -- a Python Web framework (https://www.djangoproject.com/)
 - A database supported by Django (e.g. MySQL, PostgreSQL).
 - Universal Feed Parser (https://pypi.python.org/pypi/feedparser)
 
@@ -98,7 +98,7 @@ Alias /static "/usr/local/django/glifestream/static"
 ```
 
 More detailed information is available at:
-http://code.google.com/p/modwsgi/wiki/IntegrationWithDjango
+https://docs.djangoproject.com/en/dev/howto/deployment/wsgi/modwsgi/
 
 See https://docs.djangoproject.com/en/dev/howto/deployment/
 for usual Django applications deployment.

@@ -22,8 +22,8 @@ from glifestream.stream.models import Service
 
 @python_2_unicode_compatible
 class OAuthClient (models.Model):
-    service = models.ForeignKey(Service, verbose_name=_('Service'),
-                                null=False, blank=False, unique=True)
+    service = models.OneToOneField(Service, on_delete=models.CASCADE, verbose_name=_('Service'),
+                                   null=False, blank=False, unique=True)
     identifier = models.CharField('Identifier', max_length=64, null=False,
                                   blank=False)
     secret = models.CharField('Secret', max_length=128, null=False,
@@ -49,7 +49,7 @@ class OAuthClient (models.Model):
 
 @python_2_unicode_compatible
 class OpenId (models.Model):
-    user = models.ForeignKey(User, db_index=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     identity = models.CharField(_('Identity'), max_length=128, null=False,
                                 blank=False)
 

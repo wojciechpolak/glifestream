@@ -1,11 +1,12 @@
-Django ==1.7.*
-django-pipeline ==1.4.*
+Django ==1.11.*
+django-pipeline ==1.6.*
 mysqlclient ==1.4.*
 feedparser ==5.1.*
-Pillow ==2.7.*
+Pillow ==6.1.*
 workerpool ==0.9.*
 python-memcached ==1.54
-python-openid ==2.2.*
+python-openid ==2.2.*; python_version < '3.0'
+python3-openid ==3.1.*; python_version >= '3.0'
 requests-oauthlib ==0.4.*
 beautifulsoup4 ==4.3.*
 Markdown ==2.6.*

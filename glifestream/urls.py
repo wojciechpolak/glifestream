@@ -14,66 +14,65 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.auth.views import logout
+from django.views.static import serve as static_serve
 admin.autodiscover()
 
 from glifestream.stream import views as sv
+from glifestream.gauth.views import login
 
 handler404 = 'glifestream.stream.views.page_not_found'
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     url(r'^$', sv.index, name='index'),
-    (r'^(?P<year>\d{4})/$', sv.index),
-    (r'^(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index),
-    (r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
-     sv.index),
+    url(r'^(?P<year>\d{4})/$', sv.index),
+    url(r'^(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index),
+    url(r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index),
 
-    (r'^public/$', sv.index, {'ctx': 'public'}, 'public'),
-    (r'^public/(?P<year>\d{4})/$', sv.index, {
+    url(r'^public/$', sv.index, {'ctx': 'public'}, name='public'),
+    url(r'^public/(?P<year>\d{4})/$', sv.index, {
         'ctx': 'public'}),
-    (r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index,
-     {'ctx': 'public'}),
-    (r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index,
-     {'ctx': 'public'}),
+    url(r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index,
+        {'ctx': 'public'}),
+    url(r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index,
+        {'ctx': 'public'}),
 
-    (r'^entry/(?P<entry>\d+)(/.*)?$', sv.index, {}, 'entry'),
-    (r'^api/(?P<cmd>[a-z]+)$', sv.api),
+    url(r'^entry/(?P<entry>\d+)(/.*)?$', sv.index, {}, name='entry'),
+    url(r'^api/(?P<cmd>[a-z]+)$', sv.api, name='api'),
 
-    (r'^favorites/$', sv.index, {
-     'ctx': 'favorites'}, 'favorites'),
-    (r'^favorites/(?P<year>\d{4})/$', sv.index, {
-     'ctx': 'favorites'}),
-    (r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/$',
-     sv.index, {'ctx': 'favorites'}),
-    (r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
-     sv.index, {'ctx': 'favorites'}),
+    url(r'^favorites/$', sv.index, {
+        'ctx': 'favorites'}, name='favorites'),
+    url(r'^favorites/(?P<year>\d{4})/$', sv.index, {
+        'ctx': 'favorites'}),
+    url(r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/$',
+        sv.index, {'ctx': 'favorites'}),
+    url(r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+        sv.index, {'ctx': 'favorites'}),
 
-    (r'^list/(?P<list>[a-z0-9\-]+)/$', sv.index, {}, 'list'),
-    (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/$', sv.index),
-    (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/$',
-     sv.index),
-    (r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
-     sv.index),
+    url(r'^list/(?P<list>[a-z0-9\-]+)/$', sv.index, {}, name='list'),
+    url(r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/$', sv.index),
+    url(r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/$',
+        sv.index),
+    url(r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+        sv.index),
 
-    (r'^pshb/(?P<id>[a-f0-9]{20})$',
-     sv.pshb_dispatcher, {}, 'pshb'),
+    url(r'^pshb/(?P<id>[a-f0-9]{20})$',
+        sv.pshb_dispatcher, {}, name='pshb'),
 
-    (r'^login/?$', 'glifestream.gauth.views.login'),
-    (r'^logout/?$', 'django.contrib.auth.views.logout',
-     {'next_page': './'}),
+    url(r'^login/?$', login, name='login'),
+    url(r'^logout/?$', logout, {'next_page': './'}, name='logout'),
 
-    (r'^auth/', include('glifestream.gauth.urls')),
-    (r'^bookmarklet/', include(
-     'glifestream.bookmarklet.urls')),
-    (r'^settings/', include('glifestream.usettings.urls')),
+    url(r'^auth/', include('glifestream.gauth.urls')),
+    url(r'^bookmarklet/', include(
+        'glifestream.bookmarklet.urls')),
+    url(r'^settings/', include('glifestream.usettings.urls')),
 
-    (r'^admin/', include(admin.site.urls)),
-)
+    url(r'^admin/', include(admin.site.urls)),
+]
 
-urlpatterns += patterns(
-    '',
-    (r'^media/(?P<path>.*)$', 'django.views.static.serve',
-     {'document_root': settings.MEDIA_ROOT})
-)
+urlpatterns += [
+    url(r'^media/(?P<path>.*)$', static_serve,
+        {'document_root': settings.MEDIA_ROOT})
+]

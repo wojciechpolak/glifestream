@@ -106,13 +106,13 @@ def lists(request, **args):
         if request.POST.get('delete', False):
             list.delete()
             return HttpResponseRedirect(
-                urlresolvers.reverse('glifestream.usettings.views.lists'))
+                urlresolvers.reverse('usettings-lists'))
         else:
             form = ListForm(request.POST, instance=list)
             if form.is_valid():
                 form.save()
                 return HttpResponseRedirect(
-                    urlresolvers.reverse('glifestream.usettings.views.lists',
+                    urlresolvers.reverse('usettings-lists-slug',
                                          args=[list.slug]))
     else:
         form = ListForm(instance=list)
@@ -208,8 +208,7 @@ def openid(request, **args):
             try:
                 db = OpenId(user=request.user, identity=rs['identity_url'])
                 db.save()
-                return HttpResponseRedirect(
-                    urlresolvers.reverse('glifestream.usettings.views.openid'))
+                return HttpResponseRedirect(urlresolvers.reverse('usettings-openid'))
             except IntegrityError:
                 pass
         elif 'msg' in rs:
@@ -268,7 +267,7 @@ def oauth(request, **args):
     id = args['id']
 
     callback_url = request.build_absolute_uri(
-        urlresolvers.reverse('glifestream.usettings.views.oauth', args=[id]))
+        urlresolvers.reverse('usettings-oauth', args=[id]))
 
     service = Service.objects.get(id=id)
     c = gls_oauth.OAuth1Client(service=service,
@@ -313,8 +312,7 @@ def oauth(request, **args):
             try:
                 c.get_access_token()
                 c.save()
-                return HttpResponseRedirect(urlresolvers.reverse(
-                    'glifestream.usettings.views.oauth', args=[id]))
+                return HttpResponseRedirect(urlresolvers.reverse('usettings-oauth', args=[id]))
             except Exception as e:
                 page['msg'] = e
 
@@ -368,7 +366,7 @@ def opml(request, **args):
                                 _import_service(xml_url, title, cls)
 
         return HttpResponseRedirect(
-            urlresolvers.reverse('glifestream.usettings.views.services'))
+            urlresolvers.reverse('usettings-services'))
 
     elif cmd == 'export':
         excluded_apis = ('selfposts', 'fb')

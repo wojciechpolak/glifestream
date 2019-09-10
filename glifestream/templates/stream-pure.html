@@ -1,5 +1,4 @@
 {% load i18n media gls_filters %}
-{% load url from future %}{% load firstof from future %}
 {% for entry in entries %}
   <article id="entry-{{ entry.id }}" class="hentry e-{% firstof entry.service.cls entry.service.api %}{% if not entry.service.public %} private{% endif %}">
   {% spaceless %}

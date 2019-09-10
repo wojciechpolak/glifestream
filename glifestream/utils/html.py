@@ -13,6 +13,11 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+from django.utils import six
+from django.utils.encoding import force_text
+from django.utils.functional import allow_lazy
+
 try:
     from bs4 import BeautifulSoup
 except ImportError:
@@ -44,3 +49,11 @@ def bytes_to_human(bytes, precision=2):
                 precision = 0
             return format % (precision, size, suffix)
     return format % (precision, size, suffixes[-1])
+
+
+def strip_entities(value):
+    """Returns the given HTML with all entities (&something;) stripped."""
+    return re.sub(r'&(?:\w+|#\d+);', '', force_text(value))
+
+
+strip_entities = allow_lazy(strip_entities, six.text_type)
