@@ -474,15 +474,14 @@ def pshb_dispatcher(request, **args):
 
 
 def page_not_found(request, **args):
-    from django.template import RequestContext, loader
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
         'theme': common.get_theme(request),
     }
-    t = loader.get_template('404.html')
-    return HttpResponseNotFound(t.render(RequestContext(request, {'page': page})))
+    t = render_to_response('404.html', {'page': page})
+    return HttpResponseNotFound(t.content)
 
 #
 # XHR API
