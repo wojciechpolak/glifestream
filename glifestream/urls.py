@@ -18,10 +18,11 @@ from django.conf.urls import url, include
 from django.contrib import admin
 from django.contrib.auth.views import logout
 from django.views.static import serve as static_serve
-admin.autodiscover()
-
-from glifestream.stream import views as sv
 from glifestream.gauth.views import login
+from glifestream.stream import views as sv
+
+
+admin.autodiscover()
 
 handler404 = 'glifestream.stream.views.page_not_found'
 

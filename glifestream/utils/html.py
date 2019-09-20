@@ -60,16 +60,19 @@ def strip_entities(value):
 
 strip_entities = allow_lazy(strip_entities, six.text_type)
 
-##
-## Code taken from Django 1.7
-##
+#
+# Code taken from Django 1.7
+#
 
 TRAILING_PUNCTUATION = ['.', ',', ':', ';', '.)', '"', '\'']
-WRAPPING_PUNCTUATION = [('(', ')'), ('<', '>'), ('[', ']'), ('&lt;', '&gt;'), ('"', '"'), ('\'', '\'')]
+WRAPPING_PUNCTUATION = [('(', ')'), ('<', '>'), ('[', ']'),
+                        ('&lt;', '&gt;'), ('"', '"'), ('\'', '\'')]
 word_split_re = re.compile(r'(\s+)')
 simple_url_re = re.compile(r'^https?://\[?\w', re.IGNORECASE)
-simple_url_2_re = re.compile(r'^www\.|^(?!http)\w[^@]+\.(com|edu|gov|int|mil|net|org)$', re.IGNORECASE)
+simple_url_2_re = re.compile(
+    r'^www\.|^(?!http)\w[^@]+\.(com|edu|gov|int|mil|net|org)$', re.IGNORECASE)
 simple_email_re = re.compile(r'^\S+@\S+\.\S+$')
+
 
 def smart_urlquote(url):
     "Quotes a URL if it isn't already quoted."
@@ -90,6 +93,7 @@ def smart_urlquote(url):
     url = quote(url, safe=b'!*\'();:@&=+$,/?#[]~')
 
     return force_text(url)
+
 
 def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
     """
@@ -154,7 +158,8 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
                 if autoescape and not safe_input:
                     lead, trail = escape(lead), escape(trail)
                     url, trimmed = escape(url), escape(trimmed)
-                middle = '<a href="%s"%s>%s</a>' % (url, nofollow_attr, trimmed)
+                middle = '<a href="%s"%s>%s</a>' % (url,
+                                                    nofollow_attr, trimmed)
                 words[i] = mark_safe('%s%s%s' % (lead, middle, trail))
             else:
                 if safe_input:
@@ -166,4 +171,6 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
         elif autoescape:
             words[i] = escape(word)
     return ''.join(words)
+
+
 urlize = allow_lazy(urlize, six.text_type)

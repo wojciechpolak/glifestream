@@ -428,7 +428,7 @@ def index(request, **args):
         fs = {}
         if not authed or page['ctx'] == 'public':
             fs['public'] = True
-        _classes = Service.objects.filter (**fs).order_by ('id')\
+        _classes = Service.objects.filter(**fs).order_by('id')\
             .values('api', 'cls')
         classes = {}
         for item in _classes:
@@ -504,7 +504,7 @@ def api(request, **args):
         Entry.objects.filter(id=int(entry)).update(active=True)
 
     elif cmd == 'gsc':  # get selfposts classes
-        _srvs = Service.objects.filter (api='selfposts')\
+        _srvs = Service.objects.filter(api='selfposts')\
             .order_by('cls').values('id', 'cls')
         srvs = {}
         for item in _srvs:

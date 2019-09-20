@@ -18,7 +18,8 @@ from django.views.generic.base import RedirectView
 from glifestream.usettings import views
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(url='services', permanent=False), name='settings'),
+    url(r'^$', RedirectView.as_view(
+        url='services', permanent=False), name='settings'),
     url(r'api/(?P<cmd>[a-z\-]+)$', views.api),
     url(r'services$', views.services, name='usettings-services'),
     url(r'services/import$', views.opml, {
@@ -26,7 +27,8 @@ urlpatterns = [
     url(r'services/export$', views.opml, {
         'cmd': 'export'}, 'opml-export'),
     url(r'lists$', views.lists, name='usettings-lists'),
-    url(r'lists/(?P<list>[a-z0-9\-]+)$', views.lists, name='usettings-lists-slug'),
+    url(r'lists/(?P<list>[a-z0-9\-]+)$',
+        views.lists, name='usettings-lists-slug'),
     url(r'pshb$', views.pshb, name='usettings-pshb'),
     url(r'openid$', views.openid, name='usettings-openid'),
     url(r'tools$', views.tools, name='usettings-tools'),

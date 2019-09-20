@@ -40,7 +40,8 @@ except ImportError:
 def login(request, template_name='login.html',
           redirect_field_name=REDIRECT_FIELD_NAME):
 
-    redirect_to = request.GET.get(redirect_field_name, urlresolvers.reverse('index'))
+    redirect_to = request.GET.get(
+        redirect_field_name, urlresolvers.reverse('index'))
 
     if request.method == 'POST':
         form = AuthenticationRememberMeForm(data=request.POST,)
@@ -87,7 +88,8 @@ def login(request, template_name='login.html',
 def login_friend(request, template_name='registration/login.html',
                  redirect_field_name=REDIRECT_FIELD_NAME):
 
-    redirect_to = request.GET.get(redirect_field_name, urlresolvers.reverse('index'))
+    redirect_to = request.GET.get(
+        redirect_field_name, urlresolvers.reverse('index'))
     if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
         redirect_to = settings.BASE_URL + '/'
 

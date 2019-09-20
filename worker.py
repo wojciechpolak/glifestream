@@ -16,12 +16,17 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import datetime
+import getopt
 import os
 import sys
 import time
-import datetime
-import getopt
+import django
+from django.conf import settings
 from django.utils.six.moves import range, input
+from glifestream.stream import media, pshb
+from glifestream.stream.models import Service, Entry, Favorite
+from glifestream.utils.time import unixnow
 
 try:
     import workerpool
@@ -31,18 +36,12 @@ except ImportError:
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
 
-import django
 if hasattr(django, 'setup'):
     django.setup()
 
-from django.conf import settings
-
-from glifestream.utils.time import unixnow
-from glifestream.stream.models import Service, Entry, Favorite
-from glifestream.stream import media, pshb
 
 if workerpool:
-    class WorkerJob (workerpool.Job):
+    class WorkerJob(workerpool.Job):
 
         def __init__(self, fn):
             self.fn = fn
@@ -229,7 +228,7 @@ def run():
             Entry.objects.filter(**fs).exclude(id__in=favs).delete()
         sys.exit(0)
     else:
-        if not force_check or not 'id' in fs:
+        if not force_check or 'id' not in fs:
             fs['active'] = True
 
     if force_overwrite:
@@ -239,7 +238,7 @@ def run():
             sys.exit(0)
 
     try:
-        last1 = Entry.objects.filter (service__public=True).\
+        last1 = Entry.objects.filter(service__public=True).\
             order_by('-date_published')[0]
     except IndexError:
         last1 = None
@@ -274,7 +273,7 @@ def run():
         pool.wait()
 
     try:
-        last2 = Entry.objects.filter (service__public=True).\
+        last2 = Entry.objects.filter(service__public=True).\
             order_by('-date_published')[0]
     except IndexError:
         last2 = None
@@ -320,8 +319,8 @@ and all have write permissions by your webserver.
             if not os.path.isfile(file):
                 print("Creating empty file '%s'" % file)
                 open(file, 'w').close()
-    except Error as e:
-        print(e)
+    except Exception as exc:
+        print(exc)
         return 1
 
     return 0
@@ -332,6 +331,7 @@ def _create_dir(d, verbose=True):
         if verbose:
             print("Creating directory '%s'" % d)
         os.mkdir(d)
+
 
 if __name__ == '__main__':
     run()

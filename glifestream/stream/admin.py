@@ -25,11 +25,15 @@ from glifestream.stream import media
 
 def deactivate(modeladmin, request, queryset):
     queryset.update(active=False)
+
+
 deactivate.short_description = _("Deactivate item")
 
 
 def activate(modeladmin, request, queryset):
     queryset.update(active=True)
+
+
 activate.short_description = _("Activate item")
 
 
@@ -103,6 +107,7 @@ class FavoriteAdmin(admin.ModelAdmin):
 class ListAdmin(admin.ModelAdmin):
     list_display = ('user', 'name',)
     list_filter = ('user',)
+
 
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Entry, EntryAdmin)

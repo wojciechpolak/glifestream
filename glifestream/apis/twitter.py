@@ -108,7 +108,7 @@ class API:
                 strip_entities(strip_tags(ent['text'])), max_length=40)
             e.title = e.title.replace('#', '').replace('@', '')
 
-            e.link  = 'https://twitter.com/%s/status/%s' % \
+            e.link = 'https://twitter.com/%s/status/%s' % \
                 (ent['user']['screen_name'], ent['id'])
             image_url = ent['user']['profile_image_url_https']
             e.link_image = media.save_image(image_url, direct_image=False)

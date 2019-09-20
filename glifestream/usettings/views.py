@@ -167,7 +167,7 @@ def pshb(request, **args):
             page['msg'] = 'Hub %s: %s.' % (r['hub'], r['rc'])
 
     subs = gls_pshb.list(raw=True)
-    services = Service.objects.exclude (api__in=excluded_apis) \
+    services = Service.objects.exclude(api__in=excluded_apis) \
         .exclude(id__in=subs.values('service__id')).order_by('name')
 
     return render_to_response('pshb.html', {'page': page, 'authed': authed,
@@ -350,18 +350,18 @@ def opml(request, **args):
                     tp = e.getAttribute('type')
                     if tp == 'rss':
                         xml_url = e.getAttribute('xmlUrl')
-                        title = e.getAttribute ('text') or \
+                        title = e.getAttribute('text') or \
                             e.getAttribute('title')
                         _import_service(xml_url, title)
                     elif not tp:
-                        cls = e.getAttribute ('text') or \
+                        cls = e.getAttribute('text') or \
                             e.getAttribute('title')
                         cls = cls.lower()
                         for f in e.childNodes:
                             if f.nodeName == 'outline' and \
                                     f.getAttribute('type') == 'rss':
                                 xml_url = f.getAttribute('xmlUrl')
-                                title = f.getAttribute ('text') or \
+                                title = f.getAttribute('text') or \
                                     f.getAttribute('title')
                                 _import_service(xml_url, title, cls)
 
@@ -370,7 +370,7 @@ def opml(request, **args):
 
     elif cmd == 'export':
         excluded_apis = ('selfposts', 'fb')
-        services = Service.objects.exclude (api__in=excluded_apis) \
+        services = Service.objects.exclude(api__in=excluded_apis) \
             .order_by('name')
 
         srvs = []

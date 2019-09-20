@@ -13,30 +13,29 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django import template
-register = template.Library()
-
-import re
-import math
-import time
-import datetime
 import calendar
-from django.conf import settings
-from django.utils.encoding import force_text
-from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext as _
-from django.utils.translation import ungettext
-from django.template.defaultfilters import date as ddate
+import datetime
+import time
+import math
+import re
 from django.template.defaultfilters import urlencode, stringfilter
-from glifestream.utils.html import urlize as _urlize
-from glifestream.utils.slugify import slugify
-from glifestream.stream import media
+from django.template.defaultfilters import date as ddate
+from django.utils.translation import ungettext
+from django.utils.translation import ugettext as _
+from django.utils.safestring import mark_safe
+from django.utils.encoding import force_text
+from django import template
 from glifestream.apis import *
+from glifestream.stream import media
+from glifestream.utils.slugify import slugify
+from glifestream.utils.html import urlize as _urlize
 
 try:
     import json
 except ImportError:
     import simplejson as json
+
+register = template.Library()
 
 
 @register.filter
@@ -152,11 +151,11 @@ def get_relative_time(t):
             rel = _('%d days ago') % rel
     elif diff_minutes > 60:
         rel = int(math.floor(diff_minutes / 60))
-        rel = ungettext ('%(count)d hour ago', '%(count)d hours ago', rel) % \
+        rel = ungettext('%(count)d hour ago', '%(count)d hours ago', rel) % \
             {'count': rel, }
     else:
         rel = int(diff_minutes)
-        rel = ungettext ('%(count)d minute ago', '%(count)d minutes ago', rel) % \
+        rel = ungettext('%(count)d minute ago', '%(count)d minutes ago', rel) % \
             {'count': rel, }
     return rel
 
