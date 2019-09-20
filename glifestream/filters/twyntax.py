@@ -15,6 +15,7 @@
 
 import re
 
+
 def parse(s, type='twitter'):
     from glifestream.stream.templatetags.gls_filters import gls_urlizetrunc
     if type == 'twitter':

@@ -60,9 +60,9 @@ class API:
                         args['content'] = part.get_payload(decode=True)
 
                 if attach or \
-                   t.startswith ('image/') or \
-                   t.startswith ('audio/') or \
-                   t.startswith ('video/') or \
+                   t.startswith('image/') or \
+                   t.startswith('audio/') or \
+                   t.startswith('video/') or \
                    t.startswith('application/'):
                     payload = part.get_payload(decode=True)
                     os.umask(0)

@@ -89,7 +89,8 @@ def shortpics(s):
     """Expand short picture-URLs."""
     s = re.sub(r'https?://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
     s = re.sub(r'https?://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
-    s = re.sub(r'https?://(www\.)?(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
+    s = re.sub(
+        r'https?://(www\.)?(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
     s = re.sub(r'https?://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub(r'https?://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
     return s
@@ -132,7 +133,8 @@ def __sv_vimeo(m):
         imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
         return '<table class="vc"><tr><td><div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">' \
                '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>' \
-               '<div class="playbutton"></div></div></td></tr></table>' % (id, link, imgurl)
+               '<div class="playbutton"></div></div></td></tr></table>' % (
+                   id, link, imgurl)
     else:
         return link
 
@@ -168,7 +170,8 @@ def __sv_dailymotion(m):
     imgurl = media.save_image(imgurl)
     return '<table class="vc"><tr><td><div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">' \
            '<img src="%s" width="160" height="120" alt="Dailymotion Video" />' \
-           '</a><div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
+           '</a><div class="playbutton"></div></div></td></tr></table>%s' % (
+               id, link, imgurl, rest)
 
 
 def __sv_metacafe(m):
@@ -181,7 +184,8 @@ def __sv_metacafe(m):
     imgurl = media.save_image(imgurl)
     return '<table class="vc"><tr><td><div data-id="metacafe-%s" class="play-video"><a href="%s" rel="nofollow">' \
            '<img src="%s" width="136" height="81" alt="Metacafe Video" /></a>' \
-           '<div class="playbutton"></div></div></td></tr></table>%s' % (id, link, imgurl, rest)
+           '<div class="playbutton"></div></div></td></tr></table>%s' % (
+               id, link, imgurl, rest)
 
 
 def __sv_googlevideo(m):
@@ -191,7 +195,8 @@ def __sv_googlevideo(m):
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
     return '<div data-id="googlevideo-%s" class="play-video video-inline">' \
-           '<a href="%s" rel="nofollow">Google Video %s</a></div>%s' % (id, link, id, rest)
+           '<a href="%s" rel="nofollow">Google Video %s</a></div>%s' % (
+               id, link, id, rest)
 
 
 def videolinks(s):
@@ -274,7 +279,8 @@ def __sm_googlemaps(m):
         geolat = float(ll[0])
         geolng = float(ll[1])
         return '<div class="geo"><a href="%s" class="map"><span class="latitude">%.10f</span> ' \
-               '<span class="longitude">%.10f</span></a></div>%s' % (link, geolat, geolng, rest)
+               '<span class="longitude">%.10f</span></a></div>%s' % (
+                   link, geolat, geolng, rest)
     else:
         return link
 
