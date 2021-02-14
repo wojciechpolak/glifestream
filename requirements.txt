@@ -2,7 +2,8 @@ Django ==1.11.*
 django-pipeline ==1.6.*
 mysqlclient ==1.4.*
 feedparser ==5.1.*
-Pillow ==6.2.*
+Pillow ==6.2.*; python_version < '3.0'
+Pillow ==7.1.*; python_version >= '3.0'
 workerpool ==0.9.*
 python-memcached ==1.54
 python-openid ==2.2.*; python_version < '3.0'
