@@ -101,10 +101,6 @@ ROOT_URLCONF = 'glifestream.urls'
 
 WSGI_APPLICATION = 'glifestream.wsgi.application'
 
-TEMPLATE_DIRS = (
-    os.path.join(SITE_ROOT, 'templates'),
-)
-
 INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
