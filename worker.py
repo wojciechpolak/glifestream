@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  gLifestream Copyright (C) 2009, 2010, 2014, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014, 2015, 2021 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -24,9 +24,6 @@ import time
 import django
 from django.conf import settings
 from django.utils.six.moves import range, input
-from glifestream.stream import media, pshb
-from glifestream.stream.models import Service, Entry, Favorite
-from glifestream.utils.time import unixnow
 
 try:
     import workerpool
@@ -39,6 +36,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
 if hasattr(django, 'setup'):
     django.setup()
 
+from glifestream.stream import media, pshb
+from glifestream.stream.models import Service, Entry, Favorite
+from glifestream.utils.time import unixnow
 
 if workerpool:
     class WorkerJob(workerpool.Job):
@@ -307,7 +307,7 @@ Make sure that 'static/thumbs/*' and 'static/upload' directories exist
 and all have write permissions by your webserver.
 """)
 
-    template_dir = settings.TEMPLATE_DIRS[0]
+    template_dir = settings.TEMPLATES[0]['DIRS'][0]
     template_files = (
         'user-about.html',
         'user-copyright.html',
