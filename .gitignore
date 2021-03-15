@@ -1,3 +1,4 @@
+.DS_Store
 *~
 *.pyc
 *.pyo
@@ -13,5 +14,6 @@ lib/
 lib64
 media/
 static/
-settings.py
+settings.py*
 glifestream/templates/user-*
+db/
