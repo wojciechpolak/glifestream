@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2021 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -92,8 +92,15 @@ class API:
             else:
                 guid = 'tag:youtube.com,2008:video:%s' % vid
 
-            t = datetime.datetime.strptime(snippet['publishedAt'],
-                                           '%Y-%m-%dT%H:%M:%S.000Z')
+            if not guid.endswith('='):  # old YT GUID
+                guid += '='  # FIXME: add it again to prevent duplicates
+
+            try:
+                t = datetime.datetime.strptime(snippet['publishedAt'],
+                                               '%Y-%m-%dT%H:%M:%SZ')
+            except ValueError:
+                t = datetime.datetime.strptime(snippet['publishedAt'],
+                                               '%Y-%m-%dT%H:%M:%S.000Z')
 
             if self.verbose:
                 print("ID: %s" % guid)
@@ -113,7 +120,7 @@ class API:
             e.date_updated = t
             e.author_name = snippet['channelTitle']
 
-            if vid and 'thumbnails' in snippet:
+            if vid and 'thumbnails' in snippet and 'default' in snippet['thumbnails']:
                 tn = None
                 if 'medium' in snippet['thumbnails']:
                     tn = snippet['thumbnails']['medium']

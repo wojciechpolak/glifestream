@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2021 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -81,7 +81,7 @@ class API:
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and e.date_updated \
-                        and mtime(ent['date']) <= e.date_updated:
+                        and mtime(ent['liked_on']) <= e.date_updated:
                     continue
                 if e.protected:
                     continue
