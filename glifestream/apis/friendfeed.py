@@ -13,139 +13,19 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import re
-import datetime
-from django.utils.html import strip_tags
-from glifestream.filters import truncate
-from glifestream.gauth import gls_oauth
-from glifestream.utils.time import mtime, now
-from glifestream.utils.html import bytes_to_human, strip_entities
-from glifestream.stream.models import Entry
-from glifestream.stream import media
-
-OAUTH_REQUEST_TOKEN_URL = 'https://friendfeed.com/account/oauth/request_token'
-OAUTH_AUTHORIZE_URL = 'https://friendfeed.com/account/oauth/authorize'
-OAUTH_ACCESS_TOKEN_URL = 'https://friendfeed.com/account/oauth/access_token'
-
-
 class API:
-    name = 'FriendFeed API v2'
+    name = 'FriendFeed API v2 (defunct)'
     limit_sec = 180
 
     def __init__(self, service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
-        self.force_overwrite = force_overwrite
+        self.force_overwrite = False
         if self.verbose:
             print('%s: %s' % (self.name, self.service))
 
     def get_urls(self):
-        if self.service.url:
-            return ('http://friendfeed.com/%s?format=atom' % self.service.url,)
         return ()
 
     def run(self):
-        if not self.service.url:
-            self.service.link = 'http://friendfeed.com/'
-            self.fetch('/v2/feed/home?fof=1&num=50')
-        elif not self.service.last_checked:
-            self.service.link = 'http://friendfeed.com/%s' % self.service.url
-            self.fetch('/v2/feed/%s?num=250' % self.service.url)
-        else:
-            self.fetch('/v2/feed/%s' % self.service.url)
-
-    def fetch(self, url):
-        try:
-            oauth = gls_oauth.OAuth1Client(self.service)
-            r = oauth.consumer.get('http://friendfeed-api.com' + url)
-            if r.status_code == 200:
-                self.json = r.json()
-                self.service.last_checked = now()
-                self.service.save()
-                self.process()
-            elif self.verbose:
-                print('%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason))
-        except Exception as e:
-            if self.verbose:
-                import sys
-                import traceback
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
-                traceback.print_exc(file=sys.stdout)
-
-    def process(self):
-        for ent in self.json['entries']:
-            id = ent['id'][2:]
-            uuid = '%s-%s-%s-%s-%s' % (id[0:8], id[8:12], id[12:16],
-                                       id[16:20], id[20:])
-            guid = 'tag:friendfeed.com,2007:%s' % uuid
-            if self.verbose:
-                print("ID: %s" % guid)
-
-            t = datetime.datetime.strptime(ent['date'], '%Y-%m-%dT%H:%M:%SZ')
-            try:
-                e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and \
-                   e.date_updated and mtime(t.timetuple()) <= e.date_updated:
-                    continue
-                if e.protected:
-                    continue
-            except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=guid)
-
-            e.guid = guid
-            e.title = truncate.smart(
-                strip_entities(strip_tags(ent['body'])),
-                max_length=40)
-            e.link = ent['url']
-            image_url = 'http://friendfeed-api.com/v2/picture/%s' % ent[
-                'from']['id']
-            e.link_image = media.save_image(image_url, direct_image=False)
-
-            e.date_published = t
-            e.date_updated = t
-            e.author_name = ent['from']['name']
-
-            content = ent['body']
-            if 'thumbnails' in ent:
-                content += '<p class="thumbnails">'
-                for t in ent['thumbnails']:
-                    if self.service.public:
-                        t['url'] = media.save_image(t['url'])
-                    if 'width' in t and 'height' in t:
-                        iwh = ' width="%d" height="%d"' % (t['width'],
-                                                           t['height'])
-                    else:
-                        iwh = ''
-
-                    if 'friendfeed.com/e/' in t['link'] and \
-                       ('youtube.com' in t['url'] or 'ytimg.com' in t['url']):
-                        m = re.search(r'/vi/([\-\w]+)/', t['url'])
-                        yid = m.groups()[0] if m else None
-                        if yid:
-                            t['link'] = 'http://www.youtube.com/watch?v=%s' % yid
-
-                    content += '<a href="%s" rel="nofollow"><img src="%s"%s alt="thumbnail" /></a> ' % (
-                        t['link'], t['url'], iwh)
-                content += '</p>'
-
-            if 'files' in ent:
-                content += '<ul class="files">\n'
-                for f in ent['files']:
-                    if 'friendfeed-media' in f['url']:
-                        content += '  <li><a href="%s" rel="nofollow">%s</a>' % (
-                            f['url'], f['name'])
-                        if 'size' in f:
-                            content += ' <span class="size">%s</span>' % bytes_to_human(
-                                f['size'])
-                        content += '</li>\n'
-                content += '</ul>\n'
-
-            e.content = content
-
-            try:
-                e.save()
-                media.extract_and_register(e)
-            except:
-                pass
+        pass
