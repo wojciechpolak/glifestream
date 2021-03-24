@@ -103,9 +103,9 @@ input[type="search"] {
   padding: 4px;
   margin: 6px 3px 0 0;
   color: #669933;
-}
-#navtop .text {
-  color: #333;
+  .text {
+    color: #333;
+  }
 }
 
 #head {
@@ -114,15 +114,19 @@ input[type="search"] {
   margin: 0 0 0 auto;
   text-align: left;
   position: relative;
+  h1 {
+    display: inline;
+    position: absolute;
+    margin: 43px 0 0 20px;
+    padding: 4px 7px 4px 7px;
+    a {
+      color: #333;
+      &:hover {
+        text-decoration: none;
+      }
+    }
+  }
 }
-#head h1 {
-  display: inline;
-  position: absolute;
-  margin: 43px 0 0 20px;
-  padding: 4px 7px 4px 7px;
-}
-#head h1 a { color: #333; }
-#head h1 a:hover { text-decoration: none; }
 
 #sidebar {
   font-size: 95%;

@@ -153,6 +153,8 @@ PIPELINE = {
     'DISABLE_WRAPPER': True,
     'JS_COMPRESSOR': None,
     'CSS_COMPRESSOR': None,
+    'COMPILERS': ('pipeline.compilers.sass.SASSCompiler',),
+    'SASS_BINARY': 'sassc',
     'JAVASCRIPT': {
         'main': {
             'source_filenames': (
@@ -167,7 +169,15 @@ PIPELINE = {
             ),
             'output_filename': 'js/tinymce.js',
         }
-    }
+    },
+    'STYLESHEETS': {
+        'default': {
+            'source_filenames': (
+                'themes/default/style.scss',
+            ),
+            'output_filename': 'themes/default/style.css',
+        },
+    },
 }
 
 # A sample logging configuration. The only tangible logging
