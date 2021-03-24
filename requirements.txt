@@ -6,8 +6,6 @@ Pillow ==7.1.*; python_version >= '3.0'
 workerpool ==0.9.*
 python-memcached ==1.54; python_version < '3.0'
 python3-memcached ==1.51; python_version >= '3.0'
-python-openid ==2.2.*; python_version < '3.0'
-python3-openid ==3.1.*; python_version >= '3.0'
 requests-oauthlib ==0.4.*
 beautifulsoup4 ==4.3.*
 Markdown ==2.6.*

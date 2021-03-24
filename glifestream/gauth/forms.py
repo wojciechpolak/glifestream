@@ -22,11 +22,3 @@ class AuthenticationRememberMeForm (AuthenticationForm):
     remember_me = forms.BooleanField(label=_('Remember Me'),
                                      initial=False,
                                      required=False)
-
-
-class OpenIdForm (forms.Form):
-    openid_identifier = forms.CharField(label=_('OpenID'),
-                                        max_length=128)
-    remember_me = forms.BooleanField(label=_('Remember Me'),
-                                     initial=False,
-                                     required=False)

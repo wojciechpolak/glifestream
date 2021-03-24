@@ -18,6 +18,4 @@ from glifestream.gauth import views
 
 urlpatterns = [
     url(r'login-friend$', views.login_friend, name='login-friend'),
-    url(r'xrds$', views.xrds, name='xrds'),
-    url(r'openid$', views.openid, name='openid'),
 ]

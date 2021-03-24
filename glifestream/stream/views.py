@@ -452,8 +452,6 @@ def index(request, **args):
                                   'has_search': search_enable,
                                   'is_secure': request.is_secure(),
                                   'user': request.user})
-        res['X-XRDS-Location'] = request.build_absolute_uri(
-            urlresolvers.reverse('xrds'))
         return res
 
 

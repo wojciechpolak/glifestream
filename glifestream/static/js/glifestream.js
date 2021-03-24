@@ -984,22 +984,6 @@
             form.submit();
             return false;
         });
-        $('#openid_identifiers a').click(function() {
-            if (!confirm(_('Are you sure?'))) {
-                return false;
-            }
-            var id = parse_id(this.id)[1];
-            var form = $('#oid-form');
-            $('#oid-form input[name=openid_identifier]')
-                .attr('disabled', 'disabled');
-            form.append(DCE('input', {
-                type: 'hidden',
-                name: 'delete',
-                value: id
-            }));
-            form.submit();
-            return false;
-        });
         $('#change-theme').click(change_theme);
     }
 

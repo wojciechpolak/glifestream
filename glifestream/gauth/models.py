@@ -45,19 +45,3 @@ class OAuthClient (models.Model):
 
     def __str__(self):
         return u'%s: %s' % (self.service, self.identifier)
-
-
-@python_2_unicode_compatible
-class OpenId (models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
-    identity = models.CharField(_('Identity'), max_length=128, null=False,
-                                blank=False)
-
-    class Meta:
-        verbose_name = 'OpenID'
-        verbose_name_plural = 'OpenID'
-        ordering = 'user',
-        unique_together = (('user', 'identity'),)
-
-    def __str__(self):
-        return u'%s: %s' % (self.user, self.identity)

@@ -17,7 +17,6 @@ import re
 import json
 from django.conf import settings
 from django.core import urlresolvers
-from django.db import IntegrityError
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -28,8 +27,7 @@ from django.utils import six
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service, List
-from glifestream.gauth import gls_oauth, gls_openid
-from glifestream.gauth.models import OpenId
+from glifestream.gauth import gls_oauth
 from glifestream.stream import pshb as gls_pshb
 from glifestream.apis import API_LIST
 from glifestream.utils import common
@@ -171,57 +169,6 @@ def pshb(request, **args):
                                             'user': request.user,
                                             'services': services,
                                             'subs': subs})
-
-
-@login_required
-def openid(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
-    if not authed:
-        return HttpResponseForbidden()
-
-    page = {
-        'robots': 'noindex',
-        'base_url': settings.BASE_URL,
-        'favicon': settings.FAVICON,
-        'themes': settings.THEMES,
-        'themes_more': True if len(settings.THEMES) > 1 else False,
-        'theme': common.get_theme(request),
-        'title': _('OpenID - Settings'),
-        'menu': 'openid',
-    }
-
-    openid_url = request.POST.get('openid_identifier', None)
-    if openid_url:
-        rs = gls_openid.start(request, openid_url)
-        if 'res' in rs:
-            return rs['res']
-        elif 'msg' in rs:
-            page['msg'] = rs['msg']
-
-    elif request.GET.get('openid.mode', None):
-        rs = gls_openid.finish(request)
-        if 'identity_url' in rs:
-            try:
-                db = OpenId(user=request.user, identity=rs['identity_url'])
-                db.save()
-                return HttpResponseRedirect(urlresolvers.reverse('usettings-openid'))
-            except IntegrityError:
-                pass
-        elif 'msg' in rs:
-            page['msg'] = rs['msg']
-
-    elif request.POST.get('delete', None):
-        try:
-            OpenId(user=request.user,
-                   id=int(request.POST.get('delete'))).delete()
-        except:
-            pass
-
-    ids = OpenId.objects.filter(user=request.user).order_by('identity')
-    return render_to_response('oid.html', {'page': page, 'authed': authed,
-                                           'is_secure': request.is_secure(),
-                                           'user': request.user,
-                                           'openids': ids})
 
 
 @login_required

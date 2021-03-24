@@ -19,13 +19,10 @@ from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
-from glifestream.gauth import gls_openid
-from glifestream.gauth.forms import OpenIdForm, AuthenticationRememberMeForm
-from glifestream.gauth.models import OpenId
+from glifestream.gauth.forms import AuthenticationRememberMeForm
 from glifestream.utils import common
 
 try:
@@ -129,100 +126,3 @@ def login_friend(request, template_name='registration/login.html',
             return HttpResponseRedirect(redirect_to)
 
     return HttpResponseRedirect(redirect_to)
-
-
-@never_cache
-def xrds(request, **args):
-    xrds_tpl = """<?xml version="1.0" encoding="UTF-8"?>
-<xrds:XRDS
-    xmlns:xrds="xri://$xrds"
-    xmlns:openid="http://openid.net/xmlns/1.0"
-    xmlns="xri://$xrd*($v*2.0)">
-  <XRD>
-    <Service priority="1">
-      <Type>http://specs.openid.net/auth/2.0/return_to</Type>
-      <URI priority="1">%s</URI>
-      <URI priority="2">%s</URI>
-    </Service>
-  </XRD>
-</xrds:XRDS>
-"""
-    body = xrds_tpl % (request.build_absolute_uri('openid'),
-                       request.build_absolute_uri(
-                           urlresolvers.reverse('usettings-openid')))
-    res = HttpResponse(body, content_type='application/xrds+xml')
-    res['X-Robots-Tag'] = 'noindex'
-    return res
-
-
-@never_cache
-def openid(request, template_name='openid.html',
-           redirect_field_name=REDIRECT_FIELD_NAME):
-    msg = None
-    redirect_to = urlresolvers.reverse('index')
-    if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
-        redirect_to = settings.BASE_URL + '/'
-
-    if not gls_openid.openid:
-        return HttpResponseRedirect(redirect_to)
-
-    if request.method == 'POST':
-        form = OpenIdForm(data=request.POST,)
-        if form.is_valid():
-            if not form.cleaned_data['remember_me']:
-                request.session.set_expiry(0)
-
-            rs = gls_openid.start(request,
-                                  form.cleaned_data['openid_identifier'])
-            if 'res' in rs:
-                return rs['res']
-            elif 'msg' in rs:
-                msg = rs['msg']
-        else:
-            msg = _('Invalid OpenID identifier')
-
-    elif request.method == 'GET':
-
-        if request.GET.get('openid.mode', None):
-            rs = gls_openid.finish(request)
-            if 'msg' in rs:
-                msg = rs['msg']
-            elif 'identity_url' in rs:
-                try:
-                    db = OpenId.objects.get(identity=rs['identity_url'])
-                    if db:
-                        user = db.user
-                        user.backend = 'django.contrib.auth.backends.ModelBackend'
-                        if user.is_active:
-                            from django.contrib.auth import login
-                            login(request, user)
-
-                            if request.session.test_cookie_worked():
-                                request.session.delete_test_cookie()
-                            return HttpResponseRedirect(redirect_to)
-                except OpenId.DoesNotExist:
-                    pass
-                msg = _('OpenID account match error')
-
-    form = OpenIdForm(request,)
-    request.session.set_test_cookie()
-
-    if Site._meta.installed:
-        current_site = Site.objects.get_current()
-    else:
-        current_site = RequestSite(request)
-
-    page = {
-        'robots': 'noindex,nofollow',
-        'favicon': settings.FAVICON,
-        'theme': common.get_theme(request),
-        'msg': msg,
-    }
-
-    return render(request, template_name,
-                  {'page': page,
-                   'form': form,
-                   'site': current_site,
-                   'site_name': current_site.name,
-                   'is_secure': request.is_secure(),
-                   redirect_field_name: redirect_to})

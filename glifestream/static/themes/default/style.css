@@ -750,15 +750,6 @@ ul.files {
   width: 240px;
   padding: 4px;
 }
-#openid_identifier {
-  font-size: 20px;
-  width: 230px;
-  background: url(icons/openid.png) no-repeat;
-  background-color: #fff;
-  background-position: 0 50%;
-  color: #000;
-  padding-left: 18px !important;
-}
 
 .http-error {
   font-weight: bold;
@@ -803,7 +794,7 @@ ul.files {
 }
 #calendar a:link,
 #calendar a:visited {
-  color: #8787f8;  
+  color: #8787f8;
 }
 #calendar .view-month {
   border-bottom: 1px dotted;
@@ -927,9 +918,6 @@ fieldset .hint {
   padding: 2px;
 }
 #settings fieldset a,
-#openid_identifiers a {
-  font-size: 95%;
-}
 #edit-service li {
   line-height: 140%;
 }

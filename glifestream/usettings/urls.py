@@ -30,7 +30,6 @@ urlpatterns = [
     url(r'lists/(?P<list>[a-z0-9\-]+)$',
         views.lists, name='usettings-lists-slug'),
     url(r'pshb$', views.pshb, name='usettings-pshb'),
-    url(r'openid$', views.openid, name='usettings-openid'),
     url(r'tools$', views.tools, name='usettings-tools'),
     url(r'oauth/(?P<id>[0-9]+)$', views.oauth, name='usettings-oauth'),
 ]
