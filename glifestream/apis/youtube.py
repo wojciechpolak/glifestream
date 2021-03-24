@@ -92,9 +92,6 @@ class API:
             else:
                 guid = 'tag:youtube.com,2008:video:%s' % vid
 
-            if not guid.endswith('='):  # old YT GUID
-                guid += '='  # FIXME: add it again to prevent duplicates
-
             try:
                 t = datetime.datetime.strptime(snippet['publishedAt'],
                                                '%Y-%m-%dT%H:%M:%SZ')
