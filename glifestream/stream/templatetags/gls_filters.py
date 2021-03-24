@@ -15,6 +15,7 @@
 
 import calendar
 import datetime
+import json
 import time
 import math
 import re
@@ -29,11 +30,6 @@ from glifestream.apis import *
 from glifestream.stream import media
 from glifestream.utils.slugify import slugify
 from glifestream.utils.html import urlize as _urlize
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 register = template.Library()
 

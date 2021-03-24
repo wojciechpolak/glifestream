@@ -23,11 +23,6 @@ from glifestream.utils.html import bytes_to_human, strip_entities
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 OAUTH_REQUEST_TOKEN_URL = 'https://friendfeed.com/account/oauth/request_token'
 OAUTH_AUTHORIZE_URL = 'https://friendfeed.com/account/oauth/authorize'
 OAUTH_ACCESS_TOKEN_URL = 'https://friendfeed.com/account/oauth/access_token'

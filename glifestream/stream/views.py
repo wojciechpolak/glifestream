@@ -13,6 +13,7 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 import time
 import datetime
 from django.conf import settings
@@ -39,11 +40,6 @@ from glifestream.stream import media, pshb
 from glifestream.utils import common
 from glifestream.utils.time import pn_month_start
 from glifestream.apis import API_LIST, selfposts
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 
 @never_cache

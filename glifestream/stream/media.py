@@ -15,6 +15,7 @@
 
 import os
 import re
+import json
 import hashlib
 import tempfile
 import time
@@ -24,11 +25,6 @@ from django.utils import six
 from django.utils.encoding import force_bytes
 from glifestream.stream.models import Media
 from glifestream.utils import httpclient
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 try:
     from PIL import Image

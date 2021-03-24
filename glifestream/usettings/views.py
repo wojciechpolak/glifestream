@@ -14,6 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+import json
 from django.conf import settings
 from django.core import urlresolvers
 from django.db import IntegrityError
@@ -32,11 +33,6 @@ from glifestream.gauth.models import OpenId
 from glifestream.stream import pshb as gls_pshb
 from glifestream.apis import API_LIST
 from glifestream.utils import common
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
 
 
 @login_required
