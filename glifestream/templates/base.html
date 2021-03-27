@@ -28,8 +28,7 @@
     {% if user.is_staff %}<a href="{% url 'settings' %}">{% trans "Settings" %}</a> |{% endif %}
     <a href="{% url 'logout' %}">{% trans "Logout" %}</a>
     {% else %}
-    {% if friend %}<span class="text">{% trans "Hello" %}
-    <a href="{{ user.fb_profile_url }}" target="_blank"><b>{{ user.fb_username }}</b></a></span> |
+    {% if friend %}<span class="text">{% trans "Hello" %}</span> |
     <a href="{% url 'logout' %}">{% trans "Logout" %}</a>
     {% else %}
     {% if page.login_url %}<a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>{% endif %}
@@ -49,16 +48,6 @@
 </footer>
 
 {% include "user-scripts.js" %}
-
-{% if page.need_fbc %}
-<div id="fb-root"></div>
-<script type="text/javascript" src="https://connect.facebook.net/en_US/all.js"></script>
-<script type="text/javascript">
-function fb_login_friend () { window.location = '{% url "gauth.views.login_friend" %}'; }
-$(document).ready (function () {
-  FB.init ({appId: '{{ page.fb_app_id }}', status: true, cookie: true, xfbml: true});
-});
-</script>{% endif %}
 
 <script type="text/javascript">
 var settings = {

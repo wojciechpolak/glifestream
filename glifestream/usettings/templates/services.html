@@ -40,13 +40,4 @@
     <fieldset class="aligned"></fieldset>
   </form>
 
-  <div id="fb-root"></div>
-  <script type="text/javascript">
-    window.fbAsyncInit = function () {
-      try {
-        FB.init ({appId: '{{ page.fb_app_id }}'});
-      } catch (e) {}
-    };
-  </script>
-  <script type="text/javascript" src="http://connect.facebook.net/en_US/all.js"></script>
 {% endblock settings %}

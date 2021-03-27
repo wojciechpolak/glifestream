@@ -65,7 +65,6 @@ urlpatterns = [
     url(r'^login/?$', login, name='login'),
     url(r'^logout/?$', logout, {'next_page': './'}, name='logout'),
 
-    url(r'^auth/', include('glifestream.gauth.urls')),
     url(r'^bookmarklet/', include(
         'glifestream.bookmarklet.urls')),
     url(r'^settings/', include('glifestream.usettings.urls')),

@@ -45,7 +45,6 @@ def services(request, **args):
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
-        'fb_app_id': settings.FACEBOOK_APP_ID,
         'themes_more': True if len(settings.THEMES) > 1 else False,
         'theme': common.get_theme(request),
         'title': _('Services - Settings'),
@@ -551,12 +550,6 @@ def api(request, **args):
             s['fields'].append({'type': 'password', 'name': 'basic_pass',
                                 'value': '', 'label': _('Basic password'),
                                 'deps': {'auth': 'basic'}})
-
-        if s['api'] == 'fb':
-            s['fields'].append({'type': 'text', 'name': 'access_token',
-                                'value': s['creds'],
-                                'label': _('Access token')})
-            s['need_fb_accesstoken'] = _('get')
 
         if s['api'] in ('webfeed', 'flickr', 'youtube', 'vimeo'):
             s['fields'].append({'type': 'select', 'name': 'display',

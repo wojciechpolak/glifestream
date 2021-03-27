@@ -16,7 +16,7 @@
  */
 
 /*jshint indent: 4, white: true, browser: true */
-/*global $, FB, tinymce, settings, gettext_msg, stream_data */
+/*global $, tinymce, settings, gettext_msg, stream_data */
 
 (function() {
     function parse_id(id) {
@@ -1148,21 +1148,13 @@
                     }, [f.hint]);
                 }
 
-                var alink = false;
-                if (data['need_fb_accesstoken'] && f.name === 'access_token') {
-                    alink = DCE('span', {}, [' ', DCE('a', {
-                        href: '#',
-                        onclick: fb_get_access_token
-                    }, [data['need_fb_accesstoken']])]);
-                }
-
                 var miss = f.miss ? 'missing' : '';
                 var row = DCE('div', {
                     className: 'form-row'
                 }, [DCE('label', {
                     htmlFor: f.name,
                     className: miss
-                }, [f.label]), hint, obj, alink]);
+                }, [f.label]), hint, obj, false]);
                 if (f.deps) {
                     for (var name in f.deps) {
                         if (!settings_deps[name]) {
@@ -1216,27 +1208,6 @@
             }
         }
         return form;
-    }
-
-    function fb_get_access_token() {
-        FB.login(fb_handle_session, {
-            perms: 'offline_access,read_stream'
-        });
-        return false;
-    }
-
-    function fb_handle_session(res) {
-        if (!res.session || !res.perms) {
-            return;
-        }
-        if (res.perms) {
-            if (res.perms.indexOf('read_stream') !== -1 &&
-                res.perms.indexOf('offline_access') !== -1 &&
-                res.session['expires'] === 0) {
-                $('#settings input[name=access_token]')
-                    .val(res.session['access_token']);
-            }
-        }
     }
 
     function oauth_configure(id) {
@@ -1732,8 +1703,6 @@
         'ustream': '<iframe width="560" height="341" src="http://www.ustream.tv/embed/recorded/{ID}" scrolling="no" frameborder="0"></iframe>',
         'dailymotion': '<iframe width="560" height="315" src="http://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',
         'metacafe': '<object type="application/x-shockwave-flash" width="400" height="348" data="http://www.metacafe.com/fplayer/{ID}/video.swf"><param name="movie" value="http://www.metacafe.com/fplayer/{ID}/video.swf"/><param name="name" value="Metacafe_{ID}"/><param name="flashvars" value="playerVars=showStats=no|autoPlay=yes"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
-        'twitvid': '<iframe width="480" height="360" src="http://www.twitvid.com/embed.php?guid={ID}&autoplay=1" frameborder="0"></iframe>',
-        'facebook': '<object type="application/x-shockwave-flash" width="560" height="315" data="https://www.facebook.com/v/{ID}"><param name="movie" value="https://www.facebook.com/v/{ID}"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
-        'googlevideo': '<object type="application/x-shockwave-flash" width="400" height="326" data="http://video.google.com/googleplayer.swf?docid={ID}&fs=true"><param name="movie" value="http://video.google.com/googleplayer.swf?docid={ID}&fs=true"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>'
+        'twitvid': '<iframe width="480" height="360" src="http://www.twitvid.com/embed.php?guid={ID}&autoplay=1" frameborder="0"></iframe>'
     };
 })();

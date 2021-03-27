@@ -14,7 +14,6 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 __all__ = (
-    'fb',
     'flickr',
     'friendfeed',
     'mail',
@@ -29,7 +28,6 @@ API_LIST = (
     ('selfposts',   'Self Posts'),
     ('webfeed',     'Webfeed'),
     ('twitter',     'Twitter'),
-    ('fb',          'Facebook'),
     ('youtube',     'YouTube'),
     ('vimeo',       'Vimeo'),
     ('flickr',      'Flickr'),

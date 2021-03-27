@@ -9,10 +9,9 @@ Introduction
 
 gLifestream joins several external and/or internal streams into a
 single one.  External streams may be represented by RSS/Atom channels
-or popular services such as Twitter or Facebook.  The user decides
-which of them are publicly visible and which are not.  Public streams
-are visible for anybody.  The rest of streams are visible only for
-logged in users.
+or popular services such as Twitter.  The user decides which of them
+are publicly visible and which are not.  Public streams are visible
+for anybody.  The rest of streams are visible only for logged in users.
 
 The gLifestream software requires an HTTP server capable of running
 Django applications and a database supported by it.  Data from the
@@ -27,7 +26,7 @@ To install gLifestream read the INSTALL file.
 Supported services (out of the box)
 -----------------------------------
 
-Any RSS/Atom feed, Facebook, Flickr, Twitter, Vimeo, YouTube.
+Any RSS/Atom feed, Flickr, Twitter, Vimeo, YouTube.
 
 Any service not listed above can be added as an RSS/Atom stream (if it
 provides such feeds) or by extending gLifestream and writing custom
@@ -44,7 +43,6 @@ Features
 - Embedded multimedia views
 - Out of the box output formats: HTML5, Atom, JSON
 - Search functionality
-- Friends-only entries (via Facebook Connect)
 - PubSubHubbub support (publisher and subscriber)
 - OAuth support
 - Write posts by web or e-mail (including media attachments)

@@ -60,7 +60,6 @@ def index(request, **args):
         'taguri': settings.FEED_TAGURI,
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
-        'fb_app_id': settings.FACEBOOK_APP_ID,
         'pshb_hubs': settings.PSHB_HUBS,
     }
     authed = request.user.is_authenticated() and request.user.is_staff
@@ -310,14 +309,13 @@ def index(request, **args):
     page['theme'] = common.get_theme(request)
 
     # Setup links.
-    page['need_fbc'] = False
     for entry in entries:
         entry.only_for_friends = entry.friends_only
 
         if authed or friend:
             entry.friends_only = False
         elif entry.friends_only:
-            page['need_fbc'] = True
+            pass  # FIXME: add friends-only support
 
         if not entry.friends_only:
             entry.gls_link = '%s/%s' % (urlresolvers.reverse('entry', args=[entry.id]),
@@ -436,10 +434,6 @@ def index(request, **args):
         for i, lang in enumerate(accept_lang):
             accept_lang[i] = lang.split(';')[0]
         page['lang'] = accept_lang[0]
-
-        request.user.fb_username = request.session.get('fb_username', '')
-        request.user.fb_profile_url = request.session.get(
-            'fb_profile_url', '')
 
         res = render_to_response('stream.html',
                                  {'classes': classes,

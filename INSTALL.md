@@ -31,12 +31,6 @@ Optional (but recommended):
 - Sphinx -- a free open-source SQL full-text search engine
   http://www.sphinxsearch.com/
 
-Optional:
-
-- Facebook Python SDK
-  https://github.com/pythonforfacebook/facebook-sdk
-
-
 Installation instructions
 =========================
 

@@ -6,275 +6,153 @@ msgid ""
 msgstr ""
 "Project-Id-Version: glifestream 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-07-08 17:07+0200\n"
+"POT-Creation-Date: 2021-03-27 09:10+0000\n"
 "PO-Revision-Date: 2010-07-08 17:07+0200\n"
-"Last-Translator: Wojciech Polak <polak@gnu.org>\n"
-"Language-Team: Polish <translation-team-pl@lists.sourceforge.net>\n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: apis/delicious.py:28
-#, python-format
-msgid "Bookmarked %s"
-msgstr "Link %s"
-
-#: apis/flickr.py:100
 msgid "Posted Photos"
 msgstr "Zdjęcia"
 
-#: apis/flickr.py:102
 msgid "Posted a Photo"
 msgstr "Zdjęcie"
 
-#: apis/greader.py:28
-#, python-format
-msgid "Shared %s"
-msgstr "Link %s"
-
-#: apis/lastfm.py:31
-#, python-format
-msgid "Listened to %s"
-msgstr "Utwór %s"
-
-#: apis/lastfm.py:35
-#, python-format
-msgid "Artist: %s"
-msgstr "Artysta: %s"
-
-#: apis/vimeo.py:173
 #, python-format
 msgid "Liked %s"
 msgstr "Wideo %s"
 
-#: apis/vimeo.py:175 apis/youtube.py:55
 #, python-format
 msgid "Published %s"
 msgstr "Wideo %s"
 
-#: apis/yelp.py:34
-#, python-format
-msgid "Reviewed %s"
-msgstr "Recenzja %s"
-
-#: apis/yelp.py:38
-msgid "more"
-msgstr "więcej"
-
-#: apis/youtube.py:49
-msgid "NO VIDEO"
-msgstr "BRAK WIDEO"
-
-#: apis/youtube.py:53
 #, python-format
 msgid "Favorited %s"
 msgstr "Wideo %s"
 
-#: bookmarklet/templates/frame.html:32
 msgid "Share this web page at your Stream!"
 msgstr "Podziel się tą stroną!"
 
-#: bookmarklet/templates/frame.html:35 usettings/templates/oauth.html:73
 msgid "Close"
 msgstr "Zamknij"
 
-#: bookmarklet/templates/frame.html:52
 msgid "Click on images to share them."
 msgstr "Kliknij obrazki aby je dodać."
 
-#: bookmarklet/templates/frame.html:54 templates/stream.html:52
 msgid "Class:"
 msgstr "Klasa:"
 
-#: bookmarklet/templates/frame.html:58 templates/stream.html:53
 msgid "Post"
 msgstr "Publikuj"
 
-#: bookmarklet/templates/frame.html:66 templates/stream.html:54
 msgid "more options"
 msgstr "więcej opcji"
 
-#: bookmarklet/templates/frame.html:68 templates/stream.html:57
 msgid "Mark as draft:"
 msgstr "Oznacz jako szkic:"
 
-#: bookmarklet/templates/frame.html:70 templates/stream.html:59
 msgid "Only visible to friends:"
 msgstr "Widoczny tylko dla przyjaciół:"
 
-#: bookmarklet/templates/frame.html:215
 msgid "Click to remove"
 msgstr "Kliknij aby usunąć"
 
-#: gauth/forms.py:21 gauth/forms.py:28 gauth/templates/login.html:22
-#: gauth/templates/openid.html:17
 msgid "Remember Me"
 msgstr "Zapamiętaj mnie"
 
-#: gauth/forms.py:26 gauth/templates/openid.html:11
-#: usettings/templates/oid.html:21 usettings/templates/settings.html:10
-msgid "OpenID"
-msgstr "OpenID"
-
-#: gauth/gls_oauth.py:81
 msgid "Request token URL not set."
 msgstr "Adres Request token nie został ustawiony."
 
-#: gauth/gls_oauth.py:93 gauth/gls_oauth.py:124
-#, python-format
-msgid "Invalid response %s."
-msgstr "Nieprawidłowa odpowiedź %s."
-
-#: gauth/gls_oauth.py:102 gauth/gls_oauth.py:134
 msgid "Invalid OAuth response. No tokens found."
 msgstr "Nieprawidłowa odpowiedź OAuth. Nie znaleziono żetonów."
 
-#: gauth/gls_openid.py:36
-msgid "OpenID authentication failed"
-msgstr "Nieudana autentykacja OpenID"
-
-#: gauth/gls_openid.py:39
-#, python-format
-msgid "No OpenID services found for %s"
-msgstr "Nie znaleziono serwisów OpenID dla %s"
-
-#: gauth/gls_openid.py:63
-msgid "Verification cancelled"
-msgstr "Weryfikacja anulowana"
-
-#: gauth/gls_openid.py:65
-#, python-format
-msgid "OpenID authentication failed: %s"
-msgstr "Nieudana autentykacja OpenID: %s"
-
-#: gauth/models.py:22 stream/models.py:63 stream/models.py:77
-#: stream/models.py:178 usettings/templates/pshb.html:14
 msgid "Service"
 msgstr "Serwis"
 
-#: gauth/models.py:49
-msgid "Identity"
-msgstr "Tożsamość"
-
-#: gauth/views.py:177
-msgid "Invalid OpenID identifier"
-msgstr "Nieprawidłowy identyfikator OpenID"
-
-#: gauth/views.py:200
-msgid "OpenID account match error"
-msgstr "Błąd dopasowania konta OpenID"
-
-#: gauth/templates/login.html:8
 msgid "Invalid username or password"
 msgstr "Nieprawidłowa nazwa użytkownika lub hasło"
 
-#: gauth/templates/login.html:11
 msgid "Username"
 msgstr "Nazwa użytkownika"
 
-#: gauth/templates/login.html:16
 msgid "Password"
 msgstr "Hasło"
 
-#: gauth/templates/login.html:26 gauth/templates/openid.html:21
 msgid "Log In"
 msgstr "Zaloguj"
 
-#: stream/admin.py:27
 msgid "Deactivate item"
 msgstr "Deaktywuj element"
 
-#: stream/admin.py:31
 msgid "Activate item"
 msgstr "Aktywuj element"
 
-#: stream/admin.py:42
 msgid "Additional, optional fields"
 msgstr "Dodatkowe, opcjonalne pola"
 
-#: stream/admin.py:45
 msgid "Fields updated automatically by gLifestream"
 msgstr "Pola aktualizowane automatycznie przez gLifestream"
 
-#: stream/admin.py:70
 msgid "Currently:"
 msgstr "Aktualnie:"
 
-#: stream/admin.py:70
 msgid "Change:"
 msgstr "Zmień:"
 
-#: stream/models.py:33
 msgid "API"
 msgstr "API"
 
-#: stream/models.py:35
 msgid "Custom CSS Class"
 msgstr "Wybrana klasa CSS"
 
-#: stream/models.py:37
 msgid "URL or Username"
 msgstr "URL lub nazwa użytkownika"
 
-#: stream/models.py:38
 msgid "Credentials"
 msgstr "Dane uwierzytelniające"
 
-#: stream/models.py:40 usettings/views.py:546
 msgid "Short name"
 msgstr "Skrócona nazwa"
 
-#: stream/models.py:41
 msgid "WWW Link"
 msgstr "Link WWW"
 
-#: stream/models.py:43
 msgid "Last modified"
 msgstr "Ostatnia modyfikacja"
 
-#: stream/models.py:45
 msgid "Last checked"
 msgstr "Ostatnio sprawdzane"
 
-#: stream/models.py:48 usettings/views.py:612
 msgid "Title and Contents"
 msgstr "Tytuł i treść"
 
-#: stream/models.py:49 usettings/views.py:613
 msgid "Contents only"
 msgstr "Tylko treść"
 
-#: stream/models.py:50 usettings/views.py:614
 msgid "Title only"
 msgstr "Tylko tytuł"
 
-#: stream/models.py:52 usettings/views.py:616
 msgid "Display entries'"
 msgstr "Wyświetlanie wpisów"
 
-#: stream/models.py:55 templates/base.html:26 usettings/views.py:619
 msgid "Public"
 msgstr "Publiczne"
 
-#: stream/models.py:56 usettings/views.py:620
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
 
-#: stream/models.py:57 stream/models.py:104 usettings/views.py:628
 msgid "Active"
 msgstr "Aktywny"
 
-#: stream/models.py:58 usettings/views.py:629
 msgid "If not active, this service will not be further updated."
 msgstr "Nieaktywny nie będzie okresowo aktualizowany."
 
-#: stream/models.py:59
 msgid "Home visible"
 msgstr "Widoczny na stronie głównej"
 
-#: stream/models.py:60 usettings/views.py:624
 msgid ""
 "If unchecked, this stream will be still active, but hidden and thus visible "
 "only via custom lists."
@@ -282,177 +160,105 @@ msgstr ""
 "Gdy nie jest zaznaczony, ten strumień będzie wciąż aktywny, ale ukryty i "
 "widoczny jedynie za pomocą List."
 
-#: stream/models.py:64 usettings/templates/settings.html:7
 msgid "Services"
 msgstr "Serwisy"
 
-#: stream/models.py:79
 msgid "Title"
 msgstr "Tytuł"
 
-#: stream/models.py:80
 msgid "Link"
 msgstr "Link"
 
-#: stream/models.py:81
 msgid "Image Link"
 msgstr "Link do obrazu"
 
-#: stream/models.py:82
 msgid "Contents"
 msgstr "Treść"
 
-#: stream/models.py:83
 msgid "Date published"
 msgstr "Data publikacji"
 
-#: stream/models.py:86
 msgid "Date updated"
 msgstr "Data aktualizacji"
 
-#: stream/models.py:91
 msgid "Author's Name"
 msgstr "Autor"
 
-#: stream/models.py:93
 msgid "Author's Email"
 msgstr "Email autora"
 
-#: stream/models.py:94
 msgid "Author's URI"
 msgstr "URI autora"
 
-#: stream/models.py:96
 msgid "Geo Latitude"
 msgstr "Szerokość geograficzna"
 
-#: stream/models.py:98
 msgid "Geo Longitude"
 msgstr "Długość geograficzna"
 
-#: stream/models.py:102
 msgid "Protected"
 msgstr "Chroniony"
 
-#: stream/models.py:103
 msgid "Protect from possible overwriting by next update."
 msgstr "Chroni przed możliwym nadpisaniem przy kolejnej aktualizacji."
 
-#: stream/models.py:105
 msgid "If not active, this entry will not be shown."
 msgstr "Nieaktywny, ten wpis nie będzie wyświetlany."
 
-#: stream/models.py:106
 msgid "Draft"
 msgstr "Szkic"
 
-#: stream/models.py:107
 msgid "A draft is a post that is in progress. Only you will be able to see it."
 msgstr ""
 "Szkic jest nieukończonym wpisem w realizacji. Będzie on widoczny tylko dla "
 "Ciebie."
 
-#: stream/models.py:108 templates/stream-pure.html:30
 msgid "Friends-only"
 msgstr "Tylko dla przyjaciół"
 
-#: stream/models.py:109
 msgid "Entry will only be visible to you and your friends."
 msgstr "Wpis będzie widoczny tylko dla Ciebie i Twoich przyjaciół."
 
-#: stream/models.py:116 stream/models.py:126 stream/models.py:141
 msgid "Entry"
 msgstr "Wpis"
 
-#: stream/models.py:117
 msgid "Entries"
 msgstr "Wpisy"
 
-#: stream/models.py:131 stream/models.py:132
 msgid "Media"
 msgstr "Media"
 
-#: stream/models.py:146 templates/i18n.html:2 templates/stream-pure.html:38
 msgid "Favorite"
 msgstr "Lubię to"
 
-#: stream/models.py:147 stream/views.py:118
 msgid "Favorites"
 msgstr "Ulubione"
 
-#: stream/models.py:157
 msgid "Name"
 msgstr "Nazwa"
 
-#: stream/models.py:158
 msgid "Slug"
 msgstr "Slug"
 
-#: stream/models.py:163
 msgid "List"
 msgstr "Lista"
 
-#: stream/models.py:164 templates/stream.html:21
-#: usettings/templates/settings.html:8
 msgid "Lists"
 msgstr "Listy"
 
-#: stream/views.py:98
-#, python-format
-msgid "You are currently browsing the archive for %s"
-msgstr "Aktualnie przeglądasz archiwum dla %s"
+msgid "The content of this entry is available only to my friends."
+msgstr "Zawartość tego wpisu jest widoczna tylko dla moich przyjaciół."
 
-#: stream/views.py:119
-msgid "You are currently browsing your favorite entries"
-msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
-
-#: stream/views.py:131
-#, python-format
-msgid "You are currently browsing entries from %s list only."
-msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
-
-#: stream/views.py:155
-#, python-format
-msgid "You are currently browsing %s entries only."
-msgstr "Aktualnie przeglądasz tylko %s."
-
-#: stream/views.py:174
-#, python-format
-msgid "You are currently browsing entries from %s service only."
-msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
-
-#: stream/views.py:210
-#, python-format
-msgid "Your search for %s returned the following results."
-msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
-
-#: stream/views.py:495
-msgid "You've successfully shared this web page at your stream."
-msgstr "Strona została umieszczona na Twoim strumieniu."
-
-#: stream/templatetags/gls_filters.py:87
-msgid ""
-"The content of this entry is available only to my friends. If you are listed "
-"as my friend on Facebook, you may click Facebook Connect button to read it."
-msgstr ""
-"Zawartość tego wpisu jest widoczna tylko dla moich przyjaciół. Jeśli jesteś "
-"moim znajomym w serwisie Facebook, możesz kliknąć przycisk Facebook Connect, "
-"aby go przeczytać."
-
-#: stream/templatetags/gls_filters.py:93
 msgid "show map"
 msgstr "pokaż na mapie"
 
-#: stream/templatetags/gls_filters.py:134
 msgid "Yesterday"
 msgstr "Wczoraj"
 
-#: stream/templatetags/gls_filters.py:136
 #, python-format
 msgid "%d days ago"
 msgstr "%d dni temu"
 
-#: stream/templatetags/gls_filters.py:139
 #, python-format
 msgid "%(count)d hour ago"
 msgid_plural "%(count)d hours ago"
@@ -460,7 +266,6 @@ msgstr[0] "%(count)d godzinę temu"
 msgstr[1] "%(count)d godziny temu"
 msgstr[2] "%(count)d godzin temu"
 
-#: stream/templatetags/gls_filters.py:143
 #, python-format
 msgid "%(count)d minute ago"
 msgid_plural "%(count)d minutes ago"
@@ -468,439 +273,343 @@ msgstr[0] "%(count)d minutę temu"
 msgstr[1] "%(count)d minuty temu"
 msgstr[2] "%(count)d minut temu"
 
-#: templates/base.html:24 templates/base.html.py:30
+#, python-format
+msgid "You are currently browsing the archive for %s"
+msgstr "Aktualnie przeglądasz archiwum dla %s"
+
+msgid "You are currently browsing your favorite entries"
+msgstr "Aktualnie przeglądasz swoje ulubione wpisy"
+
+#, python-format
+msgid "You are currently browsing entries from %s list only."
+msgstr "Aktualnie przeglądasz tylko wpisy z listy %s."
+
+#, python-format
+msgid "You are currently browsing %s entries only."
+msgstr "Aktualnie przeglądasz tylko %s."
+
+#, python-format
+msgid "You are currently browsing entries from %s service only."
+msgstr "Aktualnie przeglądasz tylko wpisy z serwisu %s."
+
+#, python-format
+msgid "Your search for %s returned the following results."
+msgstr "Twoje wyszukiwanie dla %s zwróciło następujące wyniki."
+
+msgid "You've successfully shared this web page at your stream."
+msgstr "Strona została umieszczona na Twoim strumieniu."
+
 msgid "Hello"
 msgstr "Witaj"
 
-#: templates/base.html:25
 msgid "My private stream"
 msgstr "Mój prywatny strumień"
 
-#: templates/base.html:25 usettings/views.py:623
 msgid "Home"
 msgstr "Strona główna"
 
-#: templates/base.html:26
 msgid "My publicly visible stream"
 msgstr "Mój publicznie widziany strumień"
 
-#: templates/base.html:27
 msgid "Settings"
 msgstr "Ustawienia"
 
-#: templates/base.html:28 templates/base.html.py:32
 msgid "Logout"
 msgstr "Wyloguj"
 
-#: templates/base.html:34
 msgid "Login"
 msgstr "Zaloguj"
 
-#: templates/base.html:38
 msgid "The Stream"
 msgstr "Strumień"
 
-#: templates/base.html:46
 msgid "Powered by"
 msgstr "Zasilanie"
 
-#: templates/base.html:46
 msgid "A free and open source lifestream platform and social activity reader"
 msgstr ""
 "Wolna i otwarta platforma lifestream oraz czytnik aktywności społecznej"
 
-#: templates/base.html:47
 msgid "Change theme"
 msgstr "Zmień motyw"
 
-#: templates/i18n.html:3 templates/stream-pure.html:36
 msgid "Unfavorite"
 msgstr "Usuń z ulubionych"
 
-#: templates/i18n.html:4
 msgid "Unfavorite this entry before hiding it."
 msgstr "Przed ukryciem wpisu, usuń go z ulubionych."
 
-#: templates/i18n.html:5
 msgid "Entry hidden"
 msgstr "Wpis został ukryty"
 
-#: templates/i18n.html:6
 msgid "Undo"
 msgstr "Cofnij"
 
-#: templates/i18n.html:7
 msgid "Loading..."
 msgstr "Trwa ładowanie..."
 
-#: templates/i18n.html:8
 msgid "Click and Listen"
 msgstr "Kliknij i posłuchaj"
 
-#: templates/i18n.html:9 templates/stream-pure.html:45
 msgid "Share or bookmark this entry"
 msgstr "Podziel się tym wpisem z innymi"
 
-#: templates/i18n.html:10
 msgid "Reshare it at your stream"
 msgstr "Podziel się tym wpisem u siebie"
 
-#: templates/i18n.html:11
 msgid "or elsewhere:"
 msgstr "lub na:"
 
-#: templates/i18n.html:12
 msgid "Keep the original author?"
 msgstr "Czy zachować oryginalnego autora?"
 
-#: templates/i18n.html:13
-msgid "Search this site"
-msgstr "Wyszukaj na tej stronie"
-
-#: templates/i18n.html:14
 msgid "Communication Error. Try again."
 msgstr "Błąd komunikacji. Spróbuj ponownie."
 
-#: templates/i18n.html:15
 msgid "You are about to re-share this entry at your stream. Confirm?"
 msgstr ""
 "Właśnie zamierzasz opublikować ten wpis na swoim strumieniu. Potwierdzasz?"
 
-#: templates/i18n.html:16
 msgid "Are you sure?"
 msgstr "Czy potwierdzasz?"
 
-#: templates/i18n.html:17
 msgid "Your browser does not support it."
 msgstr "Twoja przeglądarka tego nie obsługuje."
 
-#: templates/stream-pure.html:22
 msgid "Expand content"
 msgstr "Pokaż treść"
 
-#: templates/stream-pure.html:32
 msgid "Menu"
 msgstr "Menu"
 
-#: templates/stream-pure.html:34
 msgid "Reply"
 msgstr "Odpowiedz"
 
-#: templates/stream-pure.html:40
 msgid "Hide"
 msgstr "Ukryj"
 
-#: templates/stream-pure.html:41
-msgid "Translate"
-msgstr "Przetłumacz"
-
-#: templates/stream-pure.html:42
 msgid "Edit"
 msgstr "Edytuj"
 
-#: templates/stream-pure.html:45 usettings/templates/tools.html:6
+msgid "Admin"
+msgstr ""
+
 msgid "Share"
 msgstr "Podziel się"
 
-#: templates/stream-pure.html:50
+msgid "by"
+msgstr ""
+
 msgid "from"
 msgstr "z"
 
-#: templates/stream.html:7
 msgid "About"
 msgstr "O stronie"
 
-#: templates/stream.html:17
 msgid "Favorite entries"
 msgstr "Ulubione wpisy"
 
-#: templates/stream.html:23
 msgid "Select List"
 msgstr "Wybierz listę"
 
-#: templates/stream.html:31
 msgid "Archives"
 msgstr "Archiwum"
 
-#: templates/stream.html:36
+msgid "Search this site"
+msgstr "Wyszukaj na tej stronie"
+
 msgid "Search"
 msgstr "Szukaj"
 
-#: templates/stream.html:46
 msgid "Add content"
 msgstr "Dodaj wpis"
 
-#: templates/stream.html:49
 msgid "What's up?"
 msgstr "Co słychać?"
 
-#: templates/stream.html:63
 msgid "Add files:"
 msgstr "Dodaj pliki:"
 
-#: templates/stream.html:75
-msgid "next month"
-msgstr "następny miesiąc"
-
-#: templates/stream.html:80 templates/stream.html.py:90
-#: templates/stream.html:94
-msgid "newer entries"
-msgstr "nowsze wpisy"
-
-#: templates/stream.html:82 templates/stream.html.py:91
-#: templates/stream.html:93
-msgid "older entries"
-msgstr "starsze wpisy"
-
-#: templates/stream.html:100
-msgid "previous page"
-msgstr "poprzednia strona"
-
-#: templates/stream.html:101
-msgid "next page"
-msgstr "następna strona"
-
-#: usettings/views.py:53
-msgid "Services - Settings"
-msgstr "Serwisy - Ustawienia"
-
-#: usettings/views.py:82
-msgid "Lists - Settings"
-msgstr "Listy - Ustawienia"
-
-#: usettings/views.py:132
-msgid "PubSubHubbub - Settings"
-msgstr "PubSubHubbub - Ustawienia"
-
-#: usettings/views.py:143
-msgid "Hub not found."
-msgstr "Nie odnaleziono huba."
-
-#: usettings/views.py:145 usettings/views.py:154
-#, python-format
-msgid "Hub %s: Accepted for verification."
-msgstr "Hub %s: Zaakceptowano do weryfikacji."
-
-#: usettings/views.py:147
-#, python-format
-msgid "Hub %s: Subscription verified."
-msgstr "Hub %s: Subskrypcja zweryfikowana."
-
-#: usettings/views.py:152
-msgid "No subscription found."
-msgstr "Nie znaleziono subskrypcji."
-
-#: usettings/views.py:156
-#, python-format
-msgid "Hub %s: Unsubscribed."
-msgstr "Hub %s: Wypisano."
-
-#: usettings/views.py:183
-msgid "OpenID - Settings"
-msgstr "OpenID - Ustawienia"
-
-#: usettings/views.py:231 usettings/templates/settings.html:11
-msgid "Tools"
-msgstr "Narzędzia"
-
-#: usettings/views.py:248
-msgid "OAuth - Settings"
-msgstr "OAuth - Ustawienia"
-
-#: usettings/views.py:533 usettings/templates/lists.html:25
-#: usettings/templates/oid.html:9
-msgid "delete"
-msgstr "skasuj"
-
-#: usettings/views.py:549
-msgid "Class name"
-msgstr "Klasa:"
-
-#: usettings/views.py:550
-msgid "Any name for the service classification; a category."
-msgstr "Dowolna nazwa, służąca klasyfikacji serwisu; kategoria."
-
-#: usettings/views.py:555
-msgid "URL"
-msgstr "URL"
-
-#: usettings/views.py:561
-msgid "User timeline"
-msgstr "Strona użytkownika"
-
-#: usettings/views.py:562
-msgid "Home timeline"
-msgstr "Strona główna"
-
-#: usettings/views.py:563
-msgid "Timeline"
-msgstr ""
-
-#: usettings/views.py:565 usettings/views.py:570
-msgid "ID/Username"
-msgstr "ID/Nazwa użytkownika"
-
-#: usettings/views.py:585 usettings/templates/oid.html:7
-msgid "none"
-msgstr "brak"
-
-#: usettings/views.py:586
-msgid "Basic"
-msgstr "Basic"
-
-#: usettings/views.py:587
-msgid "OAuth"
-msgstr "OAuth"
-
-#: usettings/views.py:588
-msgid "Authorization"
-msgstr "Autoryzacja"
-
-#: usettings/views.py:592
-msgid "configure access"
-msgstr "konfiguracja dostępu"
-
-#: usettings/views.py:598
-msgid "Basic username"
-msgstr "Użytkownik"
-
-#: usettings/views.py:601
-msgid "Basic password"
-msgstr "Hasło"
-
-#: usettings/views.py:607
-msgid "Access token"
-msgstr "Access token"
-
-#: usettings/views.py:608
-msgid "get"
-msgstr "pobierz"
-
-#: usettings/views.py:635 usettings/templates/lists.html:23
 msgid "Save"
 msgstr "Zapisz"
 
-#: usettings/views.py:636 usettings/templates/lists.html:24
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: usettings/templates/lists.html:6
+msgid "next month"
+msgstr "następny miesiąc"
+
+msgid "newer entries"
+msgstr "nowsze wpisy"
+
+msgid "older entries"
+msgstr "starsze wpisy"
+
+msgid "previous page"
+msgstr "poprzednia strona"
+
+msgid "next page"
+msgstr "następna strona"
+
 msgid "Editing list:"
 msgstr "Edycja listy:"
 
-#: usettings/templates/lists.html:8
 msgid "new"
 msgstr "nowa"
 
-#: usettings/templates/oauth.html:20
+msgid "delete"
+msgstr "skasuj"
+
 msgid "Read more about this implementation:"
 msgstr "Dowiedz się więcej o tej implementacji:"
 
-#: usettings/templates/oauth.html:23
 msgid "Your callback URL:"
 msgstr "Twój zwrotny adres (callback URL):"
 
-#: usettings/templates/oauth.html:36
 msgid "Consumer Key"
 msgstr "Klucz konsumenta"
 
-#: usettings/templates/oauth.html:41
 msgid "Consumer Secret"
 msgstr "Sekret konsumenta"
 
-#: usettings/templates/oauth.html:48
 msgid "Request token URL"
 msgstr "Request token URL"
 
-#: usettings/templates/oauth.html:53
 msgid "Authorize URL"
 msgstr "Authorize URL"
 
-#: usettings/templates/oauth.html:58
 msgid "Access token URL"
 msgstr "Access token URL"
 
-#: usettings/templates/oauth.html:66
 msgid "Got Request token! Click \"Next step\" to authorize this application."
 msgstr ""
 "Uzyskano Request token! Kliknij \"Następny krok\", aby autoryzować aplikację."
 
-#: usettings/templates/oauth.html:69
 msgid "Your OAuth access setup is completed."
 msgstr "Dostęp poprzez OAuth został skonfigurowany pomyślnie."
 
-#: usettings/templates/oauth.html:72
 msgid "Reset all tokens"
 msgstr "Skasuj dostęp"
 
-#: usettings/templates/oauth.html:73
 msgid "Next step"
 msgstr "Następny krok"
 
-#: usettings/templates/oid.html:5
-msgid "Attached identities:"
-msgstr "Załączone tożsamości:"
-
-#: usettings/templates/oid.html:23
-msgid "Attach"
-msgstr "Dołącz"
-
-#: usettings/templates/pshb.html:5
 msgid "PubSubHubbub subscriptions"
 msgstr "Subskrypcje PubSubHubbub"
 
-#: usettings/templates/pshb.html:15
 msgid "Verified"
 msgstr "Zweryfikowano"
 
-#: usettings/templates/pshb.html:16
 msgid "Expire"
 msgstr "Wygasa"
 
-#: usettings/templates/pshb.html:23
 msgid "Yes"
 msgstr "Tak"
 
-#: usettings/templates/pshb.html:23
 msgid "No"
 msgstr "Nie"
 
-#: usettings/templates/pshb.html:26
 msgid "unsubscribe"
 msgstr "zrezygnuj"
 
-#: usettings/templates/pshb.html:36
 msgid "service"
 msgstr "serwis"
 
-#: usettings/templates/pshb.html:40
 msgid "subscribe"
 msgstr "subskrybuj"
 
-#: usettings/templates/services.html:6
 msgid "Add a service:"
 msgstr "Dodaj serwis:"
 
-#: usettings/templates/services.html:16
 msgid "Connected services:"
 msgstr "Połączone serwisy:"
 
-#: usettings/templates/services.html:29
 msgid "Import OPML"
 msgstr "Zaimportuj OPML"
 
-#: usettings/templates/services.html:30
 msgid "or"
 msgstr "lub"
 
-#: usettings/templates/services.html:32
 msgid "Export OPML"
 msgstr "Wyeksportuj OPML"
 
-#: usettings/templates/settings.html:9
 msgid "PubSubHub"
 msgstr "PubSubHub"
 
-#: usettings/templates/tools.html:5
+msgid "Tools"
+msgstr "Narzędzia"
+
 msgid "Bookmarklet"
 msgstr "Skryptozakładka"
+
+msgid "Services - Settings"
+msgstr "Serwisy - Ustawienia"
+
+msgid "Lists - Settings"
+msgstr "Listy - Ustawienia"
+
+msgid "PubSubHubbub - Settings"
+msgstr "PubSubHubbub - Ustawienia"
+
+msgid "Hub not found."
+msgstr "Nie odnaleziono huba."
+
+#, python-format
+msgid "Hub %s: Accepted for verification."
+msgstr "Hub %s: Zaakceptowano do weryfikacji."
+
+#, python-format
+msgid "Hub %s: Subscription verified."
+msgstr "Hub %s: Subskrypcja zweryfikowana."
+
+msgid "No subscription found."
+msgstr "Nie znaleziono subskrypcji."
+
+#, python-format
+msgid "Hub %s: Unsubscribed."
+msgstr "Hub %s: Wypisano."
+
+msgid "OAuth - Settings"
+msgstr "OAuth - Ustawienia"
+
+msgid "Class name"
+msgstr "Klasa:"
+
+msgid "Any name for the service classification; a category."
+msgstr "Dowolna nazwa, służąca klasyfikacji serwisu; kategoria."
+
+msgid "URL"
+msgstr "URL"
+
+msgid "User timeline"
+msgstr "Strona użytkownika"
+
+msgid "Home timeline"
+msgstr "Strona główna"
+
+msgid "Timeline"
+msgstr ""
+
+msgid "ID/Username"
+msgstr "ID/Nazwa użytkownika"
+
+msgid "none"
+msgstr "brak"
+
+msgid "Basic"
+msgstr "Basic"
+
+msgid "OAuth"
+msgstr "OAuth"
+
+msgid "Authorization"
+msgstr "Autoryzacja"
+
+msgid "configure access"
+msgstr "konfiguracja dostępu"
+
+msgid "Basic username"
+msgstr "Użytkownik"
+
+msgid "Basic password"
+msgstr "Hasło"
