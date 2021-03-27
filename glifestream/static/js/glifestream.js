@@ -110,6 +110,9 @@
         else if (type in audio_embeds) {
             embed = audio_embeds[type];
         }
+        else if (type === 'thesixtyone') {
+            return false; // prevent navigating to a defunct site
+        }
         else {
             return true;
         }
@@ -421,6 +424,10 @@
                 }
                 catch (e) {}
             });
+
+        $('.files a[href$=".mp3"]', ctx).wrap('<span id="audio-x" class="play-audio"></span>');
+        $('.files a[href$=".ogg"]', ctx).wrap('<span id="audio-x" class="play-audio"></span>');
+
         if (typeof window.user_alter_html == 'function') {
             window.user_alter_html(ctx);
         }
@@ -1694,7 +1701,6 @@
     }
 
     var audio_embeds = {
-        'thesixtyone': '<object type="application/x-shockwave-flash" width="310" height="120" data="http://www.thesixtyone.com/site_media/swf/song_player_embed.swf?song_id={ID}&artist_username={ARTIST}&autoplay=1"><param name="movie" value="http://www.thesixtyone.com/site_media/swf/song_player_embed.swf?song_id={ID}&artist_username={ARTIST}&autoplay=1"/></object>'
     };
     var video_embeds = {
         'youtube': '<iframe width="560" height="349" src="//www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
