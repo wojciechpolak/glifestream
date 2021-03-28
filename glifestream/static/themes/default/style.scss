@@ -975,3 +975,11 @@ fieldset .hint {
   .play-video img { width: 100%; height: auto; }
   table.vc { clear: both; }
 }
+
+.compensate-for-scrollbar {
+  margin-right: auto !important;
+}
+
+.fancybox-is-open .fancybox-bg {
+  opacity: .98;
+}

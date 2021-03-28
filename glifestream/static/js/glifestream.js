@@ -815,32 +815,33 @@
         var stream = $('#stream').get(0);
         alter_html(stream);
 
-        $('span.favorite-control', stream).live('click', favorite_entry);
-        $('span.hide-control', stream).live('click', hide_entry);
-        $('span.edit-control', stream).live('click', edit_entry);
-        $('a.shareit', stream).live('click', shareit_entry);
+        $(stream).on('click', 'span.favorite-control', favorite_entry);
+        $(stream).on('click', 'span.hide-control', hide_entry);
+        $(stream).on('click', 'span.edit-control', edit_entry);
+        $(stream).on('click', 'a.shareit', shareit_entry);
+        $(stream).on('click', 'a.show-map', show_map);
+        $(stream).on('click', 'a.expand-content', expand_content);
+        $(stream).on('click', 'span.entry-controls-switch', show_menu_controls);
+        $(stream).on('click', 'div.play-video,span.play-video', toggle_video);
+        $(stream).on('click', 'span.play-audio', play_audio);
+
         $('a.map', stream).each(render_map);
-        $('a.show-map', stream).live('click', show_map);
-        $('a.expand-content', stream).live('click', expand_content);
-        $('span.entry-controls-switch', stream).live('click',
-                                                     show_menu_controls);
-        $('div.play-video,span.play-video', stream).live('click', toggle_video);
-        $('span.play-audio', stream).live('click', play_audio);
+
         $('#change-theme').click(change_theme);
         $('div.lists select').change(function() {
             if (this.value !== '') {
                 window.location = baseurl + 'list/' + this.value + '/';
             }
         });
-        $('#entry-editor input[type=button]').live('click', editor_handler);
+        $(document).on('click', '#entry-editor input[type=button]', editor_handler);
 
         gen_archive_calendar();
-        $('#calendar a.prev').live('click', function() {
+        $(document).on('click', '#calendar a.prev', function() {
             var year = parseInt($('#calendar .year').html(), 10);
             gen_archive_calendar(year - 1);
             return false;
         });
-        $('#calendar a.next').live('click', function() {
+        $(document).on('click', '#calendar a.next', function() {
             var year = parseInt($('#calendar .year').html(), 10);
             gen_archive_calendar(year + 1);
             return false;
@@ -904,7 +905,7 @@
             $.extend(video_embeds, window.video_embeds);
         }
 
-        $('span.link').live('keypress', function(e) {
+        $(document).on('keypress', 'span.link', function(e) {
             if (e.keyCode === 13) {
                 $(this).click();
             }
@@ -943,7 +944,7 @@
             }, '#add-service');
             return false;
         });
-        $('#edit-service a').live('click', function() {
+        $(document).on('click', '#edit-service a', function() {
             if (this.id && this.id.indexOf('service-') === 0) {
                 show_spinner(this);
                 get_service_form({
@@ -1474,21 +1475,21 @@
             }
 
             if ('fancybox' in $) {
-                var imgs = [src];
+                var imgs = [{src: src}];
                 var index = 0;
                 if (obj.rel && obj.rel !== '' && obj.rel !== 'nofollow') {
                     var $r = $('a[rel=' + obj.rel + ']');
                     if ($r.length > 1) {
                         imgs = [];
                         $r.each(function(i, v) {
-                            imgs.push(v.href);
+                            imgs.push({src: v.href});
                             if (src === v.href) {
                                 index = i;
                             }
                         });
                     }
                 }
-                $.fancybox(imgs, {
+                $.fancybox.open(imgs, {
                     type: type,
                     index: index,
                     centerOnScroll: true,

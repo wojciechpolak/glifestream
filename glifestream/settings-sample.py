@@ -158,7 +158,8 @@ PIPELINE = {
     'JAVASCRIPT': {
         'main': {
             'source_filenames': (
-                'js/jquery.js',
+                'js/jquery.min.js',
+                'js/jquery.fancybox.min.js',
                 'js/glifestream.js',
             ),
             'output_filename': 'js/main.js',
@@ -173,6 +174,7 @@ PIPELINE = {
     'STYLESHEETS': {
         'default': {
             'source_filenames': (
+                'themes/default/jquery.fancybox.min.css',
                 'themes/default/style.scss',
             ),
             'output_filename': 'themes/default/style.css',
