@@ -11,9 +11,12 @@
   <link rel="shortcut icon" href="{{ page.favicon }}">{% if page.canonical_link %}
   <link rel="canonical" href="{{ page.canonical_link }}">{% endif %}
   <link rel="alternate" type="application/atom+xml" title="Webfeed" href="{% if page.exactentry %}{% url 'index' %}{% endif %}?format=atom">
+  {% if authed %}
+    {% stylesheet 'quill' %}
+    {% javascript 'quill' %}
+  {% endif %}
   {% stylesheet page.theme %}
-  {% javascript 'main' %}{% if authed %}
-  <script type="text/javascript" src="{% static_hash js/tinymce/tinymce.min.js %}"></script>{% endif %}
+  {% javascript 'main' %}
 </head>
 
 <body>

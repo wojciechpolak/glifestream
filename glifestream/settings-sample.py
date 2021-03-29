@@ -164,14 +164,20 @@ PIPELINE = {
             ),
             'output_filename': 'js/main.js',
         },
-        'tinymce': {
+        'quill': {
             'source_filenames': (
-                'js/tinymce/tinymce.min.js',
+                'quill/quill.min.js',
             ),
-            'output_filename': 'js/tinymce.js',
-        }
+            'output_filename': 'js/quill.js',
+        },
     },
     'STYLESHEETS': {
+        'quill': {
+            'source_filenames': (
+                'quill/quill.snow.css',
+            ),
+            'output_filename': 'css/quill.css',
+        },
         'default': {
             'source_filenames': (
                 'themes/default/jquery.fancybox.min.css',

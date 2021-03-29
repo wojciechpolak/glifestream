@@ -16,7 +16,7 @@
  */
 
 /*jshint indent: 4, white: true, browser: true */
-/*global $, tinymce, settings, gettext_msg, stream_data */
+/*global $, settings, gettext_msg, stream_data */
 
 (function() {
     function parse_id(id) {
@@ -437,7 +437,7 @@
     var gsc_done = false;
 
     function open_sharing() {
-        $('#share .fieldset').slideDown('normal', function() {
+        $('#share .fieldset').show(function() {
             $('#status').focus();
             if (!gsc_done) {
                 get_selfposts_classes();
@@ -473,19 +473,22 @@
     }
 
     function share() {
-        $(this).attr('disabled', 'disabled');
         var docs = $('input[name=docs]');
         if (docs.length && docs.get(0).files && docs.get(0).files.length) {
             return true;
         }
+        $(this).attr('disabled', 'disabled');
         var content;
-        if (window.tinymce) {
-            content = tinymce.get('status').getContent();
+        let isEmptyContent = false;
+        if (quill) {
+            content = quill.root.innerHTML;
+            isEmptyContent = $.trim(content) === '<p><br></p>';
         }
         else {
             content = $('#status').val();
+            isEmptyContent = $.trim(content) === '';
         }
-        if ($.trim(content) !== '') {
+        if (!isEmptyContent) {
             show_spinner(this);
             $.post(baseurl + 'api/share', {
                 sid: $('#status-class').val(),
@@ -496,8 +499,8 @@
                 hide_spinner();
                 $('#stream').prepend(html);
                 $('#stream article:first a.map').each(render_map);
-                if (window.tinymce) {
-                    tinymce.get('status').setContent('');
+                if (quill) {
+                    quill.root.innerHTML = '';
                 }
                 else {
                     $('#status').val('');
@@ -640,6 +643,9 @@
     var current_article = -1;
 
     function kshortcuts(e) {
+        if (quill && quill.hasFocus()) {
+            return;
+        }
         var code, ent;
         if (!e) {
             e = window.event;
@@ -802,6 +808,7 @@
     var continuous_reading = 300;
     var social_sharing_sites = [];
     var nav_next = null;
+    let quill;
 
     $(document).ready(function() {
         baseurl = settings.baseurl;
@@ -886,15 +893,20 @@
         }
         nav_next.click(continuous_reading ? load_entries : follow_href);
 
-        if (window.tinymce) {
-            tinymce.init({
-                mode: 'exact',
-                elements: 'status',
-                width: '100%',
-                convert_urls: false,
-                entity_encoding: 'raw',
-                extended_valid_elements: 'div[*]',
-                plugins: 'code,insertdatetime,preview'
+        if (window.Quill) {
+            $('#status').hide();
+            quill = new Quill('#status-editor', {
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic'],
+                        ['link', 'blockquote', 'code-block', 'image'],
+                        [
+                            {list: 'ordered'},
+                            {list: 'bullet'}
+                        ]
+                    ]
+                },
+                theme: 'snow'
             });
         }
 
@@ -1499,7 +1511,8 @@
                     margin: 15,
                     transitionIn: 'elastic',
                     transitionOut: 'fade',
-                    speedOut: 200
+                    speedOut: 200,
+                    loop: true
                 });
                 return false;
             }
