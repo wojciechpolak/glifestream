@@ -1717,12 +1717,8 @@
     var audio_embeds = {
     };
     var video_embeds = {
-        'youtube': '<iframe width="560" height="349" src="//www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
-        'vimeo': '<iframe width="560" height="315" src="//player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
-        'chtv': '<iframe width="560" height="315" src="http://www.collegehumor.com/e/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
-        'ustream': '<iframe width="560" height="341" src="http://www.ustream.tv/embed/recorded/{ID}" scrolling="no" frameborder="0"></iframe>',
-        'dailymotion': '<iframe width="560" height="315" src="http://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',
-        'metacafe': '<object type="application/x-shockwave-flash" width="400" height="348" data="http://www.metacafe.com/fplayer/{ID}/video.swf"><param name="movie" value="http://www.metacafe.com/fplayer/{ID}/video.swf"/><param name="name" value="Metacafe_{ID}"/><param name="flashvars" value="playerVars=showStats=no|autoPlay=yes"/><param name="allowFullScreen" value="true"/><param name="allowScriptAccess" value="always"/></object>',
-        'twitvid': '<iframe width="480" height="360" src="http://www.twitvid.com/embed.php?guid={ID}&autoplay=1" frameborder="0"></iframe>'
+        'youtube': '<iframe width="560" height="349" src="https://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
+        'vimeo': '<iframe width="560" height="315" src="https://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
+        'dailymotion': '<iframe width="560" height="315" src="https://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>'
     };
 })();

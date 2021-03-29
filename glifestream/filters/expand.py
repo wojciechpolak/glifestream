@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009-2016 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2021 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -16,7 +16,6 @@
 import re
 import hashlib
 from cgi import parse_qsl
-from django.conf import settings
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_text
 from django.utils.six.moves import urllib
@@ -65,12 +64,6 @@ def __sp_instagram(m):
     return __gen_tai(m.group(0), url)
 
 
-def __sp_yfrog(m):
-    url = media.save_image('http://%s/%s:iphone' %
-                           (m.group(1), m.group(2)), downscale=True)
-    return __gen_tai(m.group(0), url)
-
-
 def __sp_flickr(m):
     url = m.group(0)
     j = oembed.discover(url, provider='flickr', maxwidth=400)
@@ -91,7 +84,6 @@ def shortpics(s):
     s = re.sub(r'https?://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
     s = re.sub(
         r'https?://(www\.)?(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
-    s = re.sub(r'https?://(yfrog\.com)/(\w+)', __sp_yfrog, s)
     s = re.sub(r'https?://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
     return s
 
@@ -115,7 +107,7 @@ def __sv_youtube(m):
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
     link = 'https://www.youtube.com/watch?v=%s' % id
-    imgurl = 'http://i.ytimg.com/vi/%s/mqdefault.jpg' % id
+    imgurl = 'https://i.ytimg.com/vi/%s/mqdefault.jpg' % id
     imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
     return '<table class="vc"><tr><td><div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">' \
            '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">' \
@@ -139,64 +131,18 @@ def __sv_vimeo(m):
         return link
 
 
-def __sv_chtv(m):
-    id = m.group(1)
-    link = m.group(0)
-    return '<span data-id="chtv-%s" class="play-video video-inline">' \
-           '<a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
-
-
-def __sv_ustream(m):
-    id = m.group(1)
-    link = m.group(0)
-    return '<span data-id="ustream-%s" class="play-video video-inline">' \
-           '<a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
-
-
-def __sv_twitvid(m):
-    id = m.group(2)
-    link = m.group(0)
-    return '<span data-id="twitvid-%s" class="play-video video-inline">' \
-           '<a href="%s" rel="nofollow">%s</a></span>' % (id, link, link)
-
-
 def __sv_dailymotion(m):
     link = strip_tags(m.group(0))
     id = m.group(1)
     rest = m.group(2)
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
-    imgurl = 'http://www.dailymotion.com/thumbnail/160x120/video/%s' % id
+    imgurl = 'https://www.dailymotion.com/thumbnail/video/%s' % id
     imgurl = media.save_image(imgurl)
     return '<table class="vc"><tr><td><div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">' \
-           '<img src="%s" width="160" height="120" alt="Dailymotion Video" />' \
+           '<img src="%s" width="320" height="180" alt="Dailymotion Video" />' \
            '</a><div class="playbutton"></div></div></td></tr></table>%s' % (
                id, link, imgurl, rest)
-
-
-def __sv_metacafe(m):
-    link = strip_tags(m.group(0))
-    id = m.group(2)
-    rest = m.group(3)
-    ltag = rest.find('<') if rest else -1
-    rest = rest[ltag:] if ltag != -1 else ''
-    imgurl = 'http://www.metacafe.com/thumb/%s.jpg' % id
-    imgurl = media.save_image(imgurl)
-    return '<table class="vc"><tr><td><div data-id="metacafe-%s" class="play-video"><a href="%s" rel="nofollow">' \
-           '<img src="%s" width="136" height="81" alt="Metacafe Video" /></a>' \
-           '<div class="playbutton"></div></div></td></tr></table>%s' % (
-               id, link, imgurl, rest)
-
-
-def __sv_googlevideo(m):
-    link = strip_tags(m.group(0))
-    id = m.group(1)
-    rest = m.group(2)
-    ltag = rest.find('<') if rest else -1
-    rest = rest[ltag:] if ltag != -1 else ''
-    return '<div data-id="googlevideo-%s" class="play-video video-inline">' \
-           '<a href="%s" rel="nofollow">Google Video %s</a></div>%s' % (
-               id, link, id, rest)
 
 
 def videolinks(s):
@@ -206,23 +152,9 @@ def videolinks(s):
                    __sv_youtube, s)
     if 'vimeo.com/' in s:
         s = re.sub(r'https?://(www\.)?vimeo\.com/(\d+)', __sv_vimeo, s)
-    if 'http://www.ustream.tv/recorded/' in s:
-        s = re.sub(r'http://www\.ustream\.tv/recorded/(\d+)', __sv_ustream, s)
-    if 'http://www.dailymotion.' in s:
-        s = re.sub(
-            r'http://www\.dailymotion\.[a-z]{2,3}/video/([\-\w]+)_(\S*)',
-            __sv_dailymotion, s)
-    if 'http://www.metacafe.com/' in s:
-        s = re.sub(r'http://www\.metacafe\.com/(w|watch)/(\d+)/(\S*)',
-                   __sv_metacafe, s)
-    if 'twitvid.com/' in s:
-        s = re.sub(r'http://(www\.)?twitvid\.com/(\w+)', __sv_twitvid, s)
-    if 'collegehumor.com/video/' in s:
-        s = re.sub(
-            r'http://www\.collegehumor\.com/video/(\d+)(/[\-\w]+)?', __sv_chtv, s)
-    if 'http://video.google.com/videoplay?docid=' in s:
-        s = re.sub(r'http://video\.google\.com/videoplay\?docid=(\d+)(\S*)',
-                   __sv_googlevideo, s)
+    if 'dailymotion.com/' in s:
+        s = re.sub(r'https?://www\.dailymotion\.com/video/([\-\w]+)(\S*)',
+                   __sv_dailymotion, s)
     return s
 
 #
@@ -249,7 +181,7 @@ def audiolinks(s):
     if '.ogg' in s:
         s = re.sub(
             r'<a href="(https?://[\w\.\-\+/=%~]+\.ogg)">(.*?)</a>', __sa_ogg, s)
-    if 'http://www.thesixtyone.com/' in s:
+    if 'www.thesixtyone.com/' in s:
         # Scheme: http://www.thesixtyone.com/s/SONGID/
         s = re.sub(
             r'http://www.thesixtyone.com/s/(\w+)/', __sa_thesixtyone, s)
