@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.core import urlresolvers
+from django.urls import reverse
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
@@ -30,7 +30,7 @@ def login(request, template_name='login.html',
           redirect_field_name=REDIRECT_FIELD_NAME):
 
     redirect_to = request.GET.get(
-        redirect_field_name, urlresolvers.reverse('index'))
+        redirect_field_name, reverse('index'))
 
     if request.method == 'POST':
         form = AuthenticationRememberMeForm(data=request.POST,)

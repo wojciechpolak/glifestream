@@ -39,7 +39,7 @@ def frame(request, **args):
     if request.is_secure():
         page['base_url'] = page['base_url'].replace('http://', 'https://')
 
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     if authed:
         srvs = Service.objects.filter(api='selfposts').order_by('cls')
         srvs.query.group_by = ['cls']

@@ -69,7 +69,7 @@ LOGIN_URL = '/login'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'YOUR-SECRET-KEY'
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -77,7 +77,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.gzip.GZipMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',
-)
+]
 
 TEMPLATES = [
     {
@@ -105,6 +105,7 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.staticfiles',

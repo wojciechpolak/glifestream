@@ -17,7 +17,6 @@ import re
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from django.utils import six
 from django.utils.encoding import force_str, force_text
-from django.utils.functional import allow_lazy
 from django.utils.safestring import mark_safe, SafeData
 
 try:
@@ -57,12 +56,10 @@ def strip_entities(value):
     """Returns the given HTML with all entities (&something;) stripped."""
     return re.sub(r'&(?:\w+|#\d+);', '', force_text(value))
 
-
-strip_entities = allow_lazy(strip_entities, six.text_type)
-
 #
 # Code taken from Django 1.7
 #
+
 
 TRAILING_PUNCTUATION = ['.', ',', ':', ';', '.)', '"', '\'']
 WRAPPING_PUNCTUATION = [('(', ')'), ('<', '>'), ('[', ']'),
@@ -171,6 +168,3 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
         elif autoescape:
             words[i] = escape(word)
     return ''.join(words)
-
-
-urlize = allow_lazy(urlize, six.text_type)

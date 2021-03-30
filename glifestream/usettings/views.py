@@ -16,7 +16,7 @@
 import re
 import json
 from django.conf import settings
-from django.core import urlresolvers
+from django.urls import reverse
 from django.shortcuts import render_to_response
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -36,7 +36,7 @@ from glifestream.utils import common
 @login_required
 @never_cache
 def services(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -69,7 +69,7 @@ class ListForm (ModelForm):
 
 @login_required
 def lists(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -98,15 +98,13 @@ def lists(request, **args):
     if request.method == 'POST':
         if request.POST.get('delete', False):
             list.delete()
-            return HttpResponseRedirect(
-                urlresolvers.reverse('usettings-lists'))
+            return HttpResponseRedirect(reverse('usettings-lists'))
         else:
             form = ListForm(request.POST, instance=list)
             if form.is_valid():
                 form.save()
-                return HttpResponseRedirect(
-                    urlresolvers.reverse('usettings-lists-slug',
-                                         args=[list.slug]))
+                return HttpResponseRedirect(reverse('usettings-lists-slug',
+                                            args=[list.slug]))
     else:
         form = ListForm(instance=list)
 
@@ -120,7 +118,7 @@ def lists(request, **args):
 
 @login_required
 def pshb(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -172,7 +170,7 @@ def pshb(request, **args):
 
 @login_required
 def tools(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -191,7 +189,7 @@ def tools(request, **args):
 @login_required
 @never_cache
 def oauth(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -208,7 +206,7 @@ def oauth(request, **args):
     id = args['id']
 
     callback_url = request.build_absolute_uri(
-        urlresolvers.reverse('usettings-oauth', args=[id]))
+        reverse('usettings-oauth', args=[id]))
 
     service = Service.objects.get(id=id)
     c = gls_oauth.OAuth1Client(service=service,
@@ -253,7 +251,7 @@ def oauth(request, **args):
             try:
                 c.get_access_token()
                 c.save()
-                return HttpResponseRedirect(urlresolvers.reverse('usettings-oauth', args=[id]))
+                return HttpResponseRedirect(reverse('usettings-oauth', args=[id]))
             except Exception as e:
                 page['msg'] = e
 
@@ -271,7 +269,7 @@ def oauth(request, **args):
 
 @login_required
 def opml(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -306,8 +304,7 @@ def opml(request, **args):
                                     f.getAttribute('title')
                                 _import_service(xml_url, title, cls)
 
-        return HttpResponseRedirect(
-            urlresolvers.reverse('usettings-services'))
+        return HttpResponseRedirect(reverse('usettings-services'))
 
     elif cmd == 'export':
         excluded_apis = ('selfposts', 'fb')
@@ -389,7 +386,7 @@ def _import_service(url, title, cls='webfeed'):
 
 
 def api(request, **args):
-    authed = request.user.is_authenticated() and request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
 

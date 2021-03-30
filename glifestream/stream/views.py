@@ -20,7 +20,7 @@ from functools import reduce
 from urllib.parse import urljoin
 from django.conf import settings
 from django.db import connections
-from django.core import urlresolvers
+from django.urls import reverse
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
@@ -62,8 +62,8 @@ def index(request, **args):
         'maps_engine': settings.MAPS_ENGINE,
         'pshb_hubs': settings.PSHB_HUBS,
     }
-    authed = request.user.is_authenticated() and request.user.is_staff
-    friend = request.user.is_authenticated() and not request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
+    friend = request.user.is_authenticated and not request.user.is_staff
     urlparams = []
     entries_on_page = settings.ENTRIES_ON_PAGE
     entries_orderby = 'date_published'
@@ -282,8 +282,7 @@ def index(request, **args):
 
     # Build URL params for links.
     if len(urlparams):
-        urlparams = '?' + reduce(lambda x, y: six.text_type(x) + '&' +
-                                 six.text_type(y), urlparams, '')[1:] + '&'
+        urlparams = '?' + reduce(lambda x, y: x + '&' + y, urlparams, '')[1:] + '&'
     else:
         urlparams = '?'
 
@@ -318,11 +317,11 @@ def index(request, **args):
             pass  # FIXME: add friends-only support
 
         if not entry.friends_only:
-            entry.gls_link = '%s/%s' % (urlresolvers.reverse('entry', args=[entry.id]),
+            entry.gls_link = '%s/%s' % (reverse('entry', args=[entry.id]),
                                         gls_slugify(truncatewords(entry.title, 7)))
         else:
             entry.gls_link = '%s/' % (
-                urlresolvers.reverse('entry', args=[entry.id]))
+                reverse('entry', args=[entry.id]))
             if 'title' in page:
                 del page['title']
 
@@ -461,7 +460,7 @@ def pshb_dispatcher(request, **args):
     raise Http404
 
 
-def page_not_found(request, **args):
+def page_not_found(request, exception):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -480,8 +479,8 @@ def api(request, **args):
     cmd = args.get('cmd', '')
     entry = request.POST.get('entry', None)
 
-    authed = request.user.is_authenticated() and request.user.is_staff
-    friend = request.user.is_authenticated() and not request.user.is_staff
+    authed = request.user.is_authenticated and request.user.is_staff
+    friend = request.user.is_authenticated and not request.user.is_staff
     if not authed and cmd != 'getcontent':
         return HttpResponseForbidden()
 

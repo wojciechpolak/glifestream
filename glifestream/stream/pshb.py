@@ -18,7 +18,7 @@ import hashlib
 from urllib.parse import urlsplit
 from datetime import timedelta
 from django.conf import settings
-from django.core import urlresolvers
+from django.urls import reverse
 from glifestream.utils import httpclient
 from glifestream.utils.time import now
 from glifestream.stream.models import Pshb
@@ -66,9 +66,8 @@ def subscribe(service, verbose=False):
         db = Pshb(hash=hash, service=service, hub=hub, secret=secret)
         save_db = True
 
-    topic = __get_absolute_url(
-        urlresolvers.reverse('index')) + '?format=atom'
-    callback = __get_absolute_url(urlresolvers.reverse('pshb', args=[hash]))
+    topic = __get_absolute_url(reverse('index')) + '?format=atom'
+    callback = __get_absolute_url(reverse('pshb', args=[hash]))
 
     if settings.PSHB_HTTPS_CALLBACK:
         callback = callback.replace('http://', 'https://')
@@ -104,10 +103,8 @@ def unsubscribe(id, verbose=False):
     except Pshb.DoesNotExist:
         return {'rc': 1}
 
-    topic = __get_absolute_url(
-        urlresolvers.reverse('index')) + '?format=atom'
-    callback = __get_absolute_url(
-        urlresolvers.reverse('pshb', args=[db.hash]))
+    topic = __get_absolute_url(reverse('index')) + '?format=atom'
+    callback = __get_absolute_url(reverse('pshb', args=[db.hash]))
 
     if settings.PSHB_HTTPS_CALLBACK:
         callback = callback.replace('http://', 'https://')
@@ -157,7 +154,7 @@ def verify(id, GET):
 
 def publish(hubs=None, verbose=False):
     hubs = hubs or settings.PSHB_HUBS
-    url = __get_absolute_url(urlresolvers.reverse('index')) + '?format=atom'
+    url = __get_absolute_url(reverse('index')) + '?format=atom'
     if 'localhost' in url:
         return
     for hub in hubs:

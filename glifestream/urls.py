@@ -14,9 +14,10 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
+from django.urls import path
 from django.conf.urls import url, include
 from django.contrib import admin
-from django.contrib.auth.views import logout
+from django.contrib.auth.views import LogoutView
 from django.views.static import serve as static_serve
 from glifestream.gauth.views import login
 from glifestream.stream import views as sv
@@ -63,13 +64,13 @@ urlpatterns = [
         sv.pshb_dispatcher, {}, name='pshb'),
 
     url(r'^login/?$', login, name='login'),
-    url(r'^logout/?$', logout, {'next_page': './'}, name='logout'),
+    url(r'^logout/?$', LogoutView.as_view(next_page='./'), name='logout'),
 
     url(r'^bookmarklet/', include(
         'glifestream.bookmarklet.urls')),
     url(r'^settings/', include('glifestream.usettings.urls')),
 
-    url(r'^admin/', include(admin.site.urls)),
+    path('admin/', admin.site.urls),
 ]
 
 urlpatterns += [
