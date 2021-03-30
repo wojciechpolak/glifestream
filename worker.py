@@ -23,7 +23,6 @@ import sys
 import time
 import django
 from django.conf import settings
-from django.utils.six.moves import range, input
 
 try:
     import workerpool

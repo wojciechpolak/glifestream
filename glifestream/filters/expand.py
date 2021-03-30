@@ -15,10 +15,10 @@
 
 import re
 import hashlib
+from urllib.parse import urlparse
 from cgi import parse_qsl
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_text
-from django.utils.six.moves import urllib
 from glifestream.stream import media
 from glifestream.utils import httpclient, oembed
 
@@ -204,7 +204,7 @@ def __sm_googlemaps(m):
     rest = m.group(2)
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
-    params = __parse_qs(urllib.parse.urlparse(link).query)
+    params = __parse_qs(urlparse(link).query)
     ll = params.get('ll', None)
     if ll:
         ll = ll.split(',')

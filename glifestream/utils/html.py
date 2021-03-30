@@ -14,8 +14,8 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from django.utils import six
-from django.utils.six.moves.urllib.parse import quote, unquote, urlsplit, urlunsplit
 from django.utils.encoding import force_str, force_text
 from django.utils.functional import allow_lazy
 from django.utils.safestring import mark_safe, SafeData

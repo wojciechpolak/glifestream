@@ -20,13 +20,12 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import python_2_unicode_compatible, smart_text
+from django.utils.encoding import smart_text
 
 from glifestream.apis import API_LIST
 from glifestream.utils.time import now
 
 
-@python_2_unicode_compatible
 class Service (models.Model):
     api = models.CharField(_('API'), max_length=16, choices=API_LIST,
                            default='feed', db_index=True)
@@ -71,7 +70,6 @@ class Service (models.Model):
         return '%s' % self.name
 
 
-@python_2_unicode_compatible
 class Entry (models.Model):
     service = models.ForeignKey(Service, on_delete=models.CASCADE,
                                 verbose_name=_('Service'),
@@ -119,7 +117,6 @@ class Entry (models.Model):
         return '%s: %s' % (self.service.name, smart_text(self.title))
 
 
-@python_2_unicode_compatible
 class Media (models.Model):
     entry = models.ForeignKey(Entry, on_delete=models.CASCADE, verbose_name=_('Entry'),
                               null=False, blank=False)
@@ -134,7 +131,6 @@ class Media (models.Model):
         return '%s: %s' % (smart_text(self.entry.title), self.file.name)
 
 
-@python_2_unicode_compatible
 class Favorite (models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     entry = models.ForeignKey(Entry, on_delete=models.CASCADE, verbose_name=_('Entry'),
@@ -151,7 +147,6 @@ class Favorite (models.Model):
         return '%s: %s' % (self.user, smart_text(self.entry.title))
 
 
-@python_2_unicode_compatible
 class List (models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, db_index=True)
     name = models.CharField(_('Name'), max_length=48, null=False, blank=False)

@@ -15,10 +15,10 @@
 
 import hmac
 import hashlib
+from urllib.parse import urlsplit
 from datetime import timedelta
 from django.conf import settings
 from django.core import urlresolvers
-from django.utils.six.moves import urllib
 from glifestream.utils import httpclient
 from glifestream.utils.time import now
 from glifestream.stream.models import Pshb
@@ -225,5 +225,5 @@ def list(raw=False):
 
 
 def __get_absolute_url(path=''):
-    url = urllib.parse.urlsplit(settings.BASE_URL)
+    url = urlsplit(settings.BASE_URL)
     return '%s://%s%s' % (url.scheme, url.netloc, path)

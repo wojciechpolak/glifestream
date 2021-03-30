@@ -16,6 +16,8 @@
 import json
 import time
 import datetime
+from functools import reduce
+from urllib.parse import urljoin
 from django.conf import settings
 from django.db import connections
 from django.core import urlresolvers
@@ -31,8 +33,6 @@ from django.template.defaultfilters import truncatewords
 from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
-from django.utils.six.moves import urllib, range, reduce, zip
-from django.utils import six
 from glifestream.stream.templatetags.gls_filters import \
     (gls_content, gls_slugify, fix_ampersands)
 from glifestream.stream.models import Service, Entry, Favorite, List
@@ -334,7 +334,7 @@ def index(request, **args):
             gls_link = entries[0].gls_link
             if gls_link != request.path:
                 return HttpResponsePermanentRedirect(gls_link)
-            page['canonical_link'] = urllib.parse.urljoin(
+            page['canonical_link'] = urljoin(
                 settings.BASE_URL, gls_link)
         else:
             raise Http404
