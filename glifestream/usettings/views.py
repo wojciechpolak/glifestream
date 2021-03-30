@@ -17,7 +17,7 @@ import re
 import json
 from django.conf import settings
 from django.urls import reverse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
@@ -52,12 +52,12 @@ def services(request, **args):
     }
 
     services = Service.objects.all().order_by('api', 'name')
-    return render_to_response(
-        'services.html', {'page': page, 'authed': authed,
-                          'is_secure': request.is_secure(),
-                          'user': request.user,
-                          'services_supported': API_LIST,
-                          'services': services})
+    return render(request, 'services.html',
+                  {'page': page, 'authed': authed,
+                   'is_secure': request.is_secure(),
+                   'user': request.user,
+                   'services_supported': API_LIST,
+                   'services': services})
 
 
 class ListForm (ModelForm):
@@ -108,12 +108,14 @@ def lists(request, **args):
     else:
         form = ListForm(instance=list)
 
-    return render_to_response('lists.html', {'page': page, 'authed': authed,
-                                             'is_secure': request.is_secure(),
-                                             'user': request.user,
-                                             'lists': lists,
-                                             'curlist': curlist,
-                                             'form': form})
+    return render(request, 'lists.html',
+                  {'page': page,
+                   'authed': authed,
+                   'is_secure': request.is_secure(),
+                   'user': request.user,
+                   'lists': lists,
+                   'curlist': curlist,
+                   'form': form})
 
 
 @login_required
@@ -161,11 +163,13 @@ def pshb(request, **args):
     services = Service.objects.exclude(api__in=excluded_apis) \
         .exclude(id__in=subs.values('service__id')).order_by('name')
 
-    return render_to_response('pshb.html', {'page': page, 'authed': authed,
-                                            'is_secure': request.is_secure(),
-                                            'user': request.user,
-                                            'services': services,
-                                            'subs': subs})
+    return render(request, 'pshb.html',
+                  {'page': page,
+                   'authed': authed,
+                   'is_secure': request.is_secure(),
+                   'user': request.user,
+                   'services': services,
+                   'subs': subs})
 
 
 @login_required
@@ -181,9 +185,10 @@ def tools(request, **args):
         'title': _('Tools'),
         'menu': 'tools',
     }
-    return render_to_response('tools.html', {'page': page, 'authed': authed,
-                                             'is_secure': request.is_secure(),
-                                             'user': request.user})
+    return render(request, 'tools.html',
+                  {'page': page, 'authed': authed,
+                   'is_secure': request.is_secure(),
+                   'user': request.user})
 
 
 @login_required
@@ -258,13 +263,14 @@ def oauth(request, **args):
     api_help = apis_help.get(service.api,
                              'http://oauth.net/documentation/getting-started/')
 
-    return render_to_response('oauth.html', {'page': page,
-                                             'is_secure': request.is_secure(),
-                                             'title': six.text_type(service),
-                                             'api_help': api_help,
-                                             'callback_url': callback_url,
-                                             'phase': c.db.phase,
-                                             'v': v, })
+    return render(request, 'oauth.html',
+                  {'page': page,
+                   'is_secure': request.is_secure(),
+                   'title': six.text_type(service),
+                   'api_help': api_help,
+                   'callback_url': callback_url,
+                   'phase': c.db.phase,
+                   'v': v, })
 
 
 @login_required
@@ -323,8 +329,8 @@ def opml(request, **args):
             except:
                 pass
 
-        res = render_to_response('opml.xml', {'services': srvs},
-                                 content_type='text/xml')
+        res = render(request, 'opml.xml', {'services': srvs},
+                     content_type='text/xml')
         res['Content-Disposition'] = 'attachment; filename="gls-services.xml"'
         return res
 

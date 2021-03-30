@@ -27,7 +27,7 @@ from django.http import HttpResponseRedirect
 from django.http import HttpResponseNotFound
 from django.http import HttpResponsePermanentRedirect
 from django.http import Http404
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.template.defaultfilters import truncatewords
 from django.utils.translation import ugettext as _
@@ -348,17 +348,14 @@ def index(request, **args):
     # Pickup right output format and finish.
     format = request.GET.get('format', 'html')
     if format == 'atom':
-        return render_to_response('stream.atom',
-                                  {'entries': entries,
-                                   'page': page},
-                                  content_type='application/atom+xml')
+        return render(request, 'stream.atom',
+                      {'entries': entries, 'page': page},
+                      content_type='application/atom+xml')
     elif format == 'json':
         cb = request.GET.get('callback', False)
-        return render_to_response('stream.json',
-                                  {'entries': entries,
-                                   'page': page,
-                                   'callback': cb},
-                                  content_type='application/json')
+        return render(request, 'stream.json',
+                      {'entries': entries, 'page': page, 'callback': cb},
+                      content_type='application/json')
     elif format == 'html-pure' and request.is_ajax():
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
@@ -434,17 +431,17 @@ def index(request, **args):
             accept_lang[i] = lang.split(';')[0]
         page['lang'] = accept_lang[0]
 
-        res = render_to_response('stream.html',
-                                 {'classes': classes,
-                                  'entries': entries,
-                                  'lists': lists,
-                                  'archives': archs,
-                                  'page': page,
-                                  'authed': authed,
-                                  'friend': friend,
-                                  'has_search': search_enable,
-                                  'is_secure': request.is_secure(),
-                                  'user': request.user})
+        res = render(request, 'stream.html',
+                     {'classes': classes,
+                      'entries': entries,
+                      'lists': lists,
+                      'archives': archs,
+                      'page': page,
+                      'authed': authed,
+                      'friend': friend,
+                      'has_search': search_enable,
+                      'is_secure': request.is_secure(),
+                      'user': request.user})
         return res
 
 
@@ -467,7 +464,7 @@ def page_not_found(request, exception):
         'favicon': settings.FAVICON,
         'theme': common.get_theme(request),
     }
-    t = render_to_response('404.html', {'page': page})
+    t = render(request, '404.html', {'page': page})
     return HttpResponseNotFound(t.content)
 
 #
@@ -532,9 +529,9 @@ def api(request, **args):
             else:
                 entry.friends_only = False
                 if request.is_ajax():
-                    return render_to_response('stream-pure.html',
-                                              {'entries': (entry,),
-                                               'authed': authed})
+                    return render(request, 'stream-pure.html',
+                                  {'entries': (entry,),
+                                   'authed': authed})
                 else:
                     return HttpResponseRedirect(settings.BASE_URL + '/')
 
@@ -547,9 +544,9 @@ def api(request, **args):
                             'user': request.user})
                 if entry:
                     pshb.publish()
-                    return render_to_response('stream-pure.html',
-                                              {'entries': (entry,),
-                                               'authed': authed})
+                    return render(request, 'stream-pure.html',
+                                  {'entries': (entry,),
+                                   'authed': authed})
         except Exception:
             pass
 

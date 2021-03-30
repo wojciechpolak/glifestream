@@ -1,5 +1,5 @@
 Django ==2.2.*
-django-pipeline ==1.6.*
+django-pipeline ==2.0.*
 libsasscompiler ==0.1.8
 feedparser ==5.1.*
 Pillow ==8.1.*

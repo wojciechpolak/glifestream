@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.conf import settings
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service
 
@@ -27,8 +27,8 @@ def js(request, **args):
     if request.is_secure():
         page['base_url'] = page['base_url'].replace('http://', 'https://')
 
-    return render_to_response('bookmarklet.js', {'page': page},
-                              content_type='application/javascript')
+    return render(request, 'bookmarklet.js', {'page': page},
+                  content_type='application/javascript')
 
 
 @never_cache
@@ -47,8 +47,8 @@ def frame(request, **args):
     else:
         srvs = None
 
-    return render_to_response('frame.html',
-                              {'authed': authed,
-                               'page': page,
-                               'is_secure': request.is_secure(),
-                               'srvs': srvs})
+    return render(request, 'frame.html',
+                  {'authed': authed,
+                   'page': page,
+                   'is_secure': request.is_secure(),
+                   'srvs': srvs})
