@@ -18,6 +18,7 @@ MANAGERS = ADMINS
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {'charset': 'utf8mb4'},
         'NAME': 'glifestream',
         'USER': 'user',
         'PASSWORD': 'pass',
