@@ -15,11 +15,10 @@
 
 import datetime
 import calendar
-from django.utils import six
 
 
 def mtime(t):
-    if isinstance(t, six.string_types):
+    if isinstance(t, str):
         t = datetime.datetime.strptime(t, '%Y-%m-%d %H:%M:%S').timetuple()
     return datetime.datetime.utcfromtimestamp(calendar.timegm(t))
 

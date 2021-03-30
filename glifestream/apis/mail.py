@@ -20,7 +20,6 @@ from email.header import decode_header, make_header
 from django.conf import settings
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.utils.datastructures import MultiValueDict
-from django.utils import six
 from glifestream.apis import selfposts
 from glifestream.stream.models import Service
 
@@ -44,7 +43,7 @@ class API:
 
         check = getattr(settings, 'EMAIL2POST_CHECK', {})
         for lhs in check:
-            v = six.text_type(make_header(decode_header(msg.get(lhs, ''))))
+            v = str(make_header(decode_header(msg.get(lhs, ''))))
             if not check[lhs] in v:
                 return 77  # EX_NOPERM
 
@@ -81,7 +80,7 @@ class API:
         subject = msg.get('Subject', None)
         if subject:
             hdr = make_header(decode_header(subject))
-            args['title'] = six.text_type(hdr)
+            args['title'] = str(hdr)
 
         # Mail subject may contain @foo, a selfposts' class name for which
         # this message is post to.

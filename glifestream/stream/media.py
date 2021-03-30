@@ -21,7 +21,6 @@ import tempfile
 import time
 import shutil
 from django.conf import settings
-from django.utils import six
 from django.utils.encoding import force_bytes
 from glifestream.stream.models import Media
 from glifestream.utils import httpclient
@@ -138,7 +137,7 @@ def transform_to_local(entry):
 
 def mrss_init(mblob=None):
     if mblob:
-        if isinstance(mblob, six.string_types):
+        if isinstance(mblob, str):
             mblob = json.loads(mblob)
         if 'content' in mblob:
             return mblob

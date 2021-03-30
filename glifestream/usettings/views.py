@@ -23,7 +23,6 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.forms import ModelForm
-from django.utils import six
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service, List
@@ -266,7 +265,7 @@ def oauth(request, **args):
     return render(request, 'oauth.html',
                   {'page': page,
                    'is_secure': request.is_secure(),
-                   'title': six.text_type(service),
+                   'title': str(service),
                    'api_help': api_help,
                    'callback_url': callback_url,
                    'phase': c.db.phase,

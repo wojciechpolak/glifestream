@@ -15,7 +15,6 @@
 
 import re
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
-from django.utils import six
 from django.utils.encoding import force_str, force_text
 from django.utils.safestring import mark_safe, SafeData
 
