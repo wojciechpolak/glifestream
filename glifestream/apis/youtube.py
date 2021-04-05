@@ -84,7 +84,6 @@ class API:
     def process(self, url):
         for ent in self.json.get('items', ()):
             snippet = ent.get('snippet', {})
-            date = snippet['publishedAt'][:10]
 
             vid = ent['contentDetails']['videoId']
             if self.playlist_types[url] == 'favorite':

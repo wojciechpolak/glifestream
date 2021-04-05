@@ -39,7 +39,7 @@ class OAuthClient (models.Model):
     class Meta:
         verbose_name = 'OAuth'
         verbose_name_plural = 'OAuth'
-        ordering = 'service',
+        ordering = ('service',)
 
     def __str__(self):
         return u'%s: %s' % (self.service, self.identifier)

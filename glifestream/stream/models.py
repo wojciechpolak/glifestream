@@ -15,7 +15,6 @@
 
 from __future__ import unicode_literals
 
-from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
@@ -54,7 +53,8 @@ class Service (models.Model):
     active = models.BooleanField(_('Active'), default=True,
                                  help_text=_('If not active, this service will not be further updated.'))
     home = models.BooleanField(_('Home visible'), default=True,
-                               help_text=_('If unchecked, this stream will be still active, but hidden and thus visible only via custom lists.'))
+                               help_text=_('If unchecked, this stream will be still active, but hidden and thus '
+                                           'visible only via custom lists.'))
 
     class Meta:
         verbose_name = _('Service')
@@ -110,7 +110,7 @@ class Entry (models.Model):
     class Meta:
         verbose_name = _('Entry')
         verbose_name_plural = _('Entries')
-        ordering = '-date_published',
+        ordering = ('-date_published',)
         unique_together = (('service', 'guid'),)
 
     def __str__(self):
@@ -140,7 +140,7 @@ class Favorite (models.Model):
     class Meta:
         verbose_name = _('Favorite')
         verbose_name_plural = _('Favorites')
-        ordering = '-date_added',
+        ordering = ('-date_added',)
         unique_together = (('user', 'entry'),)
 
     def __str__(self):
@@ -157,7 +157,7 @@ class List (models.Model):
     class Meta:
         verbose_name = _('List')
         verbose_name_plural = _('Lists')
-        ordering = 'name',
+        ordering = ('name',)
         unique_together = (('user', 'slug'),)
 
     def save(self):
@@ -180,5 +180,5 @@ class Pshb (models.Model):
     class Meta:
         verbose_name = 'PSHB'
         verbose_name_plural = 'PSHB'
-        ordering = 'service',
+        ordering = ('service',)
         unique_together = (('hash', 'service', 'hub'),)

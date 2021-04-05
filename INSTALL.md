@@ -35,7 +35,7 @@ Installation instructions
 =========================
 
 1. Change the current working directory into the `glifestream` directory.
-2. Copy `settings-sample.py` to `settings.py` and edit your local site
+2. Copy `settings_sample.py` to `settings.py` and edit your local site
    configuration.
 3. Run `python manage.py syncdb`
 4. Run `python manage.py compilemessages` (if you have 'gettext' installed)

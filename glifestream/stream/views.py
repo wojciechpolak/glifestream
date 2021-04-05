@@ -13,7 +13,6 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import json
 import time
 import datetime
 from functools import reduce
@@ -27,6 +26,7 @@ from django.http import HttpResponseRedirect
 from django.http import HttpResponseNotFound
 from django.http import HttpResponsePermanentRedirect
 from django.http import Http404
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.template.defaultfilters import truncatewords
@@ -85,10 +85,10 @@ def index(request, **args):
         dt = datetime.date(year, month, day).strftime('%Y/%m/%d')
     elif year and month:
         dt = datetime.date(year, month, 1)
-        prev, next = pn_month_start(dt)
+        month_prev, month_next = pn_month_start(dt)
         page['month_nav'] = True
-        page['month_prev'] = prev.strftime('%Y/%m')
-        page['month_next'] = next.strftime('%Y/%m')
+        page['month_prev'] = month_prev.strftime('%Y/%m')
+        page['month_next'] = month_next.strftime('%Y/%m')
         dt = dt.strftime('%Y/%m')
     elif year:
         dt = datetime.date(year, 1, 1).strftime('%Y')
@@ -227,7 +227,7 @@ def index(request, **args):
                 select = "SELECT * FROM %s WHERE MATCH('%s')"
                 if page['public']:
                     select += ' AND public=1'
-                if 'friends_only' in sfs and sfs['friends_only'] == False:
+                if 'friends_only' in sfs and sfs['friends_only'] is False:
                     select += ' AND friends_only=0'
                 select += ' LIMIT 1000'
 
@@ -281,7 +281,7 @@ def index(request, **args):
                 page['copyright_years'] = crymin
 
     # Build URL params for links.
-    if len(urlparams):
+    if len(urlparams) > 0:
         urlparams = '?' + reduce(lambda x, y: x + '&' + y, urlparams, '')[1:] + '&'
     else:
         urlparams = '?'
@@ -304,7 +304,7 @@ def index(request, **args):
 
     # Set page theme.
     page['themes'] = settings.THEMES
-    page['themes_more'] = True if len(settings.THEMES) > 1 else False
+    page['themes_more'] = len(settings.THEMES) > 1
     page['theme'] = common.get_theme(request)
 
     # Setup links.
@@ -346,17 +346,17 @@ def index(request, **args):
         page['title'] = page_title
 
     # Pickup right output format and finish.
-    format = request.GET.get('format', 'html')
-    if format == 'atom':
+    output_format = request.GET.get('format', 'html')
+    if output_format == 'atom':
         return render(request, 'stream.atom',
                       {'entries': entries, 'page': page},
                       content_type='application/atom+xml')
-    elif format == 'json':
+    elif output_format == 'json':
         cb = request.GET.get('callback', False)
         return render(request, 'stream.json',
                       {'entries': entries, 'page': page, 'callback': cb},
                       content_type='application/json')
-    elif format == 'html-pure' and request.is_ajax():
+    elif output_format == 'html-pure' and request.is_ajax():
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
@@ -379,8 +379,8 @@ def index(request, **args):
         }
         if 'nextpage' in page:
             d['next'] = page['nextpage']
-        return HttpResponse(json.dumps(d), content_type='application/json')
-    elif format != 'html':
+        return JsonResponse(d)
+    elif output_format != 'html':
         raise Http404
     else:
         # Check which entry is already favorite.
@@ -457,7 +457,7 @@ def pshb_dispatcher(request, **args):
     raise Http404
 
 
-def page_not_found(request, exception):
+def page_not_found(request, exception):  # pylint: disable=unused-argument
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -499,7 +499,7 @@ def api(request, **args):
         d = []
         for s in srvs:
             d.append({'id': s['id'], 'cls': s['cls']})
-        return HttpResponse(json.dumps(d), content_type='application/json')
+        return JsonResponse(d)
 
     elif cmd == 'share':
         images = []
@@ -524,8 +524,7 @@ def api(request, **args):
             if source == 'bookmarklet':
                 d = {'close_msg': _(
                     "You've successfully shared this web page at your stream.")}
-                return HttpResponse(json.dumps(d),
-                                    content_type='application/json')
+                return JsonResponse(d)
             else:
                 entry.friends_only = False
                 if request.is_ajax():
@@ -547,7 +546,7 @@ def api(request, **args):
                     return render(request, 'stream-pure.html',
                                   {'entries': (entry,),
                                    'authed': authed})
-        except Exception:
+        except Entry.DoesNotExist:
             pass
 
     elif cmd == 'favorite':
@@ -555,14 +554,14 @@ def api(request, **args):
             entry = Entry.objects.get(id=int(entry))
             if entry:
                 try:
-                    fav = Favorite.objects.get(user=request.user, entry=entry)
+                    Favorite.objects.get(user=request.user, entry=entry)
                 except Favorite.DoesNotExist:
                     fav = Favorite(user=request.user, entry=entry)
                     fav.save()
                     media.transform_to_local(entry)
                     media.extract_and_register(entry)
                     entry.save()
-        except Exception:
+        except Entry.DoesNotExist:
             pass
 
     elif cmd == 'unfavorite':
@@ -572,7 +571,7 @@ def api(request, **args):
                 if entry:
                     Favorite.objects.get(user=request.user,
                                          entry=entry).delete()
-        except Exception:
+        except Entry.DoesNotExist:
             pass
 
     elif cmd == 'getcontent':
@@ -591,7 +590,7 @@ def api(request, **args):
                         entry.friends_only = False
                     content = fix_ampersands(gls_content('', entry))
                     return HttpResponse(content)
-        except Exception:
+        except Entry.DoesNotExist:
             pass
 
     elif cmd == 'putcontent':
@@ -605,14 +604,14 @@ def api(request, **args):
                 if entry:
                     content = fix_ampersands(gls_content('', entry))
                     return HttpResponse(content)
-        except Exception:
+        except Entry.DoesNotExist:
             pass
 
     return HttpResponse()
 
 
 def __dictfetchall(cursor):
-    "Returns all rows from a cursor as a dict"
+    """Returns all rows from a cursor as a dict"""
     desc = cursor.description
     return [
         dict(list(zip([col[0] for col in desc], row)))

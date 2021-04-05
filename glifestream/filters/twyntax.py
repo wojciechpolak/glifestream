@@ -16,32 +16,24 @@
 import re
 
 
-def parse(s, type='twitter'):
+def parse(s, syntax_type='twitter'):
     from glifestream.stream.templatetags.gls_filters import gls_urlizetrunc
-    if type == 'twitter':
+    if syntax_type == 'twitter':
         s = s.split(': ', 1)[1]
-    s = hash_tag(s, type)
-    s = at_reply(s, type)
+    s = hash_tag(s)
+    s = at_reply(s)
     s = gls_urlizetrunc(s, 45)
     return s
 
 
-def at_reply(tweet, type='twitter'):
+def at_reply(tweet):
     pattern = re.compile(r"(\A|\W)@(?P<user>\w+)(\Z|\W)")
-    if type == 'identica':
-        repl = (r'\1@<a href="http://identi.ca/\g<user>"'
-                r' title="\g<user> on Identi.ca" rel="nofollow">\g<user></a>\3')
-    else:
-        repl = (r'\1@<a href="https://twitter.com/\g<user>"'
-                r' title="\g<user> on Twitter" rel="nofollow">\g<user></a>\3')
+    repl = (r'\1@<a href="https://twitter.com/\g<user>"'
+            r' title="\g<user> on Twitter" rel="nofollow">\g<user></a>\3')
     return pattern.sub(repl, tweet)
 
 
-def hash_tag(tweet, type='twitter'):
-    if type == 'identica':
-        return re.sub(r'(\A|\s)#(\w[\w\-]+)',
-                      r'\1#<a href="http://identi.ca/tag/\2" title="#\2 search Identi.ca" rel="nofollow">\2</a>',
-                      tweet)
+def hash_tag(tweet):
     return re.sub(r'(\A|\s)#(\w[\w\-]+)',
                   r'\1#<a href="https://twitter.com/search/%23\2" title="#\2 search Twitter" rel="nofollow">\2</a>',
                   tweet)

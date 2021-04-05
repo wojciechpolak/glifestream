@@ -159,9 +159,9 @@ class API:
                 pass
 
 
-def get_thumbnail_url(id):
+def get_thumbnail_url(id_video):
     try:
-        r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id)
+        r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id_video)
         if r.status_code == 200:
             jsn = r.json()
             if 'thumbnail_large' in jsn[0]:

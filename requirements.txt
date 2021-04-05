@@ -9,3 +9,4 @@ requests-oauthlib ==0.4.*
 beautifulsoup4 ==4.3.*
 Markdown ==2.6.*
 pylint
+pylint_django

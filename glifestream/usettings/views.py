@@ -14,11 +14,11 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-import json
 from django.conf import settings
 from django.urls import reverse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
@@ -44,19 +44,19 @@ def services(request, **args):
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
-        'themes_more': True if len(settings.THEMES) > 1 else False,
+        'themes_more': len(settings.THEMES) > 1,
         'theme': common.get_theme(request),
         'title': _('Services - Settings'),
         'menu': 'services',
     }
 
-    services = Service.objects.all().order_by('api', 'name')
+    services_all = Service.objects.all().order_by('api', 'name')
     return render(request, 'services.html',
                   {'page': page, 'authed': authed,
                    'is_secure': request.is_secure(),
                    'user': request.user,
                    'services_supported': API_LIST,
-                   'services': services})
+                   'services': services_all})
 
 
 class ListForm (ModelForm):
@@ -77,42 +77,41 @@ def lists(request, **args):
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
-        'themes_more': True if len(settings.THEMES) > 1 else False,
+        'themes_more': len(settings.THEMES) > 1,
         'theme': common.get_theme(request),
         'title': _('Lists - Settings'),
         'menu': 'lists',
     }
     curlist = ''
-    lists = List.objects.filter(user=request.user).order_by('name')
+    lists_user = List.objects.filter(user=request.user).order_by('name')
 
     if 'list' in args:
         try:
-            list = List.objects.get(user=request.user, slug=args['list'])
+            list_user = List.objects.get(user=request.user, slug=args['list'])
             curlist = args['list']
         except List.DoesNotExist:
-            list = List(user=request.user)
+            list_user = List(user=request.user)
     else:
-        list = List(user=request.user)
+        list_user = List(user=request.user)
 
     if request.method == 'POST':
         if request.POST.get('delete', False):
-            list.delete()
+            list_user.delete()
             return HttpResponseRedirect(reverse('usettings-lists'))
-        else:
-            form = ListForm(request.POST, instance=list)
-            if form.is_valid():
-                form.save()
-                return HttpResponseRedirect(reverse('usettings-lists-slug',
-                                            args=[list.slug]))
+        form = ListForm(request.POST, instance=list_user)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('usettings-lists-slug',
+                                        args=[list_user.slug]))
     else:
-        form = ListForm(instance=list)
+        form = ListForm(instance=list_user)
 
     return render(request, 'lists.html',
                   {'page': page,
                    'authed': authed,
                    'is_secure': request.is_secure(),
                    'user': request.user,
-                   'lists': lists,
+                   'lists': lists_user,
                    'curlist': curlist,
                    'form': form})
 
@@ -128,7 +127,7 @@ def pshb(request, **args):
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
-        'themes_more': True if len(settings.THEMES) > 1 else False,
+        'themes_more': len(settings.THEMES) > 1,
         'theme': common.get_theme(request),
         'title': _('PubSubHubbub - Settings'),
         'menu': 'pshb',
@@ -158,7 +157,7 @@ def pshb(request, **args):
         else:
             page['msg'] = 'Hub %s: %s.' % (r['hub'], r['rc'])
 
-    subs = gls_pshb.list(raw=True)
+    subs = gls_pshb.list_subs(raw=True)
     services = Service.objects.exclude(api__in=excluded_apis) \
         .exclude(id__in=subs.values('service__id')).order_by('name')
 
@@ -179,7 +178,7 @@ def tools(request, **args):
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
-        'themes_more': True if len(settings.THEMES) > 1 else False,
+        'themes_more': len(settings.THEMES) > 1,
         'theme': common.get_theme(request),
         'title': _('Tools'),
         'menu': 'tools',
@@ -207,12 +206,12 @@ def oauth(request, **args):
         'twitter': 'http://dev.twitter.com/pages/auth',
     }
     v = {}
-    id = args['id']
+    id_service = args['id']
 
     callback_url = request.build_absolute_uri(
-        reverse('usettings-oauth', args=[id]))
+        reverse('usettings-oauth', args=[id_service]))
 
-    service = Service.objects.get(id=id)
+    service = Service.objects.get(id=id_service)
     c = gls_oauth.OAuth1Client(service=service,
                                identifier=request.POST.get('identifier'),
                                secret=request.POST.get('secret'),
@@ -255,7 +254,7 @@ def oauth(request, **args):
             try:
                 c.get_access_token()
                 c.save()
-                return HttpResponseRedirect(reverse('usettings-oauth', args=[id]))
+                return HttpResponseRedirect(reverse('usettings-oauth', args=[id_service]))
             except Exception as e:
                 page['msg'] = e
 
@@ -337,7 +336,7 @@ def opml(request, **args):
 
 
 def _import_service(url, title, cls='webfeed'):
-    api = 'webfeed'
+    api_name = 'webfeed'
 
     if 'flickr.com' in url:
         m = re.search(
@@ -345,13 +344,13 @@ def _import_service(url, title, cls='webfeed'):
         if m:
             url = m.groups()[0]
         url = url.replace('format=atom', 'format=rss_200')
-        api = 'flickr'
+        api_name = 'flickr'
         cls = 'photos'
     elif 'twitter.com' in url:
         m = re.search(r'twitter.com/1/statuses/user_timeline/(\w+)\.', url)
         if m:
             url = m.groups()[0]
-            api = 'twitter'
+            api_name = 'twitter'
             cls = 'sms'
     elif 'vimeo.com' in url:
         m = re.search(r'vimeo.com/([\w/]+)/\w+/rss', url)
@@ -359,27 +358,27 @@ def _import_service(url, title, cls='webfeed'):
             url = m.groups()[0]
             url = url.replace('channels/', 'channel/')
             url = url.replace('groups/', 'group/')
-            api = 'vimeo'
+            api_name = 'vimeo'
             cls = 'videos'
     elif 'youtube.com' in url:
         m = re.search(r'gdata.youtube.com/feeds/api/users/(\w+)', url)
         if m:
             url = m.groups()[0]
-        api = 'youtube'
+        api_name = 'youtube'
         cls = 'videos'
     elif 'yelp.com/syndicate' in url:
-        api = 'yelp'
+        api_name = 'yelp'
         cls = 'reviews'
 
     try:
         try:
-            service = Service.objects.get(api=api, url=url)
+            Service.objects.get(api=api_name, url=url)
         except Service.DoesNotExist:
-            if api in ('vimeo', 'webfeed', 'yelp', 'youtube'):
+            if api_name in ('vimeo', 'webfeed', 'yelp', 'youtube'):
                 display = 'both'
             else:
                 display = 'content'
-            service = Service(api=api, cls=cls, url=url, name=title,
+            service = Service(api=api_name, cls=cls, url=url, name=title,
                               display=display)
             service.save()
     except:
@@ -398,7 +397,7 @@ def api(request, **args):
     cmd = args.get('cmd', '')
 
     method = request.POST.get('method', 'get')
-    id = request.POST.get('id', None)
+    id_service = request.POST.get('id', None)
 
     # Add/edit services
     if cmd == 'service':
@@ -433,9 +432,9 @@ def api(request, **args):
         if method == 'post':
             try:
                 try:
-                    if not id:
+                    if not id_service:
                         raise Service.DoesNotExist
-                    srv = Service.objects.get(id=id)
+                    srv = Service.objects.get(id=id_service)
                 except Service.DoesNotExist:
                     srv = Service()
                 for k, v in s.items():
@@ -460,15 +459,15 @@ def api(request, **args):
 
                 s['need_import'] = True if not srv.id else False
                 srv.save()
-                id = srv.id
+                id_service = srv.id
             except:
                 pass
 
         # Get
-        if id:
+        if id_service:
             try:
-                srv = Service.objects.get(id=id)
-                if not len(miss):
+                srv = Service.objects.get(id=id_service)
+                if len(miss) == 0:
                     s.update({
                         'id': srv.id,
                         'api': srv.api,
@@ -490,7 +489,7 @@ def api(request, **args):
             s['home'] = True
             s['active'] = True
 
-        if not 'creds' in s:
+        if 'creds' not in s:
             s['creds'] = ''
 
         # Setup fields
@@ -567,7 +566,8 @@ def api(request, **args):
 
         s['fields'].append({'type': 'checkbox', 'name': 'home',
                             'checked': s['home'], 'label': _('Home'),
-                            'hint': _('If unchecked, this stream will be still active, but hidden and thus visible only via custom lists.')})
+                            'hint': _('If unchecked, this stream will be still active, but hidden and thus visible '
+                                      'only via custom lists.')})
 
         if s['api'] != 'selfposts':
             s['fields'].append({'type': 'checkbox', 'name': 'active',
@@ -582,17 +582,17 @@ def api(request, **args):
         s['cancel'] = _('Cancel')
 
         # print(json.dumps(s, indent=2))
-        return HttpResponse(json.dumps(s), content_type='application/json')
+        return JsonResponse(s)
 
     # Import
-    elif cmd == 'import' and id:
+    elif cmd == 'import' and id_service:
         try:
-            service = Service.objects.get(id=id)
+            service = Service.objects.get(id=id_service)
             mod = __import__('glifestream.apis.%s' %
                              service.api, {}, {}, ['API'])
             mod_api = getattr(mod, 'API')
-            api = mod_api(service, False, False)
-            api.run()
+            service_instance = mod_api(service, False, False)
+            service_instance.run()
         except:
             pass
 

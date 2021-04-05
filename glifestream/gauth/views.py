@@ -15,6 +15,7 @@
 
 from django.conf import settings
 from django.urls import reverse
+from django.contrib.auth import login as django_login
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
@@ -41,8 +42,7 @@ def login(request, template_name='login.html',
             if not form.cleaned_data['remember_me']:
                 request.session.set_expiry(0)
 
-            from django.contrib.auth import login
-            login(request, form.get_user())
+            django_login(request, form.get_user())
 
             if request.session.test_cookie_worked():
                 request.session.delete_test_cookie()
@@ -71,4 +71,3 @@ def login(request, template_name='login.html',
                    'site_name': current_site.name,
                    'is_secure': request.is_secure(),
                    redirect_field_name: redirect_to})
-

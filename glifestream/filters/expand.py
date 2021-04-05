@@ -69,8 +69,7 @@ def __sp_flickr(m):
     j = oembed.discover(url, provider='flickr', maxwidth=400)
     if j and j['type'] == 'photo':
         return __gen_tai(url, j['url'])
-    else:
-        return url
+    return url
 
 
 def __sp_imgloc(m):
@@ -102,47 +101,46 @@ def imgloc(s):
 def __sv_youtube(m):
     if m.start() > 0 and m.string[m.start() - 1] == '"':
         return m.group(0)
-    id = m.group(2)
+    id_video = m.group(2)
     rest = m.group(3)
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
-    link = 'https://www.youtube.com/watch?v=%s' % id
-    imgurl = 'https://i.ytimg.com/vi/%s/mqdefault.jpg' % id
+    link = 'https://www.youtube.com/watch?v=%s' % id_video
+    imgurl = 'https://i.ytimg.com/vi/%s/mqdefault.jpg' % id_video
     imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
     return '<table class="vc"><tr><td><div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">' \
            '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">' \
-           '</div></div></td></tr></table>%s' % (id, link, imgurl, rest)
+           '</div></div></td></tr></table>%s' % (id_video, link, imgurl, rest)
 
 
 def __sv_vimeo(m):
     from glifestream.apis import vimeo
     if m.start() > 0 and m.string[m.start() - 1] == '"':
         return m.group(0)
-    id = m.group(2)
+    id_video = m.group(2)
     link = m.group(0)
-    imgurl = vimeo.get_thumbnail_url(id)
+    imgurl = vimeo.get_thumbnail_url(id_video)
     if imgurl:
         imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
         return '<table class="vc"><tr><td><div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">' \
                '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>' \
                '<div class="playbutton"></div></div></td></tr></table>' % (
-                   id, link, imgurl)
-    else:
-        return link
+                   id_video, link, imgurl)
+    return link
 
 
 def __sv_dailymotion(m):
     link = strip_tags(m.group(0))
-    id = m.group(1)
+    id_video = m.group(1)
     rest = m.group(2)
     ltag = rest.find('<') if rest else -1
     rest = rest[ltag:] if ltag != -1 else ''
-    imgurl = 'https://www.dailymotion.com/thumbnail/video/%s' % id
+    imgurl = 'https://www.dailymotion.com/thumbnail/video/%s' % id_video
     imgurl = media.save_image(imgurl)
     return '<table class="vc"><tr><td><div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">' \
            '<img src="%s" width="320" height="180" alt="Dailymotion Video" />' \
            '</a><div class="playbutton"></div></div></td></tr></table>%s' % (
-               id, link, imgurl, rest)
+               id_video, link, imgurl, rest)
 
 
 def videolinks(s):
@@ -165,8 +163,8 @@ def videolinks(s):
 def __sa_ogg(m):
     link = m.group(1)
     name = m.group(2)
-    id = hashlib.md5(link).hexdigest()
-    return '<span data-id="audio-%s" class="play-audio"><a href="%s">%s</a></span>' % (id, link, name)
+    id_audio = hashlib.md5(link).hexdigest()
+    return '<span data-id="audio-%s" class="play-audio"><a href="%s">%s</a></span>' % (id_audio, link, name)
 
 
 def __sa_thesixtyone(m):
@@ -213,8 +211,7 @@ def __sm_googlemaps(m):
         return '<div class="geo"><a href="%s" class="map"><span class="latitude">%.10f</span> ' \
                '<span class="longitude">%.10f</span></a></div>%s' % (
                    link, geolat, geolng, rest)
-    else:
-        return link
+    return link
 
 
 def maplinks(s):

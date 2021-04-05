@@ -117,9 +117,9 @@ def downsave_uploaded_image(file):
 
 
 def extract_and_register(entry):
-    for hash in re.findall(r'\[GLS-THUMBS\]/([a-f0-9]{40})', entry.content):
+    for hash_thumb in re.findall(r'\[GLS-THUMBS\]/([a-f0-9]{40})', entry.content):
         md = Media(entry=entry)
-        md.file.name = get_thumb_info(hash)['rel']
+        md.file.name = get_thumb_info(hash_thumb)['rel']
         try:
             md.save()
         except:
@@ -171,7 +171,7 @@ def mrss_gen_xml(entry):
         mblob = json.loads(entry.mblob)
         if 'content' in mblob:
             for g in mblob['content']:
-                group = True if len(g) > 1 else False
+                group = len(g) > 1
                 if group:
                     m += '    <media:group>\n'
                 for i in g:

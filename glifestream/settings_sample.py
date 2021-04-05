@@ -70,6 +70,8 @@ LOGIN_URL = '/login'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'YOUR-SECRET-KEY'
 
+assert SECRET_KEY != 'YOUR-SECRET-KEY', 'SECRET_KEY must be long and unique.'
+
 MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

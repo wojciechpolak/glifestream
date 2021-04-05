@@ -56,18 +56,18 @@ def subscribe(service, verbose=False):
 
     secret = hashlib.md5('%s:%d/%s/%s' % (hub, service.id, api.url,
                                           settings.SECRET_KEY)).hexdigest()
-    hash = hashlib.sha1(secret).hexdigest()[0:20]
+    hash_sub = hashlib.sha1(secret).hexdigest()[0:20]
     secret = secret[0:8] if 'https://' in hub else None
 
     save_db = False
     try:
-        db = Pshb.objects.get(hash=hash, service=service)
+        db = Pshb.objects.get(hash=hash_sub, service=service)
     except Pshb.DoesNotExist:
-        db = Pshb(hash=hash, service=service, hub=hub, secret=secret)
+        db = Pshb(hash=hash_sub, service=service, hub=hub, secret=secret)
         save_db = True
 
     topic = __get_absolute_url(reverse('index')) + '?format=atom'
-    callback = __get_absolute_url(reverse('pshb', args=[hash]))
+    callback = __get_absolute_url(reverse('pshb', args=[hash_sub]))
 
     if settings.PSHB_HTTPS_CALLBACK:
         callback = callback.replace('http://', 'https://')
@@ -97,9 +97,9 @@ def subscribe(service, verbose=False):
         return {'hub': hub, 'rc': error}
 
 
-def unsubscribe(id, verbose=False):
+def unsubscribe(id_sub, verbose=False):
     try:
-        db = Pshb.objects.get(id=id)
+        db = Pshb.objects.get(id=id_sub)
     except Pshb.DoesNotExist:
         return {'rc': 1}
 
@@ -130,13 +130,13 @@ def unsubscribe(id, verbose=False):
         return {'hub': db.hub, 'rc': error}
 
 
-def verify(id, GET):
+def verify(id_sub, GET):
     mode = GET.get('hub.mode', None)
     lease_seconds = GET.get('hub.lease_seconds', None)
 
     if mode == 'subscribe':
         try:
-            db = Pshb.objects.get(hash=id)
+            db = Pshb.objects.get(hash=id_sub)
             db.verified = True
             if lease_seconds:
                 db.expire = now() + timedelta(seconds=int(lease_seconds))
@@ -145,7 +145,7 @@ def verify(id, GET):
             return False
     elif mode == 'unsubscribe':
         try:
-            Pshb.objects.get(hash=id).delete()
+            Pshb.objects.get(hash=id_sub).delete()
         except Pshb.DoesNotExist:
             return False
 
@@ -179,9 +179,9 @@ def publish(hubs=None, verbose=False):
                 print('%s, Response: "%s"' % (e, error))
 
 
-def accept_payload(id, payload, meta={}):
+def accept_payload(id_sub, payload, meta={}):
     try:
-        db = Pshb.objects.get(hash=id)
+        db = Pshb.objects.get(hash=id_sub)
     except Pshb.DoesNotExist:
         return False
     if db.secret:
@@ -212,7 +212,7 @@ def renew_subscriptions(force=False, verbose=False):
                 subscribe(s.service, verbose)
 
 
-def list(raw=False):
+def list_subs(raw=False):
     subscriptions = Pshb.objects.all().order_by('id')
     if raw:
         return subscriptions

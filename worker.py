@@ -155,7 +155,7 @@ def run():
         elif pshb_cmd == 'renew':
             pshb.renew_subscriptions(force=force_check, verbose=verbose)
         elif pshb_cmd == 'list':
-            pshb.list()
+            pshb.list_subs()
         elif pshb_cmd == 'publish':
             pshb.publish(verbose=verbose)
         else:

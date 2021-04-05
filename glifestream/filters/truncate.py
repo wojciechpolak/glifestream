@@ -18,9 +18,8 @@ def simple(content, max_length=36, suffix='...'):
     content = content.strip()
     if len(content) <= max_length:
         return content
-    else:
-        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:.')
-        return content + suffix
+    content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:.')
+    return content + suffix
 
 
 def smart(content, max_words=7, max_length=36, suffix='...'):
@@ -32,6 +31,5 @@ def smart(content, max_words=7, max_length=36, suffix='...'):
         sx = suffix
     if len(content) <= max_length:
         return content.rstrip(' -/,:.') + sx
-    else:
-        content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:.')
-        return content + suffix
+    content = content[:max_length].rsplit(' ', 1)[0].rstrip(' -/,:.')
+    return content + suffix

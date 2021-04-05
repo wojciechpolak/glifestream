@@ -15,7 +15,7 @@
 
 from itertools import groupby
 from django.utils.translation import ugettext as _
-from glifestream.utils.time import mtime, now
+from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 from glifestream.apis import webfeed
