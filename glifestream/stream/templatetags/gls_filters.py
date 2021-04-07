@@ -163,7 +163,7 @@ def encode_json(content):
     return mark_safe(enc.encode(content))
 
 
-unencoded_ampersands_re = re.compile(r'&(?!(\w+|#\d+);)')
+unencoded_ampersands_re = re.compile(r'&(?!([a-z]+|#\d+);)')
 
 
 def fix_ampersands(value):

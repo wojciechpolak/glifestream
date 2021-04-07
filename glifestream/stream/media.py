@@ -149,11 +149,9 @@ def mrss_scan(content):
     mblob = mrss_init()
     for v in re.findall(r'https?://www.youtube.com/watch\?v=([\-\w]+)', content):
         mblob['content'].append([{'url': 'https://www.youtube.com/v/' + v,
-                                  'type': 'application/x-shockwave-flash',
                                   'medium': 'video'}])
     for dummy, v in re.findall(r'https?://(www\.)?vimeo.com/(\d+)', content):
-        mblob['content'].append([{'url': 'https://vimeo.com/moogaloop.swf?clip_id=' + v,
-                                  'type': 'application/x-shockwave-flash',
+        mblob['content'].append([{'url': 'https://player.vimeo.com/video/' + v,
                                   'medium': 'video'}])
     return mblob
 

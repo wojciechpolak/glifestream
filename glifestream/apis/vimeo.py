@@ -105,8 +105,7 @@ class API:
 
             mblob = media.mrss_init()
             mblob[
-                'content'].append([{'url': 'https://vimeo.com/moogaloop.swf?clip_id=%s' % ent['id'],
-                                    'type': 'application/x-shockwave-flash',
+                'content'].append([{'url': 'https://player.vimeo.com/video/%s' % ent['id'],
                                     'medium': 'video'}])
             e.mblob = media.mrss_gen_json(mblob)
 
@@ -146,10 +145,8 @@ class API:
                 ent['id'], e.link, ent['thumbnail_large'], ent['title'])
 
             mblob = media.mrss_init()
-            mblob[
-                'content'].append([{'url': 'https://vimeo.com/moogaloop.swf?clip_id=%s' % ent['id'],
-                                    'type': 'application/x-shockwave-flash',
-                                    'medium': 'video'}])
+            mblob['content'].append([{'url': 'https://player.vimeo.com/video/%s' % ent['id'],
+                                     'medium': 'video'}])
             e.mblob = media.mrss_gen_json(mblob)
 
             try:

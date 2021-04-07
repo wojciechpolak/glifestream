@@ -350,7 +350,7 @@ def index(request, **args):
     if output_format == 'atom':
         return render(request, 'stream.atom',
                       {'entries': entries, 'page': page},
-                      content_type='application/atom+xml')
+                      content_type='application/atom+xml; charset=UTF-8')
     elif output_format == 'json':
         cb = request.GET.get('callback', False)
         return render(request, 'stream.json',
