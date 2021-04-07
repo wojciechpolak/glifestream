@@ -4,7 +4,7 @@ libsasscompiler ==0.1.8
 feedparser ==5.1.*
 Pillow ==8.1.*
 workerpool ==0.9.*
-python3-memcached ==1.51
+python-memcached ==1.59
 requests-oauthlib ==0.4.*
 beautifulsoup4 ==4.3.*
 Markdown ==2.6.*
