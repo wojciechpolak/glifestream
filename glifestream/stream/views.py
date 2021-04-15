@@ -499,7 +499,7 @@ def api(request, **args):
         d = []
         for s in srvs:
             d.append({'id': s['id'], 'cls': s['cls']})
-        return JsonResponse(d)
+        return JsonResponse(d, safe=False)
 
     elif cmd == 'share':
         images = []
