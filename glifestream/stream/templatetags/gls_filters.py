@@ -26,10 +26,10 @@ from django.utils.translation import ugettext as _
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_text
 from django import template
-from glifestream.apis import *
 from glifestream.stream import media
 from glifestream.utils.slugify import slugify
 from glifestream.utils.html import urlize as _urlize
+from glifestream.apis import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 register = template.Library()
 
@@ -39,8 +39,7 @@ def gls_date(date):
     ts = calendar.timegm(date.utctimetuple())
     if (time.time() - ts) > (7 * 86400):
         return ddate(datetime.datetime.fromtimestamp(ts), 'D, d-m-Y')
-    else:
-        return get_relative_time(date)
+    return get_relative_time(date)
 
 
 @register.filter
@@ -60,7 +59,7 @@ def gls_media(s):
 
 
 @register.filter
-def gls_link(e, entry):
+def gls_link(_, entry):
     if not entry.service.public:
         if entry.author_name:
             return '?class=%s&author=%s' % (entry.service.cls,
@@ -71,13 +70,13 @@ def gls_link(e, entry):
 
 
 @register.filter
-def gls_title(e, entry):
+def gls_title(_, entry):
     title = entry.title
     try:
         mod = eval(entry.service.api)
         if hasattr(mod, 'filter_title'):
             title = mod.filter_title(entry)
-    except:
+    except Exception:
         pass
     if entry.friends_only:
         title = ''
@@ -87,7 +86,7 @@ def gls_title(e, entry):
 
 
 @register.filter
-def gls_content(e, entry):
+def gls_content(_, entry):
     if entry.friends_only:
         return mark_safe('<div class="friends-only-entry"><p>' +
                          _('The content of this entry is available only to my friends.') +
@@ -97,28 +96,27 @@ def gls_content(e, entry):
         if hasattr(mod, 'filter_content'):
             s = mod.filter_content(entry)
             if entry.geolat and entry.geolng:
-                s += '<div class="geo"><a href="#" class="show-map"><span class="latitude">%.10f</span> <span class="longitude">%.10f</span>%s</a></div>' % (
-                    entry.geolat, entry.geolng, _('show map'))
+                s += '<div class="geo"><a href="#" class="show-map"><span class="latitude">%.10f</span> ' \
+                     '<span class="longitude">%.10f</span>%s</a></div>' % (
+                     entry.geolat, entry.geolng, _('show map'))
             return mark_safe(gls_media(s))
-    except:
+    except Exception:
         pass
     return mark_safe(gls_media(force_text(entry.content)))
 
 
 @register.filter
-def gls_mediarss(e, entry):
+def gls_mediarss(_, entry):
     if entry.friends_only:
         return ''
     return mark_safe(media.mrss_gen_xml(entry))
 
 
 @register.filter
-def gls_reply_url(e, entry):
+def gls_reply_url(_, entry):
     if entry.service.api == 'twitter':
         u = entry.link.split('/')
         return 'https://twitter.com/?status=@%s%%20&in_reply_to_status_id=%s&in_reply_to=%s' % (u[3], u[5], u[3])
-    elif entry.service.api == 'identica':
-        return 'http://identi.ca/notice/new?replyto=%s' % entry.author_name
     return '#'
 
 

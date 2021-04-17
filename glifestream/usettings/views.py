@@ -321,10 +321,10 @@ def opml(request, **args):
                 mod = __import__('glifestream.apis.%s' % service.api,
                                  {}, {}, ['API'])
                 mod_api = getattr(mod, 'API')
-                api = mod_api(service)
+                service_instance = mod_api(service)
                 srvs.extend([{'name': service.name, 'url': u}
-                             for u in api.get_urls()])
-            except:
+                             for u in service_instance.get_urls()])
+            except Exception:
                 pass
 
         res = render(request, 'opml.xml', {'services': srvs},
@@ -381,7 +381,7 @@ def _import_service(url, title, cls='webfeed'):
             service = Service(api=api_name, cls=cls, url=url, name=title,
                               display=display)
             service.save()
-    except:
+    except Exception:
         pass
 
 #
@@ -439,7 +439,7 @@ def api(request, **args):
                     srv = Service()
                 for k, v in s.items():
                     setattr(srv, k, v)
-            except:
+            except Exception:
                 pass
 
             try:
@@ -457,10 +457,10 @@ def api(request, **args):
                 elif auth == 'none':
                     srv.creds = ''
 
-                s['need_import'] = True if not srv.id else False
+                s['need_import'] = not srv.id
                 srv.save()
                 id_service = srv.id
-            except:
+            except Exception:
                 pass
 
         # Get
@@ -593,7 +593,7 @@ def api(request, **args):
             mod_api = getattr(mod, 'API')
             service_instance = mod_api(service, False, False)
             service_instance.run()
-        except:
+        except Exception:
             pass
 
     return HttpResponse()

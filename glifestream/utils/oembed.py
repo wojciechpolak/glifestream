@@ -13,7 +13,7 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import urllib
+import urllib.parse
 from glifestream.utils import httpclient
 
 providers = {
@@ -25,7 +25,7 @@ def discover(url, provider, maxwidth=None, maxheight=None):
     pro = providers.get(provider, None)
     if not pro:
         return None
-    q = '?url=%s&format=json' % urllib.quote(url)
+    q = '?url=%s&format=json' % urllib.parse.quote(url)
     if maxwidth:
         q += '&maxwidth=%d' % maxwidth
     if maxheight:
@@ -34,6 +34,6 @@ def discover(url, provider, maxwidth=None, maxheight=None):
         r = httpclient.get(pro + q, timeout=15)
         if r.status_code == 200:
             return r.json()
-    except:
+    except Exception:
         pass
     return None

@@ -16,9 +16,10 @@
 import re
 import hashlib
 from urllib.parse import urlparse
-from cgi import parse_qsl
+from urllib.parse import parse_qsl
 from django.utils.html import strip_tags
 from django.utils.encoding import smart_text
+from glifestream.apis import vimeo
 from glifestream.stream import media
 from glifestream.utils import httpclient, oembed
 
@@ -32,7 +33,7 @@ def __su_subs(m):
         url = m.group(1) + m.group(2) + m.group(3)
         res = httpclient.head(url)
         return res.headers.get('location') or m.group(0)
-    except:
+    except Exception:
         return m.group(0)
 
 
@@ -53,7 +54,7 @@ def __gen_tai(link, img_src):
 
 
 def __sp_twitpic(m):
-    url = media.save_image('http://%s/show/full/%s' %
+    url = media.save_image('https://%s/show/full/%s' %
                            (m.group(2), m.group(3)), downscale=True)
     return __gen_tai(m.group(0), url)
 
@@ -114,7 +115,6 @@ def __sv_youtube(m):
 
 
 def __sv_vimeo(m):
-    from glifestream.apis import vimeo
     if m.start() > 0 and m.string[m.start() - 1] == '"':
         return m.group(0)
     id_video = m.group(2)
@@ -190,7 +190,7 @@ def audiolinks(s):
 #
 
 
-def __parse_qs(qs, keep_blank_values=0, strict_parsing=0):
+def __parse_qs(qs, keep_blank_values=False, strict_parsing=False):
     d = {}
     for name, value in parse_qsl(qs, keep_blank_values, strict_parsing):
         d[name] = value
@@ -231,7 +231,7 @@ def shorts(s):
     return shortpics(s)
 
 
-def all(s):
+def run_all(s):
     s = shorturls(s)
     s = shortpics(s)
     s = audiolinks(s)

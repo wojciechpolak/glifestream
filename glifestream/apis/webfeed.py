@@ -41,14 +41,14 @@ class API:
         for url in self.get_urls():
             try:
                 self.fetch(url)
-            except:
+            except Exception:
                 pass
 
     def fetch(self, url):
         self.fp_error = False
         if not self.payload:
             try:
-                hs = httpclient.gen_auth(self.service, url)
+                hs = httpclient.gen_auth(self.service)
                 r = httpclient.get(url, auth=hs)
                 alturl = httpclient.get_alturl_if_html(r)
                 if alturl:
@@ -59,6 +59,7 @@ class API:
             except (IOError, httpclient.HTTPError) as e:
                 self.fp_error = True
                 if self.verbose:
+                    # pylint: disable=no-member
                     error = e.message if hasattr(e, 'message') else ''
                     print('%s (%d) HTTPError: %s' % (self.service.api,
                                                      self.service.id,
@@ -82,7 +83,7 @@ class API:
                 self.service.etag = ''
             try:
                 self.service.last_modified = mtime(self.fp.modified)
-            except:
+            except Exception:
                 pass
             self.service.last_checked = now()
             if not self.service.link:
@@ -124,7 +125,7 @@ class API:
 
             try:
                 e.content = ent.content[0].value
-            except:
+            except Exception:
                 e.content = ent.get('summary', ent.get('description', ''))
 
             if 'published_parsed' in ent:
@@ -151,7 +152,7 @@ class API:
                         e.link_image = media.save_image(link.href)
 
             if hasattr(self, 'custom_process'):
-                self.custom_process(e, ent)
+                self.custom_process(e, ent)  # pylint: disable=no-member
 
             if hasattr(e, 'custom_mblob'):
                 e.mblob = e.custom_mblob
@@ -168,7 +169,7 @@ class API:
             try:
                 e.save()
                 media.extract_and_register(e)
-            except:
+            except Exception:
                 pass
 
 

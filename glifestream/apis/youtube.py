@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+import traceback
 import datetime
 from django.utils.translation import ugettext as _
 from glifestream.stream import media
@@ -59,7 +61,7 @@ class API:
         for url in self.get_urls():
             try:
                 self.fetch(url)
-            except:
+            except Exception:
                 pass
 
     def fetch(self, url):
@@ -75,8 +77,6 @@ class API:
                                             self.service.id, r.reason))
         except Exception as e:
             if self.verbose:
-                import sys
-                import traceback
                 print('%s (%d) Exception: %s' % (self.service.api,
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)

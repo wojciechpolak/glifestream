@@ -18,6 +18,7 @@
 
 import datetime
 import getopt
+import re
 import os
 import sys
 import time
@@ -35,6 +36,8 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
 if hasattr(django, 'setup'):
     django.setup()
 
+# pylint: disable=wrong-import-position
+from glifestream.apis import mail
 from glifestream.stream import media, pshb
 from glifestream.stream.models import Service, Entry, Favorite
 from glifestream.utils.time import unixnow
@@ -51,7 +54,7 @@ if workerpool:
 
 def run():
     verbose = 0
-    list = False
+    list_services = False
     force_check = False
     force_overwrite = False
     list_old = False
@@ -83,7 +86,7 @@ def run():
             elif o in ('-i', '--id'):
                 fs['id'] = arg
             elif o in ('-l', '--list'):
-                list = True
+                list_services = True
             elif o in ('-v', '--verbose'):
                 verbose += 1
             elif o in ('-f', '--force-check'):
@@ -125,7 +128,7 @@ def run():
   """ % sys.argv[0])
         sys.exit(0)
 
-    if list:
+    if list_services:
         for service in Service.objects.all().order_by('id'):
             print('%4d "%s"  API=%s' % (service.id, service.name, service.api))
         sys.exit(0)
@@ -164,7 +167,6 @@ def run():
         sys.exit(0)
 
     if thumbs in ('list-orphans', 'delete-orphans'):
-        import re
         ths = {}
         for root, dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT,
                                                       'thumbs')):
@@ -173,13 +175,13 @@ def run():
                     ths[media.get_thumb_info(file)['rel']] = True
         entries = Entry.objects.all()
         for entry in entries:
-            hash = media.get_thumb_hash(entry.link_image)
-            t = media.get_thumb_info(hash)['rel'] if hash else ''
+            thumb_hash = media.get_thumb_hash(entry.link_image)
+            t = media.get_thumb_info(thumb_hash)['rel'] if thumb_hash else ''
             if t in ths:
                 del ths[t]
-            for hash in re.findall('\[GLS-THUMBS\]/([a-f0-9]{40})',
-                                   entry.content):
-                t = media.get_thumb_info(hash)['rel']
+            for thumb_hash in re.findall('\[GLS-THUMBS\]/([a-f0-9]{40})',
+                                         entry.content):
+                t = media.get_thumb_info(thumb_hash)['rel']
                 if t in ths:
                     del ths[t]
         if thumbs == 'delete-orphans':
@@ -282,7 +284,6 @@ def run():
 
 
 def email2post():
-    from glifestream.apis import mail
     api = mail.API()
     return api.share(sys.stdin)
 

@@ -17,6 +17,6 @@ from django.conf.urls import url
 from glifestream.bookmarklet import views
 
 urlpatterns = [
-    url(r'js$', views.js),
-    url(r'frame$', views.frame),
+    url(r'js$', views.serve_js),
+    url(r'frame$', views.serve_frame),
 ]

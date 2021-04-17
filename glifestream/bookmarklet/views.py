@@ -19,7 +19,7 @@ from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service
 
 
-def js(request, **args):
+def serve_js(request, **args):
     page = {
         'base_url': settings.BASE_URL,
         'favicon': request.build_absolute_uri(settings.FAVICON),
@@ -32,7 +32,7 @@ def js(request, **args):
 
 
 @never_cache
-def frame(request, **args):
+def serve_frame(request, **args):
     page = {
         'base_url': settings.BASE_URL,
     }

@@ -250,7 +250,7 @@ def index(request, **args):
                 page['nextpage'] = page_number + 1
 
             entries = entries[offset:limit]
-        except:
+        except Exception:
             entries = []
 
         start = False

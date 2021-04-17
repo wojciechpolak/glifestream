@@ -87,6 +87,7 @@ def subscribe(service, verbose=False):
             db.save()
         return {'hub': hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
+        # pylint: disable=no-member
         error = ''
         if hasattr(e, 'message'):
             error = e.message
@@ -120,6 +121,7 @@ def unsubscribe(id_sub, verbose=False):
             print('Response code: %d' % r.status_code)
         return {'hub': db.hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
+        # pylint: disable=no-member
         error = ''
         if hasattr(e, 'message'):
             error = e.message
@@ -130,9 +132,9 @@ def unsubscribe(id_sub, verbose=False):
         return {'hub': db.hub, 'rc': error}
 
 
-def verify(id_sub, GET):
-    mode = GET.get('hub.mode', None)
-    lease_seconds = GET.get('hub.lease_seconds', None)
+def verify(id_sub, req_get):
+    mode = req_get.get('hub.mode', None)
+    lease_seconds = req_get.get('hub.lease_seconds', None)
 
     if mode == 'subscribe':
         try:
@@ -149,7 +151,7 @@ def verify(id_sub, GET):
         except Pshb.DoesNotExist:
             return False
 
-    return GET.get('hub.challenge', '')
+    return req_get.get('hub.challenge', '')
 
 
 def publish(hubs=None, verbose=False):
@@ -168,6 +170,7 @@ def publish(hubs=None, verbose=False):
                 else:
                     print('%s: Pinged and got %d.' % (hub, r.status_code))
         except (IOError, httpclient.HTTPError) as e:
+            # pylint: disable=no-member
             if hasattr(e, 'status_code') and e.status_code == 204:
                 continue
             if verbose:
@@ -179,7 +182,9 @@ def publish(hubs=None, verbose=False):
                 print('%s, Response: "%s"' % (e, error))
 
 
-def accept_payload(id_sub, payload, meta={}):
+def accept_payload(id_sub, payload, meta=None):
+    if meta is None:
+        meta = {}
     try:
         db = Pshb.objects.get(hash=id_sub)
     except Pshb.DoesNotExist:

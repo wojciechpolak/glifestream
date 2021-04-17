@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+import traceback
 from django.utils.translation import ugettext as _
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
@@ -65,8 +67,6 @@ class API:
                                             self.service.id, r.reason))
         except Exception as e:
             if self.verbose:
-                import sys
-                import traceback
                 print('%s (%d) Exception: %s' % (self.service.api,
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
@@ -111,7 +111,7 @@ class API:
 
             try:
                 e.save()
-            except:
+            except Exception:
                 pass
 
     def process_videos(self):
@@ -152,7 +152,7 @@ class API:
             try:
                 e.save()
                 media.extract_and_register(e)
-            except:
+            except Exception:
                 pass
 
 
@@ -165,7 +165,7 @@ def get_thumbnail_url(id_video):
                 return jsn[0]['thumbnail_large']
             elif 'thumbnail_medium' in jsn[0]:
                 return jsn[0]['thumbnail_medium']
-    except:
+    except Exception:
         pass
     return None
 

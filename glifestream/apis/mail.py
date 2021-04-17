@@ -103,7 +103,7 @@ class API:
                 '!friends-only', '').strip()
             args['friends_only'] = True
 
-        if len(files):
+        if len(files) > 0:
             args['files'] = MultiValueDict()
             args['files'].setlist('docs', files)
 

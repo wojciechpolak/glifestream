@@ -13,6 +13,8 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+import traceback
 import datetime
 from django.utils.encoding import force_text
 from django.utils.html import strip_tags
@@ -56,7 +58,7 @@ class API:
         for url in self.get_urls():
             try:
                 self.fetch(url)
-            except:
+            except Exception:
                 pass
 
     def fetch(self, url):
@@ -73,8 +75,6 @@ class API:
                                             self.service.id, r.reason))
         except Exception as e:
             if self.verbose:
-                import sys
-                import traceback
                 print('%s (%d) Exception: %s' % (self.service.api,
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
@@ -113,7 +113,7 @@ class API:
             e.author_name = ent['user']['name']
 
             # double expand
-            e.content = 'Tweet: %s' % expand.all(expand.shorturls(ent['text']))
+            e.content = 'Tweet: %s' % expand.run_all(expand.shorturls(ent['text']))
 
             if 'entities' in ent and 'media' in ent['entities']:
                 content = ' <p class="thumbnails">'
@@ -143,7 +143,7 @@ class API:
             try:
                 e.save()
                 media.extract_and_register(e)
-            except:
+            except Exception:
                 pass
 
 

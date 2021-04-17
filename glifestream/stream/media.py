@@ -48,12 +48,12 @@ def get_thumb_hash(s):
     return m.groups()[0] if m else None
 
 
-def get_thumb_info(hash):
-    prefix = hash[0] + '/'
-    return {'local': '%s/thumbs/%s%s' % (settings.MEDIA_ROOT, prefix, hash),
-            'url': '%sthumbs/%s%s' % (settings.MEDIA_URL, prefix, hash),
-            'rel': 'thumbs/%s%s' % (prefix, hash),
-            'internal': '[GLS-THUMBS]/%s' % hash, }
+def get_thumb_info(thumb_hash):
+    prefix = thumb_hash[0] + '/'
+    return {'local': '%s/thumbs/%s%s' % (settings.MEDIA_ROOT, prefix, thumb_hash),
+            'url': '%sthumbs/%s%s' % (settings.MEDIA_URL, prefix, thumb_hash),
+            'rel': 'thumbs/%s%s' % (prefix, thumb_hash),
+            'internal': '[GLS-THUMBS]/%s' % thumb_hash, }
 
 
 def save_image(url, direct_image=True, force=False, downscale=False,
@@ -77,13 +77,13 @@ def save_image(url, direct_image=True, force=False, downscale=False,
                 if not force and Image:
                     try:
                         Image.open(tmp)
-                    except:
+                    except Exception:
                         os.remove(tmp)
                         return url
             if downscale:
                 downscale_image(tmp, size=size)
             shutil.move(tmp, thumb['local'])
-        except:
+        except Exception:
             if not stale:
                 return url
     return thumb['internal']
@@ -99,7 +99,7 @@ def downscale_image(filename, size=None):
         if w > size[0] or h > size[1]:
             im.thumbnail(size, Image.ANTIALIAS)
             im.save(filename, 'JPEG', quality=95)
-    except:
+    except Exception:
         pass
 
 
@@ -111,7 +111,7 @@ def downsave_uploaded_image(file):
             shutil.copy(file.path, thumb['local'])
             downscale_image(thumb['local'])
         return (thumb['internal'], url)
-    except:
+    except Exception:
         pass
     return (url, url)
 
@@ -122,7 +122,7 @@ def extract_and_register(entry):
         md.file.name = get_thumb_info(hash_thumb)['rel']
         try:
             md.save()
-        except:
+        except Exception:
             pass
 
 
@@ -159,8 +159,7 @@ def mrss_scan(content):
 def mrss_gen_json(mblob):
     if len(mblob['content']):
         return json.dumps(mblob)
-    else:
-        return None
+    return None
 
 
 def mrss_gen_xml(entry):

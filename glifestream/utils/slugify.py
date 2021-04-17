@@ -29,7 +29,9 @@ def __replace_char(m):
     return __char_map.get(char, char)
 
 
-def slugify(value, do_slugify=True, overwrite_char_map={}):
+def slugify(value, do_slugify=True, overwrite_char_map=None):
+    if overwrite_char_map is None:
+        overwrite_char_map = {}
     value = smart_text(value)
 
     __char_map.update(overwrite_char_map)

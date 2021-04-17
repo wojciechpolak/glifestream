@@ -94,7 +94,7 @@ class API (webfeed.API):
                         e.link_image = media.save_image(link.href)
             try:
                 e.save()
-            except:
+            except Exception:
                 pass
 
 

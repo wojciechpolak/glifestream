@@ -19,9 +19,9 @@ from .gls_filters import fix_ampersands
 
 class Test(TestCase):
     def test_fix_ampersands(self):
-        self.assertEquals(fix_ampersands(''), '')
-        self.assertEquals(fix_ampersands('&'), '&amp;')
-        self.assertEquals(fix_ampersands('a&b'), 'a&amp;b')
-        self.assertEquals(fix_ampersands('a & b'), 'a &amp; b')
-        self.assertEquals(fix_ampersands('a & b &amp;'), 'a &amp; b &amp;')
-        self.assertEquals(fix_ampersands('Fast&Fun;'), 'Fast&amp;Fun;')
+        self.assertEqual(fix_ampersands(''), '')
+        self.assertEqual(fix_ampersands('&'), '&amp;')
+        self.assertEqual(fix_ampersands('a&b'), 'a&amp;b')
+        self.assertEqual(fix_ampersands('a & b'), 'a &amp; b')
+        self.assertEqual(fix_ampersands('a & b &amp;'), 'a &amp; b &amp;')
+        self.assertEqual(fix_ampersands('Fast&Fun;'), 'Fast&amp;Fun;')

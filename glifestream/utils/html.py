@@ -15,6 +15,7 @@
 
 import re
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
+from django.utils.html import escape
 from django.utils.encoding import force_str, force_text
 from django.utils.safestring import mark_safe, SafeData
 
@@ -32,23 +33,23 @@ def strip_script(s):
             for item in to_extract:
                 item.extract()
             s = str(soup)
-    except:
+    except Exception:
         pass
     return s
 
 
-def bytes_to_human(bytes, precision=2):
+def bytes_to_human(num_bytes, precision=2):
     suffixes = ('B', 'kB', 'MB', 'GB')
-    format = '%.*f %s'
-    size = float(bytes)
+    str_format = '%.*f %s'
+    size = float(num_bytes)
     for suffix in suffixes:
         if size >= 1024:
             size /= 1024
         else:
             if suffix is suffixes[0]:
                 precision = 0
-            return format % (precision, size, suffix)
-    return format % (precision, size, suffixes[-1])
+            return str_format % (precision, size, suffix)
+    return str_format % (precision, size, suffixes[-1])
 
 
 def strip_entities(value):
@@ -71,7 +72,7 @@ simple_email_re = re.compile(r'^\S+@\S+\.\S+$')
 
 
 def smart_urlquote(url):
-    "Quotes a URL if it isn't already quoted."
+    """Quotes a URL if it isn't already quoted."""
     # Handle IDN before quoting.
     try:
         scheme, netloc, path, query, fragment = urlsplit(url)

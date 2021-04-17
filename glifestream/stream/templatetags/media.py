@@ -22,7 +22,7 @@ from django.template import Library
 register = Library()
 
 
-class MediaUrl (template.Node):
+class MediaUrl(template.Node):
 
     def render(self, ctx):
         url = settings.MEDIA_URL
@@ -31,7 +31,7 @@ class MediaUrl (template.Node):
         return url
 
 
-class StaticUrl (template.Node):
+class StaticUrl(template.Node):
 
     def render(self, ctx):
         url = settings.STATIC_URL
@@ -52,7 +52,7 @@ def static(parser, token):
     return StaticUrl()
 
 
-class StaticUrlHash (template.Node):
+class StaticUrlHash(template.Node):
 
     def __init__(self, path):
         self.path = path
@@ -61,7 +61,7 @@ class StaticUrlHash (template.Node):
             f = open(os.path.join(settings.STATIC_ROOT, path))
             self.hash = hashlib.md5(f.read()).hexdigest()[:5]
             f.close()
-        except:
+        except Exception:
             pass
 
     def render(self, ctx):
@@ -78,7 +78,7 @@ class StaticUrlHash (template.Node):
 def static_hash(parser, token):
     """Return a static URL for the given relative static file path."""
     try:
-        tag_name, path = token.split_contents()
+        _, path = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError(
             "%r tag requires a single argument" % token.contents.split()[0])

@@ -15,14 +15,17 @@
 
 import os
 import sys
+import site
 from django.core.wsgi import get_wsgi_application
 
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
 
-activate_this = os.path.join(SITE_ROOT, '../bin/activate_this.py')
-execfile(activate_this, dict(__file__=activate_this))
+python_home = os.path.join(SITE_ROOT, '..')
+python_version = '.'.join(map(str, sys.version_info[:2]))  # pylint: disable=all
+site_packages = python_home + '/lib/python%s/site-packages' % python_version
+site.addsitedir(site_packages)
 
 sys.path.insert(0, os.path.join(SITE_ROOT, '../'))
 

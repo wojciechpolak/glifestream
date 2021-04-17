@@ -15,9 +15,9 @@
 
 import re
 import os
-import requests
 from urllib.parse import urljoin
 from django.conf import settings
+import requests
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (compatible; gLifestream; +%s/)' %
@@ -84,7 +84,7 @@ def get_alturl_if_html(r):
     return None
 
 
-def gen_auth(service, url):
+def gen_auth(service):
     """Generate web authentication."""
     if service.creds and len(service.creds) and service.creds != 'oauth':
         return service.creds.split(':')

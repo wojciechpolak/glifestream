@@ -64,7 +64,7 @@ class Service (models.Model):
     def save(self):
         if not self.cls:
             self.cls = self.api
-        super(Service, self).save()
+        super().save()
 
     def __str__(self):
         return '%s' % self.name
@@ -162,7 +162,7 @@ class List (models.Model):
 
     def save(self):
         self.slug = slugify(self.name)
-        super(List, self).save()
+        super().save()
 
     def __str__(self):
         return '%s: %s' % (self.user, self.name)

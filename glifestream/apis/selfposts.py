@@ -18,7 +18,7 @@ from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
 from django.utils.datastructures import MultiValueDict
 from django.utils.encoding import smart_text
-from glifestream.utils.time import mtime, utcnow
+from glifestream.utils.time import utcnow
 from glifestream.utils.html import strip_script, bytes_to_human
 from glifestream.stream.models import Service, Entry, Media
 from glifestream.stream import media
@@ -43,7 +43,9 @@ class API:
     def run(self):
         pass
 
-    def share(self, args={}):
+    def share(self, args=None):
+        if args is None:
+            args = {}
         content = args.get('content', '')
         sid = args.get('sid', None)
         title = args.get('title', None)
@@ -78,9 +80,9 @@ class API:
             editor_syntax = 'html'
 
         if editor_syntax == 'markdown' and markdown:
-            e.content = expand.all(markdown.markdown(content))
+            e.content = expand.run_all(markdown.markdown(content))
         else:
-            e.content = expand.all(content.replace('\n', '<br/>'))
+            e.content = expand.run_all(content.replace('\n', '<br/>'))
             e.content = urlizetrunc(e.content, 45)
 
         e.content = strip_script(e.content)
@@ -121,7 +123,7 @@ class API:
                 else:
                     docs.append((md, f))
 
-            if len(pictures):
+            if len(pictures) > 0:
                 thumbs = '\n<p class="thumbnails">\n'
                 for o in pictures:
                     thumb, orig = media.downsave_uploaded_image(o[0].file)
@@ -135,7 +137,7 @@ class API:
                 thumbs += '</p>\n'
                 e.content += thumbs
 
-            if len(docs):
+            if len(docs) > 0:
                 doc = '\n<ul class="files">\n'
                 for o in docs:
                     target = '[GLS-UPLOAD]/%s' % o[
@@ -166,15 +168,17 @@ class API:
                 e.content += doc
 
             e.mblob = media.mrss_gen_json(mblob)
-            if len(pictures) or len(docs):
+            if len(pictures) > 0 or len(docs) > 0:
                 e.save()
 
             media.extract_and_register(e)
             return e
-        except:
+        except Exception:
             pass
 
-    def reshare(self, entry, args={}):
+    def reshare(self, entry, args=None):
+        if args is None:
+            args = {}
         sid = args.get('sid', None)
         as_me = int(args.get('as_me', False))
         user = args.get('user', None)
@@ -228,7 +232,7 @@ class API:
             media.extract_and_register(e)
             e.save()
             return e
-        except:
+        except Exception:
             pass
 
 
