@@ -172,7 +172,7 @@ def mrss_gen_xml(entry):
                 if group:
                     m += '    <media:group>\n'
                 for i in g:
-                    for k in i.keys():
+                    for k in list(i.keys()):
                         if ':' in k:
                             del i[k]
                         if k == 'isdefault':
