@@ -186,7 +186,7 @@ def index(request, **args):
         qs = fs.copy()
         try:
             dt = datetime.datetime.fromtimestamp(float(start))
-        except ValueError:
+        except (OverflowError, ValueError):
             raise Http404
 
         if page['backtime']:
