@@ -2,24 +2,70 @@
  *  "default" theme for gLifestream made by Wojciech Polak.
  */
 
+:root {
+  --color-background-fieldset: whitesmoke;
+  --color-background-input: white;
+  --color-background-main: whitesmoke;
+  --color-background-menu: white;
+  --color-background-stream: white;
+  --color-background: white;
+  --color-border-img: #ddd;
+  --color-border-input: #444;
+  --color-border-tb: #333;
+  --color-border: #ddd;
+  --color-box-shadow: #888;
+  --color-entry-separator: #444;
+  --color-font-footer: #333;
+  --color-font-header: #ccc;
+  --color-font: #333;
+  --color-highlight: #fbfbfb;
+  --color-input-focus: #3f5061;
+  --color-link-calendar: #8787f8;
+  --color-link: #0000f0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background-fieldset: #333;
+    --color-background-input: #222;
+    --color-background-main: #303030;
+    --color-background-menu: #303030;
+    --color-background-stream: #282828;
+    --color-background: #222;
+    --color-border-img: #444;
+    --color-border-input: #444;
+    --color-border-tb: #ccc;
+    --color-border: #444;
+    --color-box-shadow: #333;
+    --color-entry-separator: #444;
+    --color-font-footer: #ccc;
+    --color-font-header: #ccc;
+    --color-font: #ccc;
+    --color-highlight: #444;
+    --color-input-focus: #3f5061;
+    --color-link-calendar: #769dff;
+    --color-link: #769dff;
+  }
+}
+
 a:link {
   text-decoration: none;
-  color: #0000f0;
+  color: var(--color-link, #0000f0);
 }
 a:visited {
   text-decoration: none;
-  color: #0000f0;
+  color: var(--color-link, #0000f0);
 }
 a:active {
   text-decoration: none;
-  color: #0000f0;
+  color: var(--color-link, #0000f0);
 }
 a:hover {
   text-decoration: underline;
 }
 span.link {
   text-decoration: none;
-  color: #0000f0;
+  color: var(--color-link, #0000f0);
   cursor: pointer;
 }
 span.link:hover {
@@ -34,8 +80,8 @@ body {
   max-width: 900px;
   margin: 0 auto 0 auto;
   padding: 0;
-  color: #333;
-  background-color: white;
+  color: var(--color-font, #333);
+  background-color: var(--color-background, #fff);
   overflow-y: scroll !important;
 }
 
@@ -44,7 +90,7 @@ header, footer, aside, nav, section, article {
 }
 
 h1 a {
-  color: #333 !important;
+  color: var(--color-font, #333) !important;
 }
 
 h2, h3, h4, h5, h6 {
@@ -65,11 +111,10 @@ input[type="password"],
 input[type="search"],
 textarea {
   padding: 2px;
-  background-color: white;
-  border: 1px solid #9d9180;
+  color: var(--color-font);
+  background-color: var(--color-background, white);
+  border: 1px solid var(--color-border, #9d9180);
   border-radius: 4px;
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
 }
 input[type="text"]:focus,
 input[type="password"]:focus,
@@ -84,15 +129,12 @@ input[type="search"] {
 }
 
 .tb {
-  border: 1px solid #333;
+  border: 1px solid var(--color-border-tb, #333);
   border-radius: 5px;
-  -moz-border-radius: 5px;
-  -khtml-border-radius: 5px;
-  -webkit-border-radius: 5px;
 }
 
 #main {
-  background-color: whitesmoke;
+  background-color: var(--color-background-main, whitesmoke);
 }
 
 #navtop {
@@ -102,14 +144,14 @@ input[type="search"] {
   text-align: right;
   padding: 4px;
   margin: 6px 3px 0 0;
-  color: #669933;
+  color: var(--color-font, #333);
   .text {
-    color: #333;
+    color: var(--color-font, #333);
   }
 }
 
 #head {
-  background-color: #ffffff;
+  background-color: var(--color-background, #fff);
   height: 120px;
   margin: 0 0 0 auto;
   text-align: left;
@@ -120,7 +162,7 @@ input[type="search"] {
     margin: 43px 0 0 20px;
     padding: 4px 7px 4px 7px;
     a {
-      color: #333;
+      color: var(--color-font, #333);
       &:hover {
         text-decoration: none;
       }
@@ -132,8 +174,8 @@ input[type="search"] {
   font-size: 95%;
   float: right;
   width: 230px;
-  background-color: whitesmoke;
-  border-top: 1px dashed #dddddd;
+  background-color: var(--color-background-main, whitesmoke);
+  border-top: 1px dashed var(--color-border, #ddd);
 }
 #sidebar section, #sidebar nav {
   padding: 0 0 4px 7px;
@@ -155,12 +197,8 @@ input[type="search"] {
 #sidebar .search input[name="s"] {
   font-size: 85%;
   width: 75%;
-  color: #333;
+  color: var(--color-font, #333);
   border-radius: 4px 0 0 4px;
-  -moz-border-radius: 4px 0 0 4px;
-  -webkit-border-radius: 4px;
-  -webkit-border-top-right-radius: 0;
-  -webkit-border-bottom-right-radius: 0;
 }
 input[placeholder].blur { color: #999 !important; }
 ::-moz-placeholder { color: #999 !important; }
@@ -170,18 +208,14 @@ input[placeholder].blur { color: #999 !important; }
   font-size: 85%;
   cursor: pointer;
   padding: 2px 0 2px 24px;
-  background: transparent url(icons/search.png) no-repeat 0px 50%;
-  border: 1px solid #9d9180;
+  background: transparent url(icons/search.png) no-repeat 0 50%;
+  border: 1px solid var(--color-border, #9d9180);
   border-left: none;
   border-radius: 0 4px 4px 0;
-  -moz-border-radius: 0 4px 4px 0;
-  -webkit-border-radius: 4px;
-  -webkit-border-top-left-radius: 0;
-  -webkit-border-bottom-left-radius: 0;
 }
 #search-submit:hover {
   background: transparent url(icons/search.png) no-repeat -24px 50%;
-  background-color: white;
+  background-color: var(--color-background, white);
 }
 
 p.subtitle { padding-bottom: 6px; font-style: italic; }
@@ -191,17 +225,17 @@ p.subtitle a:hover { text-decoration: none; }
   width: auto !important;
   min-width: 500px;
   min-height: 450px;
-  background-color: white;
+  background-color: var(--color-background-stream, white);
   margin-left: auto;
   margin-right: 230px;
   text-align: left;
   padding: 1em 1em 1em 1em;
-  border-right: 1px dashed #dddddd;
+  border-right: 1px dashed var(--color-border, #ddd);
 }
 
 .hentry, .entry-hidden {
   margin-bottom: 1.5em;
-  border-bottom: 1px dashed #d2dada;
+  border-bottom: 1px dashed var(--color-border, #ddd);
 }
 
 #stream .entry-hidden {
@@ -209,11 +243,11 @@ p.subtitle a:hover { text-decoration: none; }
 }
 
 #stream .entry-highlight {
-  background-color: #fbfbfb;
+  background-color: var(--color-highlight, #fbfbfb);
 }
 
 .main {
-  background-color: white;
+  background-color: var(--color-background, white);
   padding: 1em;
 }
 
@@ -245,7 +279,7 @@ p.subtitle a:hover { text-decoration: none; }
 }
 #stream .entry-info a,
 #stream .entry-info span.link {
-  color: #999999;
+  color: #999;
 }
 
 #stream span.entry-controls-switch {
@@ -260,36 +294,32 @@ p.subtitle a:hover { text-decoration: none; }
   font-style: normal;
   margin-top: 0;
   padding: 5px 1px 5px 1px;
-  background-color: white;
+  background-color: var(--color-background-menu, white);
   text-align: left;
   list-style-image: none;
   list-style-position: outside;
   list-style-type: none;
   z-index: 9999;
   border-radius: 5px;
-  -moz-border-radius: 5px;
-  -khtml-border-radius: 5px;
-  -webkit-border-radius: 5px;
 }
 #stream .entry-controls a,
 #stream .entry-controls span.link {
   display: block;
   padding: 2px 4px 2px 5px;
-  color: #666666;
+  color: var(--color-font, #666);
 }
 #stream .entry-controls a:hover,
 #stream .entry-controls span.link:hover {
   color: white;
-  background-color: #666666;
+  background-color: #666;
   text-decoration: none;
 }
 #stream .menu-expanded {
   display: block;
   position: absolute;
   width: 7em;
-  border: 1px solid #666666;
-  -moz-box-shadow: 2px 2px 6px #888;
-  -webkit-box-shadow: 2px 2px 6px #888;
+  border: 1px solid #666;
+  box-shadow: 2px 2px 6px var(--color-box-shadow);
 }
 
 #stream .shareit {
@@ -325,10 +355,8 @@ p.subtitle a:hover { text-decoration: none; }
   line-height: 140%;
   padding: 5px;
   border: none;
-  background-color: whitesmoke;
+  background-color: var(--color-background-stream, whitesmoke);
   border-radius: 4px;
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
 }
 #entry-editor textarea {
   font-family: monospace;
@@ -357,33 +385,34 @@ p.subtitle a:hover { text-decoration: none; }
 .services a { width: 48px; height: 48px; margin: 0 3px 5px 0; display: block; float: left; }
 .services a { background: transparent url(master-classes.png) no-repeat 0px -336px; }
 .services .e-selfposts { background: transparent url(master-classes.png) no-repeat 0px -336px; }
-.services .e-blog { background: transparent url(master-classes.png) no-repeat 0px 0px; }
-.services .e-links { background: transparent url(master-classes.png) no-repeat 0px -48px; }
-.services .e-music { background: transparent url(master-classes.png) no-repeat 0px -96px; }
-.services .e-photos { background: transparent url(master-classes.png) no-repeat 0px -144px; }
-.services .e-reviews { background: transparent url(master-classes.png) no-repeat 0px -192px; }
-.services .e-sms { background: transparent url(master-classes.png) no-repeat 0px -240px; }
-.services .e-videos { background: transparent url(master-classes.png) no-repeat 0px -288px; }
+.services .e-blog { background: transparent url(master-classes.png) no-repeat 0 0; }
+.services .e-links { background: transparent url(master-classes.png) no-repeat 0 -48px; }
+.services .e-music { background: transparent url(master-classes.png) no-repeat 0 -96px; }
+.services .e-photos { background: transparent url(master-classes.png) no-repeat 0 -144px; }
+.services .e-reviews { background: transparent url(master-classes.png) no-repeat 0 -192px; }
+.services .e-sms { background: transparent url(master-classes.png) no-repeat 0 -240px; }
+.services .e-videos { background: transparent url(master-classes.png) no-repeat 0 -288px; }
 
 div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -336px; }
-.e-selfposts div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -336px; }
-.e-blog div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px 0px; }
-.e-links div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -48px; }
-.e-music div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -96px; }
-.e-photos div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -144px; }
-.e-reviews div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -192px; }
-.e-sms div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -240px; }
-.e-videos div.entry-icon { background: transparent url(master-classes.png) no-repeat 0px -288px; }
+.e-selfposts div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 -336px; }
+.e-blog div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 0; }
+.e-links div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 -48px; }
+.e-music div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 -96px; }
+.e-photos div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 -144px; }
+.e-reviews div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 -192px; }
+.e-sms div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 -240px; }
+.e-videos div.entry-icon { background: transparent url(master-classes.png) no-repeat 0 -288px; }
 
 #foot {
   clear: right;
-  background-color: white;
+  color: var(--color-font-footer, #333);
+  background-color: var(--color-background, white);
   font-size: small;
   text-align: center;
   padding: 1em;
   margin-bottom: 16px;
 }
-#foot a, #foot span.link { color: #333 !important; }
+#foot a, #foot span.link { color: var(--color-font-footer, #333) !important; }
 
 .fleft { float: left; }
 .fright { float: right; }
@@ -431,7 +460,7 @@ table.vc td { padding: 0; }
 .play-video img {
   display: block;
   padding: 1px;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border-img, #ddd);
 }
 .video-inline {
   padding-left: 20px;
@@ -496,7 +525,7 @@ div.player.vimeo {
 .thumbnails img {
   margin: 3px 3px 3px 0;
   padding: 1px;
-  border: 1px solid #dddddd;
+  border: 1px solid var(--color-border-img, #ddd);
 }
 ul.files {
   margin: 0;
@@ -514,11 +543,11 @@ ul.files {
 }
 
 #share {
-  background-color: white;
+  background-color: var(--color-background-stream, white);
+  border-radius: 4px;
   padding: 9px 1em 1px 25px;
   margin: 0;
   margin-right: 230px;
-  border-right: 1px solid #dddddd;
 }
 #ashare {
   font-size: 95%;
@@ -627,18 +656,15 @@ ul.files {
   font-size: smaller;
   margin-top: 0;
   padding: 7px;
-  background-color: white;
+  background-color: var(--color-background, white);
   border: 2px solid #666666;
   text-align: left;
   z-index: 9999;
   border-radius: 5px;
-  -moz-border-radius: 5px;
-  -khtml-border-radius: 5px;
-  -webkit-border-radius: 5px;
   overflow-y: auto;
 }
 #shareitbox .reshare {
-  border-bottom: 1px solid #efefef;
+  border-bottom: 1px solid var(--color-border, #efefef);
   padding-bottom: 0.5em;
   margin-bottom: 0.5em;
 }
@@ -682,7 +708,7 @@ ul.files {
 }
 
 #login {
-  background-color: white;
+  background-color: var(--color-background-stream, white);
 }
 #loginbox {
   width: 292px;
@@ -693,13 +719,10 @@ ul.files {
   padding: 16px 16px 50px 16px;
   font-weight: bold;
   border-radius: 5px;
-  -moz-border-radius: 5px;
-  -khtml-border-radius: 5px;
-  -webkit-border-radius: 5px;
-  background-color: #eaf3fa;
+  background-color: var(--color-background-fieldset, #eaf3fa);
 }
 #loginbox form p { margin-bottom: 24px; }
-#loginbox form input { color: #555555; }
+#loginbox form input { color: var(--color-font, #555); }
 #loginbox form .submit { float: right; }
 
 #loginbox .rememberme {
@@ -713,9 +736,6 @@ ul.files {
   border-width: 1px;
   border-style: solid;
   border-radius: 3px;
-  -moz-border-radius: 3px;
-  -khtml-border-radius: 3px;
-  -webkit-border-radius: 3px;
   cursor: pointer;
   text-decoration: none;
   margin-top: -6px;
@@ -798,7 +818,7 @@ ul.files {
 }
 #calendar a:link,
 #calendar a:visited {
-  color: #8787f8;
+  color: var(--color-link-calendar, #8787f8);
 }
 #calendar .view-month {
   border-bottom: 1px dotted;
@@ -809,7 +829,7 @@ ul.files {
 #settings {
   margin: 0;
   padding: 1em;
-  background-color: white;
+  background-color: var(--color-background-stream, white);
 }
 #settings ul {
   list-style: none;
@@ -822,10 +842,8 @@ ul.files {
 }
 #settings fieldset {
   border: none;
-  background-color: whitesmoke;
+  background-color: var(--color-background-fieldset, whitesmoke);
   border-radius: 4px;
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
 }
 #settings span.service,
 #settings img.service {
@@ -838,34 +856,33 @@ ul.files {
 #settings #id_services {
   min-width: 20em;
   padding: 2px;
-  background-color: white;
-  border: 1px solid #9d9180;
+  color: var(--color-font);
+  background-color: var(--color-background-input, white);
+  border: 1px solid var(--color-border-input, #9d9180);
   border-radius: 4px;
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
 }
 
 span.selfposts { background: transparent url(../../favicon.ico) no-repeat top left; }
-span.delicious { background: transparent url(master-favicons.png) no-repeat 0px 0px; }
-span.digg { background: transparent url(master-favicons.png) no-repeat -16px 0px; }
-span.fb { background: transparent url(master-favicons.png) no-repeat -32px 0px; }
-span.flickr { background: transparent url(master-favicons.png) no-repeat -48px 0px; }
-span.friendfeed { background: transparent url(master-favicons.png) no-repeat -64px 0px; }
-span.greader { background: transparent url(master-favicons.png) no-repeat -96px 0px; }
-span.identica { background: transparent url(master-favicons.png) no-repeat -112px 0px; }
-span.lastfm { background: transparent url(master-favicons.png) no-repeat -128px 0px; }
-span.picasaweb { background: transparent url(master-favicons.png) no-repeat -144px 0px; }
-span.stumbleupon { background: transparent url(master-favicons.png) no-repeat -160px 0px; }
-span.twitter { background: transparent url(master-favicons.png) no-repeat -176px 0px; }
-span.vimeo { background: transparent url(master-favicons.png) no-repeat -192px 0px; }
-span.webfeed { background: transparent url(master-favicons.png) no-repeat -208px 0px; }
-span.yelp { background: transparent url(master-favicons.png) no-repeat -224px 0px; }
-span.youtube { background: transparent url(master-favicons.png) no-repeat -240px 0px; }
+span.delicious { background: transparent url(master-favicons.png) no-repeat 0 0; }
+span.digg { background: transparent url(master-favicons.png) no-repeat -16px 0; }
+span.fb { background: transparent url(master-favicons.png) no-repeat -32px 0; }
+span.flickr { background: transparent url(master-favicons.png) no-repeat -48px 0; }
+span.friendfeed { background: transparent url(master-favicons.png) no-repeat -64px 0; }
+span.greader { background: transparent url(master-favicons.png) no-repeat -96px 0; }
+span.identica { background: transparent url(master-favicons.png) no-repeat -112px 0; }
+span.lastfm { background: transparent url(master-favicons.png) no-repeat -128px 0; }
+span.picasaweb { background: transparent url(master-favicons.png) no-repeat -144px 0; }
+span.stumbleupon { background: transparent url(master-favicons.png) no-repeat -160px 0; }
+span.twitter { background: transparent url(master-favicons.png) no-repeat -176px 0; }
+span.vimeo { background: transparent url(master-favicons.png) no-repeat -192px 0; }
+span.webfeed { background: transparent url(master-favicons.png) no-repeat -208px 0; }
+span.yelp { background: transparent url(master-favicons.png) no-repeat -224px 0; }
+span.youtube { background: transparent url(master-favicons.png) no-repeat -240px 0; }
 
 ul.tabs {
   list-style-type: none;
   width: 100%;
-  border-bottom: solid 2px whitesmoke;
+  border-bottom: solid 2px var(--color-background-fieldset, whitesmoke);
   border-collapse: collapse;
   display: table;
   margin: 0;
@@ -887,12 +904,9 @@ ul.tabs li a {
   padding: 3px 0.75em 2px 0.75em;
 }
 ul.tabs li a.active {
-  color: #000;
-  background-color: whitesmoke;
+  color: var(--color-font, #000);
+  background-color: var(--color-background-fieldset, whitesmoke);
   border-radius: 4px 4px 0 0;
-  -moz-border-radius: 4px 4px 0 0;
-  -webkit-border-top-left-radius: 4px;
-  -webkit-border-top-right-radius: 4px;
 }
 ul.tabs li a:hover {
   text-decoration: underline;
@@ -941,8 +955,6 @@ fieldset .hint {
   background-color: #ffff80;
   border: 2px solid #f7de35;
   border-radius: 4px;
-  -moz-border-radius: 4px;
-  -webkit-border-radius: 4px;
 }
 
 #pshb-subs { font-size: 95%; }
@@ -991,4 +1003,9 @@ fieldset .hint {
 }
 .ql-toolbar {
   height: 40px;
+}
+@media (prefers-color-scheme: dark) {
+  .ql-snow .ql-stroke {
+    stroke: var(--color-font);
+  }
 }
