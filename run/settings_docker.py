@@ -1,17 +1,20 @@
-# Django settings for gLifestream project.
+#
+# Django settings for gLifestream project (DOCKER VERSION).
+#
 
 import os
-SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
+SITE_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../glifestream/')
 BASE_DIR = SITE_ROOT
 
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
-    'localhost'
+    'localhost',
+    'backend',
 ]
 
 ADMINS = (
-    ('Your Name', 'your@email'),
+    ('Admin', 'example@example.org'),
 )
 MANAGERS = ADMINS
 
@@ -19,24 +22,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(SITE_ROOT, '../run/db/dev.sqlite3'),
-    },
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'OPTIONS': {'charset': 'utf8mb4'},
-    #     'NAME': 'glifestream',
-    #     'USER': 'user',
-    #     'PASSWORD': 'pass',
-    #     'HOST': '',
-    #     'PORT': '',
-    # },
-    # 'sphinx': {
-    #     'ENGINE': 'django.db.backends.mysql',
-    #     'NAME': '',
-    #     'USER': '',
-    #     'PASSWORD': '',
-    #     'HOST': '127.0.0.1',
-    #     'PORT': '9306',
-    # },
+    }
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
@@ -51,23 +37,25 @@ LOCALE_PATHS = (
     os.path.join(SITE_ROOT, '../locale'),
 )
 
+# SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_NAME = 'glifestream_sid'
-SESSION_ENGINE = 'django.contrib.sessions.backends.file'
+SESSION_COOKIE_AGE = 2419200
 
 # Caching, see http://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
-        'LOCATION': '127.0.0.1:11211',
+        'LOCATION': 'memcached:11211',
         'KEY_PREFIX': 'gls',
     },
 }
 
-# Site base URL (without a trailing slash).
-# For example:
-# BASE_URL = 'https://wojciechpolak.org/stream'
-#
-BASE_URL = 'http://localhost:8000'
+# Site base URL.
+BASE_URL = 'http://localhost:8080'
 
 # The URL where requests are redirected for login.
 # For HTTPS use an absolute URL.
@@ -76,12 +64,14 @@ LOGIN_URL = '/login'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'YOUR-SECRET-KEY'
 
-assert SECRET_KEY != 'YOUR-SECRET-KEY', 'SECRET_KEY must be long and unique.'
+if SECRET_KEY == 'YOUR-SECRET-KEY':
+    print('settings.SECRET_KEY must be long and unique!')
 
 MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -109,16 +99,14 @@ TEMPLATES = [
 
 ROOT_URLCONF = 'glifestream.urls'
 
-WSGI_APPLICATION = 'glifestream.wsgi.application'
-
 INSTALLED_APPS = (
-    'django.contrib.admin',
     'django.contrib.auth',
-    'django.contrib.contenttypes',
     'django.contrib.messages',
+    'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
+    'django.contrib.admin',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'pipeline',
     'glifestream.gauth',
     'glifestream.apis',
@@ -129,24 +117,10 @@ INSTALLED_APPS = (
 
 SITE_ID = 1
 
-# Absolute path to the directory that holds media.
-# Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../media'))
-
-# URL that handles the media served from MEDIA_ROOT.
-# Make sure to use a trailing slash.
-# Examples: "http://media.lawrence.com", "http://example.com/media/"
-# Setting an absolute URL is recommended in a production use.
+MEDIA_ROOT = os.path.join(SITE_ROOT, '../media')
 MEDIA_URL = '/media/'
 
-# Absolute path to the directory static files should be collected to.
-# Don't put anything in this directory yourself; store your static files
-# in apps' "static/" subdirectories and in STATICFILES_DIRS.
-# Example: "/var/www/example.com/static/"
 STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
-
-# URL prefix for admin media. Make sure to use a trailing slash.
-# Examples: "http://foo.com/media/", "/media/".
 STATIC_URL = '/static/'
 
 STATICFILES_STORAGE = 'pipeline.storage.PipelineManifestStorage'
@@ -159,6 +133,29 @@ STATICFILES_DIRS = (
     os.path.join(SITE_ROOT, '../run/static'),
     os.path.join(SITE_ROOT, 'static'),
 )
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django.server': {
+            'handlers': ['console'],
+            'level': 'ERROR'
+        },
+    }
+}
 
 PIPELINE = {
     'DISABLE_WRAPPER': True,
@@ -196,58 +193,37 @@ PIPELINE = {
             ),
             'output_filename': 'themes/default/style.css',
         },
+        # 'custom': {
+        #     'source_filenames': (
+        #         'themes/default/jquery.fancybox.min.css',
+        #         'themes/custom/style.scss',
+        #     ),
+        #     'output_filename': 'themes/custom/style.css',
+        # },
     },
-}
-
-# A sample logging configuration. The only tangible logging
-# performed by this configuration is to send an email to
-# the site admins on every HTTP 500 error when DEBUG=False.
-# See http://docs.djangoproject.com/en/dev/topics/logging for
-# more details on how to customize your logging configuration.
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        }
-    },
-    'loggers': {
-        'django.request': {
-            'handlers': ['mail_admins'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-    }
 }
 
 # A shortcut icon URL (favicon).
-FAVICON = '/favicon.ico'
+FAVICON = MEDIA_URL + 'favicon.ico'
 
 THEMES = (
     'default',
+    # 'custom',
 )
 
-STREAM_TITLE = 'Stream title'
-STREAM_TITLE_SUFFIX = ' | Lifestream'
-STREAM_DESCRIPTION = "A short description"
+STREAM_TITLE = 'Stream'
+STREAM_TITLE_SUFFIX = ' | Stream'
+STREAM_DESCRIPTION = "Lifestream"
 
 # How many entries to display on one page.
 ENTRIES_ON_PAGE = 30
 
 # Webfeed settings.
-FEED_AUTHOR_NAME = 'YOUR NAME'
-FEED_TAGURI = 'tag:SITE-ID,YEAR:ID'
-FEED_ICON = 'http://URL-TO-ICON'
+FEED_AUTHOR_NAME = 'Your Name'
+FEED_AUTHOR_URI = 'http://localhost:8080/'
+FEED_TAGURI = 'tag:glifestream,2022:stream'
+FEED_ICON = 'http://localhost:8080/icon.jpg'
 
-# Embedded maps
 MAPS_ENGINE = 'google'
 
 # Search functionality
@@ -255,11 +231,9 @@ SEARCH_ENABLE = True
 SEARCH_ENGINE = 'db'  # db, sphinx
 SPHINX_INDEX_NAME = 'glifestream'
 
-# PubSubHubbub - Hubs to ping (use empty tuple () to disable)
-PSHB_HUBS = ('https://pubsubhubbub.appspot.com/',)
-PSHB_HTTPS_CALLBACK = True
+PSHB_HUBS = ('http://localhost:8080/',)
+PSHB_HTTPS_CALLBACK = False
 
-# Email2Post settings
 EMAIL2POST_CHECK = {
     'From': 'John Smith',
 }

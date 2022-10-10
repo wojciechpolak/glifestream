@@ -33,6 +33,8 @@ from django.template.defaultfilters import truncatewords
 from django.utils.translation import ugettext as _
 from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
+
+from glifestream import VERSION, REVISION
 from glifestream.stream.templatetags.gls_filters import \
     (gls_content, gls_slugify, fix_ampersands)
 from glifestream.stream.models import Service, Entry, Favorite, List
@@ -48,6 +50,8 @@ def index(request, **args):
                             request.get_host())
     page = {
         'ctx': args.get('ctx', ''),
+        'version': VERSION,
+        'revision': REVISION,
         'backtime': True,
         'robots': 'index',
         'public': False,
@@ -466,6 +470,18 @@ def page_not_found(request, exception):  # pylint: disable=unused-argument
     }
     t = render(request, '404.html', {'page': page})
     return HttpResponseNotFound(t.content)
+
+
+def page_internal_error(request):  # pylint: disable=unused-argument
+    page = {
+        'robots': 'noindex',
+        'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
+        'theme': 'default',
+    }
+    t = render(request, '500.html', {'page': page})
+    return HttpResponseNotFound(t.content)
+
 
 #
 # XHR API

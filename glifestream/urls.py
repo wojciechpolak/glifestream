@@ -26,6 +26,7 @@ from glifestream.stream import views as sv
 admin.autodiscover()
 
 handler404 = 'glifestream.stream.views.page_not_found'
+handler500 = 'glifestream.stream.views.page_internal_error'
 
 urlpatterns = [
     url(r'^$', sv.index, name='index'),

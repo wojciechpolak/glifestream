@@ -1,0 +1,26 @@
+SHELL=/bin/bash
+
+PATH=/app:/usr/local/bin:/usr/bin:/bin
+VENV=/venv/bin/activate
+DJANGO_SETTINGS_MODULE=run.settings_docker
+
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7)
+# |  |  |  |  |
+# *  *  *  *  * user-name  command to be executed
+
+# every Sunday, 9:05
+5 9 * * 0  root (source $VENV && worker.py --only-inactive --delete-old=80 >/proc/1/fd/1 2>&1)
+
+# every month 1st, 9:06
+6 9 1 * *  root (source $VENV && worker.py --delete-old=365 >/proc/1/fd/1 2>&1)
+
+# every month 1st, 9:07
+7 9 1 * *  root (source $VENV && worker.py --thumbs-delete-orphans >/proc/1/fd/1 2>&1)
+
+# every 2 hours
+0 */2 * * *  root (source $VENV && worker.py >/proc/1/fd/1 2>&1)

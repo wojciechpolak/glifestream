@@ -21,7 +21,7 @@ operation ensures the user that his data (messages, links, photos,
 etc.) will remain intact even if the external service they came from
 ceases to exist.
 
-To install gLifestream read the INSTALL file.
+To install gLifestream read the [INSTALL](INSTALL.md) file.
 
 Supported services (out of the box)
 -----------------------------------

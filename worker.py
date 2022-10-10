@@ -31,7 +31,8 @@ except ImportError:
     workerpool = None
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
-os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
+if 'DJANGO_SETTINGS_MODULE' not in os.environ:
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
 
 if hasattr(django, 'setup'):
     django.setup()

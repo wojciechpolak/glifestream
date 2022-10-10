@@ -1,43 +1,27 @@
 gLifestream -- INSTALL
-Copyright (C) 2009-2019 Wojciech Polak
+Copyright (C) 2009-2022 Wojciech Polak
 
 gLifestream requirements
 ========================
 
-- Django 1.11 -- a Python Web framework (https://www.djangoproject.com/)
-- A database supported by Django (e.g. MySQL, PostgreSQL).
+- Django -- a Python Web framework (https://www.djangoproject.com/)
+- A database supported by Django (e.g. SQLite, MySQL, PostgreSQL).
 - Universal Feed Parser (https://pypi.python.org/pypi/feedparser)
 
-Optional (but recommended):
+Install all needed dependencies using [Poetry](https://python-poetry.org/) or PIP.
 
-- Pillow -- Python Imaging Library
-  https://pypi.python.org/pypi/Pillow
-
-- workerpool -- a multithreaded job distribution module
-  https://pypi.python.org/pypi/workerpool
-
-- django-pipeline -- Pipeline is an asset packaging library for Django
-  https://pypi.python.org/pypi/django-pipeline/
-
-- requests-oauthlib -- OAuthlib authentication support for Requests
-  https://pypi.python.org/pypi/requests-oauthlib
-
-- python-markdown -- a text-to-HTML converter
-  http://pypi.python.org/pypi/Markdown/
-
-- Beautiful Soup -- an HTML parser
-  https://pypi.python.org/pypi/beautifulsoup4
-
-- Sphinx -- a free open-source SQL full-text search engine
-  http://www.sphinxsearch.com/
-
+```shell
+$ poetry install
+or
+$ pip install -r requirements.txt
+```
 Installation instructions
 =========================
 
 1. Change the current working directory into the `glifestream` directory.
 2. Copy `settings_sample.py` to `settings.py` and edit your local site
    configuration.
-3. Run `python manage.py syncdb`
+3. Run `python manage.py migrate --run-syncdb`
 4. Run `python manage.py compilemessages` (if you have 'gettext' installed)
 5. Run `./worker.py --init-files-dirs`
 
@@ -65,30 +49,18 @@ the following output:
     Quit the server with CONTROL-C.
 
 
-Production server with mod_wsgi
--------------------------------
+Docker deployment
+-----------------
 
-Apache configuration:
-
-```
-LoadModule wsgi_module modules/mod_wsgi.so
-WSGIScriptAlias / /usr/local/django/glifestream/wsgi.py
-Alias /media "/usr/local/django/glifestream/media"
-Alias /static "/usr/local/django/glifestream/static"
-
-<Directory "/usr/local/django/glifestream/">
-   <IfModule mod_deflate.c>
-     AddOutputFilterByType DEFLATE application/javascript text/css text/html
-   </IfModule>
-   AllowOverride All
-   Options None
-   Order allow,deny
-   Allow from all
-</Directory>
+```shell
+./scripts/build-docker.sh
+[adjust files in the `run` folder]
+docker-compose up
+docker exec -it gls python manage.py createsuperuser
 ```
 
-More detailed information is available at:
-https://docs.djangoproject.com/en/dev/howto/deployment/wsgi/modwsgi/
+Other deployments
+-----------------
 
 See https://docs.djangoproject.com/en/dev/howto/deployment/
 for usual Django applications deployment.
