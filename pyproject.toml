@@ -7,7 +7,7 @@ authors = ["WAP"]
 [tool.poetry.dependencies]
 Django = "^3.2"
 Markdown = "^2.6"
-Pillow = "^9.0"
+Pillow = "^9.3"
 beautifulsoup4 = "4.11.1"
 django-pipeline = "^2.0"
 feedparser = "^6.0"
