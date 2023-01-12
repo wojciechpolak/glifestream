@@ -2,7 +2,7 @@ Django ==3.2.*
 django-pipeline ==2.0.*
 libsasscompiler ==0.1.8
 feedparser ==6.0.*
-Pillow ==9.2.*
+Pillow ==9.4.*
 workerpool ==0.9.*
 python-memcached ==1.59
 requests-oauthlib ==0.4.*
