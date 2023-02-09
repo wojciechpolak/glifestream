@@ -9,6 +9,7 @@ BASE_DIR = SITE_ROOT
 DEBUG = False
 
 ALLOWED_HOSTS = [
+    os.getenv('VIRTUAL_HOST', ''),
     'localhost',
     'backend',
 ]
@@ -55,11 +56,12 @@ CACHES = {
 }
 
 # Site base URL.
-BASE_URL = 'http://localhost:8080'
+BASE_URL = os.getenv('VIRTUAL_PATH', 'http://localhost:8080')
+FORCE_SCRIPT_NAME = os.getenv('VIRTUAL_PATH', '/')
 
 # The URL where requests are redirected for login.
 # For HTTPS use an absolute URL.
-LOGIN_URL = '/login'
+LOGIN_URL = BASE_URL + '/login'
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'YOUR-SECRET-KEY'
@@ -118,10 +120,10 @@ INSTALLED_APPS = (
 SITE_ID = 1
 
 MEDIA_ROOT = os.path.join(SITE_ROOT, '../media')
-MEDIA_URL = '/media/'
+MEDIA_URL = os.getenv('VIRTUAL_PATH', '') + '/media/'
 
 STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
-STATIC_URL = '/static/'
+STATIC_URL = os.getenv('VIRTUAL_PATH', '') + '/static/'
 
 STATICFILES_STORAGE = 'pipeline.storage.PipelineManifestStorage'
 STATICFILES_FINDERS = (
@@ -162,7 +164,7 @@ PIPELINE = {
     'JS_COMPRESSOR': None,
     'CSS_COMPRESSOR': None,
     'COMPILERS': ('pipeline.compilers.sass.SASSCompiler',),
-    'SASS_BINARY': 'sassc',
+    'SASS_BINARY': 'pysassc',
     'JAVASCRIPT': {
         'main': {
             'source_filenames': (
@@ -204,7 +206,7 @@ PIPELINE = {
 }
 
 # A shortcut icon URL (favicon).
-FAVICON = MEDIA_URL + 'favicon.ico'
+FAVICON = STATIC_URL + 'favicon.ico'
 
 THEMES = (
     'default',
@@ -231,7 +233,7 @@ SEARCH_ENABLE = True
 SEARCH_ENGINE = 'db'  # db, sphinx
 SPHINX_INDEX_NAME = 'glifestream'
 
-PSHB_HUBS = ('http://localhost:8080/',)
+PSHB_HUBS = (BASE_URL,)
 PSHB_HTTPS_CALLBACK = False
 
 EMAIL2POST_CHECK = {

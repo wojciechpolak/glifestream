@@ -165,7 +165,7 @@ PIPELINE = {
     'JS_COMPRESSOR': None,
     'CSS_COMPRESSOR': None,
     'COMPILERS': ('pipeline.compilers.sass.SASSCompiler',),
-    'SASS_BINARY': 'sassc',
+    'SASS_BINARY': 'pysassc',
     'JAVASCRIPT': {
         'main': {
             'source_filenames': (

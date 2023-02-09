@@ -5,19 +5,20 @@ description = "A free lifestream platform and social activity reader"
 authors = ["WAP"]
 
 [tool.poetry.dependencies]
-Django = "^3.2"
-Markdown = "^2.6"
-Pillow = "^9.0"
 beautifulsoup4 = "4.11.1"
-django-pipeline = "^2.0"
+Django = "^3.2"
+django-pipeline = "^2.0.9"
 feedparser = "^6.0"
 libsasscompiler = "0.1.8"
+Markdown = "^2.6"
+Pillow = "^9.0"
+pylint-django = "2.5.3"
+pytest-django = "^4.5.2"
 python = "^3.8"
 python-memcached = "1.59"
 requests-oauthlib = "^0.4"
+uWSGI = "^2.0.21"
 workerpool = "^0.9"
-pytest-django = "^4.5.2"
-pylint-django = "2.5.3"
 
 [tool.poetry.dev-dependencies]
 pylint = "2.13.9"

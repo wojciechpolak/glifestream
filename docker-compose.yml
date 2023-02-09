@@ -1,6 +1,5 @@
 services:
   glifestream:
-    container_name: gls
     image: glifestream:latest
     build: .
     volumes:
@@ -9,7 +8,6 @@ services:
     ports:
         - "8080:80"
   memcached:
-      container_name: memcached
       image: memcached:1.6
       entrypoint:
           - memcached
