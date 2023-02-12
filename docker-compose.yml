@@ -1,5 +1,5 @@
 services:
-  glifestream:
+  app:
     image: glifestream:latest
     build: .
     volumes:
