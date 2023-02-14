@@ -1,6 +1,6 @@
 services:
   app:
-    image: glifestream:latest
+    image: wap/glifestream:latest
     build: .
     volumes:
         - ./run:/app/run
