@@ -30,8 +30,9 @@ ADD locale locale
 ADD glifestream glifestream
 COPY manage.py .
 COPY worker.py .
+RUN usermod -a -G users www-data
+RUN chgrp -R users /app/glifestream/static && chmod -R g+w /app/glifestream/static
 RUN python manage.py compilemessages
-RUN python manage.py collectstatic --no-input
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 EXPOSE 80
 COPY conf/docker/etc/supervisord.conf /etc/supervisord.conf
