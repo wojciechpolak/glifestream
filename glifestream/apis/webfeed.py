@@ -90,10 +90,10 @@ class API:
                 self.service.link = self.fp.feed.get('link', '')
             self.service.save()
             if not self.fetch_only:
-                self.process()
+                self.process(self.fp.entries)
 
-    def process(self):
-        for ent in self.fp.entries:
+    def process(self, entries):
+        for ent in entries:
             guid = ent.id if 'id' in ent else ent.link
             if self.verbose:
                 print('ID: %s' % guid)
@@ -108,7 +108,7 @@ class API:
             except Entry.DoesNotExist:
                 e = Entry(service=self.service, guid=guid)
 
-            e.title = ent.title
+            e.title = ent.get('title', ent.get('summary', ''))
             e.link = ent.get('feedburner_origlink', ent.get('link', ''))
 
             if 'author_detail' in ent:

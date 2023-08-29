@@ -1,4 +1,4 @@
-ARG python=python:3.11-slim
+ARG python=python:3.11-slim-bullseye
 
 FROM ${python} AS gls-builder-python
 RUN apt update -y

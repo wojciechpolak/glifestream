@@ -1,0 +1,85 @@
+{% load i18n media %}<!DOCTYPE html>
+<html>
+
+<head>
+  <title>{{ page.title }}</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <link rel="shortcut icon" href="{{ page.favicon }}">
+  <link rel="stylesheet" type="text/css" href="{% static %}themes/{% firstof page.theme "default" %}/style.css">
+  <style type="text/css">
+    body { background-color: white; }
+    fieldset.aligned label { width: 10em !important; }
+  </style>
+</head>
+
+<body>
+<div id="main">
+
+  <section id="settings">
+    <h3>OAuth 2.0: {{ title }}</h3>
+    <p>{% trans "Read more about this implementation:" %}
+      <a href="{{ api_help }}" target="_blank">{{ api_help }}</a>
+    </p>
+    <p>{% trans "Your Redirect URI:" %}
+      <input type="text" value="{{ callback_url }}" readonly="readonly"
+	     size="40" onfocus="this.select()" />
+    </p>
+    <form id="oauth-form" method="post">
+      <fieldset class="aligned">
+	{% if page.msg %}
+	<ul class="errorlist">
+	  <li>{{ page.msg }}</li>
+	</ul>
+	{% endif %}
+{% ifequal phase 0 %}
+	<div class="form-row">
+	  <label for="base_url">{% trans "Base URL" %}</label>
+	  <input type="text" name="base_url" id="base_url"
+		 value="{{ v.base_url }}" size="48" maxlength="256" />
+	</div>
+  <hr>
+	<div class="form-row">
+	  <label for="identifier">{% trans "Client ID" %}</label>
+	  <input type="text" name="identifier" id="identifier"
+		 value="{{ v.identifier }}" size="48" maxlength="64" />
+	</div>
+	<div class="form-row">
+	  <label for="secret">{% trans "Client Secret" %}</label>
+	  <input type="text" name="secret" id="secret" value="{{ v.secret }}"
+		 size="48" maxlength="128" />
+	</div>
+  <p>{% trans "or" %}</p>
+	<div class="form-row">
+	  <label for="access_token">{% trans "Access Token" %}</label>
+	  <input type="text" name="access_token" id="access_token" value="{{ v.access_token }}"
+		 size="48" maxlength="128" />
+	</div>
+
+{% if page.need_custom_urls %}
+	<div class="form-row">
+	  <label for="auth_url">{% trans "Authorize URL" %}</label>
+	  <input type="text" name="authorize_url" id="auth_url"
+		 value="{{ v.authorize_url }}" size="48" maxlength="200" />
+	</div>
+	<div class="form-row">
+	  <label for="at_url">{% trans "Access token URL" %}</label>
+	  <input type="text" name="token_url" id="at_url"
+		 value="{{ v.token_url }}" size="48" maxlength="200" />
+	</div>
+{% endif %}
+
+{% endifequal %}
+{% ifequal phase 3 %}
+	<p>{% trans "Your OAuth 2.0 access setup is completed." %}</p>
+{% endifequal %}
+	<div class="form-row">
+	  <input type="submit" name="reset" value="{% trans "Reset all tokens" %}" style="float:right" />
+	  {% ifnotequal phase 3 %}<input type="submit" value="{% trans "Next step" %}" style="font-weight:bold" />{% else %}<input type="button" value="{% trans "Close" %}" onclick="window.close()" />{% endifnotequal %}
+	</div>
+      </fieldset>
+    </form>
+  </section>
+
+</div><!-- /main -->
+</body>
+</html>

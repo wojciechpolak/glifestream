@@ -26,7 +26,7 @@ from django.forms import ModelForm
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service, List
-from glifestream.gauth import gls_oauth
+from glifestream.gauth import gls_oauth, gls_oauth2
 from glifestream.stream import pshb as gls_pshb
 from glifestream.apis import API_LIST
 from glifestream.utils import common
@@ -203,7 +203,7 @@ def oauth(request, **args):
         'title': _('OAuth - Settings'),
     }
     apis_help = {
-        'twitter': 'http://dev.twitter.com/pages/auth',
+        'twitter': 'https://developer.twitter.com/en/docs/authentication/overview',
     }
     v = {}
     id_service = args['id']
@@ -267,6 +267,82 @@ def oauth(request, **args):
                    'title': str(service),
                    'api_help': api_help,
                    'callback_url': callback_url,
+                   'phase': c.db.phase,
+                   'v': v, })
+
+
+@login_required
+@never_cache
+def oauth2(request, **args):
+    authed = request.user.is_authenticated and request.user.is_staff
+    if not authed:
+        return HttpResponseForbidden()
+
+    page = {
+        'base_url': settings.BASE_URL,
+        'favicon': settings.FAVICON,
+        'theme': common.get_theme(request),
+        'title': _('OAuth 2.0 - Settings'),
+    }
+    apis_help = {
+        'mastodon': 'https://docs.joinmastodon.org/spec/oauth/',
+    }
+    v = {}
+    id_service = args['id']
+
+    redirect_uri = request.build_absolute_uri(
+        reverse('usettings-oauth2', args=[id_service]))
+
+    service = Service.objects.get(id=id_service)
+    c = gls_oauth2.OAuth2Client(
+        service=service,
+        identifier=request.POST.get('identifier'),
+        secret=request.POST.get('secret'),
+        callback_url=redirect_uri)
+
+    if c.db.phase == gls_oauth2.PHASE_0:
+        v['base_url'] = c.base_url
+        if not c.authorize_url or not c.token_url:
+            v['authorize_url'] = request.POST.get('authorize_url', '')
+            v['token_url'] = request.POST.get('token_url', '')
+            page['need_custom_urls'] = True
+
+    if 'reset' in request.POST:
+        c.reset()
+        c.save()
+    elif request.method == 'POST':
+        access_token = request.POST.get('access_token', None)
+        if access_token:
+            c.set_access_token(access_token)
+            c.db.phase = gls_oauth2.PHASE_3
+            c.save()
+        elif c.db.phase == gls_oauth2.PHASE_0:
+            auth_url = c.get_authorize_url()
+            c.db.phase = gls_oauth2.PHASE_1
+            c.save()
+            return HttpResponseRedirect(auth_url)
+
+    if request.method == 'GET':
+        if c.db.phase == gls_oauth2.PHASE_1:
+            code = request.GET.get('code', None)
+            c.db.phase = gls_oauth2.PHASE_2
+
+        if c.db.phase == gls_oauth2.PHASE_2:
+            try:
+                c.get_access_token(code)
+                c.save()
+                return HttpResponseRedirect(reverse('usettings-oauth2', args=[id_service]))
+            except Exception as e:
+                page['msg'] = e
+
+    api_help = apis_help.get(service.api, 'https://oauth.net/2/')
+
+    return render(request, 'oauth2.html',
+                  {'page': page,
+                   'is_secure': request.is_secure(),
+                   'title': str(service),
+                   'api_help': api_help,
+                   'callback_url': redirect_uri,
                    'phase': c.db.phase,
                    'v': v, })
 
@@ -406,6 +482,7 @@ def api(request, **args):
             'name': request.POST.get('name', ''),
             'cls': request.POST.get('cls', ''),
             'url': request.POST.get('url', ''),
+            'user_id': request.POST.get('user_id', ''),
             'display': request.POST.get('display', 'content'),
             'public': bool(request.POST.get('public', False)),
             'home': bool(request.POST.get('home', False)),
@@ -418,9 +495,9 @@ def api(request, **args):
             if not s['name']:
                 miss['name'] = True
                 method = 'get'
-            if s['api'] != 'selfposts' and not s['url'] \
+            if s['api'] != 'selfposts' and not s['user_id'] \
                and request.POST.get('timeline', 'user') == 'user':
-                miss['url'] = True
+                miss['user_id'] = True
                 method = 'get'
 
         # Special cases, predefined
@@ -445,15 +522,12 @@ def api(request, **args):
             try:
                 basic_user = request.POST.get('basic_user', None)
                 basic_pass = request.POST.get('basic_pass', None)
-                access_token = request.POST.get('access_token', None)
 
                 auth = request.POST.get('auth', 'none')
                 if auth == 'basic' and basic_user and basic_pass:
                     srv.creds = basic_user + ':' + basic_pass
-                elif auth == 'oauth':
+                elif auth == 'oauth' or auth == 'oauth2':
                     srv.creds = auth
-                elif access_token:
-                    srv.creds = access_token
                 elif auth == 'none':
                     srv.creds = ''
 
@@ -474,6 +548,7 @@ def api(request, **args):
                         'name': srv.name,
                         'cls': srv.cls,
                         'url': srv.url,
+                        'user_id': srv.user_id,
                         'creds': srv.creds,
                         'display': srv.display,
                         'public': srv.public,
@@ -507,14 +582,17 @@ def api(request, **args):
                                 'value': s['url'], 'label': _('URL'),
                                 'miss': miss.get('url', False)})
 
-        elif s['api'] in ('fb', 'friendfeed', 'twitter'):
-            v = 'user' if s['url'] else 'home'
+        elif s['api'] in ('fb', 'friendfeed', 'mastodon', 'twitter'):
+            v = 'user' if s['user_id'] else 'home'
             s['fields'].append({'type': 'select', 'name': 'timeline',
                                 'options': (('user', _('User timeline')),
                                             ('home', _('Home timeline'))),
                                 'value': v, 'label': _('Timeline')})
             s['fields'].append({'type': 'text', 'name': 'url',
-                                'value': s['url'], 'label': _('ID/Username'),
+                                'value': s['url'], 'label': _('URL'),
+                                'deps': {'timeline': 'user'}})
+            s['fields'].append({'type': 'text', 'name': 'user_id',
+                                'value': s['user_id'], 'label': _('User ID'),
                                 'deps': {'timeline': 'user'}})
 
         elif s['api'] != 'selfposts':
@@ -522,10 +600,12 @@ def api(request, **args):
                                 'value': s['url'], 'label': _('ID/Username'),
                                 'miss': miss.get('url', False)})
 
-        if s['api'] in ('webfeed', 'friendfeed', 'twitter'):
+        if s['api'] in ('webfeed', 'friendfeed', 'mastodon', 'twitter'):
             basic_user = ''
             if s['creds'] == 'oauth':
                 v = 'oauth'
+            elif s['creds'] == 'oauth2':
+                v = 'oauth2'
             elif s['creds']:
                 v = 'basic'
                 basic_user = s['creds'].split(':', 1)[0]
@@ -535,7 +615,8 @@ def api(request, **args):
             s['fields'].append({'type': 'select', 'name': 'auth',
                                 'options': (('none', _('none')),
                                             ('basic', _('Basic')),
-                                            ('oauth', _('OAuth'))),
+                                            ('oauth', _('OAuth 1.0')),
+                                            ('oauth2', _('OAuth 2.0'))),
                                 'value': v, 'label': _('Authorization')})
 
             if 'id' in s:
@@ -543,6 +624,10 @@ def api(request, **args):
                                     'value': _('configure access'),
                                     'href': '#', 'label': '',
                                     'deps': {'auth': 'oauth'}})
+                s['fields'].append({'type': 'link', 'name': 'oauth2_conf',
+                                    'value': _('configure access'),
+                                    'href': '#', 'label': '',
+                                    'deps': {'auth': 'oauth2'}})
 
             s['fields'].append({'type': 'text', 'name': 'basic_user',
                                 'value': basic_user,

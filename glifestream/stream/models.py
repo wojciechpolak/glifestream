@@ -30,7 +30,9 @@ class Service (models.Model):
                            default='feed', db_index=True)
     cls = models.CharField(_('Custom CSS Class'), max_length=16, null=True,
                            blank=True)
-    url = models.CharField(_('URL or Username'), max_length=255, blank=True)
+    url = models.CharField(_('URL'), max_length=255, blank=True)
+    user_id = models.CharField(_('User ID'), max_length=64, blank=True,
+                               help_text=_('Optional User ID'))
     creds = models.CharField(_('Credentials'), max_length=128, null=True,
                              blank=True)
     name = models.CharField(_('Short name'), max_length=48)
@@ -105,6 +107,9 @@ class Entry (models.Model):
                                 help_text=_('A draft is a post that is in progress. Only you will be able to see it.'))
     friends_only = models.BooleanField(_('Friends-only'), default=False,
                                        help_text=_('Entry will only be visible to you and your friends.'))
+    reblog = models.BooleanField(_('Reblog'), default=False, help_text=_('Reblogged post.'))
+    reblog_by = models.CharField(_("Reblogged by"), max_length=64, blank=True)
+    reblog_uri = models.CharField(_("Reblogged URI"), max_length=128, blank=True)
     mblob = models.TextField('Media', null=True, blank=True, editable=False)
 
     class Meta:

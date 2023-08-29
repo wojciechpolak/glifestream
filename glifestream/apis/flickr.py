@@ -32,8 +32,8 @@ class API (webfeed.API):
             return ('http://api.flickr.com/services/feeds/photos_public.gne?id=%s&format=rss_200' %
                     self.service.url,)
 
-    def process(self):
-        for key, group in groupby(self.fp.entries, lambda x: x.updated[0:19]):
+    def process(self, entries):
+        for key, group in groupby(entries, lambda x: x.updated[0:19]):
             mblob = media.mrss_init()
             lgroup = 0
             content = '<p class="thumbnails">\n'

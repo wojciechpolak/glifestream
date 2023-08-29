@@ -1148,6 +1148,12 @@
                             return false;
                         };
                     }
+                    else if (f.name === 'oauth2_conf') {
+                        obj.onclick = function() {
+                            oauth2_configure(data.id);
+                            return false;
+                        };
+                    }
                 }
                 else {
                     var obj = DCE('input', {
@@ -1233,6 +1239,11 @@
     function oauth_configure(id) {
         var p = MDOM.get_win_center(800, 480);
         window.open('oauth/' + id, 'oauth', 'width=' + p.width + ',height=' + p.height + ',left=' + p.left + ',top=' + p.top + ',toolbar=no,status=yes,location=no,resizable=yes' + ',scrollbars=yes');
+    }
+
+    function oauth2_configure(id) {
+        var p = MDOM.get_win_center(800, 480);
+        window.open('oauth2/' + id, 'oauth2', 'width=' + p.width + ',height=' + p.height + ',left=' + p.left + ',top=' + p.top + ',toolbar=no,status=yes,location=no,resizable=yes' + ',scrollbars=yes');
     }
 
     var MDOM = {

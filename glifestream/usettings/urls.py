@@ -32,4 +32,5 @@ urlpatterns = [
     url(r'pshb$', views.pshb, name='usettings-pshb'),
     url(r'tools$', views.tools, name='usettings-tools'),
     url(r'oauth/(?P<id>[0-9]+)$', views.oauth, name='usettings-oauth'),
+    url(r'oauth2/(?P<id>[0-9]+)$', views.oauth2, name='usettings-oauth2'),
 ]

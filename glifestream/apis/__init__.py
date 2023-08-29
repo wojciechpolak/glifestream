@@ -17,6 +17,7 @@ __all__ = (
     'flickr',
     'friendfeed',
     'mail',
+    'mastodon',
     'selfposts',
     'twitter',
     'vimeo',
@@ -27,6 +28,7 @@ __all__ = (
 API_LIST = (
     ('selfposts',   'Self Posts'),
     ('webfeed',     'Webfeed'),
+    ('mastodon',    'Mastodon'),
     ('twitter',     'Twitter'),
     ('youtube',     'YouTube'),
     ('vimeo',       'Vimeo'),
