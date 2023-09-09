@@ -9,7 +9,7 @@ Introduction
 
 gLifestream joins several external and/or internal streams into a
 single one.  External streams may be represented by RSS/Atom channels
-or popular services such as Twitter.  The user decides which of them
+or popular services such as Mastodon.  The user decides which of them
 are publicly visible and which are not.  Public streams are visible
 for anybody.  The rest of streams are visible only for logged in users.
 
@@ -26,11 +26,17 @@ To install gLifestream read the [INSTALL](INSTALL.md) file.
 Supported services (out of the box)
 -----------------------------------
 
-Any RSS/Atom feed, Flickr, Twitter, Vimeo, YouTube.
+gLifestream supports the following services by default:
 
-Any service not listed above can be added as an RSS/Atom stream (if it
-provides such feeds) or by extending gLifestream and writing custom
-APIs support.
+- Any RSS/Atom feed
+- Mastodon
+- Flickr
+- Twitter
+- Vimeo
+- YouTube
+
+You can extend gLifestream by writing custom APIs
+to support additional services.
 
 Features
 --------
@@ -44,7 +50,7 @@ Features
 - Out of the box output formats: HTML5, Atom, JSON
 - Search functionality
 - PubSubHubbub support (publisher and subscriber)
-- OAuth support
+- OAuth 1.0 and 2.0 support
 - Write posts by web or e-mail (including media attachments)
 - Keyboard shortcuts for navigation
 - Customizable themes

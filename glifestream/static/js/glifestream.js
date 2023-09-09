@@ -437,8 +437,13 @@
     var gsc_done = false;
 
     function open_sharing() {
-        $('#share .fieldset').show(function() {
-            $('#status').focus();
+        $('#share .fieldset').toggle(function() {
+            if (quill) {
+                quill.focus();
+            }
+            else {
+                $('#status').focus();
+            }
             if (!gsc_done) {
                 get_selfposts_classes();
             }
@@ -519,7 +524,20 @@
         if (settings.maps_engine === 'google') {
             return '<img src="https://maps.googleapis.com/maps/api/staticmap?sensor=false&zoom=12&size=175x120&markers=' + lat + ',' + lng + '" alt="Map" width="175" height="120" />';
         }
-        return '';
+        const boundingBox = calculateBoundingBox(lat, lng, 10);
+        const bbox = convertToOSMBbox(boundingBox);
+
+        return '<iframe width="100%" height="200"' +
+            'src="https://www.openstreetmap.org/export/embed.html?layer=mapnik' +
+            '&bbox=' + bbox +
+            '&marker=' + lat + ',' + lng + '"' +
+            'style="border: 1px solid black"></iframe>' +
+            '<br/>' +
+            '<small>' +
+            '<a href="https://www.openstreetmap.org/?mlat=' +
+            lat + '&mlon=' + lng + '#map=10/' + lat + '/' + lng +
+            '" target="_blank">View Larger Map</a>' +
+            '</small>';
     }
 
     function render_map(i) {
@@ -536,19 +554,46 @@
         if (this.folded) {
             return true;
         }
-        var lat = $('.latitude', this).html();
-        var lng = $('.longitude', this).html();
+        let lat = $('.latitude', this).html();
+        let lng = $('.longitude', this).html();
         this.target = '_blank';
 
         if (settings.maps_engine === 'google') {
             this.href = 'https://maps.google.com/?q=' + lat + ',' + lng;
         }
+        else {
+            this.href = 'https://www.openstreetmap.org/?mlat=' +
+            lat + '&mlon=' + lng + '#map=10/' + lat + '/' + lng;
+        }
 
-        var p = this.parentNode;
+        const p = this.parentNode;
         $('a', p).html(get_map_embed(lat, lng));
         $(p).css('paddingLeft', '0');
         this.folded = true;
         return false;
+    }
+
+    function calculateBoundingBox(lat, lon, radiusKm) {
+        const earthRadiusKm = 6371;
+        const latRad = (lat * Math.PI) / 180;
+        const lonRad = (lon * Math.PI) / 180;
+        const angularDistance = radiusKm / earthRadiusKm;
+        const latDiff = (angularDistance * 180) / Math.PI;
+        const lonDiff = (angularDistance * 180) / (Math.PI * Math.cos(latRad));
+        const swLat = +lat - +latDiff;
+        const swLon = +lon - +lonDiff;
+        const neLat = +lat + +latDiff;
+        const neLon = +lon + +lonDiff;
+        return {
+            southwest: {lat: swLat, lon: swLon},
+            northeast: {lat: neLat, lon: neLon},
+        };
+    }
+
+    function convertToOSMBbox(boundingBox) {
+        const { southwest, northeast } = boundingBox;
+        return `${southwest.lon.toFixed(7)},${southwest.lat.toFixed(7)},` +
+            `${northeast.lon.toFixed(7)},${northeast.lat.toFixed(7)}`;
     }
 
     function expand_content() {
@@ -744,14 +789,16 @@
         year = year || stream_data.view_date.split('/')[0];
         var month = 1;
         var cal = '<table>';
-        cal += '<tr><th colspan="3">' + '<a href="#" class="fleft prev">&nbsp;</a>';
+        cal += '<tr><th colspan="3">' +
+            '<a href="#" class="prev">&nbsp;</a>';
+        cal += '<span class="year">' + year + '</span> ';
         if (parseInt(year, 10) < stream_data.year_now) {
-            cal += '<a href="#" class="fright next">&nbsp;</a>';
+            cal += '<a href="#" class="next">&nbsp;</a>';
         }
         else {
-            cal += '<span class="fright" style="width:25px">&nbsp;</span>';
+            cal += '<span class="next-disabled">&nbsp;</span>';
         }
-        cal += '<span class="year">' + year + '</span> ' + '</th></tr>';
+        cal += '</th></tr>';
         for (var row = 0; row < 4; row++) {
             cal += '<tr>';
             for (var col = 0; col < 3; col++, month++) {
@@ -833,6 +880,11 @@
         $(stream).on('click', 'span.play-audio', play_audio);
 
         $('a.map', stream).each(render_map);
+
+        $('#sidebar-toggle').click(function() {
+            $('#sidebar').toggleClass('expanded');
+            $('i', this).toggleClass('fa-chevron-up fa-chevron-down');
+        });
 
         $('#change-theme').click(change_theme);
         $('div.lists select').change(function() {
@@ -937,14 +989,26 @@
             href: 'https://www.facebook.com/sharer.php?u={URL}&t={TITLE}',
             className: 'facebook'
         }, {
-            name: 'Digg',
-            href: 'https://digg.com/submit?phase=2&url={URL}&title={TITLE}',
-            className: 'digg'
-        }, {
             name: 'Reddit',
             href: 'https://reddit.com/submit?url={URL}&title={TITLE}',
             className: 'reddit'
         }];
+
+        const $scrollToTopButton = $(".scroll-to-top");
+
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 100) {
+                $scrollToTopButton.fadeIn();
+            }
+            else {
+                $scrollToTopButton.fadeOut();
+            }
+        });
+
+        $scrollToTopButton.click(function() {
+            $('html, body').animate({scrollTop: 0}, 'fast');
+            return false;
+        });
     });
 
     function init_settings() {

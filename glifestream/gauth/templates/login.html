@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
+{% block mainClass %}login{% endblock mainClass %}
 {% block main %}
 <section id="login">
 
@@ -9,12 +10,12 @@
 <form name="loginform" method="post" action="{% url 'login' %}">
   <p>
     <label>{% trans "Username" %}<br />
-      <input type="text" name="username" id="username" size="20" />
+      <input type="text" name="username" id="username" size="20" autocomplete="username" autofocus />
     </label>
   </p>
   <p>
     <label>{% trans "Password" %}<br />
-      <input type="password" name="password" id="password" size="20" />
+      <input type="password" name="password" id="password" size="20" autocomplete="current-password" />
     </label>
   </p>
   <p class="rememberme">
@@ -31,7 +32,4 @@
 
 </section><!-- /login -->
 
-<script type="text/javascript">
-document.getElementById('username').focus ();
-</script>
 {% endblock main %}

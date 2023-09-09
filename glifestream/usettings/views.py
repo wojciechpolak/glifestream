@@ -495,14 +495,19 @@ def api(request, **args):
             if not s['name']:
                 miss['name'] = True
                 method = 'get'
-            if s['api'] != 'selfposts' and not s['user_id'] \
+            if (s['api'] != 'selfposts' and s['api'] != 'webfeed') and not s['user_id'] \
                and request.POST.get('timeline', 'user') == 'user':
                 miss['user_id'] = True
                 method = 'get'
 
         # Special cases, predefined
-        if s['api'] in ('delicious', 'digg', 'greader', 'lastfm',
-                        'stumbleupon', 'yelp'):
+        if s['api'] in (
+            'delicious',
+            'digg',
+            'greader',
+            'lastfm',
+            'stumbleupon',
+            'yelp'):
             s['display'] = 'both'
 
         # Save
@@ -516,8 +521,8 @@ def api(request, **args):
                     srv = Service()
                 for k, v in s.items():
                     setattr(srv, k, v)
-            except Exception:
-                pass
+            except Exception as exc:
+                print(exc)
 
             try:
                 basic_user = request.POST.get('basic_user', None)
@@ -534,8 +539,8 @@ def api(request, **args):
                 s['need_import'] = not srv.id
                 srv.save()
                 id_service = srv.id
-            except Exception:
-                pass
+            except Exception as exc:
+                print(exc)
 
         # Get
         if id_service:

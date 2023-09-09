@@ -8,7 +8,7 @@
   <meta name="description" content="{{ page.description|safe }}">{% endif %}
   <meta name="generator" content="gLifestream">
   <meta name="robots" content="{{ page.robots }}">
-  <link rel="shortcut icon" href="{{ page.favicon }}">{% if page.canonical_link %}
+  <link rel="icon" href="{{ page.favicon }}">{% if page.canonical_link %}
   <link rel="canonical" href="{{ page.canonical_link }}">{% endif %}
   <link rel="alternate" type="application/atom+xml" title="Webfeed" href="{% if page.exactentry %}{% url 'index' %}{% endif %}?format=atom">
   {% if authed %}
@@ -19,26 +19,56 @@
   {% javascript 'main' %}
 </head>
 
-<body>
-<div id="main">
+<body class="style-{{ page.theme }}">
+<div id="main" class="{% block mainClass %}default{% endblock mainClass %}">
 
 <header id="head">
   <nav id="navtop" class="tb">
     {% if authed %}
-    <span class="text">{% trans "Hello" %} <b>{{ user.email }}</b></span> |
-    <a href="{% url 'index' %}" title="{% trans "My private stream" %}">{% trans "Home" %}</a> |
-    <a href="{% url 'public' %}" title="{% trans "My publicly visible stream" %}" accesskey="2">{% trans "Public" %}</a> |
-    {% if user.is_staff %}<a href="{% url 'settings' %}">{% trans "Settings" %}</a> |{% endif %}
-    <a href="{% url 'logout' %}">{% trans "Logout" %}</a>
+      <span class="hello">
+        <span class="text">{% trans "Hello" %}</span>
+        <b class="email">{{ user.email }}</b>
+      </span>
+      <span class="vb">|</span>
+      <a href="{% url 'index' %}" title="{% trans "My private stream" %}">
+        <i class="fas fa-home"></i>
+        <span class="text">{% trans "Home" %}</span>
+      </a>
+      <span class="vb">|</span>
+      <a href="{% url 'public' %}" title="{% trans "My publicly visible stream" %}" accesskey="2">
+        <i class="fas fa-bullhorn"></i>
+        <span class="text">{% trans "Public" %}</span>
+      </a>
+      <span class="vb">|</span>
+      {% if user.is_staff %}
+        <a href="{% url 'settings' %}">
+          <i class="fas fa-cog"></i>
+          <span class="text">{% trans "Settings" %}</span>
+        </a>
+        <span class="vb">|</span>
+      {% endif %}
+      <a href="{% url 'logout' %}">
+        <i class="fas fa-right-from-bracket"></i>
+        <span class="text">{% trans "Logout" %}</span>
+      </a>
     {% else %}
-    {% if friend %}<span class="text">{% trans "Hello" %}</span> |
-    <a href="{% url 'logout' %}">{% trans "Logout" %}</a>
-    {% else %}
-    {% if page.login_url %}<a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>{% endif %}
-    {% endif %}
+      {% if friend %}
+        <span class="text">{% trans "Hello" %}</span>
+        <span class="vb">|</span>
+        <a href="{% url 'logout' %}">
+          <i class="fas fa-right-from-bracket"></i>
+          <span class="text">{% trans "Logout" %}</span>
+        </a>
+      {% else %}
+        {% if page.login_url %}
+          <a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>
+        {% endif %}
+      {% endif %}
     {% endif %}
   </nav>
-  <h1 class="tb"><a href="{% url 'index' %}" accesskey="1">{% trans "The Stream" %}</a></h1>
+  <h1 class="tb">
+    <a href="{% url 'index' %}" accesskey="1">{% trans "The Stream" %}</a>
+  </h1>
 </header>
 
 {% block sidebar %}{% endblock sidebar %}
@@ -46,14 +76,16 @@
 
 <footer id="foot">
   {% block copyright %}{% endblock copyright %}
-  <p id="poweredby">{% trans "Powered by" %} <a href="http://glifestream.gnu.org.ua/" title="{% trans "A free and open source lifestream platform and social activity reader" %}">gLifestream</a>.
-  {% if page.themes_more %}<span tabindex="0" id="change-theme" class="link">{% trans "Change theme" %}</span>.{% endif %}</p>
 </footer>
+
+<div class="scroll-to-top">
+  <i class="fas fa-chevron-up"></i>
+</div>
 
 {% include "user-scripts.js" %}
 
 <script type="text/javascript">
-var settings = {
+const settings = {
   baseurl: '{% url "index" %}',
   maps_engine: '{{ page.maps_engine }}',
   themes: [{% for theme in page.themes %}'{{ theme }}'{% if not forloop.last %}, {% endif %}{% endfor %}]

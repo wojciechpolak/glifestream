@@ -3,6 +3,9 @@
 
 {% block sidebar %}
 <aside id="sidebar">
+  <div id="sidebar-toggle">
+    <i class="fas fa-chevron-up"></i>
+  </div>
   <section id="about">
     <h4>{% trans "About" %}</h4>
 {% include "user-about.html" %}
@@ -31,16 +34,27 @@
       <h4>{% trans "Archives" %}</h4>
       <div id="calendar"></div>
     </div>
-    {% if has_search %}<div class="search">
-      <form name="searchform" action="{% ifequal page.ctx "public" %}{% url 'public' %}{% else %}{% url 'index' %}{% endifequal %}" method="get">
+    {% if has_search %}<search class="search">
+      <form name="searchform" action="{% if page.ctx == "public" %}{% url 'public' %}{% else %}{% url 'index' %}{% endif %}" method="get">
 	<input type="search" name="s" value="{{ page.search }}" maxlength="64" placeholder="{% trans "Search this site" %}" /><span id="search-submit" title="{% trans "Search" %}"></span>
       </form>
-    </div>{% endif %}
+    </search>{% endif %}
   </nav>
+  <footer id="sidebar-foot">
+    <p class="change-theme-wrapper">
+      {% if page.themes_more %}<span tabindex="0" id="change-theme" class="link">{% trans "Change theme" %}</span>{% endif %}
+    </p>
+    <p id="poweredby">
+      {% trans "Powered by" %} <a href="https://glifestream.gnu.org.ua/" title="{% trans "A free and open source lifestream platform and social activity reader" %}">gLifestream</a>
+    </p>
+  </footer>
 </aside>
 {% endblock sidebar %}
 
+{% block mainClass %}stream{% endblock mainClass %}
 {% block main %}
+<section id="stream" class="hfeed">
+
 {% if authed %}
 <aside id="share">
   <span tabindex="0" class="link" id="ashare">{% trans "Add content" %}</span>
@@ -56,10 +70,12 @@
           <span tabindex="0" class="link" id="expand-sharing">{% trans "more options" %}</span>
           <div id="more-sharing-options" style="display:none">
             <p>
-              <label for="draft">{% trans "Mark as draft:" %}</label>
-              <input type="checkbox" id="draft" name="draft" value="1" />,
-              <label for="friends-only">{% trans "Only visible to friends:" %}</label>
+              <input type="checkbox" id="draft" name="draft" value="1" />
+              <label for="draft">{% trans "Mark as draft" %}</label>
+            </p>
+            <p>
               <input type="checkbox" id="friends-only" name="friends_only" value="1" />
+              <label for="friends-only">{% trans "Only visible to friends" %}</label>
             </p>
             <p>
               <label for="gls-docs">{% trans "Add files:" %}</label>
@@ -79,7 +95,7 @@
   </div>
 </aside>
 {% endif %}
-<section id="stream" class="hfeed">
+
 {% if page.subtitle %}
   <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% ifequal page.ctx "public" %}{% url 'public' %}{% else %}{% if page.favorites %}{% url 'favorites' %}{% else %}{% url 'index' %}{% endif %}{% endifequal %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
 {% endif %}
@@ -115,7 +131,7 @@
 </section>
 
 <script type="text/javascript">
-var stream_data = {
+const stream_data = {
   'ctx': '{{ page.ctx }}',
   'year_now': {% now "Y" %},
   'view_date': '{{ page.updated|date:"Y/m" }}',

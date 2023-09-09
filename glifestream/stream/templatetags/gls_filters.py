@@ -88,9 +88,11 @@ def gls_title(_, entry):
 @register.filter
 def gls_content(_, entry):
     if entry.friends_only:
-        return mark_safe('<div class="friends-only-entry"><p>' +
-                         _('The content of this entry is available only to my friends.') +
-                         '</p></div>')
+        return mark_safe('<div class="friends-only-entry">' \
+                         'The content of this entry is available only to my friends.</div>');
+        # return mark_safe('<div class="friends-only-entry"><p>' +
+        #                  _('The content of this entry is available only to my friends.') +
+        #                  '</p></div>')
     try:
         mod = eval(entry.service.api)
         if hasattr(mod, 'filter_content'):
@@ -98,10 +100,10 @@ def gls_content(_, entry):
             if entry.geolat and entry.geolng:
                 s += '<div class="geo"><a href="#" class="show-map"><span class="latitude">%.10f</span> ' \
                      '<span class="longitude">%.10f</span>%s</a></div>' % (
-                     entry.geolat, entry.geolng, _('show map'))
+                     entry.geolat, entry.geolng, ('show map'))
             return mark_safe(gls_media(s))
-    except Exception:
-        pass
+    except Exception as exc:
+        print(exc)
     return mark_safe(gls_media(force_text(entry.content)))
 
 

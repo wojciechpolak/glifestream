@@ -28,7 +28,7 @@ except ImportError:
 def strip_script(s):
     try:
         if BeautifulSoup:
-            soup = BeautifulSoup(s)
+            soup = BeautifulSoup(s, features='html.parser')
             to_extract = soup.findAll('script')
             for item in to_extract:
                 item.extract()
