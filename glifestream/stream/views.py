@@ -44,7 +44,6 @@ from glifestream.utils.time import pn_month_start
 from glifestream.apis import API_LIST, selfposts
 
 
-@never_cache
 def index(request, **args):
     site_url = '%s://%s' % (request.is_secure() and 'https' or 'http',
                             request.get_host())

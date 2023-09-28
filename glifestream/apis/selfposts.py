@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -12,6 +12,8 @@
 #
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import logging
 
 from django.conf import settings
 from django.template.defaultfilters import urlizetrunc, title as df_title
@@ -28,6 +30,8 @@ try:
     import markdown
 except ImportError:
     markdown = None
+
+logger = logging.getLogger(__name__)
 
 
 class API:
@@ -173,8 +177,8 @@ class API:
 
             media.extract_and_register(e)
             return e
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error(exc)
 
     def reshare(self, entry, args=None):
         if args is None:
@@ -232,8 +236,8 @@ class API:
             media.extract_and_register(e)
             e.save()
             return e
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error(exc)
 
 
 def filter_title(entry):

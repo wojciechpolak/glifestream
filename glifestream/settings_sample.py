@@ -219,6 +219,10 @@ LOGGING = {
             'class': 'django.utils.log.AdminEmailHandler'
         }
     },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
     'loggers': {
         'django.request': {
             'handlers': ['mail_admins'],

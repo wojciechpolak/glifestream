@@ -120,10 +120,10 @@ INSTALLED_APPS = (
 SITE_ID = 1
 
 MEDIA_ROOT = os.path.join(SITE_ROOT, '../media')
-MEDIA_URL = os.getenv('VIRTUAL_PATH', '') + '/media/'
+MEDIA_URL = os.getenv('VIRTUAL_PATH', '/') + 'media/'
 
 STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
-STATIC_URL = os.getenv('VIRTUAL_PATH', '') + '/static/'
+STATIC_URL = os.getenv('VIRTUAL_PATH', '/') + 'static/'
 
 STATICFILES_STORAGE = 'pipeline.storage.PipelineManifestStorage'
 STATICFILES_FINDERS = (
@@ -150,6 +150,10 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
     'loggers': {
         'django.server': {

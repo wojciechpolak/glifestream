@@ -16,6 +16,7 @@
 import os
 import re
 import json
+import logging
 import hashlib
 import tempfile
 import time
@@ -32,6 +33,8 @@ except ImportError:
         import Image
     except ImportError:
         Image = None
+
+logger = logging.getLogger(__name__)
 
 
 def set_upload_url(s):
@@ -83,7 +86,8 @@ def save_image(url, direct_image=True, force=False, downscale=False,
             if downscale:
                 downscale_image(tmp, size=size)
             shutil.move(tmp, thumb['local'])
-        except Exception:
+        except Exception as exc:
+            logger.error(exc)
             if not stale:
                 return url
     return thumb['internal']
@@ -99,8 +103,8 @@ def downscale_image(filename, size=None):
         if w > size[0] or h > size[1]:
             im.thumbnail(size, Image.ANTIALIAS)
             im.save(filename, 'JPEG', quality=95)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.error(exc)
 
 
 def downsave_uploaded_image(file):
@@ -111,8 +115,8 @@ def downsave_uploaded_image(file):
             shutil.copy(file.path, thumb['local'])
             downscale_image(thumb['local'])
         return (thumb['internal'], url)
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.error(exc)
     return (url, url)
 
 
@@ -122,17 +126,20 @@ def extract_and_register(entry):
         md.file.name = get_thumb_info(hash_thumb)['rel']
         try:
             md.save()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error(exc)
 
 
 def __img_subs(m):
-    return '<img src="%s"' % save_image(m.group(1), force=True)
+    return '<img%ssrc="%s"' % (m.group(1), save_image(m.group(2), force=True))
 
 
 def transform_to_local(entry):
-    entry.content = re.sub(r'<img src="(http://.*?)"', __img_subs,
-                           entry.content)
+    entry.content = re.sub(
+        r'<img(.*)src="(https?://.*?)"',
+        __img_subs,
+        entry.content,
+        flags=re.DOTALL)
 
 
 def mrss_init(mblob=None):
