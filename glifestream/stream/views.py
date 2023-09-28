@@ -55,6 +55,7 @@ def index(request, **args):
         'backtime': True,
         'robots': 'index',
         'public': False,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'site_url': site_url,
         'base_url': settings.BASE_URL,
         'login_url': settings.LOGIN_URL,
@@ -481,6 +482,20 @@ def page_internal_error(request):  # pylint: disable=unused-argument
     }
     t = render(request, '500.html', {'page': page})
     return HttpResponseNotFound(t.content)
+
+
+def webmanifest(request):
+    d = {
+        'id': reverse('index'),
+        'name': settings.PWA_APP_NAME,
+        'short_name': settings.PWA_APP_SHORT_NAME,
+        'description': settings.PWA_APP_DESCRIPTION,
+        'display': settings.PWA_APP_DISPLAY,
+        'scope': reverse('index'),
+        'start_url': reverse('index'),
+        'icons': settings.PWA_APP_ICONS
+    }
+    return JsonResponse(d, content_type='application/manifest+json')
 
 
 #

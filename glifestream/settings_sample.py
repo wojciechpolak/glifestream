@@ -118,8 +118,8 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.sessions',
     'django.contrib.sites',
-    'django.contrib.staticfiles',
     'pipeline',
+    'glifestream.gls_staticfiles.GlsStaticFilesConfig',
     'glifestream.gauth',
     'glifestream.apis',
     'glifestream.stream',
@@ -227,6 +227,26 @@ LOGGING = {
         },
     }
 }
+
+#
+# PWA
+#
+
+PWA_APP_NAME = 'gLifestream'
+PWA_APP_SHORT_NAME = 'GLS'
+PWA_APP_DESCRIPTION = "Personal Lifestream"
+PWA_APP_DISPLAY = 'standalone'
+PWA_APP_ICONS = [
+    {
+        'src': '/static/themes/default/icons/rss.png',
+        'sizes': '512x512'
+    },
+    {
+        'src': '/static/themes/default/icons/rss_maskable.png',
+        'sizes': '512x512',
+        'purpose': 'maskable'
+    }
+]
 
 # A shortcut icon URL (favicon).
 FAVICON = '/favicon.ico'

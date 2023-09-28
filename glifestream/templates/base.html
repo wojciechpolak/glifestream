@@ -11,6 +11,7 @@
   <link rel="icon" href="{{ page.favicon }}">{% if page.canonical_link %}
   <link rel="canonical" href="{{ page.canonical_link }}">{% endif %}
   <link rel="alternate" type="application/atom+xml" title="Webfeed" href="{% if page.exactentry %}{% url 'index' %}{% endif %}?format=atom">
+  {% if page.pwa %}<link rel="manifest" href="{% url 'webmanifest' %}">{% endif %}
   {% if authed %}
     {% stylesheet 'quill' %}
     {% javascript 'quill' %}

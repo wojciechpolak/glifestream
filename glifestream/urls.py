@@ -74,6 +74,11 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
+if getattr(settings, 'PWA_APP_NAME', None):
+    urlpatterns += [
+        url(r'^manifest.webmanifest$', sv.webmanifest, name='webmanifest')
+    ]
+
 urlpatterns += [
     url(r'^media/(?P<path>.*)$', static_serve,
         {'document_root': settings.MEDIA_ROOT})

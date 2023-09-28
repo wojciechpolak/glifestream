@@ -42,6 +42,7 @@ def services(request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'themes_more': len(settings.THEMES) > 1,
@@ -75,6 +76,7 @@ def lists(request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'themes_more': len(settings.THEMES) > 1,
@@ -125,6 +127,7 @@ def pshb(request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'themes_more': len(settings.THEMES) > 1,
@@ -176,6 +179,7 @@ def tools(request, **args):
     page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'favicon': settings.FAVICON,
         'themes': settings.THEMES,
         'themes_more': len(settings.THEMES) > 1,
@@ -198,6 +202,7 @@ def oauth(request, **args):
 
     page = {
         'base_url': settings.BASE_URL,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'favicon': settings.FAVICON,
         'theme': common.get_theme(request),
         'title': _('OAuth - Settings'),
@@ -280,6 +285,7 @@ def oauth2(request, **args):
 
     page = {
         'base_url': settings.BASE_URL,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'favicon': settings.FAVICON,
         'theme': common.get_theme(request),
         'title': _('OAuth 2.0 - Settings'),

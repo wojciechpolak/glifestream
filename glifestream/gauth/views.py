@@ -61,6 +61,7 @@ def login(request, template_name='login.html',
     page = {
         'robots': 'noindex,nofollow',
         'favicon': settings.FAVICON,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'theme': common.get_theme(request),
     }
 
