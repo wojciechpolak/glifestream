@@ -97,7 +97,7 @@
 {% endif %}
 
 {% if page.subtitle %}
-  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% ifequal page.ctx "public" %}{% url 'public' %}{% else %}{% if page.favorites %}{% url 'favorites' %}{% else %}{% url 'index' %}{% endif %}{% endifequal %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
+  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% if page.ctx == "public" %}{% url 'public' %}{% else %}{% if page.favorites %}{% url 'favorites' %}{% else %}{% url 'index' %}{% endif %}{% endif %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
 {% endif %}
 {% if page.after %}
   <nav class="pagination-top">

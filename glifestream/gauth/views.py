@@ -53,10 +53,7 @@ def login(request, template_name='login.html',
 
     request.session.set_test_cookie()
 
-    if Site._meta.installed:
-        current_site = Site.objects.get_current()
-    else:
-        current_site = RequestSite(request)
+    current_site = RequestSite(request)
 
     page = {
         'robots': 'noindex,nofollow',

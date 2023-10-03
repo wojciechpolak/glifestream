@@ -23,7 +23,7 @@ from django.http import HttpResponse
 from django.http import HttpResponseForbidden
 from django.http import HttpResponseRedirect
 from django.forms import ModelForm
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service, List
 from glifestream.gauth import gls_oauth, gls_oauth2

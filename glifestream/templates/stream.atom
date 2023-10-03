@@ -29,13 +29,13 @@
     <category term="{{ entry.service.cls }}"/>
     <link rel="alternate" type="text/html" href="{{ entry.gls_absolute_link }}"/>
     {% if entry.link_image %}<link rel="image" href="{{ entry.link_image|gls_media }}"/>{% endif %}
-    <title>{{ entry|gls_title:entry|striptags|gls_fix_ampersands }}</title>{% ifnotequal entry.service.display "title" %}
+    <title>{{ entry|gls_title:entry|striptags|gls_fix_ampersands }}</title>{% if entry.service.display != "title" %}
     <content type="xhtml" xml:space="preserve">
     <div xmlns="http://www.w3.org/1999/xhtml">
     {{ entry|gls_content:entry|gls_fix_ampersands|safe }}
     </div>
     </content>
-{% endifnotequal %}{{ entry|gls_mediarss:entry|gls_fix_ampersands }}{% if entry.geolat and entry.geolng %}
+{% endif %}{{ entry|gls_mediarss:entry|gls_fix_ampersands }}{% if entry.geolat and entry.geolng %}
     <georss:point>{{ entry.geolat }} {{ entry.geolng }}</georss:point>
     <geo:lat>{{ entry.geolat }}</geo:lat>
     <geo:long>{{ entry.geolng }}</geo:long>{% endif %}

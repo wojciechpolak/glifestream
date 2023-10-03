@@ -22,7 +22,7 @@
        "geolng": "{{ entry.geolng }}",
 {% endif %}
        "title": {{ entry|gls_title:entry|encode_json }},
-       "content": {% ifnotequal entry.service.display "title" %}{{ entry|gls_content:entry|encode_json }}{% else %}null{% endifnotequal %}
+       "content": {% if entry.service.display != "title" %}{{ entry|gls_content:entry|encode_json }}{% else %}null{% endif %}
      }{% if not forloop.last %},{% endif %}
 {% endfor %}
   ]

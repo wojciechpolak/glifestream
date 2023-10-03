@@ -31,7 +31,7 @@
 	  <li>{{ page.msg }}</li>
 	</ul>
 	{% endif %}
-{% ifequal phase 0 %}
+{% if phase == 0 %}
 	<div class="form-row">
 	  <label for="base_url">{% trans "Base URL" %}</label>
 	  <input type="text" name="base_url" id="base_url"
@@ -68,13 +68,13 @@
 	</div>
 {% endif %}
 
-{% endifequal %}
-{% ifequal phase 3 %}
+{% endif %}
+{% if phase == 3 %}
 	<p>{% trans "Your OAuth 2.0 access setup is completed." %}</p>
-{% endifequal %}
+{% endif %}
 	<div class="form-row">
 	  <input type="submit" name="reset" value="{% trans "Reset all tokens" %}" style="float:right" />
-	  {% ifnotequal phase 3 %}<input type="submit" value="{% trans "Next step" %}" style="font-weight:bold" />{% else %}<input type="button" value="{% trans "Close" %}" onclick="window.close()" />{% endifnotequal %}
+	  {% if phase != 3 %}<input type="submit" value="{% trans "Next step" %}" style="font-weight:bold" />{% else %}<input type="button" value="{% trans "Close" %}" onclick="window.close()" />{% endif %}
 	</div>
       </fieldset>
     </form>

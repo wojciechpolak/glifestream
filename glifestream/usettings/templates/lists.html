@@ -7,7 +7,7 @@
     <select id="select-list">
       <option value="">-- {% trans "new" %} --</option>
       {% for l in lists %}
-      <option value="{{ l.slug }}"{% ifequal curlist l.slug %} selected="selected"{% endifequal %}>{{ l.name }}</option>{% endfor %}
+      <option value="{{ l.slug }}"{% if curlist == l.slug %} selected="selected"{% endif %}>{{ l.name }}</option>{% endfor %}
     </select>&nbsp;
   </p>
 

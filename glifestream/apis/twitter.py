@@ -16,7 +16,6 @@
 import sys
 import traceback
 import datetime
-from django.utils.encoding import force_text
 from django.utils.html import strip_tags
 from glifestream.filters import expand, truncate, twyntax
 from glifestream.gauth import gls_oauth
@@ -148,4 +147,4 @@ class API:
 
 
 def filter_content(entry):
-    return twyntax.parse(force_text(entry.content))
+    return twyntax.parse(entry.content)

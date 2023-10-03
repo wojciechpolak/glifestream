@@ -16,7 +16,7 @@
 import sys
 import traceback
 import datetime
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from glifestream.stream import media
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient

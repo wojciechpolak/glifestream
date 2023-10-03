@@ -21,10 +21,9 @@ import math
 import re
 from django.template.defaultfilters import urlencode, stringfilter
 from django.template.defaultfilters import date as ddate
-from django.utils.translation import ungettext
-from django.utils.translation import ugettext as _
+from django.utils.translation import ngettext
+from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
-from django.utils.encoding import force_text
 from django import template
 from glifestream.stream import media
 from glifestream.utils.slugify import slugify
@@ -104,7 +103,7 @@ def gls_content(_, entry):
             return mark_safe(gls_media(s))
     except Exception as exc:
         print(exc)
-    return mark_safe(gls_media(force_text(entry.content)))
+    return mark_safe(gls_media(entry.content))
 
 
 @register.filter
@@ -148,11 +147,11 @@ def get_relative_time(t):
             rel = _('%d days ago') % rel
     elif diff_minutes > 60:
         rel = int(math.floor(diff_minutes / 60))
-        rel = ungettext('%(count)d hour ago', '%(count)d hours ago', rel) % \
+        rel = ngettext('%(count)d hour ago', '%(count)d hours ago', rel) % \
             {'count': rel, }
     else:
         rel = int(diff_minutes)
-        rel = ungettext('%(count)d minute ago', '%(count)d minutes ago', rel) % \
+        rel = ngettext('%(count)d minute ago', '%(count)d minutes ago', rel) % \
             {'count': rel, }
     return rel
 
@@ -167,7 +166,7 @@ unencoded_ampersands_re = re.compile(r'&(?!([a-z]+|#\d+);)')
 
 
 def fix_ampersands(value):
-    return unencoded_ampersands_re.sub('&amp;', force_text(value))
+    return unencoded_ampersands_re.sub('&amp;', value)
 
 
 @register.filter('gls_fix_ampersands', is_safe=True)

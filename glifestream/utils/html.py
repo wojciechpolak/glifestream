@@ -16,7 +16,7 @@
 import re
 from urllib.parse import quote, unquote, urlsplit, urlunsplit
 from django.utils.html import escape
-from django.utils.encoding import force_str, force_text
+from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe, SafeData
 
 try:
@@ -54,7 +54,7 @@ def bytes_to_human(num_bytes, precision=2):
 
 def strip_entities(value):
     """Returns the given HTML with all entities (&something;) stripped."""
-    return re.sub(r'&(?:\w+|#\d+);', '', force_text(value))
+    return re.sub(r'&(?:\w+|#\d+);', '', value)
 
 #
 # Code taken from Django 1.7
@@ -89,7 +89,7 @@ def smart_urlquote(url):
     url = unquote(force_str(url))
     url = quote(url, safe=b'!*\'();:@&=+$,/?#[]~')
 
-    return force_text(url)
+    return url
 
 
 def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
@@ -114,7 +114,7 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
             return x
         return '%s...' % x[:max(0, limit - 3)]
     safe_input = isinstance(text, SafeData)
-    words = word_split_re.split(force_text(text))
+    words = word_split_re.split(text)
     for i, word in enumerate(words):
         if '.' in word or '@' in word or ':' in word:
             # Deal with punctuation.

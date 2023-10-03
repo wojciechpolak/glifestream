@@ -20,7 +20,7 @@
     <tr class="{% cycle 'odd' 'even' %}">
       <td align="right">{{ forloop.counter }}.</td>
       <td>{{ s.service.name }}</td>
-      <td>{% ifequal s.verified 1 %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endifequal %}</td>
+      <td>{% if s.verified == 1 %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</td>
       <td>{{ s.expire }}</td>
       <td>
 	<a href="#" id="unsubscribe-{{ s.id }}">{% trans "unsubscribe" %}</a>

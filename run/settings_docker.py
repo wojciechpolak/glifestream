@@ -29,9 +29,10 @@ DATABASES = {
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 TIME_ZONE = 'UTC'
+USE_TZ = True
+
 LANGUAGE_CODE = 'en-us'
 USE_I18N = True
-USE_L10N = False
 
 # Directories where Django looks for translation files.
 LOCALE_PATHS = (
@@ -49,7 +50,7 @@ SESSION_COOKIE_AGE = 2419200
 # Caching, see http://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': 'memcached:11211',
         'KEY_PREFIX': 'gls',
     },

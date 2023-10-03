@@ -13,24 +13,24 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.conf.urls import url
+from django.urls import re_path
 from django.views.generic.base import RedirectView
 from glifestream.usettings import views
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(
+    re_path(r'^$', RedirectView.as_view(
         url='services', permanent=False), name='settings'),
-    url(r'api/(?P<cmd>[a-z\-]+)$', views.api),
-    url(r'services$', views.services, name='usettings-services'),
-    url(r'services/import$', views.opml, {
+    re_path(r'api/(?P<cmd>[a-z\-]+)$', views.api),
+    re_path(r'services$', views.services, name='usettings-services'),
+    re_path(r'services/import$', views.opml, {
         'cmd': 'import'}, 'opml-import'),
-    url(r'services/export$', views.opml, {
+    re_path(r'services/export$', views.opml, {
         'cmd': 'export'}, 'opml-export'),
-    url(r'lists$', views.lists, name='usettings-lists'),
-    url(r'lists/(?P<list>[a-z0-9\-]+)$',
+    re_path(r'lists$', views.lists, name='usettings-lists'),
+    re_path(r'lists/(?P<list>[a-z0-9\-]+)$',
         views.lists, name='usettings-lists-slug'),
-    url(r'pshb$', views.pshb, name='usettings-pshb'),
-    url(r'tools$', views.tools, name='usettings-tools'),
-    url(r'oauth/(?P<id>[0-9]+)$', views.oauth, name='usettings-oauth'),
-    url(r'oauth2/(?P<id>[0-9]+)$', views.oauth2, name='usettings-oauth2'),
+    re_path(r'pshb$', views.pshb, name='usettings-pshb'),
+    re_path(r'tools$', views.tools, name='usettings-tools'),
+    re_path(r'oauth/(?P<id>[0-9]+)$', views.oauth, name='usettings-oauth'),
+    re_path(r'oauth2/(?P<id>[0-9]+)$', views.oauth2, name='usettings-oauth2'),
 ]

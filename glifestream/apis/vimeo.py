@@ -15,7 +15,7 @@
 
 import sys
 import traceback
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry

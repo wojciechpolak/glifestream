@@ -17,7 +17,7 @@ import sys
 import traceback
 import datetime
 from django.utils.html import strip_tags
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from glifestream.filters import expand, truncate
 from glifestream.gauth import gls_oauth2
 from glifestream.utils import httpclient

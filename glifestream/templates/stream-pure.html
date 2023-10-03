@@ -14,17 +14,17 @@
       {% endif %}
     </a>
   {% endspaceless %}
-  {% ifequal entry.service.display "both" %}
+  {% if entry.service.display == "both" %}
     <header class="entry-title">{{ ""|gls_title:entry }}</header>
     <div class="entry-content">{{ ""|gls_content:entry|gls_fix_ampersands }}</div>
   {% else %}
-    {% ifequal entry.service.display "title" %}
+    {% if entry.service.display == "title" %}
     <header class="entry-title">{{ ""|gls_title:entry }} <a href="#" class="expand-content" title="{% trans "Expand content" %}"></a></header>
     <div class="entry-content" style="display:none"></div>
     {% else %}
     <div class="entry-content">{{ ""|gls_content:entry|gls_fix_ampersands }}</div>
-    {% endifequal %}
-  {% endifequal %}
+    {% endif %}
+  {% endif %}
     <footer class="entry-info">
       {% if authed %}
       {% if entry.only_for_friends %}<span class="friends-only-lock" title="{% trans "Friends-only" %}"></span>{% endif %}
@@ -48,7 +48,7 @@
 	  <time class="published" datetime="{{ entry.date_published|gls_hdate }}">{{ entry.date_published|gls_date }}</time>
 	</a>
 	{% if page.author_uri and entry.service.public %}<span class="vcard">{% trans "by" %} <a href="{{ page.author_uri }}" class="url fn" rel="author">{{ page.author_name }}</a></span>{% endif %}
-	{% ifnotequal entry.service.api "selfposts" %}{% trans "from" %} <a href="{{ entry.link }}" rel="nofollow">{{ entry.service.name|capfirst }}</a>{% endifnotequal %}
+	{% if entry.service.api != "selfposts" %}{% trans "from" %} <a href="{{ entry.link }}" rel="nofollow">{{ entry.service.name|capfirst }}</a>{% endif %}
       </span>
     </footer>
   </article>

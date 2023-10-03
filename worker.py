@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-#  gLifestream Copyright (C) 2009, 2010, 2014, 2015, 2021 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014, 2015, 2021, 2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -24,6 +24,7 @@ import sys
 import time
 import django
 from django.conf import settings
+from django.utils import timezone
 
 try:
     import workerpool
@@ -199,7 +200,9 @@ def run():
     if list_old or delete_old:
         days = list_old if list_old else delete_old
         n = time.mktime(unixnow()) - (86400 * days)
-        rt = datetime.datetime.fromtimestamp(n).date()
+        rt = datetime.datetime.fromtimestamp(n)
+        rt = rt.replace(tzinfo=timezone.utc)
+        rt = rt.date()
         if 'id' in fs:
             lst = fs['id'].split(',')
             if len(lst) > 1:
@@ -260,7 +263,7 @@ def run():
 
         if service.last_checked and hasattr(mod_api, 'limit_sec'):
             if not force_check:
-                d = datetime.datetime.now() - service.last_checked
+                d = timezone.now() - service.last_checked
                 if d.seconds < mod_api.limit_sec:
                     continue
 

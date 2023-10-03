@@ -18,8 +18,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
-from django.utils.translation import ugettext_lazy as _
-from django.utils.encoding import smart_text
+from django.utils.translation import gettext_lazy as _
 
 from glifestream.apis import API_LIST
 from glifestream.utils.time import now
@@ -119,7 +118,7 @@ class Entry (models.Model):
         unique_together = (('service', 'guid'),)
 
     def __str__(self):
-        return '%s: %s' % (self.service.name, smart_text(self.title))
+        return '%s: %s' % (self.service.name, self.title)
 
 
 class Media (models.Model):
@@ -133,7 +132,7 @@ class Media (models.Model):
         unique_together = (('entry', 'file'),)
 
     def __str__(self):
-        return '%s: %s' % (smart_text(self.entry.title), self.file.name)
+        return '%s: %s' % (self.entry.title, self.file.name)
 
 
 class Favorite (models.Model):
@@ -149,7 +148,7 @@ class Favorite (models.Model):
         unique_together = (('user', 'entry'),)
 
     def __str__(self):
-        return '%s: %s' % (self.user, smart_text(self.entry.title))
+        return '%s: %s' % (self.user, self.entry.title)
 
 
 class List (models.Model):

@@ -30,7 +30,7 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.template.defaultfilters import truncatewords
-from django.utils.translation import ugettext as _
+from django.utils.translation import gettext as _
 from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
 
@@ -360,7 +360,7 @@ def index(request, **args):
         return render(request, 'stream.json',
                       {'entries': entries, 'page': page, 'callback': cb},
                       content_type='application/json')
-    elif output_format == 'html-pure' and request.is_ajax():
+    elif output_format == 'html-pure' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
@@ -557,7 +557,7 @@ def api(request, **args):
                 return JsonResponse(d)
             else:
                 entry.friends_only = False
-                if request.is_ajax():
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                     return render(request, 'stream-pure.html',
                                   {'entries': (entry,),
                                    'authed': authed})

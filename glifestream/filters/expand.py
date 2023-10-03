@@ -18,7 +18,6 @@ import hashlib
 from urllib.parse import urlparse
 from urllib.parse import parse_qsl
 from django.utils.html import strip_tags
-from django.utils.encoding import smart_text
 from glifestream.apis import vimeo
 from glifestream.stream import media
 from glifestream.utils import httpclient, oembed
@@ -42,7 +41,7 @@ def shorturls(text):
     return re.sub(r'(https?://)(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
                   r'|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
                   r'|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu'
-                  r')(/[\-\w]+)', __su_subs, smart_text(text))
+                  r')(/[\-\w]+)', __su_subs, text)
 
 #
 # Short image services
