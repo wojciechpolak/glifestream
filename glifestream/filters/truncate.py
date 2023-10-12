@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2013 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def simple(content, max_length=36, suffix='...'):
+def simple(content: str, max_length=36, suffix='...') -> str:
     content = content.strip()
     if len(content) <= max_length:
         return content

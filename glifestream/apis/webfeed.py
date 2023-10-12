@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2010, 2014, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014, 2015, 2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -17,7 +17,7 @@ import feedparser
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import strip_script
-from glifestream.stream.models import Entry
+from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
 
@@ -27,24 +27,24 @@ class API:
     fetch_only = False
     payload = None
 
-    def __init__(self, service, verbose=0, force_overwrite=False):
+    def __init__(self, service: Service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
             print('%s: %s' % (self.name, self.service))
 
-    def get_urls(self):
+    def get_urls(self) -> tuple[str]:
         return (self.service.url,)
 
-    def run(self):
+    def run(self) -> None:
         for url in self.get_urls():
             try:
                 self.fetch(url)
             except Exception:
                 pass
 
-    def fetch(self, url):
+    def fetch(self, url: str) -> None:
         self.fp_error = False
         if not self.payload:
             try:
@@ -92,7 +92,7 @@ class API:
             if not self.fetch_only:
                 self.process(self.fp.entries)
 
-    def process(self, entries):
+    def process(self, entries) -> None:
         for ent in entries:
             guid = ent.id if 'id' in ent else ent.link
             if self.verbose:
@@ -173,9 +173,9 @@ class API:
                 pass
 
 
-def filter_title(entry):
+def filter_title(entry) -> str:
     return entry.title
 
 
-def filter_content(entry):
+def filter_content(entry) -> str:
     return entry.content

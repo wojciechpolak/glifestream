@@ -16,6 +16,7 @@
 import sys
 import traceback
 import datetime
+from django.utils import timezone
 from django.utils.html import strip_tags
 from glifestream.filters import expand, truncate, twyntax
 from glifestream.gauth import gls_oauth
@@ -87,6 +88,7 @@ class API:
 
             t = datetime.datetime.strptime(ent['created_at'],
                                            '%a %b %d %H:%M:%S +0000 %Y')
+            t = t.replace(tzinfo=timezone.utc)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and \

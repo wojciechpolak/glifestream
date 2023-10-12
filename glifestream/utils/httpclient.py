@@ -15,9 +15,11 @@
 
 import re
 import os
+import requests
+from requests import Response
 from urllib.parse import urljoin
 from django.conf import settings
-import requests
+from glifestream.stream.models import Service
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (compatible; gLifestream; +%s/)' %
@@ -29,7 +31,7 @@ class HTTPError(requests.exceptions.RequestException):
     pass
 
 
-def head(url, timeout=15):
+def head(url: str, timeout=15) -> Response:
     if not url.startswith('http'):
         url = 'http://' + url
     try:
@@ -38,7 +40,7 @@ def head(url, timeout=15):
         raise HTTPError(*e.args)
 
 
-def get(url, data=None, auth=None, timeout=45):
+def get(url: str, data=None, auth=None, timeout=45) -> Response:
     if not url.startswith('http'):
         url = 'http://' + url
     try:
@@ -48,7 +50,7 @@ def get(url, data=None, auth=None, timeout=45):
         raise HTTPError(*e.args)
 
 
-def retrieve(url, filename, timeout=15):
+def retrieve(url: str, filename: str, timeout=15) -> Response:
     r = requests.get(url, headers=HEADERS, stream=True, timeout=timeout)
     with open(filename, 'wb') as fp:
         for chunk in r.iter_content(4096):
@@ -58,7 +60,7 @@ def retrieve(url, filename, timeout=15):
     return r
 
 
-def get_alturl_if_html(r):
+def get_alturl_if_html(r: Response) -> str | None:
     """Return alternate URL (using feed autodiscovery mechanism)
     if urlopen's Content-Type response is HTML."""
 
@@ -84,7 +86,7 @@ def get_alturl_if_html(r):
     return None
 
 
-def gen_auth(service):
+def gen_auth(service: Service) -> list[str] | None:
     """Generate web authentication."""
     if service.creds and len(service.creds) and service.creds != 'oauth':
         return service.creds.split(':')

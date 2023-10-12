@@ -16,14 +16,15 @@
 import sys
 import traceback
 import datetime
+from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 from glifestream.filters import expand, truncate
 from glifestream.gauth import gls_oauth2
 from glifestream.utils import httpclient
 from glifestream.utils.html import strip_entities
-from glifestream.utils.time import mtime, now
-from glifestream.stream.models import Entry
+from glifestream.utils.time import mtime
+from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
 BASE_URL = 'https://mastodon.social'
@@ -33,30 +34,30 @@ class API:
     name = 'Mastodon API v1.0'
     limit_sec = 120
 
-    def __init__(self, service, verbose=0, force_overwrite=False):
+    def __init__(self, service: Service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
             print('%s: %s' % (self.name, self.service))
 
-    def get_base_url(self):
+    def get_base_url(self) -> str:
         return self.service.url or BASE_URL
 
-    def get_authorize_url(self):
+    def get_authorize_url(self) -> str:
         return self.get_base_url() + '/oauth/authorize'
 
-    def get_token_url(self):
+    def get_token_url(self) -> str:
         return self.get_base_url() + '/oauth/token'
 
-    def get_urls(self):
+    def get_urls(self) -> tuple[str]:
         if not self.service.user_id:
             return ('/api/v1/timelines/home?limit=40',)
         if not self.service.last_checked:
             return ('/api/v1/accounts/%s/statuses?limit=40' % self.service.user_id,)
         return ('/api/v1/accounts/%s/statuses' % self.service.user_id,)
 
-    def run(self):
+    def run(self) -> None:
         for url in self.get_urls():
             try:
                 if not self.service.user_id:
@@ -69,7 +70,7 @@ class API:
                                                      self.service.id, e))
                     traceback.print_exc(file=sys.stdout)
 
-    def fetch(self, url):
+    def fetch(self, url) -> None:
         try:
             r = httpclient.get(url)
             self.process(r.json())
@@ -79,13 +80,13 @@ class API:
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
-    def fetch_oauth2(self, url):
+    def fetch_oauth2(self, url) -> None:
         try:
             oauth = gls_oauth2.OAuth2Client(self.service)
             r = oauth.consumer.get(url)
             if r.status_code == 200:
                 self.json = r.json()
-                self.service.last_checked = now()
+                self.service.last_checked = timezone.now()
                 self.service.save()
                 self.process(self.json)
             elif self.verbose:
@@ -97,7 +98,7 @@ class API:
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
-    def process(self, entries):
+    def process(self, entries) -> None:
         for ent in entries:
             reblog = False
             entry = ent
@@ -111,6 +112,7 @@ class API:
 
             t = datetime.datetime.strptime(ent['created_at'][:-5],
                                            "%Y-%m-%dT%H:%M:%S")
+            t = t.replace(tzinfo=timezone.utc)
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
@@ -169,7 +171,7 @@ class API:
                 pass
 
 
-def filter_content(entry):
+def filter_content(entry: Entry) -> str:
     if entry.reblog:
         return _('%s reblogged') % entry.reblog_by + '\n\n' + entry.content
     return entry.content

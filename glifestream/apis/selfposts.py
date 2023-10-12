@@ -15,6 +15,9 @@
 
 import logging
 
+from typing import Any
+from django.core.files.uploadedfile import UploadedFile
+
 from django.conf import settings
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
@@ -111,8 +114,8 @@ class API:
         try:
             e.save()
 
-            pictures = []
-            docs = []
+            pictures: list[tuple[Media, UploadedFile]] = []
+            docs: list[tuple[Media, UploadedFile]] = []
 
             for f in files.getlist('docs'):
                 md = Media(entry=e)

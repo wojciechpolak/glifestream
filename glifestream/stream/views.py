@@ -38,6 +38,7 @@ from glifestream import VERSION, REVISION
 from glifestream.stream.templatetags.gls_filters import \
     (gls_content, gls_slugify, fix_ampersands)
 from glifestream.stream.models import Service, Entry, Favorite, List
+from glifestream.stream.typing import Page
 from glifestream.stream import media, pshb
 from glifestream.utils import common
 from glifestream.utils.time import pn_month_start
@@ -47,7 +48,7 @@ from glifestream.apis import API_LIST, selfposts
 def index(request, **args):
     site_url = '%s://%s' % (request.is_secure() and 'https' or 'http',
                             request.get_host())
-    page = {
+    page: Page = {
         'ctx': args.get('ctx', ''),
         'version': VERSION,
         'revision': REVISION,
@@ -68,7 +69,7 @@ def index(request, **args):
     }
     authed = request.user.is_authenticated and request.user.is_staff
     friend = request.user.is_authenticated and not request.user.is_staff
-    urlparams = []
+    urlparams: list[str] = []
     entries_on_page = settings.ENTRIES_ON_PAGE
     entries_orderby = 'date_published'
 
@@ -286,15 +287,15 @@ def index(request, **args):
 
     # Build URL params for links.
     if len(urlparams) > 0:
-        urlparams = '?' + reduce(lambda x, y: x + '&' + y, urlparams, '')[1:] + '&'
+        urlparams_str = '?' + reduce(lambda x, y: x + '&' + y, urlparams, '')[1:] + '&'
     else:
-        urlparams = '?'
+        urlparams_str = '?'
 
     if len(entries):
         page['updated'] = entries[0].date_published
     else:
         page['updated'] = datetime.datetime.utcnow()
-    page['urlparams'] = urlparams
+    page['urlparams'] = urlparams_str
     page['start'] = start
     page['after'] = after
 
@@ -462,7 +463,7 @@ def pshb_dispatcher(request, **args):
 
 
 def page_not_found(request, exception):  # pylint: disable=unused-argument
-    page = {
+    page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
@@ -473,7 +474,7 @@ def page_not_found(request, exception):  # pylint: disable=unused-argument
 
 
 def page_internal_error(request):  # pylint: disable=unused-argument
-    page = {
+    page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,

@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009, 2011 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2011, 2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -16,7 +16,7 @@
 import re
 
 
-def parse(s, syntax_type='twitter'):
+def parse(s: str, syntax_type='twitter') -> str:
     from glifestream.stream.templatetags.gls_filters import gls_urlizetrunc
     if syntax_type == 'twitter':
         s = s.split(': ', 1)[1]
@@ -26,14 +26,14 @@ def parse(s, syntax_type='twitter'):
     return s
 
 
-def at_reply(tweet):
+def at_reply(tweet: str) -> str:
     pattern = re.compile(r"(\A|\W)@(?P<user>\w+)(\Z|\W)")
     repl = (r'\1@<a href="https://twitter.com/\g<user>"'
             r' title="\g<user> on Twitter" rel="nofollow">\g<user></a>\3')
     return pattern.sub(repl, tweet)
 
 
-def hash_tag(tweet):
+def hash_tag(tweet: str) -> str:
     return re.sub(r'(\A|\s)#(\w[\w\-]+)',
                   r'\1#<a href="https://twitter.com/search/%23\2" title="#\2 search Twitter" rel="nofollow">\2</a>',
                   tweet)

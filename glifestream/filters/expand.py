@@ -1,4 +1,4 @@
-#  gLifestream Copyright (C) 2009-2021 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,6 +15,7 @@
 
 import re
 import hashlib
+from typing import Match
 from urllib.parse import urlparse
 from urllib.parse import parse_qsl
 from django.utils.html import strip_tags
@@ -27,7 +28,7 @@ from glifestream.utils import httpclient, oembed
 #
 
 
-def __su_subs(m):
+def __su_subs(m: Match) -> str:
     try:
         url = m.group(1) + m.group(2) + m.group(3)
         res = httpclient.head(url)
@@ -36,7 +37,7 @@ def __su_subs(m):
         return m.group(0)
 
 
-def shorturls(text):
+def shorturls(text: str) -> str:
     """Expand short URLs."""
     return re.sub(r'(https?://)(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
                   r'|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
@@ -48,23 +49,23 @@ def shorturls(text):
 #
 
 
-def __gen_tai(link, img_src):
+def __gen_tai(link: str, img_src: str) -> str:
     return '<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></p>' % (link, img_src)
 
 
-def __sp_twitpic(m):
+def __sp_twitpic(m: Match) -> str:
     url = media.save_image('https://%s/show/full/%s' %
                            (m.group(2), m.group(3)), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
-def __sp_instagram(m):
+def __sp_instagram(m: Match) -> str:
     url = media.save_image('https://www.instagram.com/p/%s/media/?size=t' %
                            m.group(3), downscale=True)
     return __gen_tai(m.group(0), url)
 
 
-def __sp_flickr(m):
+def __sp_flickr(m: Match) -> str:
     url = m.group(0)
     j = oembed.discover(url, provider='flickr', maxwidth=400)
     if j and j['type'] == 'photo':
@@ -72,12 +73,12 @@ def __sp_flickr(m):
     return url
 
 
-def __sp_imgloc(m):
+def __sp_imgloc(m: Match) -> str:
     url = media.save_image(m.group(2))
     return '%s<p class="thumbnails"><img src="%s" alt="thumbnail" /></p>%s' % (m.group(1), url, m.group(4))
 
 
-def shortpics(s):
+def shortpics(s: str) -> str:
     """Expand short picture-URLs."""
     s = re.sub(r'https?://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
     s = re.sub(r'https?://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
@@ -87,7 +88,7 @@ def shortpics(s):
     return s
 
 
-def imgloc(s):
+def imgloc(s: str) -> str:
     """Convert image location to html img."""
     s = re.sub(r'([^"])(https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|png|gif))([^"])',
                __sp_imgloc, s)
@@ -98,7 +99,7 @@ def imgloc(s):
 #
 
 
-def __sv_youtube(m):
+def __sv_youtube(m: Match) -> str:
     if m.start() > 0 and m.string[m.start() - 1] == '"':
         return m.group(0)
     id_video = m.group(2)
@@ -113,7 +114,7 @@ def __sv_youtube(m):
            '</div></div></td></tr></table>%s' % (id_video, link, imgurl, rest)
 
 
-def __sv_vimeo(m):
+def __sv_vimeo(m: Match) -> str:
     if m.start() > 0 and m.string[m.start() - 1] == '"':
         return m.group(0)
     id_video = m.group(2)
@@ -128,7 +129,7 @@ def __sv_vimeo(m):
     return link
 
 
-def __sv_dailymotion(m):
+def __sv_dailymotion(m: Match) -> str:
     link = strip_tags(m.group(0))
     id_video = m.group(1)
     rest = m.group(2)
@@ -142,7 +143,7 @@ def __sv_dailymotion(m):
                id_video, link, imgurl, rest)
 
 
-def videolinks(s):
+def videolinks(s: str) -> str:
     """Expand video links."""
     if 'youtube.com/' in s:
         s = re.sub(r'https?://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)',
@@ -159,21 +160,21 @@ def videolinks(s):
 #
 
 
-def __sa_ogg(m):
+def __sa_ogg(m: Match) -> str:
     link = m.group(1)
     name = m.group(2)
     id_audio = hashlib.md5(link).hexdigest()
     return '<span data-id="audio-%s" class="play-audio"><a href="%s">%s</a></span>' % (id_audio, link, name)
 
 
-def __sa_thesixtyone(m):
+def __sa_thesixtyone(m: Match) -> str:
     link = m.group(0)
     songid = m.group(1)
     return '<span data-id="thesixtyone-art-%s" class="play-audio">' \
            '<a href="%s" rel="nofollow">%s</a></span>' % (songid, link, link)
 
 
-def audiolinks(s):
+def audiolinks(s: str) -> str:
     """Expand audio links."""
     if '.ogg' in s:
         s = re.sub(
@@ -196,7 +197,7 @@ def __parse_qs(qs, keep_blank_values=False, strict_parsing=False):
     return d
 
 
-def __sm_googlemaps(m):
+def __sm_googlemaps(m: Match) -> str:
     link = strip_tags(m.group(0))
     rest = m.group(2)
     ltag = rest.find('<') if rest else -1
@@ -213,7 +214,7 @@ def __sm_googlemaps(m):
     return link
 
 
-def maplinks(s):
+def maplinks(s: str) -> str:
     """Expand map links."""
     if '//maps.google.' in s:
         s = re.sub(r'https?://maps.google.[a-z]{2,3}/(maps)?(\S*)',
@@ -225,12 +226,12 @@ def maplinks(s):
 #
 
 
-def shorts(s):
+def shorts(s: str) -> str:
     s = shorturls(s)
     return shortpics(s)
 
 
-def run_all(s):
+def run_all(s: str) -> str:
     s = shorturls(s)
     s = shortpics(s)
     s = audiolinks(s)

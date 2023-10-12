@@ -25,7 +25,7 @@ except ImportError:
     BeautifulSoup = None
 
 
-def strip_script(s):
+def strip_script(s: str) -> str:
     try:
         if BeautifulSoup:
             soup = BeautifulSoup(s, features='html.parser')
@@ -38,7 +38,7 @@ def strip_script(s):
     return s
 
 
-def bytes_to_human(num_bytes, precision=2):
+def bytes_to_human(num_bytes, precision=2) -> str:
     suffixes = ('B', 'kB', 'MB', 'GB')
     str_format = '%.*f %s'
     size = float(num_bytes)
@@ -52,7 +52,7 @@ def bytes_to_human(num_bytes, precision=2):
     return str_format % (precision, size, suffixes[-1])
 
 
-def strip_entities(value):
+def strip_entities(value: str) -> str:
     """Returns the given HTML with all entities (&something;) stripped."""
     return re.sub(r'&(?:\w+|#\d+);', '', value)
 

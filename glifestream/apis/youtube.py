@@ -16,9 +16,10 @@
 import sys
 import traceback
 import datetime
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from glifestream.stream import media
-from glifestream.stream.models import Entry
+from glifestream.stream.models import Entry, Service
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 
@@ -28,14 +29,14 @@ class API:
     limit_sec = 3600
     playlist_types = {}
 
-    def __init__(self, service, verbose=0, force_overwrite=False):
+    def __init__(self, service: Service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
             print('%s: %s' % (self.name, self.service))
 
-    def get_urls(self):
+    def get_urls(self) -> tuple[str] | list[str]:
         if self.service.url.startswith('http://') or \
            self.service.url.startswith('https://'):
             return (self.service.url,)
@@ -57,14 +58,14 @@ class API:
                     urls.append(url)
             return urls
 
-    def run(self):
+    def run(self) -> None:
         for url in self.get_urls():
             try:
                 self.fetch(url)
             except Exception:
                 pass
 
-    def fetch(self, url):
+    def fetch(self, url: str) -> None:
         try:
             r = httpclient.get(url)
             if r.status_code == 200:
@@ -81,7 +82,7 @@ class API:
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
-    def process(self, url):
+    def process(self, url: str) -> None:
         for ent in self.json.get('items', ()):
             snippet = ent.get('snippet', {})
 
@@ -94,9 +95,11 @@ class API:
             try:
                 t = datetime.datetime.strptime(snippet['publishedAt'],
                                                '%Y-%m-%dT%H:%M:%SZ')
+                t = t.replace(tzinfo=timezone.utc)
             except ValueError:
                 t = datetime.datetime.strptime(snippet['publishedAt'],
                                                '%Y-%m-%dT%H:%M:%S.000Z')
+                t = t.replace(tzinfo=timezone.utc)
 
             if self.verbose:
                 print("ID: %s" % guid)
@@ -143,7 +146,7 @@ class API:
                 print(exc)
 
 
-def filter_title(entry):
+def filter_title(entry: Entry) -> str:
     if 'favorite' in entry.guid:
         return _('Favorited %s') % ('<em>' + entry.title + '</em>')
     else:

@@ -18,7 +18,7 @@ import traceback
 from django.utils.translation import gettext as _
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
-from glifestream.stream.models import Entry
+from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
 
@@ -26,14 +26,14 @@ class API:
     name = 'Vimeo Simple API v2'
     limit_sec = 3600
 
-    def __init__(self, service, verbose=0, force_overwrite=False):
+    def __init__(self, service: Service, verbose=0, force_overwrite=False):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite
         if self.verbose:
             print('%s: %s' % (self.name, self.service))
 
-    def get_urls(self):
+    def get_urls(self) -> tuple[str]:
         if '/' in self.service.url:
             url = self.service.url.replace('channel/', 'channels/')
             url = url.replace('group/', 'groups/')
@@ -42,7 +42,7 @@ class API:
             return ('https://vimeo.com/%s/likes/rss' % self.service.url,
                     'https://vimeo.com/%s/videos/rss' % self.service.url)
 
-    def run(self):
+    def run(self) -> None:
         if not self.service.link:
             self.service.link = 'https://vimeo.com/%s' % self.service.url
         if '/' in self.service.url:
@@ -54,7 +54,7 @@ class API:
             self.process = self.process_videos
             self.fetch('/api/v2/%s/videos.json' % self.service.url)
 
-    def fetch(self, url):
+    def fetch(self, url: str) -> None:
         try:
             r = httpclient.get('https://vimeo.com' + url)
             if r.status_code == 200:
@@ -71,7 +71,7 @@ class API:
                                                  self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
-    def process_likes(self):
+    def process_likes(self) -> None:
         """Process what user did like."""
         for ent in self.json:
             date = ent['liked_on'][:10]
@@ -114,7 +114,7 @@ class API:
             except Exception:
                 pass
 
-    def process_videos(self):
+    def process_videos(self) -> None:
         """Process videos uploaded by user."""
         for ent in self.json:
             date = ent['upload_date'][:10]
@@ -156,7 +156,7 @@ class API:
                 pass
 
 
-def get_thumbnail_url(id_video):
+def get_thumbnail_url(id_video: str) -> str | None:
     try:
         r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id_video)
         if r.status_code == 200:
@@ -170,7 +170,7 @@ def get_thumbnail_url(id_video):
     return None
 
 
-def filter_title(entry):
+def filter_title(entry: Entry) -> str:
     if entry.idata == 'liked':
         return _('Liked %s') % ('<em>' + entry.title + '</em>')
     else:
