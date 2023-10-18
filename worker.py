@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+"""
 #  gLifestream Copyright (C) 2009, 2010, 2014, 2015, 2021, 2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
@@ -14,7 +15,8 @@
 #  GNU General Public License for more details.
 #
 #  You should have received a copy of the GNU General Public License along
-#  with this program.  If not, see <http://www.gnu.org/licenses/>.
+#  with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
 
 import datetime
 import getopt

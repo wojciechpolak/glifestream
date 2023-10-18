@@ -1,5 +1,5 @@
 gLifestream -- INSTALL
-Copyright (C) 2009-2022 Wojciech Polak
+Copyright (C) 2009-2023 Wojciech Polak
 
 gLifestream requirements
 ========================
@@ -43,8 +43,8 @@ the following output:
     Performing system checks...
 
     System check identified no issues (0 silenced).
-    March 09, 2015 - 17:54:57
-    Django version 1.7.6, using settings 'glifestream.settings'
+    October 18, 2023 - 21:52:38
+    Django version 4.2.6, using settings 'glifestream.settings'
     Starting development server at http://127.0.0.1:8000/
     Quit the server with CONTROL-C.
 

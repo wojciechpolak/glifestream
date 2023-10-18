@@ -1,6 +1,6 @@
-#
+"""
 # Django settings for gLifestream project (DOCKER VERSION).
-#
+"""
 
 import os
 SITE_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../glifestream/')
@@ -47,7 +47,7 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_NAME = 'glifestream_sid'
 SESSION_COOKIE_AGE = 2419200
 
-# Caching, see http://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
+# Caching, see https://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
