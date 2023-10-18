@@ -14,7 +14,7 @@
 #  with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-def simple(content: str, max_length=36, suffix='...') -> str:
+def simple(content: str, max_length: int = 36, suffix: str = '...') -> str:
     content = content.strip()
     if len(content) <= max_length:
         return content
@@ -22,7 +22,8 @@ def simple(content: str, max_length=36, suffix='...') -> str:
     return content + suffix
 
 
-def smart(content, max_words=7, max_length=36, suffix='...'):
+def smart(content: str, max_words: int = 7,
+          max_length: int = 36, suffix: str = '...') -> str:
     sx = ''
     content = content.strip()
     words = content.split(' ')

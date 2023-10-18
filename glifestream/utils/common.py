@@ -17,7 +17,7 @@ from django.conf import settings
 
 
 def get_theme(request) -> str:
-    theme = request.COOKIES.get('glifestream_theme', settings.THEMES[0])
+    theme: str = request.COOKIES.get('glifestream_theme', settings.THEMES[0])
     if theme not in settings.THEMES:
         theme = settings.THEMES[0]
     return theme

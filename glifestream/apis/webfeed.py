@@ -173,9 +173,9 @@ class API:
                 pass
 
 
-def filter_title(entry) -> str:
+def filter_title(entry: Entry) -> str:
     return entry.title
 
 
-def filter_content(entry) -> str:
+def filter_content(entry: Entry) -> str:
     return entry.content
