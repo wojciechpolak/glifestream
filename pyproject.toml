@@ -30,6 +30,7 @@ types-oauthlib = {extras = ["compatible-mypy"], version = "^3.2.0.10"}
 types-pillow = {extras = ["compatible-mypy"], version = "^10.0.0.3"}
 types-requests = {extras = ["compatible-mypy"], version = "^2.31.0.9"}
 types-requests-oauthlib = {extras = ["compatible-mypy"], version = "^1.3.0.1"}
+pylint-django = "2.5.5"
 
 [tool.mypy]
 python_version = "3.11"
