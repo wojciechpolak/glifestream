@@ -15,7 +15,7 @@ RUN poetry install --no-dev -n
 
 FROM ${python}
 RUN apt update -y
-RUN apt install -y cron curl gettext nginx procps
+RUN apt install -y cron curl gettext procps
 RUN pip install --no-cache-dir supervisor
 RUN apt-get clean
 RUN echo 'alias ll="ls -l"' >>~/.bashrc
@@ -36,7 +36,6 @@ RUN python manage.py compilemessages
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 EXPOSE 80
 COPY conf/docker/etc/supervisord.conf /etc/supervisord.conf
-COPY conf/docker/etc/nginx/ /etc/nginx/
 
 COPY conf/docker/etc/cron.d/ /etc/cron.d/
 RUN touch /var/log/cron.log

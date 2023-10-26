@@ -3,14 +3,38 @@ version: "3"
 services:
   app:
     image: wap/glifestream:latest
+    restart: unless-stopped
     build: .
     volumes:
-        - ./run:/app/run
-        - ./run/media:/app/media
-    ports:
-        - "8080:80"
+        - app_static:/app/static
+        - ${RUN_DIR:-./run}:/app/run
+        - ${RUN_DIR_MEDIA:-./run/media}:/app/media
+    environment:
+        - VIRTUAL_HOST=${VIRTUAL_HOST:-}
+        - VIRTUAL_PATH=${VIRTUAL_PATH:-/}
+    depends_on:
+        - memcached
+  nginx:
+      image: nginx:1.25
+      restart: unless-stopped
+      volumes:
+          - app_static:/app/static
+          - ${RUN_DIR:-./run}:/app/run
+          - ${RUN_DIR_MEDIA:-./run/media}:/app/media
+          - ${NGINX_DIR_TEMPLATES:-./run/nginx/templates}:/etc/nginx/templates
+      ports:
+          - "8080:80"
+      environment:
+          - VIRTUAL_HOST=${VIRTUAL_HOST:-_}
+          - VIRTUAL_PATH=${VIRTUAL_PATH:-/}
+      depends_on:
+          - app
   memcached:
       image: memcached:1.6
+      restart: unless-stopped
       entrypoint:
           - memcached
           - -m 2
+
+volumes:
+  app_static:

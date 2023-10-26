@@ -275,7 +275,7 @@ FEED_TAGURI = 'tag:SITE-ID,YEAR:ID'
 FEED_ICON = 'http://URL-TO-ICON'
 
 # Embedded maps
-MAPS_ENGINE = 'google'
+MAPS_ENGINE = 'osm'
 
 # Search functionality
 SEARCH_ENABLE = True

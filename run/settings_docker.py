@@ -6,7 +6,7 @@ import os
 SITE_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../glifestream/')
 BASE_DIR = SITE_ROOT
 
-DEBUG = False
+DEBUG = os.getenv('APP_DEBUG') or False
 
 ALLOWED_HOSTS = [
     os.getenv('VIRTUAL_HOST', ''),
@@ -57,7 +57,7 @@ CACHES = {
 }
 
 # Site base URL.
-BASE_URL = os.getenv('VIRTUAL_PATH', 'http://localhost:8080')
+BASE_URL = os.getenv('VIRTUAL_PATH', 'http://localhost:8080').rstrip('/')
 FORCE_SCRIPT_NAME = os.getenv('VIRTUAL_PATH', '/')
 
 # The URL where requests are redirected for login.
@@ -251,7 +251,7 @@ FEED_AUTHOR_URI = 'http://localhost:8080/'
 FEED_TAGURI = 'tag:glifestream,2022:stream'
 FEED_ICON = 'http://localhost:8080/icon.jpg'
 
-MAPS_ENGINE = 'google'
+MAPS_ENGINE = 'osm'
 
 # Search functionality
 SEARCH_ENABLE = True
