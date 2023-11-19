@@ -2,7 +2,7 @@ ARG python=python:3.11-slim-bullseye
 
 FROM ${python} AS gls-builder-python
 RUN apt update -y
-RUN apt install -y gcc
+RUN apt install -y gcc g++
 RUN apt-get clean
 WORKDIR /app
 RUN python -m venv /venv
