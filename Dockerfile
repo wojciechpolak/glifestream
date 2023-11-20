@@ -1,4 +1,4 @@
-ARG python=python:3.11-slim-bullseye
+ARG python=python:3.11-slim-bookworm
 
 FROM ${python} AS gls-builder-python
 RUN apt update -y
@@ -11,6 +11,7 @@ RUN pip install --no-cache-dir poetry
 COPY pyproject.toml .
 COPY poetry.lock .
 RUN poetry config virtualenvs.create false
+RUN poetry config installer.max-workers 10
 RUN poetry install --no-dev -n
 
 FROM ${python}
