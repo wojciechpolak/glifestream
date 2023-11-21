@@ -12,6 +12,7 @@ services:
     environment:
         - VIRTUAL_HOST=${VIRTUAL_HOST:-}
         - VIRTUAL_PATH=${VIRTUAL_PATH:-/}
+        - APP_SECRET_KEY
     depends_on:
         - memcached
   nginx:

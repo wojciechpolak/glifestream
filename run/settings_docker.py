@@ -65,7 +65,7 @@ FORCE_SCRIPT_NAME = os.getenv('VIRTUAL_PATH', '/')
 LOGIN_URL = BASE_URL + '/login'
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = 'YOUR-SECRET-KEY'
+SECRET_KEY = os.getenv('APP_SECRET_KEY', 'YOUR-SECRET-KEY')
 
 if SECRET_KEY == 'YOUR-SECRET-KEY':
     print('settings.SECRET_KEY must be long and unique!')

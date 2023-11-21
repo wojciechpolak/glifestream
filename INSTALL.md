@@ -53,10 +53,9 @@ Docker deployment
 -----------------
 
 ```shell
-./scripts/build-docker.sh
 [adjust files in the `run` folder]
 docker-compose up
-docker exec -it gls python manage.py createsuperuser
+docker exec -it glifestream-app-1 python manage.py createsuperuser
 ```
 
 Other deployments

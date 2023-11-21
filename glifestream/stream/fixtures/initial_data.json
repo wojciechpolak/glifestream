@@ -1,38 +1,139 @@
 [
- {
-   "pk": 1,
-   "model": "stream.service",
-   "fields": {
-     "name": "SMS",
-     "api": "selfposts",
-     "cls": "sms",
-     "url": "",
-     "active": 1,
-     "public": 1,
-     "display": "content",
-     "link": "",
-     "etag": "",
-     "last_checked": null,
-     "last_modified": null,
-     "creds": ""
-   }
- },
- {
-   "pk": 2,
-   "model": "stream.service",
-   "fields": {
-     "name": "Links",
-     "api": "selfposts",
-     "cls": "links",
-     "url": "",
-     "active": 1,
-     "public": 1,
-     "display": "content",
-     "link": "",
-     "etag": "",
-     "last_checked": null,
-     "last_modified": null,
-     "creds": ""
-   }
- }
+    {
+        "pk": 1,
+        "model": "stream.service",
+        "fields": {
+            "name": "SMS",
+            "api": "selfposts",
+            "cls": "sms",
+            "url": "",
+            "active": 1,
+            "public": 1,
+            "display": "content",
+            "link": "",
+            "etag": "",
+            "last_checked": null,
+            "last_modified": null,
+            "creds": ""
+        }
+    },
+    {
+        "pk": 2,
+        "model": "stream.service",
+        "fields": {
+            "name": "Links",
+            "api": "selfposts",
+            "cls": "links",
+            "url": "",
+            "active": 1,
+            "public": 1,
+            "display": "content",
+            "link": "",
+            "etag": "",
+            "last_checked": null,
+            "last_modified": null,
+            "creds": ""
+        }
+    },
+    {
+        "pk": 3,
+        "model": "stream.service",
+        "fields": {
+            "name": "Blog",
+            "api": "selfposts",
+            "cls": "blog",
+            "url": "",
+            "active": 1,
+            "public": 1,
+            "display": "content",
+            "link": "",
+            "etag": "",
+            "last_checked": null,
+            "last_modified": null,
+            "creds": ""
+        }
+    },
+    {
+        "pk": 4,
+        "model": "stream.service",
+        "fields": {
+            "name": "Music",
+            "api": "selfposts",
+            "cls": "music",
+            "url": "",
+            "active": 1,
+            "public": 1,
+            "display": "content",
+            "link": "",
+            "etag": "",
+            "last_checked": null,
+            "last_modified": null,
+            "creds": ""
+        }
+    },
+    {
+        "pk": 5,
+        "model": "stream.service",
+        "fields": {
+            "name": "Photos",
+            "api": "selfposts",
+            "cls": "photos",
+            "url": "",
+            "active": 1,
+            "public": 1,
+            "display": "content",
+            "link": "",
+            "etag": "",
+            "last_checked": null,
+            "last_modified": null,
+            "creds": ""
+        }
+    },
+    {
+        "pk": 6,
+        "model": "stream.service",
+        "fields": {
+            "name": "Videos",
+            "api": "selfposts",
+            "cls": "videos",
+            "url": "",
+            "active": 1,
+            "public": 1,
+            "display": "content",
+            "link": "",
+            "etag": "",
+            "last_checked": null,
+            "last_modified": null,
+            "creds": ""
+        }
+    },
+    {
+        "model": "stream.entry",
+        "pk": 1,
+        "fields": {
+            "service": 1,
+            "title": "Hello, World!",
+            "link": "",
+            "link_image": "",
+            "content": "<p>Hello, World!</p>",
+            "date_published": "2023-01-01T00:00:00.000Z",
+            "date_updated": "2023-01-01T00:00:00.000Z",
+            "date_inserted": "2023-01-01T00:00:00.000Z",
+            "guid": "tag:gls,2023:stream/entry/2023-01-01T00:00:00Z",
+            "author_name": "",
+            "author_email": "",
+            "author_uri": "",
+            "geolat": null,
+            "geolng": null,
+            "idata": "",
+            "protected": false,
+            "active": true,
+            "draft": false,
+            "friends_only": false,
+            "reblog": false,
+            "reblog_by": "",
+            "reblog_uri": "",
+            "mblob": null
+        }
+    }
 ]
