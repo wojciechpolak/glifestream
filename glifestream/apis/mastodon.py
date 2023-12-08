@@ -114,7 +114,7 @@ class API:
 
             t = datetime.datetime.strptime(ent['created_at'][:-5],
                                            "%Y-%m-%dT%H:%M:%S")
-            t = t.replace(tzinfo=timezone.utc)
+            t = t.replace(tzinfo=datetime.timezone.utc)
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)

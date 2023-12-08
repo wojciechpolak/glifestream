@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009-2021 Wojciech Polak
+#  gLifestream Copyright (C) 2009-2023 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -16,6 +16,7 @@
 """
 
 import sys
+import datetime
 import traceback
 from django.utils.translation import gettext as _
 from glifestream.utils import httpclient
@@ -90,10 +91,17 @@ class API:
             except Entry.DoesNotExist:
                 e = Entry(service=self.service, guid=guid)
 
+            try:
+                t = datetime.datetime.strptime(ent['liked_on'],
+                                               '%Y-%m-%d %H:%M:%S')
+                t = t.replace(tzinfo=datetime.timezone.utc)
+            except ValueError:
+                t = ent['liked_on']
+
             e.title = ent['title']
             e.link = ent['url']
-            e.date_published = ent['liked_on']
-            e.date_updated = ent['liked_on']
+            e.date_published = t
+            e.date_updated = t
             e.author_name = ent['user_name']
 
             e.idata = 'liked'
@@ -133,10 +141,17 @@ class API:
             except Entry.DoesNotExist:
                 e = Entry(service=self.service, guid=guid)
 
+            try:
+                t = datetime.datetime.strptime(ent['upload_date'],
+                                               '%Y-%m-%d %H:%M:%S')
+                t = t.replace(tzinfo=datetime.timezone.utc)
+            except ValueError:
+                t = ent['upload_date']
+
             e.title = ent['title']
             e.link = ent['url']
-            e.date_published = ent['upload_date']
-            e.date_updated = ent['upload_date']
+            e.date_published = t
+            e.date_updated = t
             e.author_name = ent['user_name']
 
             if self.service.public:

@@ -97,11 +97,11 @@ class API:
             try:
                 t = datetime.datetime.strptime(snippet['publishedAt'],
                                                '%Y-%m-%dT%H:%M:%SZ')
-                t = t.replace(tzinfo=timezone.utc)
+                t = t.replace(tzinfo=datetime.timezone.utc)
             except ValueError:
                 t = datetime.datetime.strptime(snippet['publishedAt'],
                                                '%Y-%m-%dT%H:%M:%S.000Z')
-                t = t.replace(tzinfo=timezone.utc)
+                t = t.replace(tzinfo=datetime.timezone.utc)
 
             if self.verbose:
                 print("ID: %s" % guid)

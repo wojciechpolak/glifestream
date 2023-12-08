@@ -90,7 +90,7 @@ class API:
 
             t = datetime.datetime.strptime(ent['created_at'],
                                            '%a %b %d %H:%M:%S +0000 %Y')
-            t = t.replace(tzinfo=timezone.utc)
+            t = t.replace(tzinfo=datetime.timezone.utc)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and \

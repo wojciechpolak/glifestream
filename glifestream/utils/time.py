@@ -23,19 +23,19 @@ from django.utils import timezone
 def mtime(t) -> datetime.datetime:
     if isinstance(t, str):
         t = datetime.datetime.strptime(t, '%Y-%m-%d %H:%M:%S')
-        t = t.replace(tzinfo=timezone.utc)
+        t = t.replace(tzinfo=datetime.timezone.utc)
         t = t.timetuple()
     d = datetime.datetime.utcfromtimestamp(calendar.timegm(t))
-    d = d.replace(tzinfo=timezone.utc)
+    d = d.replace(tzinfo=datetime.timezone.utc)
     return d
 
 
 def from_rfc3339(t) -> datetime.datetime:
     t = datetime.datetime.strptime(t[0:19], '%Y-%m-%dT%H:%M:%S')
-    t = t.replace(tzinfo=timezone.utc)
+    t = t.replace(tzinfo=datetime.timezone.utc)
     t = t.timetuple()
     d = datetime.datetime.utcfromtimestamp(calendar.timegm(t))
-    d = d.replace(tzinfo=timezone.utc)
+    d = d.replace(tzinfo=datetime.timezone.utc)
     return d
 
 

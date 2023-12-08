@@ -203,7 +203,7 @@ def run():
         days = list_old if list_old else delete_old
         n = time.mktime(unixnow()) - (86400 * days)
         rt = datetime.datetime.fromtimestamp(n)
-        rt = rt.replace(tzinfo=timezone.utc)
+        rt = rt.replace(tzinfo=datetime.timezone.utc)
         rt = rt.date()
         if 'id' in fs:
             lst = fs['id'].split(',')
