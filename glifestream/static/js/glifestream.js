@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2009, 2010, 2011, 2013, 2015, 2021 Wojciech Polak
+ *  gLifestream Copyright (C) 2009-2011, 2013, 2015, 2021, 2023 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -16,11 +16,11 @@
  */
 
 /*jshint indent: 4, white: true, browser: true */
-/*global $, settings, gettext_msg, stream_data */
+/*global $, Quill, settings, gettext_msg, stream_data */
 
 (function() {
     function parse_id(id) {
-        var p = id.indexOf('-');
+        const p = id.indexOf('-');
         if (p === -1) {
             return [id];
         }
@@ -28,12 +28,13 @@
     }
 
     function play_video() {
-        var a = parse_id($(this).data('id') || this.id);
-        var type = a[0];
-        var id = a[1];
+        let a = parse_id($(this).data('id') || this.id);
+        let type = a[0];
+        let id = a[1];
 
+        let embed = '';
         if (type in video_embeds) {
-            var embed = video_embeds[type].replace(/{ID}/g, id);
+            embed = video_embeds[type].replace(/{ID}/g, id);
         }
         else {
             return true;
@@ -55,7 +56,7 @@
     }
 
     function toggle_video() {
-        var $this = $(this);
+        let $this = $(this);
         if (!$this.hasClass('video-inline')) {
             if ($('.playbutton', this).length) {
                 play_video.call(this);
@@ -92,8 +93,8 @@
         if (e.which && e.which !== 1) {
             return false;
         }
-        var a = parse_id($(this).data('id') || this.id);
-        var type = a[0];
+        let a = parse_id($(this).data('id') || this.id);
+        let type = a[0];
         $('a', this).blur();
 
         if ($('.player', this.parentNode).length) {
@@ -101,7 +102,7 @@
             return false;
         }
 
-        var embed;
+        let embed;
         if (type === 'audio') {
             embed = '<audio src="' + $('a', this).attr('href') +
                 '" controls="true">' + _('Your browser does not support it.') +
@@ -117,10 +118,10 @@
             return true;
         }
 
-        var id;
+        let id;
         if (type === 'thesixtyone') {
-            var data = a[1].split('-');
-            var artist = data[0];
+            let data = a[1].split('-');
+            let artist = data[0];
             id = data[1];
             embed = embed.replace('{ARTIST}', artist);
         }
@@ -137,7 +138,7 @@
         $(this.parentNode).append('<div class="player audio">' +
                                   embed + '</div>');
         if (type === 'audio') {
-            var $au = $(this.parentNode).find('audio');
+            let $au = $(this.parentNode).find('audio');
             if ($au.length) {
                 $au[0].play();
             }
@@ -152,7 +153,7 @@
     }
 
     function load_entries() {
-        var that = this;
+        const that = this;
         if (that.busy) {
             return false;
         }
@@ -161,16 +162,16 @@
             return follow_href.call(this);
         }
         show_spinner(this);
-        var url = this.href;
+        let url = this.href;
         url += (url.indexOf('?') !== -1) ? '&' : '?';
         url += 'format=html-pure';
         $.getJSON(url, function(json) {
             hide_spinner();
             that.busy = false;
-            var num = articles.length;
+            let num = articles.length;
             $(articles[num - 1]).after(json.stream);
             nav_next.each(function() {
-                var s = this.href.indexOf('start=');
+                let s = this.href.indexOf('start=');
                 if (s !== -1 && json.next) {
                     this.href = this.href.substring(0, s + 6) + json.next;
                 }
@@ -186,7 +187,7 @@
             });
             articles = $('#stream article');
             num = articles.length - num;
-            var latest = $('#stream article').slice(-num);
+            const latest = $('#stream article').slice(-num);
             Graybox.scan(latest);
             alter_html(latest);
             $('a.map', latest).each(render_map);
@@ -204,7 +205,7 @@
             alert(_('Unfavorite this entry before hiding it.'));
             return false;
         }
-        var id = this.id.split('-')[1];
+        const id = this.id.split('-')[1];
         show_spinner($M(this));
         $.post(baseurl + 'api/hide', {
             entry: id
@@ -217,7 +218,7 @@
     }
 
     function unhide_entry() {
-        var id = this.parentNode.id.split('-')[1];
+        const id = this.parentNode.id.split('-')[1];
         show_spinner(this);
         $.post(baseurl + 'api/unhide', {
             entry: id
@@ -233,8 +234,8 @@
         if (e) {
             e.preventDefault();
         }
-        var that = this;
-        var id = this.id.split('-')[1];
+        const that = this;
+        const id = this.id.split('-')[1];
         show_spinner($M(this));
         if (!$(this).hasClass('fav')) {
             $.post(baseurl + 'api/favorite', {
@@ -260,8 +261,8 @@
         if (!confirm(_('You are about to re-share this entry at your stream. Confirm?'))) {
             return false;
         }
-        var as_me = !confirm(_('Keep the original author?'));
-        var id = this.id.split('-')[1];
+        const as_me = !confirm(_('Keep the original author?'));
+        const id = this.id.split('-')[1];
         show_spinner(this);
         $.post(baseurl + 'api/reshare', {
             entry: id,
@@ -278,9 +279,9 @@
     }
 
     function shareit_entry() {
-        var that = this.parentNode.parentNode;
-        var id = this.id.split('-')[1];
-        var url = $('.entry-published a:eq(1)', that);
+        const that = this.parentNode.parentNode;
+        const id = this.id.split('-')[1];
+        let url = $('.entry-published a:eq(1)', that);
         if ($(that).hasClass('private') && url.length) {
             url = url.attr('href');
         }
@@ -293,7 +294,7 @@
                 url = 'http://' + window.location.host + url;
             }
         }
-        var title = $('.entry-title', that);
+        let title = $('.entry-title', that);
         if (title.length) {
             title = strip_tags_trim(title.html());
         }
@@ -316,16 +317,40 @@
         if (e) {
             e.preventDefault();
         }
-        var that = this;
-        var id = this.id.split('-')[1];
+        $('#status-editor').css('height', '400px');
+        $('#share .fieldset').show();
+        if (!gsc_done) {
+            get_selfposts_classes();
+        }
+
+        const id = this.id.split('-')[1];
         show_spinner($M(this));
         $.post(baseurl + 'api/getcontent', {
             entry: id,
             raw: 1
         }, function(html) {
             hide_spinner();
-            var ec = $(that).closest('article').find('.entry-content');
-            var editor = $('#entry-editor');
+            editor_id = id;
+            quill.clipboard.dangerouslyPasteHTML(html);
+            $('#update,#post').toggle();
+            scroll_to_top();
+        });
+    }
+
+    function edit_raw_entry(e) {
+        if (e) {
+            e.preventDefault();
+        }
+        const that = this;
+        const id = this.id.split('-')[1];
+        show_spinner($M(this));
+        $.post(baseurl + 'api/getcontent', {
+            entry: id,
+            raw: 1
+        }, function(html) {
+            hide_spinner();
+            const ec = $(that).closest('article').find('.entry-content');
+            const editor = $('#entry-editor');
             $('#edited-content').val(html);
             ec.after(editor);
             editor.fadeIn('normal', function() {
@@ -334,15 +359,15 @@
         });
     }
 
-    function editor_handler(e) {
-        var op = this.getAttribute('name');
+    function editor_handler() {
+        const op = this.getAttribute('name');
         if (op === 'cancel') {
             $('#entry-editor').fadeOut();
         }
         else if (op === 'save') {
             show_spinner(this);
-            var article = $(this).closest('article').get(0);
-            var id = parse_id(article.id)[1];
+            const article = $(this).closest('article').get(0);
+            const id = parse_id(article.id)[1];
             $.post(baseurl + 'api/putcontent', {
                 entry: id,
                 content: $('#edited-content').val()
@@ -354,9 +379,9 @@
     }
 
     function change_theme() {
-        var cookie_name = 'glifestream_theme';
-        var cs = read_cookie(cookie_name);
-        var idx = $.inArray(cs, settings.themes);
+        const cookie_name = 'glifestream_theme';
+        let cs = read_cookie(cookie_name);
+        let idx = $.inArray(cs, settings.themes);
 
         if (!cs || idx === -1) {
             idx = 0;
@@ -370,9 +395,9 @@
         }
         cs = settings.themes[idx];
 
-        var date = new Date();
+        const date = new Date();
         date.setTime(date.getTime() + (365 * 86400000));
-        var expires = '; expires=' + date.toGMTString();
+        const expires = '; expires=' + date.toGMTString();
         document.cookie = cookie_name + '=' + cs + expires +
             '; path=' + baseurl;
         jump_to_top();
@@ -392,10 +417,10 @@
     }
 
     function read_cookie(name) {
-        var nameEq = name + '=';
-        var ca = document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
+        const nameEq = name + '=';
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
             while (c.charAt(0) === ' ') {
                 c = c.substring(1, c.length);
             }
@@ -408,35 +433,45 @@
 
     function alter_html(ctx) {
         $('.thumbnails a', ctx)
-            .each(function(i) {
-                var id = false;
+            .each(function() {
+                let id = '';
                 try {
-                    if (this.href.indexOf('http://www.youtube.com/watch') === 0) {
+                    if (this.href.indexOf('https://www.youtube.com/watch') === 0) {
+                        id = 'youtube-' + this.href.substr(32);
+                    }
+                    else if (this.href.indexOf('https://vimeo.com/') === 0) {
+                        id = 'vimeo-' + this.href.substr(18);
+                    }
+                    else if (this.href.indexOf('http://www.youtube.com/watch') === 0) {
                         id = 'youtube-' + this.href.substr(31);
                     }
                     else if (this.href.indexOf('http://vimeo.com/') === 0) {
                         id = 'vimeo-' + this.href.substr(17);
                     }
                     if (id) {
-                        $(this).wrap('<table class="vc"><tr><td><div id="' + id + '" class="play-video"></div></td></tr></table>');
+                        $(this).wrap('<div id="' + id + '" class="play-video"></div>');
                         $(this).after('<div class="playbutton"></div>');
                     }
                 }
                 catch (e) {}
             });
 
-        $('.files a[href$=".mp3"]', ctx).wrap('<span id="audio-x" class="play-audio"></span>');
-        $('.files a[href$=".ogg"]', ctx).wrap('<span id="audio-x" class="play-audio"></span>');
+        $('.files a[href$=".mp3"]', ctx).wrap('<span data-id="audio-x" class="play-audio"></span>');
+        $('.files a[href$=".ogg"]', ctx).wrap('<span data-id="audio-x" class="play-audio"></span>');
 
         if (typeof window.user_alter_html == 'function') {
             window.user_alter_html(ctx);
         }
     }
 
-    var gsc_load = false;
-    var gsc_done = false;
+    let gsc_load = false;
+    let gsc_done = false;
+    let editor_id = 0;
 
     function open_sharing() {
+        editor_id = 0;
+        $('#update').hide();
+        $('#post').show();
         $('#share .fieldset').toggle(function() {
             if (quill) {
                 quill.focus();
@@ -452,8 +487,8 @@
     }
 
     function show_selfposts_classes() {
-        var sc = $('#status-class').get(0);
-        for (var i in gsc_load) {
+        const sc = $('#status-class').get(0);
+        for (let i in gsc_load) {
             sc.options[sc.options.length] = new Option(gsc_load[i]['cls'],
                                                        gsc_load[i]['id']);
         }
@@ -467,8 +502,9 @@
                 show_selfposts_classes();
             });
         }
-        else
+        else {
             show_selfposts_classes();
+        }
     }
 
     function open_more_sharing_options() {
@@ -477,17 +513,23 @@
         return false;
     }
 
+    function is_quill_empty(value) {
+        return value.replace(/<(.|\n)*?>/g, '').trim().length === 0 &&
+            value.indexOf('<img') === -1;
+    }
+
     function share() {
-        var docs = $('input[name=docs]');
+        const docs = $('input[name=docs]');
         if (docs.length && docs.get(0).files && docs.get(0).files.length) {
             return true;
         }
-        $(this).attr('disabled', 'disabled');
-        var content;
+        const postButton = $(this);
+        postButton.attr('disabled', 'disabled');
+        let content;
         let isEmptyContent = false;
         if (quill) {
             content = quill.root.innerHTML;
-            isEmptyContent = $.trim(content) === '<p><br></p>';
+            isEmptyContent = is_quill_empty(content);
         }
         else {
             content = $('#status').val();
@@ -495,29 +537,45 @@
         }
         if (!isEmptyContent) {
             show_spinner(this);
-            $.post(baseurl + 'api/share', {
-                sid: $('#status-class').val(),
-                content: content,
-                draft: $('#draft').attr('checked') ? 1 : 0,
-                friends_only: $('#friends-only').attr('checked') ? 1 : 0
-            }, function(html) {
-                hide_spinner();
-                $('#stream').prepend(html);
-                $('#stream article:first a.map').each(render_map);
-                if (quill) {
-                    quill.root.innerHTML = '';
-                }
-                else {
-                    $('#status').val('');
-                }
-                $('#post').removeAttr('disabled');
-                $('#share .fieldset').slideUp();
-                scaledown_images('#stream article:first img');
-            });
+            if (editor_id) {
+                $.post(baseurl + 'api/putcontent', {
+                    entry: editor_id,
+                    content: content
+                }, function() {
+                    hide_spinner();
+                    postButton.removeAttr('disabled');
+                });
+            }
+            else {
+                $.post(baseurl + 'api/share', {
+                    sid: $('#status-class').val(),
+                    content: content,
+                    draft: $('#draft').attr('checked') ? 1 : 0,
+                    friends_only: $('#friends-only').attr('checked') ? 1 : 0
+                }, function (html) {
+                    hide_spinner();
+                    $('#stream article.hentry').first().before(html);
+                    $('#stream article:first a.map').each(render_map);
+                    postButton.removeAttr('disabled');
+                    $('#share .fieldset').slideUp();
+                    editor_clear();
+                    scaledown_images('#stream article:first img');
+                });
+            }
         }
-        else
-            $('#post').removeAttr('disabled');
+        else {
+            postButton.removeAttr('disabled');
+        }
         return false;
+    }
+
+    function editor_clear() {
+        if (quill) {
+            quill.root.innerHTML = '';
+        }
+        else {
+            $('#status').val('');
+        }
     }
 
     function get_map_embed(lat, lng) {
@@ -527,10 +585,10 @@
         const boundingBox = calculateBoundingBox(lat, lng, 10);
         const bbox = convertToOSMBbox(boundingBox);
 
-        return '<iframe width="100%" height="200"' +
+        return '<iframe width="100%" height="200" ' +
             'src="https://www.openstreetmap.org/export/embed.html?layer=mapnik' +
             '&bbox=' + bbox +
-            '&marker=' + lat + ',' + lng + '"' +
+            '&marker=' + lat + ',' + lng + '" ' +
             'style="border: 1px solid black"></iframe>' +
             '<br/>' +
             '<small>' +
@@ -540,9 +598,9 @@
             '</small>';
     }
 
-    function render_map(i) {
-        var lat = $('.latitude', this).html();
-        var lng = $('.longitude', this).html();
+    function render_map() {
+        const lat = $('.latitude', this).html();
+        const lng = $('.longitude', this).html();
         this.target = '_blank';
         this.parentNode.style.paddingLeft = 0;
         this.parentNode.style.background = 'none';
@@ -597,8 +655,8 @@
     }
 
     function expand_content() {
-        var that = this;
-        var article = this.parentNode.parentNode;
+        const that = this;
+        const article = this.parentNode.parentNode;
         if (article.content_loaded) {
             if (article.content_expanded) {
                 $('div.entry-content', article).slideUp();
@@ -610,7 +668,7 @@
             }
         }
         else {
-            var id = parse_id(article.id)[1];
+            const id = parse_id(article.id)[1];
             show_spinner(this);
             $.post(baseurl + 'api/getcontent', {
                 entry: id
@@ -625,13 +683,13 @@
         return false;
     }
 
-    var eco = null;
+    let eco = null;
 
     function show_menu_controls() {
         hide_menu_controls();
-        var that = this;
-        var s = $('.entry-controls', this.parentNode);
-        var pos = $(this).position();
+        const that = this;
+        const s = $('.entry-controls', this.parentNode);
+        const pos = $(this).position();
         s.addClass('menu-expanded')
             .css({
                 top: pos.top + 17,
@@ -640,8 +698,8 @@
         eco = s[0];
         document.onclick = hide_menu_controls;
 
-        var y_bottom = pos.top + s.height();
-        var y_diff = y_bottom - $(window).height() - $(document).scrollTop();
+        const y_bottom = pos.top + s.height();
+        const y_diff = y_bottom - $(window).height() - $(document).scrollTop();
         if (y_diff > -20) {
             s.css('top', (pos.top - y_diff - 15) + 'px');
         }
@@ -656,25 +714,25 @@
     }
 
     function scaledown_images(sel) {
-        var maxwidth = $('#stream').width() - 80;
-        $(sel || '#stream img').each(function(i) {
+        const maxWidth = $('#stream').width() - 80;
+        $(sel || '#stream img').each(function() {
             if (this.complete) {
-                if (this.width > maxwidth) {
-                    this.width = maxwidth;
+                if (this.width > maxWidth) {
+                    this.width = maxWidth;
                     if (this.style.width) {
-                        var p = maxwidth * 100 / parseInt(this.style.width, 10);
-                        this.style.width = maxwidth + 'px';
+                        const p = maxWidth * 100 / parseInt(this.style.width, 10);
+                        this.style.width = maxWidth + 'px';
                         this.style.height = (this.height * p / 100) + 'px';
                     }
                 }
             }
             else {
                 this.onload = function() {
-                    if (this.width > maxwidth) {
-                        this.width = maxwidth;
+                    if (this.width > maxWidth) {
+                        this.width = maxWidth;
                         if (this.style.width) {
-                            var p = maxwidth * 100 / parseInt(this.style.width, 10);
-                            this.style.width = maxwidth + 'px';
+                            const p = maxWidth * 100 / parseInt(this.style.width, 10);
+                            this.style.width = maxWidth + 'px';
                             this.style.height = (this.height * p / 100) + 'px';
                         }
                     }
@@ -684,14 +742,14 @@
         });
     }
 
-    var articles = [];
-    var current_article = -1;
+    let articles = [];
+    let current_article = -1;
 
     function kshortcuts(e) {
         if (quill && quill.hasFocus()) {
             return;
         }
-        var code, ent;
+        let code, ent;
         if (!e) {
             e = window.event;
         }
@@ -712,27 +770,30 @@
             break;
         case 106:
             /* j */
-            if ((current_article + 1) === articles.length)
+            if ((current_article + 1) === articles.length) {
                 nav_next.trigger('click');
-            else
+            }
+            else {
                 highlight_article(articles[++current_article]);
+            }
             break;
         case 107:
             /* k */
             if ((current_article - 1) < 0) {
-                var prev = $('#stream a.prev');
+                const prev = $('#stream a.prev');
                 if (prev.length) {
                     window.location = prev.attr('href');
                 }
             }
-            else
+            else {
                 highlight_article(articles[--current_article]);
+            }
             break;
         case 102:
             /* f */
             ent = articles[current_article];
             if (ent) {
-                var c = $('span.favorite-control', ent);
+                const c = $('span.favorite-control', ent);
                 if (c.length) {
                     favorite_entry.call(c[0]);
                 }
@@ -742,13 +803,13 @@
             /* h */
             ent = articles[current_article];
             if (ent) {
-                var id = ent.id.split('-')[1];
-                var c = $('#hidden-' + id + ' a');
+                const id = ent.id.split('-')[1];
+                let c = $('#hidden-' + id + ' a');
                 if (c.length) {
                     unhide_entry.call(c[0]);
                 }
                 else {
-                    var c = $('span.hide-control', ent);
+                    c = $('span.hide-control', ent);
                     if (c.length) {
                         hide_entry.call(c[0]);
                     }
@@ -767,10 +828,14 @@
 
     function scroll_to_element(t, offset) {
         offset = offset || 16;
-        var toffset = $(t).offset().top - offset;
+        const toffset = $(t).offset().top - offset;
         $('html,body').animate({
             scrollTop: toffset
         }, 200);
+    }
+
+    function scroll_to_top() {
+        $('html, body').animate({scrollTop: 0}, 'fast');
     }
 
     function jump_to_top() {
@@ -783,12 +848,12 @@
     }
 
     function gen_archive_calendar(year) {
-        if (typeof stream_data == 'undefined') {
+        if (typeof stream_data === 'undefined') {
             return;
         }
         year = year || stream_data.view_date.split('/')[0];
-        var month = 1;
-        var cal = '<table>';
+        let month = 1;
+        let cal = '<table>';
         cal += '<tr><th colspan="3">' +
             '<a href="#" class="prev">&nbsp;</a>';
         cal += '<span class="year">' + year + '</span> ';
@@ -799,19 +864,20 @@
             cal += '<span class="next-disabled">&nbsp;</span>';
         }
         cal += '</th></tr>';
-        for (var row = 0; row < 4; row++) {
+        for (let row = 0; row < 4; row++) {
             cal += '<tr>';
-            for (var col = 0; col < 3; col++, month++) {
-                var d = year + '/' + pad(month, 2);
-                var u = d === stream_data.view_date ? ' class="view-month"' : '';
+            for (let col = 0; col < 3; col++, month++) {
+                let d = year + '/' + pad(month, 2);
+                let u = d === stream_data.view_date ? ' class="view-month"' : '';
                 if ($.inArray(d, stream_data.archives) !== -1) {
-                    var ctx = stream_data.ctx !== '' ? stream_data.ctx + '/' : '';
+                    const ctx = stream_data.ctx !== '' ? stream_data.ctx + '/' : '';
                     cal += '<td> <a href="' + settings.baseurl + ctx +
                         d + '/" rel="nofollow"' + u + '>' +
                         stream_data.month_names[month - 1] + '</a></td>';
                 }
-                else
+                else {
                     cal += '<td> ' + stream_data.month_names[month - 1] + '</td>';
+                }
             }
             cal += '</tr>';
         }
@@ -819,13 +885,13 @@
         $('#calendar').html(cal);
     }
 
-    function ajax_error(e) {
+    function ajax_error() {
         alert(_('Communication Error. Try again.'));
         hide_spinner();
     }
 
     function gettext(msg) {
-        if (typeof gettext_msg != 'undefined' && gettext_msg[msg]) {
+        if (typeof gettext_msg !== 'undefined' && gettext_msg[msg]) {
             return gettext_msg[msg];
         }
         return msg;
@@ -836,25 +902,25 @@
     }
 
     function es(ns, p) {
-        var t = ns.split(/\./);
-        var a = window;
-        for (var i = 0; i < t.length - 1; i++) {
-            if (typeof a[t[i]] == 'undefined') {
-                a[t[i]] = {};
+        const t = ns.split(/\./);
+        let win = window;
+        for (let i = 0; i < t.length - 1; i++) {
+            if (typeof win[t[i]] == 'undefined') {
+                win[t[i]] = {};
             }
-            a = a[t[i]];
+            win = win[t[i]];
         }
-        a[t[t.length - 1]] = p;
+        win[t[t.length - 1]] = p;
     }
 
     es('gls.unhide_entry', unhide_entry);
     $.ajaxSetup({
         error: ajax_error
     });
-    var baseurl = '/';
-    var continuous_reading = 300;
-    var social_sharing_sites = [];
-    var nav_next = null;
+    let baseurl = '/';
+    let continuous_reading = 300;
+    let social_sharing_sites = [];
+    let nav_next = null;
     let quill;
 
     $(document).ready(function() {
@@ -866,12 +932,13 @@
         }
 
         Graybox.scan();
-        var stream = $('#stream').get(0);
+        const stream = $('#stream').get(0);
         alter_html(stream);
 
         $(stream).on('click', 'span.favorite-control', favorite_entry);
         $(stream).on('click', 'span.hide-control', hide_entry);
         $(stream).on('click', 'span.edit-control', edit_entry);
+        $(stream).on('click', 'span.editRaw-control', edit_raw_entry);
         $(stream).on('click', 'a.shareit', shareit_entry);
         $(stream).on('click', 'a.show-map', show_map);
         $(stream).on('click', 'a.expand-content', expand_content);
@@ -896,12 +963,12 @@
 
         gen_archive_calendar();
         $(document).on('click', '#calendar a.prev', function() {
-            var year = parseInt($('#calendar .year').html(), 10);
+            const year = parseInt($('#calendar .year').html(), 10);
             gen_archive_calendar(year - 1);
             return false;
         });
         $(document).on('click', '#calendar a.next', function() {
-            var year = parseInt($('#calendar .year').html(), 10);
+            const year = parseInt($('#calendar .year').html(), 10);
             gen_archive_calendar(year + 1);
             return false;
         });
@@ -925,7 +992,7 @@
             });
 
         $('form[name=searchform]').submit(function() {
-            var s = $('input[name=s]').get(0);
+            const s = $('input[name=s]').get(0);
             if (s && s.value !== '' && s.value !== s.PLACEHOLDER) {
                 return true;
             }
@@ -938,25 +1005,62 @@
 
         $('#ashare').click(open_sharing);
         $('#expand-sharing').click(open_more_sharing_options);
-        $('#post').click(share);
+        $('#update, #post').click(share);
 
-        if (typeof window.continuous_reading != 'undefined') {
+        if (typeof window.continuous_reading !== 'undefined') {
             continuous_reading = parseInt(window.continuous_reading, 10);
         }
         nav_next.click(continuous_reading ? load_entries : follow_href);
 
         if (window.Quill) {
             $('#status').hide();
+            const qblock = Quill.import('blots/block');
+            qblock.tagName = 'div';
+            Quill.register(qblock);
             quill = new Quill('#status-editor', {
                 modules: {
-                    toolbar: [
-                        ['bold', 'italic'],
-                        ['link', 'blockquote', 'code-block', 'image'],
-                        [
-                            {list: 'ordered'},
-                            {list: 'bullet'}
-                        ]
-                    ]
+                    toolbar: {
+                        container: [
+                            [
+                                {'font': []},
+                                {'size': []}
+                            ],
+                            [
+                                'bold',
+                                'italic',
+                                'underline',
+                                'strike'
+                            ],
+                            [
+                                {'color': []},
+                                {'background': []}
+                            ],
+                            [
+                                {'header': '1'},
+                                {'header': '2' },
+                                'blockquote',
+                                'code-block'
+                            ],
+                            [
+                                {'list': 'ordered'},
+                                {'list': 'bullet'},
+                                {'indent': '-1'},
+                                {'indent': '+1'}
+                            ],
+                            [
+                                'direction',
+                                {'align': []}
+                            ],
+                            [
+                                'link',
+                                'image',
+                                'video'
+                            ],
+                            [
+                                'clean'
+                            ]
+                        ],
+                    }
                 },
                 theme: 'snow'
             });
@@ -1006,7 +1110,7 @@
         });
 
         $scrollToTopButton.click(function() {
-            $('html, body').animate({scrollTop: 0}, 'fast');
+            scroll_to_top();
             return false;
         });
     });
@@ -1043,7 +1147,7 @@
             if (!confirm(_('Are you sure?'))) {
                 return false;
             }
-            var form = $('#list-form');
+            const form = $('#list-form');
             form.append(DCE('input', {
                 type: 'hidden',
                 name: 'delete',
@@ -1057,8 +1161,8 @@
                 return false;
             }
             show_spinner(this);
-            var id = parse_id(this.id)[1];
-            var form = $('#pshb-form');
+            const id = parse_id(this.id)[1];
+            const form = $('#pshb-form');
             $('select').attr('disabled', 'disabled');
             form.append(DCE('input', {
                 type: 'hidden',
@@ -1079,7 +1183,7 @@
             type: 'POST',
             success: function(json) {
                 hide_spinner();
-                var f = prepare_service_form(json);
+                const f = prepare_service_form(json);
                 $(dest).after(f);
                 $(f).fadeIn('normal', function() {
                     scroll_to_element(f, 120);
@@ -1094,14 +1198,14 @@
     }
 
     function submit_service_form() {
-        var dest = $(this).next();
+        let dest = $(this).next();
         if (dest.length === 0) {
             dest = $(this).parent();
         }
         show_spinner($('input[type=submit]', this));
 
-        var form = $('#service-form');
-        var params = form.serializeArray();
+        const form = $('#service-form');
+        const params = form.serializeArray();
         params.push({
             name: 'method',
             value: 'post'
@@ -1114,7 +1218,7 @@
             type: 'POST',
             success: function(json) {
                 hide_spinner();
-                var f = prepare_service_form(json);
+                const f = prepare_service_form(json);
                 dest.append(f);
                 $(f).show();
             }
@@ -1122,13 +1226,13 @@
         return false;
     }
 
-    var settings_deps = null;
-    var settings_onchange_field = function() {
+    let settings_deps = null;
+    const settings_onchange_field = function() {
         if (this.id in settings_deps) {
-            var deps = settings_deps[this.id];
-            for (var i = 0; i < deps.length; i++) {
-                var val = deps[i][0];
-                var row = deps[i][1];
+            let deps = settings_deps[this.id];
+            for (let i = 0; i < deps.length; i++) {
+                let val = deps[i][0];
+                let row = deps[i][1];
                 if (this.value === val) {
                     $('input', row).removeAttr('disabled');
                     row.style.display = 'block';
@@ -1142,7 +1246,7 @@
     };
 
     function prepare_service_form(data) {
-        var form = document.getElementById('service-form');
+        let form = document.getElementById('service-form');
         if (!form) {
             form = DCE('form', {
                 id: 'service-form',
@@ -1155,7 +1259,7 @@
         }
         $(form).hide();
 
-        var fs = $('fieldset:first', form);
+        const fs = $('fieldset:first', form);
         fs.empty();
         settings_deps = {};
 
@@ -1176,24 +1280,26 @@
                 value: data.api
             }));
 
-            for (var i = 0; i < data.fields.length; i++) {
-                var f = data.fields[i];
+            let obj;
+
+            for (let i = 0; i < data.fields.length; i++) {
+                const f = data.fields[i];
 
                 if (f.type === 'select') {
-                    var obj = DCE('select', {
+                    obj = DCE('select', {
                         id: f.name,
                         name: f.name,
                         value: f.value
                     });
-                    for (var j = 0; j < f.options.length; j++) {
-                        var opt = f.options[j];
-                        var sel = opt[0] === f.value ? true : false;
+                    for (let j = 0; j < f.options.length; j++) {
+                        const opt = f.options[j];
+                        const sel = opt[0] === f.value ? true : false;
                         obj.options[obj.options.length] = new Option(
                             opt[1], opt[0], sel, sel);
                     }
                 }
                 else if (f.type === 'checkbox') {
-                    var obj = DCE('input', {
+                    obj = DCE('input', {
                         type: f.type,
                         id: f.name,
                         name: f.name,
@@ -1202,7 +1308,7 @@
                     });
                 }
                 else if (f.type === 'link') {
-                    var obj = DCE('a', {
+                    obj = DCE('a', {
                         id: f.name,
                         href: f.href
                     }, [f.value]);
@@ -1220,7 +1326,7 @@
                     }
                 }
                 else {
-                    var obj = DCE('input', {
+                    obj = DCE('input', {
                         type: f.type,
                         id: f.name,
                         name: f.name,
@@ -1231,22 +1337,22 @@
                     });
                 }
 
-                var hint = false;
+                let hint = false;
                 if (f.hint) {
                     hint = DCE('span', {
                         className: 'hint'
                     }, [f.hint]);
                 }
 
-                var miss = f.miss ? 'missing' : '';
-                var row = DCE('div', {
+                const miss = f.miss ? 'missing' : '';
+                const row = DCE('div', {
                     className: 'form-row'
                 }, [DCE('label', {
                     htmlFor: f.name,
                     className: miss
                 }, [f.label]), hint, obj, false]);
                 if (f.deps) {
-                    for (var name in f.deps) {
+                    for (let name in f.deps) {
                         if (!settings_deps[name]) {
                             settings_deps[name] = [];
                         }
@@ -1255,11 +1361,11 @@
                 }
                 fs.append(row);
             }
-            for (var name in settings_deps) {
+            for (let name in settings_deps) {
                 $('#' + name).change(settings_onchange_field).change();
             }
 
-            var row = DCE('div', {
+            const row = DCE('div', {
                 className: 'form-row'
             });
             if (data.save) {
@@ -1301,19 +1407,19 @@
     }
 
     function oauth_configure(id) {
-        var p = MDOM.get_win_center(800, 480);
+        const p = MDOM.get_win_center(800, 480);
         window.open('oauth/' + id, 'oauth', 'width=' + p.width + ',height=' + p.height + ',left=' + p.left + ',top=' + p.top + ',toolbar=no,status=yes,location=no,resizable=yes' + ',scrollbars=yes');
     }
 
     function oauth2_configure(id) {
-        var p = MDOM.get_win_center(800, 480);
+        const p = MDOM.get_win_center(800, 480);
         window.open('oauth2/' + id, 'oauth2', 'width=' + p.width + ',height=' + p.height + ',left=' + p.left + ',top=' + p.top + ',toolbar=no,status=yes,location=no,resizable=yes' + ',scrollbars=yes');
     }
 
-    var MDOM = {
+    const MDOM = {
         'center': function(obj, objWidth, objHeight) {
-            var innerWidth = 0;
-            var innerHeight = 0;
+            let innerWidth = 0;
+            let innerHeight = 0;
             if (!objWidth && !objHeight) {
                 objWidth = $(obj).width();
                 objHeight = $(obj).height();
@@ -1336,7 +1442,7 @@
                 innerWidth = $(window).width() / 2;
                 innerHeight = $(window).height() / 2;
             }
-            var wleft = innerWidth - (objWidth / 2);
+            let wleft = innerWidth - (objWidth / 2);
             if (wleft < 0) {
                 wleft = 0;
             }
@@ -1348,13 +1454,13 @@
             }
         },
         'get_win_center': function(width, height) {
-            var screenX = typeof window.screenX != 'undefined' ?
+            const screenX = typeof window.screenX !== 'undefined' ?
                 window.screenX : window.screenLeft;
-            var screenY = typeof window.screenY != 'undefined' ?
+            const screenY = typeof window.screenY !== 'undefined' ?
                 window.screenY : window.screenTop;
-            var outerWidth = typeof window.outerWidth != 'undefined' ?
+            const outerWidth = typeof window.outerWidth !== 'undefined' ?
                 window.outerWidth : document.body.clientWidth;
-            var outerHeight = typeof window.outerHeight != 'undefined' ?
+            const outerHeight = typeof window.outerHeight !== 'undefined' ?
                 window.outerHeight : (document.body.clientHeight - 22);
             return {
                 width: width,
@@ -1365,10 +1471,10 @@
         }
     };
 
-    var Shareitbox = new function() {
-        var self = this;
-        var initied = false;
-        var sbox = null;
+    const Shareitbox = new function() {
+        const self = this;
+        let initied = false;
+        let sbox = null;
 
         this.init = function() {
             if (initied) {
@@ -1383,20 +1489,20 @@
 
         this.open = function(opts) {
             self.init();
-            var width = opts.width || 270;
-            var height = opts.height || 130;
-            var url = opts.url || '';
-            var title = opts.title || '';
-            var reshareit = opts.reshareit || false;
+            let width = opts.width || 270;
+            let height = opts.height || 130;
+            let url = opts.url || '';
+            let title = opts.title || '';
+            let reshareit = opts.reshareit || false;
 
             Overlay.enable(40);
-            var o = DCE('div');
-            for (var i in social_sharing_sites) {
-                var s = social_sharing_sites[i];
-                var href = s.href.replace('{URL}', encodeURIComponent(url));
+            const o = DCE('div');
+            for (let i in social_sharing_sites) {
+                let s = social_sharing_sites[i];
+                let href = s.href.replace('{URL}', encodeURIComponent(url));
                 href = href.replace('{TITLE}', encodeURIComponent(title));
 
-                var img;
+                let img;
                 if (s.className) {
                     img = DCE('span', {
                         className: 'share-' + s.className
@@ -1455,7 +1561,7 @@
 
             $('#overlay').click(this.close);
             document.onkeydown = function(e) {
-                var code;
+                let code;
                 if (!e) {
                     e = window.event;
                 }
@@ -1483,10 +1589,10 @@
         };
     };
 
-    var Graybox = new function() {
-        var self = this;
-        var initied = false;
-        var gb = null;
+    const Graybox = new function() {
+        const self = this;
+        let initied = false;
+        let gb = null;
 
         this.init = function() {
             if (initied) {
@@ -1501,7 +1607,7 @@
 
         this.scan = function(ctx) {
             self.init();
-            var $imgs = $('.thumbnails > a:has(img)', ctx);
+            const $imgs = $('.thumbnails > a:has(img)', ctx);
             $imgs.each(function(i, v) {
                 this.rel = $(v).closest('article').get(0).id;
             });
@@ -1509,8 +1615,8 @@
         };
 
         this.open_img = function() {
-            var href = this.href;
-            var type = undefined;
+            let href = this.href;
+            let type = undefined;
 
             if (href.match(/friendfeed-media\.com/)) {
                 type = 'image';
@@ -1546,11 +1652,11 @@
         };
 
         this.open = function(opts) {
-            var src = opts.src;
-            var width = opts.width || 425;
-            var height = opts.height || 344;
-            var type = opts.type || undefined;
-            var obj = opts.obj || undefined;
+            let src = opts.src;
+            let width = opts.width || 425;
+            let height = opts.height || 344;
+            let type = opts.type || undefined;
+            let obj = opts.obj || undefined;
 
             if (!type) {
                 if (src.match(/(\.jpg$|\.jpeg$|\.png$|\.gif$)/i)) {
@@ -1562,10 +1668,10 @@
             }
 
             if ('fancybox' in $) {
-                var imgs = [{src: src}];
-                var index = 0;
+                let imgs = [{src: src}];
+                let index = 0;
                 if (obj.rel && obj.rel !== '' && obj.rel !== 'nofollow') {
-                    var $r = $('a[rel=' + obj.rel + ']');
+                    const $r = $('a[rel=' + obj.rel + ']');
                     if ($r.length > 1) {
                         imgs = [];
                         $r.each(function(i, v) {
@@ -1612,7 +1718,7 @@
 
             $('#overlay').click(this.close);
             document.onkeydown = function(e) {
-                var code;
+                let code;
                 if (!e) {
                     e = window.event;
                 }
@@ -1630,7 +1736,7 @@
             };
 
             if (type === 'image') {
-                var img = new Image();
+                const img = new Image();
                 img.src = src;
                 img.onerror = this.close;
                 if (img.complete) {
@@ -1654,15 +1760,15 @@
             if (gb.style.display !== 'block') {
                 return;
             }
-            var img = this;
-            var nscale;
-            var maxWidth = $(window).width() - 100;
+            const img = this;
+            let nscale;
+            let maxWidth = $(window).width() - 100;
             if (img.width > maxWidth) {
                 nscale = maxWidth / img.width;
                 img.width = maxWidth;
                 img.height = img.height * nscale;
             }
-            var maxHeight = $(window).height() - 50;
+            let maxHeight = $(window).height() - 50;
             if (img.height > maxHeight) {
                 nscale = maxHeight / img.height;
                 img.height = maxHeight;
@@ -1679,11 +1785,11 @@
         }
     };
 
-    var Overlay = new function() {
-        var visible = false;
-        var ovl = null;
+    const Overlay = new function() {
+        let visible = false;
+        let ovl = null;
         this.enable = function(level) {
-            if (typeof level == 'undefined') {
+            if (typeof level === 'undefined') {
                 level = '80';
             }
             if (visible) {
@@ -1691,8 +1797,8 @@
             }
             ovl = document.createElement('div');
             if (ovl) {
-                var dh = $(document).height();
-                var wh = $(window).height();
+                const dh = $(document).height();
+                const wh = $(window).height();
                 ovl.id = 'overlay';
                 ovl.style.position = 'absolute';
                 ovl.style.width = '100%';
@@ -1734,9 +1840,9 @@
     }
 
     function set_placeholder(inputs, defval) {
-        var has = 'placeholder' in document.createElement('input');
-        for (var i = 0; i < inputs.length; i++) {
-            var input = inputs[i];
+        const has = 'placeholder' in document.createElement('input');
+        for (let i = 0; i < inputs.length; i++) {
+            const input = inputs[i];
             input.PLACEHOLDER = defval || input.getAttribute('placeholder');
             if (!has) {
                 input.autocomplete = 'off';
@@ -1750,7 +1856,7 @@
     }
 
     function pad(number, len) {
-        var str = '' + number;
+        let str = '' + number;
         while (str.length < len)
             str = '0' + str;
         return str;
@@ -1761,21 +1867,22 @@
     }
 
     function DCE(name, props, content_list) {
-        var obj = document.createElement(name);
+        const obj = document.createElement(name);
         if (obj) {
             if (props) {
-                for (var p in props) {
+                for (let p in props) {
                     if (p === 'style') {
-                        for (var s in props[p])
+                        for (let s in props[p])
                             obj.style[s] = props.style[s];
                     }
-                    else
+                    else {
                         obj[p] = props[p];
+                    }
                 }
             }
             if (content_list) {
-                for (var i = 0; i < content_list.length; i++) {
-                    var content = content_list[i];
+                for (let i = 0; i < content_list.length; i++) {
+                    const content = content_list[i];
                     if (typeof content == 'string' ||
                         typeof content == 'number') {
                         obj.innerHTML = content;
@@ -1789,9 +1896,9 @@
         return obj;
     }
 
-    var audio_embeds = {
+    let audio_embeds = {
     };
-    var video_embeds = {
+    let video_embeds = {
         'youtube': '<iframe width="560" height="349" src="https://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
         'vimeo': '<iframe width="560" height="315" src="https://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
         'dailymotion': '<iframe width="560" height="315" src="https://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>'

@@ -575,6 +575,7 @@ table.vc { border-spacing: 0; }
 table.vc td { padding: 0; }
 
 .play-video {
+  display: inline-block;
   position: relative;
   overflow: hidden; /* IE and Opera */
   img {
@@ -717,7 +718,7 @@ ul.files {
   padding: 7px 7px 7px 0;
   border-bottom: 1px dashed gray;
 }
-#post {
+#update, #post {
   float: right;
   font-weight: bold;
 }
@@ -1333,9 +1334,6 @@ fieldset .hint {
 
 #status-editor {
   height: 150px;
-}
-.ql-toolbar {
-  height: 40px;
 }
 @media (prefers-color-scheme: dark) {
   .ql-snow .ql-stroke {

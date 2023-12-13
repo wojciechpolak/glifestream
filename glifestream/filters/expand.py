@@ -111,9 +111,9 @@ def __sv_youtube(m: Match) -> str:
     link = 'https://www.youtube.com/watch?v=%s' % id_video
     imgurl = 'https://i.ytimg.com/vi/%s/mqdefault.jpg' % id_video
     imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
-    return '<table class="vc"><tr><td><div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">' \
+    return '<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">' \
            '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">' \
-           '</div></div></td></tr></table>%s' % (id_video, link, imgurl, rest)
+           '</div></div>%s' % (id_video, link, imgurl, rest)
 
 
 def __sv_vimeo(m: Match) -> str:
@@ -124,9 +124,9 @@ def __sv_vimeo(m: Match) -> str:
     imgurl = vimeo.get_thumbnail_url(id_video)
     if imgurl:
         imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
-        return '<table class="vc"><tr><td><div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">' \
+        return '<div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">' \
                '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>' \
-               '<div class="playbutton"></div></div></td></tr></table>' % (
+               '<div class="playbutton"></div></div>' % (
                    id_video, link, imgurl)
     return link
 
@@ -139,9 +139,9 @@ def __sv_dailymotion(m: Match) -> str:
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'https://www.dailymotion.com/thumbnail/video/%s' % id_video
     imgurl = media.save_image(imgurl)
-    return '<table class="vc"><tr><td><div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">' \
+    return '<div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">' \
            '<img src="%s" width="320" height="180" alt="Dailymotion Video" />' \
-           '</a><div class="playbutton"></div></div></td></tr></table>%s' % (
+           '</a><div class="playbutton"></div></div>%s' % (
                id_video, link, imgurl, rest)
 
 

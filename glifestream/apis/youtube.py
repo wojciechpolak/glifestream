@@ -137,7 +137,7 @@ class API:
                     tn['url'] = media.save_image(tn['url'], downscale=True,
                                                  size=(tn['width'], tn['height']))
 
-                e.content = """<table class="vc"><tr><td><div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
+                e.content = """<div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>""" % (
                     vid, e.link, tn['url'], tn['width'], tn['height'])
             else:
                 e.content = '<a href="%s">%s</a>' % (e.link, e.title)

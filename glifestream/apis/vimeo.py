@@ -110,7 +110,7 @@ class API:
                 ent['thumbnail_large'] = media.save_image(
                     ent['thumbnail_large'], downscale=True, size=(320, 180))
 
-            e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
+            e.content = """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>""" % (
                 ent['id'], e.link, ent['thumbnail_large'], ent['title'])
 
             mblob = media.mrss_init()
@@ -158,7 +158,7 @@ class API:
                 ent['thumbnail_large'] = media.save_image(
                     ent['thumbnail_large'], downscale=True, size=(320, 180))
 
-            e.content = """<table class="vc"><tr><td><div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div></td></tr></table>""" % (
+            e.content = """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>""" % (
                 ent['id'], e.link, ent['thumbnail_large'], ent['title'])
 
             mblob = media.mrss_init()

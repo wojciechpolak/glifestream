@@ -38,7 +38,8 @@
 	<li><span tabindex="0" id="favorite-{{ entry.id }}" class="link favorite-control">{% trans "Favorite" %}</span></li>
 	{% endif %}
         <li><span id="hide-{{ entry.id }}" class="link hide-control">{% trans "Hide" %}</span></li>
-	<li><span id="edit-{{ entry.id }}" class="link edit-control">{% trans "Edit" %}</span></li>
+ 	<li><span id="edit-{{ entry.id }}" class="link edit-control">{% trans "Edit" %}</span></li>
+	<li><span id="editRaw-{{ entry.id }}" class="link editRaw-control">{% trans "Raw Edit" %}</span></li>
 	<li><a href="{% url 'admin:index' %}stream/entry/{{ entry.id }}" target="_blank">{% trans "Admin" %}</a></li>
       </ul>
       {% endif %}

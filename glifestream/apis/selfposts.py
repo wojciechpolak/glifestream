@@ -134,10 +134,15 @@ class API:
                     thumb, orig = media.downsave_uploaded_image(o[0].file)
                     thumbs += '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n' % (
                         orig, thumb)
-                    mrss = {'url': orig, 'medium': 'image',
-                            'fileSize': o[1].size}
-                    if orig.lower().endswith('.jpg'):
+                    mrss = {
+                        'url': orig,
+                        'medium': 'image',
+                        'fileSize': o[1].size
+                    }
+                    if orig.lower().endswith('.jpg') or orig.lower().endswith('.jpeg'):
                         mrss['type'] = 'image/jpeg'
+                    elif orig.lower().endswith('.webp'):
+                        mrss['type'] = 'image/webp'
                     mblob['content'].append([mrss])
                 thumbs += '</p>\n'
                 e.content += thumbs
@@ -159,6 +164,12 @@ class API:
                     elif target.endswith('.ogg'):
                         mrss['medium'] = 'audio'
                         mrss['type'] = 'audio/ogg'
+                    elif target.endswith('.mp4'):
+                        mrss['medium'] = 'video'
+                        mrss['type'] = 'video/mp4'
+                    elif target.endswith('.webm'):
+                        mrss['medium'] = 'video'
+                        mrss['type'] = 'video/webm'
                     elif target.endswith('.avi'):
                         mrss['medium'] = 'video'
                         mrss['type'] = 'video/avi'
