@@ -8,7 +8,6 @@
     <li><a href="{% url 'usettings-services' %}"{% if page.menu == "services" %} class="active"{% endif %}>{% trans "Services" %}</a></li>
     <li><a href="{% url 'usettings-lists' %}"{% if page.menu == "lists" %} class="active"{% endif %}>{% trans "Lists" %}</a></li>
     <li><a href="{% url 'usettings-pshb' %}"{% if page.menu == "pshb" %} class="active"{% endif %}>{% trans "PubSubHub" %}</a></li>
-    <li><a href="{% url 'usettings-tools' %}"{% if page.menu == "tools" %} class="active"{% endif %}>{% trans "Tools" %}</a></li>
   </ul>
   {% block settings %}{% endblock %}
 </section>

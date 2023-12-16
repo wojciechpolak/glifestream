@@ -54,5 +54,4 @@ Features
 - Write posts by web or e-mail (including media attachments)
 - Keyboard shortcuts for navigation
 - Customizable themes
-- Bookmarklet for easy webpage sharing
 - Localization

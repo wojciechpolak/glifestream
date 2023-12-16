@@ -176,26 +176,6 @@ def pshb(request, **args):
 
 
 @login_required
-def tools(request, **args):
-    authed = request.user.is_authenticated and request.user.is_staff
-    page = {
-        'robots': 'noindex',
-        'base_url': settings.BASE_URL,
-        'pwa': getattr(settings, 'PWA_APP_NAME', None),
-        'favicon': settings.FAVICON,
-        'themes': settings.THEMES,
-        'themes_more': len(settings.THEMES) > 1,
-        'theme': common.get_theme(request),
-        'title': _('Tools'),
-        'menu': 'tools',
-    }
-    return render(request, 'tools.html',
-                  {'page': page, 'authed': authed,
-                   'is_secure': request.is_secure(),
-                   'user': request.user})
-
-
-@login_required
 @never_cache
 def oauth(request, **args):
     authed = request.user.is_authenticated and request.user.is_staff

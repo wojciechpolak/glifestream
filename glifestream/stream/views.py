@@ -554,18 +554,13 @@ def api(request, **args):
         if entry:
             if not entry.draft:
                 pshb.publish()
-            if source == 'bookmarklet':
-                d = {'close_msg': _(
-                    "You've successfully shared this web page at your stream.")}
-                return JsonResponse(d)
+            entry.friends_only = False
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return render(request, 'stream-pure.html',
+                              {'entries': (entry,),
+                               'authed': authed})
             else:
-                entry.friends_only = False
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return render(request, 'stream-pure.html',
-                                  {'entries': (entry,),
-                                   'authed': authed})
-                else:
-                    return HttpResponseRedirect(settings.BASE_URL + '/')
+                return HttpResponseRedirect(settings.BASE_URL + '/')
 
     elif cmd == 'reshare' and entry:
         try:

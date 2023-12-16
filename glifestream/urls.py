@@ -69,8 +69,6 @@ urlpatterns = [
     re_path(r'^login/?$', login, name='login'),
     re_path(r'^logout/?$', LogoutView.as_view(next_page='./'), name='logout'),
 
-    re_path(r'^bookmarklet/', include(
-        'glifestream.bookmarklet.urls')),
     re_path(r'^settings/', include('glifestream.usettings.urls')),
 
     path('admin/', admin.site.urls),

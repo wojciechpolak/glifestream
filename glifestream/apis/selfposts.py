@@ -17,10 +17,8 @@
 
 import logging
 
-from typing import Any
-from django.core.files.uploadedfile import UploadedFile
-
 from django.conf import settings
+from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
 from django.utils.datastructures import MultiValueDict
@@ -81,9 +79,8 @@ class API:
         if user and user.first_name and user.last_name:
             e.author_name = user.first_name + ' ' + user.last_name
 
+        # html, markdown
         editor_syntax = getattr(settings, 'EDITOR_SYNTAX', 'markdown')
-        if source == 'bookmarklet':
-            editor_syntax = 'html'
 
         if editor_syntax == 'markdown' and markdown:
             e.content = expand.run_all(markdown.markdown(content))

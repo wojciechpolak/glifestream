@@ -115,7 +115,6 @@ INSTALLED_APPS = (
     'glifestream.apis',
     'glifestream.stream',
     'glifestream.usettings',
-    'glifestream.bookmarklet',
 )
 
 SITE_ID = 1
