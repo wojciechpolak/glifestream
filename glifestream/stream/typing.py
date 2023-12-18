@@ -61,6 +61,7 @@ class Page(TypedDict, total=False):
 
 
 class ThumbInfo(TypedDict):
+    format: str
     local: str
     url: str
     rel: str

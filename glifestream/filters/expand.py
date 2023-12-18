@@ -92,7 +92,7 @@ def shortpics(s: str) -> str:
 
 def imgloc(s: str) -> str:
     """Convert image location to html img."""
-    s = re.sub(r'([^"])(https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|png|gif))([^"])',
+    s = re.sub(r'([^"])(https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|webp|avif|heif|png|gif))([^"])',
                __sp_imgloc, s)
     return s
 

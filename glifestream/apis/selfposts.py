@@ -58,7 +58,6 @@ class API:
         link = args.get('link', None)
         images = args.get('images', None)
         files = args.get('files', MultiValueDict())
-        source = args.get('source', '')
         user = args.get('user', None)
 
         un = utcnow()
@@ -140,6 +139,10 @@ class API:
                         mrss['type'] = 'image/jpeg'
                     elif orig.lower().endswith('.webp'):
                         mrss['type'] = 'image/webp'
+                    elif orig.lower().endswith('.avif'):
+                        mrss['type'] = 'image/avif'
+                    elif orig.lower().endswith('.heif'):
+                        mrss['type'] = 'image/heif'
                     mblob['content'].append([mrss])
                 thumbs += '</p>\n'
                 e.content += thumbs

@@ -1174,6 +1174,15 @@ fieldset .hint {
   height: auto;
 }
 
+img.max100px { max-width: 100px; }
+img.max200px { max-width: 200px; }
+img.max300px { max-width: 300px; }
+img.max400px { max-width: 400px; }
+img.max500px { max-width: 500px; }
+img.max600px { max-width: 600px; }
+img.max700px { max-width: 700px; }
+img.noborder { border: none; }
+
 .scroll-to-top {
   display: none;
   position: fixed;

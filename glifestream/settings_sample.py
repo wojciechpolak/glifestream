@@ -268,6 +268,9 @@ STREAM_DESCRIPTION = "A short description"
 # How many entries to display on one page.
 ENTRIES_ON_PAGE = 30
 
+# Thumbnails format: JPEG, WEBP
+APP_THUMBNAIL_FORMAT = 'WEBP'
+
 # Webfeed settings.
 FEED_AUTHOR_NAME = 'YOUR NAME'
 FEED_TAGURI = 'tag:SITE-ID,YEAR:ID'

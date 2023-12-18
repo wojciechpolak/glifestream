@@ -57,17 +57,29 @@ def get_thumb_hash(s: str) -> str | None:
     return m.groups()[0] if m else None
 
 
-def get_thumb_info(thumb_hash: str) -> ThumbInfo:
+def get_thumb_info(thumb_hash: str, append_suffix: bool = False) -> ThumbInfo:
     prefix = thumb_hash[0] + '/'
+    iformat = getattr(settings, 'APP_THUMBNAIL_FORMAT', 'JPEG')
+    suffix = ''
+    if append_suffix:
+        if iformat.lower() == 'jpeg' or iformat.lower() == 'jpg':
+            suffix = '.jpg'
+        elif iformat.lower() == 'webp':
+            suffix = '.webp'
+        elif iformat.lower() == 'avif':
+            suffix = '.avif'
+        elif iformat.lower() == 'heif':
+            suffix = '.heif'
     return {
-        'local': '%s/thumbs/%s%s' % (settings.MEDIA_ROOT, prefix, thumb_hash),
-        'url': '%sthumbs/%s%s' % (settings.MEDIA_URL, prefix, thumb_hash),
-        'rel': 'thumbs/%s%s' % (prefix, thumb_hash),
-        'internal': '[GLS-THUMBS]/%s' % thumb_hash,
+        'format': iformat,
+        'local': '%s/thumbs/%s%s%s' % (settings.MEDIA_ROOT, prefix, thumb_hash, suffix),
+        'url': '%sthumbs/%s%s%s' % (settings.MEDIA_URL, prefix, thumb_hash, suffix),
+        'rel': 'thumbs/%s%s%s' % (prefix, thumb_hash, suffix),
+        'internal': '[GLS-THUMBS]/%s%s' % (thumb_hash, suffix),
     }
 
 
-def save_image(url: str, direct_image=True, force=False, downscale=False,
+def save_image(url: str, direct_image=True, force=False, downscale=True,
                size: tuple[int, int] | None = None) -> str:
     if settings.BASE_URL in url:
         return url
@@ -84,7 +96,7 @@ def save_image(url: str, direct_image=True, force=False, downscale=False,
         tmp = tempfile.mktemp('_gls')
         try:
             resp = httpclient.retrieve(url, tmp)
-            if not 'image/' in resp.headers.get('content-type', ''):
+            if 'image/' not in resp.headers.get('content-type', ''):
                 if not force and Image:
                     try:
                         Image.open(tmp)
@@ -92,7 +104,7 @@ def save_image(url: str, direct_image=True, force=False, downscale=False,
                         os.remove(tmp)
                         return url
             if downscale:
-                downscale_image(tmp, size=size)
+                downscale_image(tmp, size=size, iformat=thumb['format'])
             shutil.move(tmp, thumb['local'])
         except Exception as exc:
             logger.error(exc)
@@ -101,16 +113,18 @@ def save_image(url: str, direct_image=True, force=False, downscale=False,
     return thumb['internal']
 
 
-def downscale_image(filename: str, size=None) -> None:
+def downscale_image(filename: str, size=None, iformat='JPEG') -> None:
     if not Image:
         return
-    size = size or (400, 175)
+    size = size or (600, 400)
     try:
-        im = Image.open(filename)
-        w, h = im.size
-        if w > size[0] or h > size[1]:
-            im.thumbnail(size, Image.LANCZOS)
-            im.save(filename, 'JPEG', quality=95)
+        with Image.open(filename) as im:
+            if iformat.lower() == 'jpeg' or iformat.lower() == 'jpg':
+                im = im.convert('RGB')
+            w, h = im.size
+            if w > size[0] or h > size[1]:
+                im.thumbnail(size, Image.LANCZOS)
+                im.save(filename, iformat, quality=95)
     except Exception as exc:
         logger.error(exc)
 
@@ -121,7 +135,7 @@ def downsave_uploaded_image(file: FieldFile) -> tuple[str, str]:
         thumb = get_thumb_info(hashlib.sha1(file.name.encode('utf-8')).hexdigest())
         if not os.path.isfile(thumb['local']):
             shutil.copy(file.path, thumb['local'])
-            downscale_image(thumb['local'])
+            downscale_image(thumb['local'], iformat=thumb['format'])
         return thumb['internal'], url
     except Exception as exc:
         logger.error(exc)
