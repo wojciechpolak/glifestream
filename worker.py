@@ -176,16 +176,16 @@ def run():
                                                       'thumbs')):
             for file in files:
                 if file[0] != '.':
-                    ths[media.get_thumb_info(file)['rel']] = True
+                    ths[media.get_thumb_info(file, append_suffix=False)['rel']] = True
         entries = Entry.objects.all()
         for entry in entries:
             thumb_hash = media.get_thumb_hash(entry.link_image)
-            t = media.get_thumb_info(thumb_hash)['rel'] if thumb_hash else ''
+            t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel'] if thumb_hash else ''
             if t in ths:
                 del ths[t]
-            for thumb_hash in re.findall('\[GLS-THUMBS\]/([a-f0-9]{40})',
+            for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)',
                                          entry.content):
-                t = media.get_thumb_info(thumb_hash)['rel']
+                t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel']
                 if t in ths:
                     del ths[t]
         if thumbs == 'delete-orphans':
