@@ -16,6 +16,8 @@
 """
 
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 from django.utils.translation import gettext as _
 from glifestream.stream.models import Service, Entry, Media, Favorite, List
 
@@ -35,7 +37,9 @@ activate.short_description = _("Activate item")
 
 
 def truncate_title(self):
-    return self.title[0:70]
+    if self.title:
+        return self.title[0:70]
+    return '---'
 
 
 class ServiceAdmin(admin.ModelAdmin):
@@ -57,10 +61,24 @@ class ServiceAdmin(admin.ModelAdmin):
 
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display = (truncate_title, 'service', 'active',)
+    list_display = (truncate_title, 'service', 'active', 'view_website_link')
     list_filter = ('active', 'service',)
     search_fields = ['id', 'title', 'content']
     actions = [deactivate, activate]
+
+    def view_website_link(self, obj):
+        website_url = reverse('entry', args=[obj.id])
+        return format_html('<a href="{}" target="_blank">View</a>',
+                           website_url)
+
+    view_website_link.short_description = 'Link'
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['website_link'] = self.view_website_link(
+            Entry.objects.get(pk=object_id))
+        return super().change_view(request, object_id,
+                                   form_url, extra_context)
 
 
 class MediaAdmin(admin.ModelAdmin):
