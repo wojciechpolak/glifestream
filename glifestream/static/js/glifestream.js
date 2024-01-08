@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2009-2011, 2013, 2015, 2021, 2023 Wojciech Polak
+ *  gLifestream Copyright (C) 2009-2024 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -1113,6 +1113,30 @@
             scroll_to_top();
             return false;
         });
+
+        const parsedUrl = new URL(window.location);
+        if (parsedUrl.pathname.endsWith('/share')) {
+            open_sharing();
+            const title = parsedUrl.searchParams.get('title');
+            const text = parsedUrl.searchParams.get('text');
+            const url = parsedUrl.searchParams.get('url');
+            let body = '';
+            if (title) {
+                body += title + '<br>';
+            }
+            if (text) {
+                body += text + '<br>';
+            }
+            if (url) {
+                body += url + '<br>';
+            }
+            if (quill) {
+                quill.clipboard.dangerouslyPasteHTML(body);
+            }
+            else {
+                $('#status').val(body.replace(/<br>/g, '\n'));
+            }
+        }
     });
 
     function init_settings() {
@@ -1525,6 +1549,31 @@
                     document.createTextNode(s.name)
                    ])]));
             }
+
+            // Web Share API
+            if (navigator.share) {
+                let img = DCE('span', {
+                    className: 'share-webshare'
+                });
+                o.appendChild(DCE('div', {
+                    className: 'item'
+                }, [DCE('a', {
+                    href: '#',
+                    onclick: function() {
+                        try {
+                            navigator.share({
+                                title: title,
+                                url: url,
+                            });
+                        }
+                        catch (e) {
+                        }
+                    }
+                }, [img, document.createTextNode(String.fromCharCode(160)),
+                    document.createTextNode('Web Share')
+                ])]));
+            }
+
             if (reshareit) {
                 sbox.appendChild(DCE('div', {
                     className: 'reshare'

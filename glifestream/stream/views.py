@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2014, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2014, 2015, 2024 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -495,7 +495,16 @@ def webmanifest(request):
         'display': settings.PWA_APP_DISPLAY,
         'scope': reverse('index'),
         'start_url': reverse('index'),
-        'icons': settings.PWA_APP_ICONS
+        'icons': settings.PWA_APP_ICONS,
+        'share_target': {
+            'action': reverse('share'),
+            'method': 'GET',
+            'params': {
+                'title': 'title',
+                'text': 'text',
+                'url': 'url'
+            }
+        }
     }
     return JsonResponse(d, content_type='application/manifest+json')
 

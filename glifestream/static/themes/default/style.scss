@@ -879,6 +879,7 @@ ul.files {
   .share-facebook { @extend .fab; @extend .fa-facebook; }
   .share-reddit { @extend .fab; @extend .fa-reddit; }
   .share-twitter { @extend .fab; @extend .fa-twitter; }
+  .share-webshare { @extend .fas; @extend .fa-share-nodes; }
 }
 
 #graybox {

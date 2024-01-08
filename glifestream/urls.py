@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009, 2010, 2013, 2014, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2013, 2014, 2015, 2024 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -44,6 +44,7 @@ urlpatterns = [
     re_path(r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index,
         {'ctx': 'public'}),
 
+    re_path(r'^share$', sv.index, name='share'),
     re_path(r'^entry/(?P<entry>\d+)(/.*)?$', sv.index, {}, name='entry'),
     re_path(r'^api/(?P<cmd>[a-z]+)$', sv.api, name='api'),
 
