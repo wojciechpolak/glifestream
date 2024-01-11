@@ -15,6 +15,7 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import os
 import re
 from django.conf import settings
 from django.urls import reverse
@@ -264,6 +265,8 @@ def oauth2(request, **args):
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
+
+    os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = 'True'
 
     page = {
         'base_url': settings.BASE_URL,
@@ -575,7 +578,7 @@ def api(request, **args):
                                 'value': s['url'], 'label': _('URL'),
                                 'miss': miss.get('url', False)})
 
-        elif s['api'] in ('fb', 'friendfeed', 'mastodon', 'twitter'):
+        elif s['api'] in ('fb', 'friendfeed', 'mastodon', 'pixelfed', 'twitter'):
             v = 'user' if s['user_id'] else 'home'
             s['fields'].append({'type': 'select', 'name': 'timeline',
                                 'options': (('user', _('User timeline')),
@@ -593,7 +596,7 @@ def api(request, **args):
                                 'value': s['url'], 'label': _('ID/Username'),
                                 'miss': miss.get('url', False)})
 
-        if s['api'] in ('webfeed', 'friendfeed', 'mastodon', 'twitter'):
+        if s['api'] in ('webfeed', 'friendfeed', 'mastodon', 'pixelfed', 'twitter'):
             basic_user = ''
             if s['creds'] == 'oauth':
                 v = 'oauth'

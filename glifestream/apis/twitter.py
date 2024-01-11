@@ -18,7 +18,6 @@
 import sys
 import traceback
 import datetime
-from django.utils import timezone
 from django.utils.html import strip_tags
 from glifestream.filters import expand, truncate, twyntax
 from glifestream.gauth import gls_oauth

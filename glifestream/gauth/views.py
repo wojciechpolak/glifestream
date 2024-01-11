@@ -19,7 +19,6 @@ from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth import login as django_login
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.sites.models import Site
 from django.contrib.sites.requests import RequestSite
 from django.http import HttpResponseRedirect
 from django.shortcuts import render

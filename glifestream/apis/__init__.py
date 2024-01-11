@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009, 2010, 2011, 2021 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2011, 2021, 2024 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -20,6 +20,7 @@ __all__ = (
     'friendfeed',
     'mail',
     'mastodon',
+    'pixelfed',
     'selfposts',
     'twitter',
     'vimeo',
@@ -28,11 +29,12 @@ __all__ = (
 )
 
 API_LIST = (
-    ('selfposts',   'Self Posts'),
-    ('webfeed',     'Webfeed'),
-    ('mastodon',    'Mastodon'),
-    ('twitter',     'Twitter'),
-    ('youtube',     'YouTube'),
-    ('vimeo',       'Vimeo'),
-    ('flickr',      'Flickr'),
+    ('selfposts', 'Self Posts'),
+    ('webfeed', 'Webfeed'),
+    ('mastodon', 'Mastodon'),
+    ('pixelfed', 'PixelFed'),
+    ('flickr', 'Flickr'),
+    ('twitter', 'Twitter'),
+    ('vimeo', 'Vimeo'),
+    ('youtube', 'YouTube'),
 )

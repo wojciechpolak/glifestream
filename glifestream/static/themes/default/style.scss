@@ -1069,6 +1069,7 @@ span.fb { @extend .fa-brands; @extend .fa-square-facebook; color: #4267b2; }
 span.flickr { @extend .fa-brands; @extend .fa-flickr; color: #ff0084; }
 span.friendfeed { @extend .fa-brands; @extend .fa-square-pied-piper; color: forestgreen; }
 span.mastodon { @extend .fa-brands; @extend .fa-mastodon; color: #6364ff; }
+span.pixelfed { @extend .fa-solid; @extend .fa-image; color: #6364ff; }
 span.twitter { @extend .fa-brands; @extend .fa-square-twitter; color: #1da1f2; }
 span.vimeo { @extend .fa-brands; @extend .fa-square-vimeo; color: #1ab7ea; }
 span.webfeed { @extend .fa-solid; @extend .fa-square-rss; color: #f69537; }

@@ -29,11 +29,10 @@ from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
-BASE_URL = 'https://mastodon.social'
-
 
 class API:
     name = 'Mastodon API v1.0'
+    base_url = 'https://mastodon.social'
     limit_sec = 120
 
     def __init__(self, service: Service, verbose=0, force_overwrite=False):
@@ -44,7 +43,7 @@ class API:
             print('%s: %s' % (self.name, self.service))
 
     def get_base_url(self) -> str:
-        return self.service.url or BASE_URL
+        return self.service.url or self.base_url
 
     def get_authorize_url(self) -> str:
         return self.get_base_url() + '/oauth/authorize'

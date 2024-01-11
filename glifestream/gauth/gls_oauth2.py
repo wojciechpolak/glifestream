@@ -32,6 +32,7 @@ PHASE_1 = 1
 PHASE_2 = 2
 PHASE_3 = 3
 
+
 class OAuth2Client:
 
     def __init__(self, service, identifier=None, secret=None,
@@ -41,6 +42,10 @@ class OAuth2Client:
 
         try:
             self.db = models.OAuthClient.objects.get(service=service)
+            if not self.db.identifier and identifier:
+                self.db.identifier = identifier
+            if not self.db.secret and secret:
+                self.db.secret = secret
         except models.OAuthClient.DoesNotExist:
             self.db = models.OAuthClient(service=service)
             if identifier and secret:
@@ -68,6 +73,16 @@ class OAuth2Client:
                     'access_token': self.db.token,
                     'token_type': 'Bearer'
                 } if self.db.token else None)
+            self.consumer.headers['User-Agent'] = AGENT
+        elif self.db.token:
+            self.consumer = OAuth2Session(
+                client_id='None',
+                redirect_uri=self.callback_url,
+                scope=['read'],
+                token={
+                    'access_token': self.db.token,
+                    'token_type': 'Bearer'
+                })
             self.consumer.headers['User-Agent'] = AGENT
 
     def save(self):
