@@ -152,7 +152,7 @@ class API:
                     if t['type'] == 'image':
                         image_url = t['preview_url']
                         large_url = t['url']
-                        link = t['remote_url']
+                        link = t['remote_url'] or t['url']
                         if self.service.public:
                             image_url = media.save_image(image_url)
                         if 'meta' in t and 'small' in t['meta']:
