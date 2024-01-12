@@ -35,5 +35,8 @@ class API(mastodon.API):
 
 def filter_content(entry: Entry) -> str:
     if entry.reblog:
-        return _('%s reblogged') % entry.reblog_by + '\n\n' + entry.content
+        if entry.reblog_by:
+            return _('%s reblogged') % entry.reblog_by + '\n\n' + entry.content
+        else:
+            return _('Reblogged') + '\n\n' + entry.content
     return entry.content

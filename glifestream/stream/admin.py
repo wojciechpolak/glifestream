@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009, 2010, 2014, 2023 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2014, 2023, 2024 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -22,18 +22,26 @@ from django.utils.translation import gettext as _
 from glifestream.stream.models import Service, Entry, Media, Favorite, List
 
 
-def deactivate(modeladmin, request, queryset):
-    queryset.update(active=False)
-
-
-deactivate.short_description = _("Deactivate item")
-
-
 def activate(modeladmin, request, queryset):
     queryset.update(active=True)
 
 
-activate.short_description = _("Activate item")
+def deactivate(modeladmin, request, queryset):
+    queryset.update(active=False)
+
+
+def set_reblog(modeladmin, request, queryset):
+    queryset.update(reblog=True)
+
+
+def unset_reblog(modeladmin, request, queryset):
+    queryset.update(reblog=False)
+
+
+activate.short_description = _('Activate item')
+deactivate.short_description = _('Deactivate item')
+set_reblog.short_description = _('Set as reblogged')
+unset_reblog.short_description = _('Unset as reblogged')
 
 
 def truncate_title(self):
@@ -43,11 +51,28 @@ def truncate_title(self):
 
 
 class ServiceAdmin(admin.ModelAdmin):
-    list_display = ('name', 'api', 'url', 'last_modified', 'public',
-                    'active', 'home')
+    list_display = (
+        'name',
+        'api',
+        'url',
+        'last_modified',
+        'public',
+        'active',
+        'home',
+        'skip_reblogs',
+    )
     fieldsets = (
-        (None, {'fields': ('api', 'name', 'url', 'creds', 'display', 'public',
-                           'active', 'home')}),
+        (None, {'fields': (
+            'api',
+            'name',
+            'url',
+            'creds',
+            'display',
+            'public',
+            'active',
+            'home',
+            'skip_reblogs',
+        )}),
         (_('Additional, optional fields'),
          {'classes': ('collapse',), 'fields': ('link', 'cls'),
           }),
@@ -61,10 +86,16 @@ class ServiceAdmin(admin.ModelAdmin):
 
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display = (truncate_title, 'service', 'active', 'view_website_link')
+    list_display = (
+        truncate_title,
+        'service',
+        'reblog',
+        'active',
+        'view_website_link'
+    )
     list_filter = ('active', 'service',)
     search_fields = ['id', 'title', 'content']
-    actions = [deactivate, activate]
+    actions = [deactivate, activate, set_reblog, unset_reblog]
 
     def view_website_link(self, obj):
         website_url = reverse('entry', args=[obj.id])

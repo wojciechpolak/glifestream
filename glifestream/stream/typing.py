@@ -44,6 +44,7 @@ class Page(TypedDict, total=False):
     pshb_hubs: str
     public: bool
     pwa: str
+    reblogs: bool
     revision: str
     robots: str
     search: str

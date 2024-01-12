@@ -44,8 +44,8 @@ LOCALE_PATHS = (
 # SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-SESSION_COOKIE_NAME = 'glifestream_sid'
-SESSION_COOKIE_AGE = 2419200
+SESSION_COOKIE_NAME = 'gls-sid'
+SESSION_COOKIE_AGE = 30 * 86400  # 30 days
 
 # Caching, see https://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
 CACHES = {

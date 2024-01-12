@@ -18,6 +18,15 @@
 {% if authed %}
     <ul class="links">
       <li><a href="{% url 'favorites' %}" accesskey="3">{% trans "Favorite entries" %}</a></li>
+      <li>
+        <a href="#" id="toggle-reblogs">
+          {% if page.reblogs %}
+            {% trans "Hide reblogs" %}
+          {% else %}
+            {% trans "Show reblogs" %}
+          {% endif %}
+        </a>
+      </li>
     </ul>
 {% if lists %}
     <div class="lists">

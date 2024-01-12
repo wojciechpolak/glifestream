@@ -58,6 +58,8 @@ class Service (models.Model):
     home = models.BooleanField(_('Home visible'), default=True,
                                help_text=_('If unchecked, this stream will be still active, but hidden and thus '
                                            'visible only via custom lists.'))
+    skip_reblogs = models.BooleanField(_('Skip reblogs'), default=False,
+                                       help_text=_('Skip importing reblogged posts.'))
 
     class Meta:
         verbose_name = _('Service')

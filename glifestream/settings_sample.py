@@ -54,7 +54,7 @@ LOCALE_PATHS = (
     os.path.join(SITE_ROOT, '../locale'),
 )
 
-SESSION_COOKIE_NAME = 'glifestream_sid'
+SESSION_COOKIE_NAME = 'gls-sid'
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
 # Caching, see http://docs.djangoproject.com/en/dev/topics/cache/#topics-cache

@@ -68,6 +68,7 @@ def index(request, **args):
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
         'pshb_hubs': settings.PSHB_HUBS,
+        'reblogs': True,
     }
     authed = request.user.is_authenticated and request.user.is_staff
     friend = request.user.is_authenticated and not request.user.is_staff
@@ -185,6 +186,12 @@ def index(request, **args):
         else:
             page['subtitle'] = _('You are currently browsing entries from %s service only.') % (
                 '<b>' + escape(srvapi_name) + '</b>')
+
+    # Filter out re-blogged items
+    if authed and request.GET.get('reblogs',
+                                  request.COOKIES.get('gls-reblogs', '1')) == '0':
+        fs['reblog'] = False
+        page['reblogs'] = False
 
     # Filter entries after specified timestamp 'start'.
     after = False

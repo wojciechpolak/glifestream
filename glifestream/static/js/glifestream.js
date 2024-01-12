@@ -378,8 +378,17 @@
         }
     }
 
+    function toggle_reblogs() {
+        const cookie_name = 'gls-reblogs';
+        let val = read_cookie(cookie_name);
+        val = (!+val) ? '1' : '0';
+        write_cookie(cookie_name, val, 365, baseurl);
+        window.location.reload();
+        return false;
+    }
+
     function change_theme() {
-        const cookie_name = 'glifestream_theme';
+        const cookie_name = 'gls-theme';
         let cs = read_cookie(cookie_name);
         let idx = $.inArray(cs, settings.themes);
 
@@ -394,12 +403,7 @@
             idx = 0;
         }
         cs = settings.themes[idx];
-
-        const date = new Date();
-        date.setTime(date.getTime() + (365 * 86400000));
-        const expires = '; expires=' + date.toGMTString();
-        document.cookie = cookie_name + '=' + cs + expires +
-            '; path=' + baseurl;
+        write_cookie(cookie_name, cs, 365, baseurl);
         jump_to_top();
         window.location.reload();
         return false;
@@ -429,6 +433,14 @@
             }
         }
         return null;
+    }
+
+    function write_cookie(name, value, expire_days, path) {
+        const date = new Date();
+        date.setTime(date.getTime() + (expire_days * 86400000));
+        const expires = '; expires=' + date.toGMTString();
+        document.cookie = name + '=' + value + expires +
+            '; path=' + path;
     }
 
     function alter_html(ctx) {
@@ -953,6 +965,7 @@
             $('i', this).toggleClass('fa-chevron-up fa-chevron-down');
         });
 
+        $('#toggle-reblogs').click(toggle_reblogs);
         $('#change-theme').click(change_theme);
         $('div.lists select').change(function() {
             if (this.value !== '') {

@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2023 Wojciech Polak
+#  gLifestream Copyright (C) 2023, 2024 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -106,6 +106,10 @@ class API:
             if ent['reblog']:
                 reblog = True
                 entry = ent['reblog']
+            if reblog and self.service.skip_reblogs:
+                if self.verbose:
+                    print("Skipping reblogged ID: %s" % entry['url'])
+                continue
 
             guid = entry['url']
             if self.verbose:
