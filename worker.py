@@ -42,7 +42,7 @@ if hasattr(django, 'setup'):
 
 # pylint: disable=wrong-import-position
 from glifestream.apis import mail
-from glifestream.stream import media, pshb
+from glifestream.stream import media, websub
 from glifestream.stream.models import Service, Entry, Favorite
 from glifestream.utils.time import unixnow
 
@@ -65,7 +65,7 @@ def run():
     delete_old = False
     only_inactive = False
     thumbs = False
-    pshb_cmd = False
+    websub_cmd = False
     fs = {}
 
     try:
@@ -81,7 +81,7 @@ def run():
                                     'only-inactive',
                                     'thumbs-list-orphans',
                                     'thumbs-delete-orphans',
-                                    'pshb=',
+                                    'websub=',
                                     'email2post',
                                     'init-files-dirs'])
         for o, arg in opts:
@@ -107,8 +107,8 @@ def run():
                 thumbs = 'list-orphans'
             elif o == '--thumbs-delete-orphans':
                 thumbs = 'delete-orphans'
-            elif o == '--pshb':
-                pshb_cmd = arg
+            elif o == '--websub':
+                websub_cmd = arg
             elif o == '--email2post':
                 sys.exit(email2post())
             elif o == '--init-files-dirs':
@@ -127,7 +127,7 @@ def run():
       --only-inactive          Match only inactive entries (hidden)
       --thumbs-list-orphans    List orphaned thumbnails
       --thumbs-delete-orphans  Delete orphaned thumbnails
-      --pshb=ACTION            PubSubHubbub's actions: (un)subscribe, list
+      --websub=ACTION          WebSub's actions: (un)subscribe, list, renew, publish
       --email2post             Post things using e-mail (from stdin)
   """ % sys.argv[0])
         sys.exit(0)
@@ -137,10 +137,10 @@ def run():
             print('%4d "%s"  API=%s' % (service.id, service.name, service.api))
         sys.exit(0)
 
-    if pshb_cmd:
-        if pshb_cmd == 'subscribe' and 'id' in fs:
+    if websub_cmd:
+        if websub_cmd == 'subscribe' and 'id' in fs:
             service = Service.objects.get(id=fs['id'])
-            r = pshb.subscribe(service, verbose)
+            r = websub.subscribe(service, verbose)
             if r['rc'] == 1:
                 print('%s: %s' % (sys.argv[0], r['error']))
             elif r['rc'] == 2:
@@ -149,8 +149,8 @@ def run():
                 print('hub=%s: Accepted for verification.' % r['hub'])
             elif r['rc'] == 204:
                 print('hub=%s: Subscription verified.' % r['hub'])
-        elif pshb_cmd == 'unsubscribe' and 'id' in fs:
-            r = pshb.unsubscribe(fs['id'], verbose)
+        elif websub_cmd == 'unsubscribe' and 'id' in fs:
+            r = websub.unsubscribe(fs['id'], verbose)
             if r['rc'] == 1:
                 print('%s: No subscription found.' % sys.argv[0])
             elif r['rc'] == 202:
@@ -159,14 +159,14 @@ def run():
                 print('hub=%s: Unsubscribed.' % r['hub'])
             else:
                 print('hub=%s: %s.' % (r['hub'], r['rc']))
-        elif pshb_cmd == 'renew':
-            pshb.renew_subscriptions(force=force_check, verbose=verbose)
-        elif pshb_cmd == 'list':
-            pshb.list_subs()
-        elif pshb_cmd == 'publish':
-            pshb.publish(verbose=verbose)
+        elif websub_cmd == 'renew':
+            websub.renew_subscriptions(force=force_check, verbose=verbose)
+        elif websub_cmd == 'list':
+            websub.list_subs()
+        elif websub_cmd == 'publish':
+            websub.publish(verbose=verbose)
         else:
-            print('%s: Unknown "%s" action.' % (sys.argv[0], pshb_cmd))
+            print('%s: Unknown "%s" action.' % (sys.argv[0], websub_cmd))
             sys.exit(1)
         sys.exit(0)
 
@@ -286,7 +286,7 @@ def run():
         last2 = None
 
     if last2 and last1 != last2:
-        pshb.publish(verbose=verbose)
+        websub.publish(verbose=verbose)
 
 
 def email2post():

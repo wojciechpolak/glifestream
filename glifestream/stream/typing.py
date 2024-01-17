@@ -41,7 +41,6 @@ class Page(TypedDict, total=False):
     months12: Any
     nextpage: int
     prevpage: int
-    pshb_hubs: str
     public: bool
     pwa: str
     reblogs: bool
@@ -58,6 +57,7 @@ class Page(TypedDict, total=False):
     title: str
     updated: Any
     urlparams: str
+    websub_hubs: list[str] | tuple[str]
     version: str
 
 

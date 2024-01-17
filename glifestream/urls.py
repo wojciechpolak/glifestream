@@ -64,8 +64,8 @@ urlpatterns = [
     re_path(r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
         sv.index),
 
-    re_path(r'^pshb/(?P<id>[a-f0-9]{20})$',
-        sv.pshb_dispatcher, {}, name='pshb'),
+    re_path(r'^websub/(?P<id>[a-f0-9]{20})$',
+            sv.websub_dispatcher, {}, name='websub'),
 
     re_path(r'^login/?$', login, name='login'),
     re_path(r'^logout/?$', LogoutView.as_view(next_page='./'), name='logout'),

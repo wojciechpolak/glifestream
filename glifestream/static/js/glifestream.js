@@ -1193,13 +1193,13 @@
             form.submit();
             return false;
         });
-        $('#pshb-subs a').click(function() {
+        $('#websub-subs a').click(function() {
             if (!confirm(_('Are you sure?'))) {
                 return false;
             }
             show_spinner(this);
             const id = parse_id(this.id)[1];
-            const form = $('#pshb-form');
+            const form = $('#websub-form');
             $('select').attr('disabled', 'disabled');
             form.append(DCE('input', {
                 type: 'hidden',

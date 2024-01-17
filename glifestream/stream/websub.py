@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2010, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2015, 2024 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,6 +15,7 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import os
 import hmac
 import hashlib
 from urllib.parse import urlsplit
@@ -23,7 +24,7 @@ from django.conf import settings
 from django.urls import reverse
 from glifestream.utils import httpclient
 from glifestream.utils.time import now
-from glifestream.stream.models import Pshb
+from glifestream.stream.models import WebSub
 
 
 def subscribe(service, verbose=False):
@@ -41,7 +42,7 @@ def subscribe(service, verbose=False):
     api = mod_api(service, False, False)
 
     if not isinstance(api, webfeed_api):
-        return {'rc': 1, 'error': 'PSHB is not supported by this API.'}
+        return {'rc': 1, 'error': 'WebSub is not supported by this API.'}
 
     api.fetch_only = True
     api.run()
@@ -49,7 +50,7 @@ def subscribe(service, verbose=False):
         return {'rc': 1, 'error': api.fp.bozo_exception}
 
     hub = None
-    for link in api.fp.feed.links:
+    for link in api.fp.feed.get('links', ()):
         if link.rel == 'hub':
             hub = link.href
             break
@@ -63,15 +64,15 @@ def subscribe(service, verbose=False):
 
     save_db = False
     try:
-        db = Pshb.objects.get(hash=hash_sub, service=service)
-    except Pshb.DoesNotExist:
-        db = Pshb(hash=hash_sub, service=service, hub=hub, secret=secret)
+        db = WebSub.objects.get(hash=hash_sub, service=service)
+    except WebSub.DoesNotExist:
+        db = WebSub(hash=hash_sub, service=service, hub=hub, secret=secret)
         save_db = True
 
     topic = __get_absolute_url(reverse('index')) + '?format=atom'
-    callback = __get_absolute_url(reverse('pshb', args=[hash_sub]))
+    callback = __get_absolute_url(reverse('websub', args=[hash_sub]))
 
-    if settings.PSHB_HTTPS_CALLBACK:
+    if settings.WEBSUB_HTTPS_CALLBACK:
         callback = callback.replace('http://', 'https://')
 
     data = {'hub.mode': 'subscribe',
@@ -82,7 +83,7 @@ def subscribe(service, verbose=False):
         data['hub.secret'] = secret
 
     try:
-        r = httpclient.get(hub, data=data)
+        r = httpclient.post(hub, data=data)
         if verbose:
             print('Response code: %d' % r.status_code)
         if save_db:
@@ -102,14 +103,14 @@ def subscribe(service, verbose=False):
 
 def unsubscribe(id_sub, verbose=False):
     try:
-        db = Pshb.objects.get(id=id_sub)
-    except Pshb.DoesNotExist:
+        db = WebSub.objects.get(id=id_sub)
+    except WebSub.DoesNotExist:
         return {'rc': 1}
 
     topic = __get_absolute_url(reverse('index')) + '?format=atom'
-    callback = __get_absolute_url(reverse('pshb', args=[db.hash]))
+    callback = __get_absolute_url(reverse('websub', args=[db.hash]))
 
-    if settings.PSHB_HTTPS_CALLBACK:
+    if settings.WEBSUB_HTTPS_CALLBACK:
         callback = callback.replace('http://', 'https://')
 
     data = {'hub.mode': 'unsubscribe',
@@ -118,7 +119,7 @@ def unsubscribe(id_sub, verbose=False):
             'hub.verify': 'sync'}
 
     try:
-        r = httpclient.get(db.hub, data=data)
+        r = httpclient.post(db.hub, data=data)
         if verbose:
             print('Response code: %d' % r.status_code)
         return {'hub': db.hub, 'rc': r.status_code}
@@ -140,37 +141,37 @@ def verify(id_sub, req_get):
 
     if mode == 'subscribe':
         try:
-            db = Pshb.objects.get(hash=id_sub)
+            db = WebSub.objects.get(hash=id_sub)
             db.verified = True
             if lease_seconds:
                 db.expire = now() + timedelta(seconds=int(lease_seconds))
             db.save()
-        except Pshb.DoesNotExist:
+        except WebSub.DoesNotExist:
             return False
     elif mode == 'unsubscribe':
         try:
-            Pshb.objects.get(hash=id_sub).delete()
-        except Pshb.DoesNotExist:
+            WebSub.objects.get(hash=id_sub).delete()
+        except WebSub.DoesNotExist:
             return False
 
     return req_get.get('hub.challenge', '')
 
 
 def publish(hubs=None, verbose=False):
-    hubs = hubs or settings.PSHB_HUBS
+    hubs = hubs or settings.WEBSUB_HUBS
     url = __get_absolute_url(reverse('index')) + '?format=atom'
     if 'localhost' in url:
         return
     for hub in hubs:
-        hub = hub.replace('https://', 'http://')  # it's just a ping.
         data = {'hub.mode': 'publish', 'hub.url': url}
         try:
-            r = httpclient.get(hub, data=data, timeout=7)
+            r = httpclient.post(hub, data=data, timeout=7)
             if verbose:
                 if r.status_code == 204:
                     print('%s: Successfully pinged.' % hub)
                 else:
-                    print('%s: Pinged and got %d.' % (hub, r.status_code))
+                    print('%s: Pinged and got %d (URL: %s)' % (hub, r.status_code, url))
+                    print('Response content:\n', r.content)
         except (IOError, httpclient.HTTPError) as e:
             # pylint: disable=no-member
             if hasattr(e, 'status_code') and e.status_code == 204:
@@ -188,8 +189,8 @@ def accept_payload(id_sub, payload, meta=None):
     if meta is None:
         meta = {}
     try:
-        db = Pshb.objects.get(hash=id_sub)
-    except Pshb.DoesNotExist:
+        db = WebSub.objects.get(hash=id_sub)
+    except WebSub.DoesNotExist:
         return False
     if db.secret:
         s = hmac.new(str(db.secret), payload, hashlib.sha1).hexdigest()
@@ -211,7 +212,7 @@ def accept_payload(id_sub, payload, meta=None):
 
 
 def renew_subscriptions(force=False, verbose=False):
-    subscriptions = Pshb.objects.all().order_by('id')
+    subscriptions = WebSub.objects.all().order_by('id')
     for s in subscriptions:
         if s.expire:
             d = s.expire - timedelta(days=7)
@@ -220,7 +221,7 @@ def renew_subscriptions(force=False, verbose=False):
 
 
 def list_subs(raw=False):
-    subscriptions = Pshb.objects.all().order_by('id')
+    subscriptions = WebSub.objects.all().order_by('id')
     if raw:
         return subscriptions
     for s in subscriptions:
@@ -229,5 +230,11 @@ def list_subs(raw=False):
 
 
 def __get_absolute_url(path=''):
-    url = urlsplit(settings.BASE_URL)
+    if 'http' not in settings.BASE_URL:
+        host = os.getenv('VIRTUAL_HOST', '')
+        scheme = 'https://' if settings.WEBSUB_HTTPS_CALLBACK else 'http://'
+    else:
+        host = ''
+        scheme = ''
+    url = urlsplit('%s%s%s' % (scheme, host, settings.BASE_URL))
     return '%s://%s%s' % (url.scheme, url.netloc, path)

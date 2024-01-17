@@ -83,8 +83,8 @@ class Migration(migrations.Migration):
                 ('service', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stream.service', verbose_name='Service')),
             ],
             options={
-                'verbose_name': 'PSHB',
-                'verbose_name_plural': 'PSHB',
+                'verbose_name': 'WebSub',
+                'verbose_name_plural': 'WebSub',
                 'ordering': ('service',),
                 'unique_together': {('hash', 'service', 'hub')},
             },

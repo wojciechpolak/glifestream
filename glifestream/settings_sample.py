@@ -284,9 +284,9 @@ SEARCH_ENABLE = True
 SEARCH_ENGINE = 'db'  # db, sphinx
 SPHINX_INDEX_NAME = 'glifestream'
 
-# PubSubHubbub - Hubs to ping (use empty tuple () to disable)
-PSHB_HUBS = ('https://pubsubhubbub.appspot.com/',)
-PSHB_HTTPS_CALLBACK = True
+# WebSub - Hubs to ping (use empty tuple () to disable)
+WEBSUB_HUBS = ('https://pubsubhubbub.appspot.com/',)
+WEBSUB_HTTPS_CALLBACK = True
 
 # Email2Post settings
 EMAIL2POST_CHECK = {

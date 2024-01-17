@@ -30,7 +30,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.stream.models import Service, List
 from glifestream.gauth import gls_oauth, gls_oauth2
-from glifestream.stream import pshb as gls_pshb
+from glifestream.stream import websub as gls_websub
 from glifestream.apis import API_LIST
 from glifestream.utils import common
 
@@ -122,7 +122,7 @@ def lists(request, **args):
 
 
 @login_required
-def pshb(request, **args):
+def websub(request, **args):
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -135,14 +135,24 @@ def pshb(request, **args):
         'themes': settings.THEMES,
         'themes_more': len(settings.THEMES) > 1,
         'theme': common.get_theme(request),
-        'title': _('PubSubHubbub - Settings'),
-        'menu': 'pshb',
+        'title': _('WebSub - Settings'),
+        'menu': 'websub',
     }
-    excluded_apis = ('selfposts', 'fb', 'friendfeed', 'twitter', 'vimeo')
+    excluded_apis = (
+        'selfposts',
+        'fb',
+        'flickr',
+        'friendfeed',
+        'mastodon',
+        'pixelfed',
+        'twitter',
+        'vimeo',
+        'youtube',
+    )
 
     if request.POST.get('subscribe', False):
         service = Service.objects.get(id=request.POST['subscribe'])
-        r = gls_pshb.subscribe(service)
+        r = gls_websub.subscribe(service)
         if r['rc'] == 1:
             page['msg'] = r['error']
         elif r['rc'] == 2:
@@ -153,7 +163,7 @@ def pshb(request, **args):
             page['msg'] = _('Hub %s: Subscription verified.') % r['hub']
 
     elif request.POST.get('unsubscribe', False):
-        r = gls_pshb.unsubscribe(request.POST['unsubscribe'])
+        r = gls_websub.unsubscribe(request.POST['unsubscribe'])
         if r['rc'] == 1:
             page['msg'] = _('No subscription found.')
         elif r['rc'] == 202:
@@ -163,11 +173,11 @@ def pshb(request, **args):
         else:
             page['msg'] = 'Hub %s: %s.' % (r['hub'], r['rc'])
 
-    subs = gls_pshb.list_subs(raw=True)
+    subs = gls_websub.list_subs(raw=True)
     services = Service.objects.exclude(api__in=excluded_apis) \
         .exclude(id__in=subs.values('service__id')).order_by('name')
 
-    return render(request, 'pshb.html',
+    return render(request, 'websub.html',
                   {'page': page,
                    'authed': authed,
                    'is_secure': request.is_secure(),

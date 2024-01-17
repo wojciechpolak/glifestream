@@ -50,7 +50,7 @@ Features
 - Embedded multimedia views
 - Out of the box output formats: HTML5, Atom, JSON
 - Search functionality
-- PubSubHubbub support (publisher and subscriber)
+- WebSub support (publisher and subscriber)
 - OAuth 1.0 and 2.0 support
 - Write posts by web or e-mail (including media attachments)
 - Keyboard shortcuts for navigation

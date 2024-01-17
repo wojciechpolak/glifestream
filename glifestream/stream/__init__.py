@@ -17,5 +17,5 @@
 
 __all__ = (
     'media',
-    'pshb',
+    'websub',
 )

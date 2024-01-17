@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009, 2010, 2012, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2010, 2012, 2015, 2024 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -48,6 +48,16 @@ def get(url: str, data=None, auth=None, timeout=45) -> Response:
     try:
         return requests.get(url, params=data, headers=HEADERS, auth=auth,
                             timeout=timeout)
+    except requests.exceptions.RequestException as e:
+        raise HTTPError(*e.args)
+
+
+def post(url: str, data=None, auth=None, timeout=45) -> Response:
+    if not url.startswith('http'):
+        url = 'http://' + url
+    try:
+        return requests.post(url, data=data, headers=HEADERS, auth=auth,
+                             timeout=timeout)
     except requests.exceptions.RequestException as e:
         raise HTTPError(*e.args)
 

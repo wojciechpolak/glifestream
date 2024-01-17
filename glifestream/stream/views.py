@@ -41,7 +41,7 @@ from glifestream.stream.templatetags.gls_filters import \
     (gls_content, gls_slugify, fix_ampersands)
 from glifestream.stream.models import Service, Entry, Favorite, List
 from glifestream.stream.typing import Page
-from glifestream.stream import media, pshb
+from glifestream.stream import media, websub
 from glifestream.utils import common
 from glifestream.utils.time import pn_month_start
 from glifestream.apis import API_LIST, selfposts
@@ -67,7 +67,7 @@ def index(request, **args):
         'taguri': settings.FEED_TAGURI,
         'icon': settings.FEED_ICON,
         'maps_engine': settings.MAPS_ENGINE,
-        'pshb_hubs': settings.PSHB_HUBS,
+        'websub_hubs': settings.WEBSUB_HUBS,
         'reblogs': True,
     }
     authed = request.user.is_authenticated and request.user.is_staff
@@ -460,13 +460,13 @@ def index(request, **args):
 
 
 @never_cache
-def pshb_dispatcher(request, **args):
+def websub_dispatcher(request, **args):
     if request.method == 'GET':
-        res = pshb.verify(args['id'], request.GET)
+        res = websub.verify(args['id'], request.GET)
         if res:
             return HttpResponse(res)
     elif request.method == 'POST':
-        pshb.accept_payload(args['id'], request.body, request.META)
+        websub.accept_payload(args['id'], request.body, request.META)
         return HttpResponse()
     raise Http404
 
@@ -569,7 +569,7 @@ def api(request, **args):
              'user': request.user})
         if entry:
             if not entry.draft:
-                pshb.publish()
+                websub.publish()
             entry.friends_only = False
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return render(request, 'stream-pure.html',
@@ -586,7 +586,7 @@ def api(request, **args):
                     entry, {'as_me': request.POST.get('as_me', False),
                             'user': request.user})
                 if entry:
-                    pshb.publish()
+                    websub.publish()
                     return render(request, 'stream-pure.html',
                                   {'entries': (entry,),
                                    'authed': authed})

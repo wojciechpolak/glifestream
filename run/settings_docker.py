@@ -257,8 +257,8 @@ SEARCH_ENABLE = True
 SEARCH_ENGINE = 'db'  # db, sphinx
 SPHINX_INDEX_NAME = 'glifestream'
 
-PSHB_HUBS = (BASE_URL,)
-PSHB_HTTPS_CALLBACK = False
+WEBSUB_HUBS = ('https://pubsubhubbub.appspot.com/',)
+WEBSUB_HTTPS_CALLBACK = False
 
 EMAIL2POST_CHECK = {
     'From': 'John Smith',

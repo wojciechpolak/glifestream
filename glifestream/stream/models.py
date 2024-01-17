@@ -176,7 +176,7 @@ class List (models.Model):
         return '%s: %s' % (self.user, self.name)
 
 
-class Pshb (models.Model):
+class WebSub (models.Model):
     hash = models.CharField('ID', max_length=20, unique=True)
     service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name=_('Service'),
                                 null=False, blank=False)
@@ -186,7 +186,7 @@ class Pshb (models.Model):
     verified = models.BooleanField('Verified', default=False)
 
     class Meta:
-        verbose_name = 'PSHB'
-        verbose_name_plural = 'PSHB'
+        verbose_name = 'WebSub'
+        verbose_name_plural = 'WebSub'
         ordering = ('service',)
         unique_together = (('hash', 'service', 'hub'),)

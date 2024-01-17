@@ -494,8 +494,8 @@ msgstr "Skasuj dostęp"
 msgid "Next step"
 msgstr "Następny krok"
 
-msgid "PubSubHubbub subscriptions"
-msgstr "Subskrypcje PubSubHubbub"
+msgid "WebSub subscriptions"
+msgstr "Subskrypcje WebSub"
 
 msgid "Verified"
 msgstr "Zweryfikowano"
@@ -533,8 +533,8 @@ msgstr "lub"
 msgid "Export OPML"
 msgstr "Wyeksportuj OPML"
 
-msgid "PubSubHub"
-msgstr "PubSubHub"
+msgid "WebSub"
+msgstr "WebSub"
 
 msgid "Tools"
 msgstr "Narzędzia"
@@ -548,8 +548,8 @@ msgstr "Serwisy - Ustawienia"
 msgid "Lists - Settings"
 msgstr "Listy - Ustawienia"
 
-msgid "PubSubHubbub - Settings"
-msgstr "PubSubHubbub - Ustawienia"
+msgid "WebSub - Settings"
+msgstr "WebSub - Ustawienia"
 
 msgid "Hub not found."
 msgstr "Nie odnaleziono huba."
