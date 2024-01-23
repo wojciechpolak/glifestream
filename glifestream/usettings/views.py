@@ -145,6 +145,7 @@ def websub(request, **args):
         'friendfeed',
         'mastodon',
         'pixelfed',
+        'pocket',
         'twitter',
         'vimeo',
         'youtube',
@@ -496,7 +497,9 @@ def api(request, **args):
             if not s['name']:
                 miss['name'] = True
                 method = 'get'
-            if (s['api'] != 'selfposts' and s['api'] != 'webfeed') and not s['user_id'] \
+            if (s['api'] != 'selfposts' and
+                s['api'] != 'pocket' and
+                s['api'] != 'webfeed') and not s['user_id'] \
                and request.POST.get('timeline', 'user') == 'user':
                 miss['user_id'] = True
                 method = 'get'
@@ -576,6 +579,7 @@ def api(request, **args):
         # Setup fields
         s['fields'] = [
             {'type': 'text', 'name': 'name',
+             'placeholder': s['api'].capitalize(),
              'value': s['name'], 'label': _('Short name'),
              'miss': miss.get('name', False)},
             {'type': 'text', 'name': 'cls',
@@ -601,12 +605,17 @@ def api(request, **args):
                                 'value': s['user_id'], 'label': _('User ID'),
                                 'deps': {'timeline': 'user'}})
 
+        elif s['api'] in ('pocket',):
+            s['fields'].append({'type': 'text', 'name': 'url',
+                                'value': s['url'], 'label': _('Tag name'),
+                                'hint': _('Optional tag name.')})
+
         elif s['api'] != 'selfposts':
             s['fields'].append({'type': 'text', 'name': 'url',
                                 'value': s['url'], 'label': _('ID/Username'),
                                 'miss': miss.get('url', False)})
 
-        if s['api'] in ('webfeed', 'friendfeed', 'mastodon', 'pixelfed', 'twitter'):
+        if s['api'] in ('webfeed', 'friendfeed', 'mastodon', 'pixelfed', 'pocket', 'twitter'):
             basic_user = ''
             if s['creds'] == 'oauth':
                 v = 'oauth'
@@ -643,7 +652,7 @@ def api(request, **args):
                                 'value': '', 'label': _('Basic password'),
                                 'deps': {'auth': 'basic'}})
 
-        if s['api'] in ('webfeed', 'flickr', 'youtube', 'vimeo'):
+        if s['api'] in ('webfeed', 'flickr', 'pocket', 'youtube', 'vimeo'):
             s['fields'].append({'type': 'select', 'name': 'display',
                                 'options': (('both', _('Title and Contents')),
                                             ('content', _('Contents only')),

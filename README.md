@@ -32,6 +32,7 @@ gLifestream supports the following services by default:
 - Mastodon
 - Flickr
 - PixelFed
+- Pocket
 - Twitter
 - Vimeo
 - YouTube

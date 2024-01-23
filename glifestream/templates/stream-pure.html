@@ -45,7 +45,7 @@
       {% endif %}
       {% if not entry.friends_only %}<a href="#" id="shareit-{{ entry.id }}" class="shareit{% if authed %} reshareit{% endif %}" title="{% trans "Share or bookmark this entry" %}"><span>{% trans "Share" %}</span></a>{% endif %}
       <span class="entry-published">
-	<a href="{{ entry.gls_link }}" rel="bookmark">
+	<a href="{{ entry.gls_link }}" class="bookmark" rel="bookmark">
 	  <time class="published" datetime="{{ entry.date_published|gls_hdate }}">{{ entry.date_published|gls_date }}</time>
 	</a>
 	{% if page.author_uri and entry.service.public %}<span class="vcard">{% trans "by" %} <a href="{{ page.author_uri }}" class="url fn" rel="author">{{ page.author_name }}</a></span>{% endif %}

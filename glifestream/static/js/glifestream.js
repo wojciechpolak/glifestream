@@ -1370,6 +1370,7 @@
                         value: f.value,
                         size: 32,
                         maxlength: 80,
+                        placeholder: f.placeholder || '',
                         autocomplete: 'off'
                     });
                 }
