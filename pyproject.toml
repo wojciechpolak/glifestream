@@ -6,8 +6,8 @@ authors = ["WAP"]
 
 [tool.poetry.dependencies]
 beautifulsoup4 = "4.11.1"
-Django = "^4.2.6"
-django-pipeline = "^2.0.9"
+Django = "^5.0.2"
+django-pipeline = "^3.0.0"
 feedparser = "^6.0"
 libsasscompiler = "0.1.8"
 Markdown = "^2.6"
@@ -23,7 +23,7 @@ django-stubs = {extras = ["compatible-mypy"], version = "^4.2.4"}
 mypy = "1.5.1"
 pylint = "3.0.1"
 pytest = "7.1.2"
-pytest-django = "^4.5.2"
+pytest-django = "^4.8.0"
 types-beautifulsoup4 = {extras = ["compatible-mypy"], version = "^4.12.0.6"}
 types-markdown = {extras = ["compatible-mypy"], version = "^3.5.0.0"}
 types-oauthlib = {extras = ["compatible-mypy"], version = "^3.2.0.10"}
