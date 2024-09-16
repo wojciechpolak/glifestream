@@ -1,5 +1,5 @@
 gLifestream -- INSTALL
-Copyright (C) 2009-2023 Wojciech Polak
+Copyright (C) 2009-2024 Wojciech Polak
 
 gLifestream requirements
 ========================
@@ -12,7 +12,7 @@ Install all needed dependencies using [Poetry](https://python-poetry.org/) or PI
 
 ```shell
 $ poetry install
-or
+# or
 $ pip install -r requirements.txt
 ```
 Installation instructions
@@ -53,7 +53,7 @@ Docker deployment
 -----------------
 
 ```shell
-[adjust files in the `run` folder]
+# [adjust files in the `run` folder]
 docker-compose up
 docker exec -it glifestream-app-1 python manage.py createsuperuser
 ```
