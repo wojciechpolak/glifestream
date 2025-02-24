@@ -1,4 +1,4 @@
-ARG python=python:3.11-slim-bookworm
+ARG python=python:3.12-slim-bookworm
 
 FROM ${python} AS gls-builder-python
 RUN apt update -y
@@ -34,7 +34,7 @@ COPY worker.py .
 RUN usermod -a -G users www-data
 RUN chgrp -R users /app/glifestream/static && chmod -R g+w /app/glifestream/static
 RUN python manage.py compilemessages
-ENV PYTHONPATH "${PYTHONPATH}:/app"
+ENV PYTHONPATH="${PYTHONPATH}:/app"
 EXPOSE 80
 COPY conf/docker/etc/supervisord.conf /etc/supervisord.conf
 

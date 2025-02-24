@@ -1722,7 +1722,7 @@
             let obj = opts.obj || undefined;
 
             if (!type) {
-                if (src.match(/(\.jpg$|\.jpeg$|\.webp$|\.avif$|\.heif$|\.png$|\.gif$)/i)) {
+                if (src.match(/(\.jpg$|\.jpeg$|@jpeg$|\.webp$|\.avif$|\.heif$|\.png$|\.gif$)/i)) {
                     type = 'image';
                 }
                 else {

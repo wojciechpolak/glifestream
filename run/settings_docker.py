@@ -125,7 +125,11 @@ MEDIA_URL = os.getenv('VIRTUAL_PATH', '/') + 'media/'
 STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
 STATIC_URL = os.getenv('VIRTUAL_PATH', '/') + 'static/'
 
-STATICFILES_STORAGE = 'pipeline.storage.PipelineManifestStorage'
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'pipeline.storage.PipelineManifestStorage',
+    }
+}
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',

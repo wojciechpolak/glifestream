@@ -140,6 +140,7 @@ def websub(request, **args):
     }
     excluded_apis = (
         'selfposts',
+        'atproto',
         'fb',
         'flickr',
         'friendfeed',
@@ -592,7 +593,7 @@ def api(request, **args):
                                 'value': s['url'], 'label': _('URL'),
                                 'miss': miss.get('url', False)})
 
-        elif s['api'] in ('fb', 'friendfeed', 'mastodon', 'pixelfed', 'twitter'):
+        elif s['api'] in ('atproto', 'fb', 'friendfeed', 'mastodon', 'pixelfed', 'twitter'):
             v = 'user' if s['user_id'] else 'home'
             s['fields'].append({'type': 'select', 'name': 'timeline',
                                 'options': (('user', _('User timeline')),
@@ -615,7 +616,7 @@ def api(request, **args):
                                 'value': s['url'], 'label': _('ID/Username'),
                                 'miss': miss.get('url', False)})
 
-        if s['api'] in ('webfeed', 'friendfeed', 'mastodon', 'pixelfed', 'pocket', 'twitter'):
+        if s['api'] in ('webfeed', 'atproto', 'friendfeed', 'mastodon', 'pixelfed', 'pocket', 'twitter'):
             basic_user = ''
             if s['creds'] == 'oauth':
                 v = 'oauth'

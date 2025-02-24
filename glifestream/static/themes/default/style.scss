@@ -1071,6 +1071,7 @@ ul.files {
 }
 
 span.selfposts { @extend .fa-solid; @extend .fa-house; color: forestgreen; }
+span.atproto { @extend .fa-brands; @extend .fa-bluesky; color: #0085ff; }
 span.fb { @extend .fa-brands; @extend .fa-square-facebook; color: #4267b2; }
 span.flickr { @extend .fa-brands; @extend .fa-flickr; color: #ff0084; }
 span.friendfeed { @extend .fa-brands; @extend .fa-square-pied-piper; color: forestgreen; }

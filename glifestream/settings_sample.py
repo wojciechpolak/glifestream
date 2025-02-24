@@ -151,7 +151,11 @@ STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
 # Examples: "http://foo.com/media/", "/media/".
 STATIC_URL = '/static/'
 
-STATICFILES_STORAGE = 'pipeline.storage.PipelineManifestStorage'
+STORAGES = {
+    'staticfiles': {
+        'BACKEND': 'pipeline.storage.PipelineManifestStorage',
+    }
+}
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',

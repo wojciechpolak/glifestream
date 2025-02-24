@@ -30,6 +30,7 @@ gLifestream supports the following services by default:
 
 - Any RSS/Atom feed
 - Mastodon
+- Bluesky
 - Flickr
 - PixelFed
 - Pocket

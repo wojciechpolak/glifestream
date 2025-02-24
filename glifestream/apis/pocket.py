@@ -104,6 +104,8 @@ class API:
             guid = ent['item_id']
             if self.verbose:
                 print('ID: %s' % guid)
+            if ent['status'] == '2':  # deleted
+                continue
 
             t = datetime.datetime.utcfromtimestamp(int(ent['time_added']))
             t = t.replace(tzinfo=datetime.timezone.utc)

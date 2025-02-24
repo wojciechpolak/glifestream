@@ -16,6 +16,7 @@
 """
 
 __all__ = (
+    'atproto',
     'flickr',
     'friendfeed',
     'mail',
@@ -33,6 +34,7 @@ API_LIST = (
     ('selfposts', 'Self Posts'),
     ('webfeed', 'Webfeed'),
     ('mastodon', 'Mastodon'),
+    ('atproto', 'AT Protocol'),
     ('pixelfed', 'PixelFed'),
     ('pocket', 'Pocket'),
     ('flickr', 'Flickr'),
