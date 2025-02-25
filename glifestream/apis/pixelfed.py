@@ -17,20 +17,13 @@
 
 from django.utils.translation import gettext as _
 from glifestream.stream.models import Entry, Service
-from . import mastodon
+from .mastodon import MastodonService
 
 
-class API(mastodon.API):
+class PixelFedService(MastodonService):
     name = 'PixelFed API v1.0'
     base_url = 'https://pixelfed.social'
     limit_sec = 120
-
-    def __init__(self, service: Service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
 
 
 def filter_content(entry: Entry) -> str:

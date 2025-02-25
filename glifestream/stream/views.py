@@ -557,7 +557,7 @@ def api(request, **args):
             if img:
                 images.append(img)
         source = request.POST.get('from', '')
-        entry = selfposts.API(False).share(
+        entry = selfposts.SelfpostsService(Service()).share(
             {'content': request.POST.get('content', ''),
              'sid': request.POST.get('sid', None),
              'draft': request.POST.get('draft', False),
@@ -582,7 +582,7 @@ def api(request, **args):
         try:
             entry = Entry.objects.get(id=int(entry))
             if entry:
-                entry = selfposts.API(False).reshare(
+                entry = selfposts.SelfpostsService(Service()).reshare(
                     entry, {'as_me': request.POST.get('as_me', False),
                             'user': request.user})
                 if entry:

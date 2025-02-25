@@ -17,7 +17,10 @@
 
 from django.conf import settings
 from django.utils.translation import gettext as _
+
+from glifestream.apis.base import BaseService
 from glifestream.gauth import models
+from glifestream.stream.models import Service
 
 try:
     from oauthlib.oauth2 import BackendApplicationClient
@@ -35,7 +38,7 @@ PHASE_3 = 3
 
 class OAuth2Client:
 
-    def __init__(self, service, identifier=None, secret=None,
+    def __init__(self, service: Service, api: BaseService, identifier=None, secret=None,
                  callback_url=None):
         if not OAuth2Session:
             raise Exception('requests-oauthlib is required.')
@@ -51,13 +54,6 @@ class OAuth2Client:
             if identifier and secret:
                 self.db.identifier = identifier
                 self.db.secret = secret
-        try:
-            mod = __import__('glifestream.apis.%s' % self.db.service.api,
-                             {}, {}, ['API'])
-            mod_api = getattr(mod, 'API')
-            api = mod_api(service, False, False)
-        except ImportError:
-            raise Exception('Unable to load %s API.' % self.db.service.api)
 
         self.callback_url = callback_url
         self.base_url = api.get_base_url()

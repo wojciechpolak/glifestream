@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009, 2010 Wojciech Polak
+#  gLifestream Copyright (C) 2025 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -15,15 +15,18 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from glifestream.apis.base import BaseService
+from glifestream.apis import *
 
-
-class FriendFeedService(BaseService):
-    name = 'FriendFeed API v2 (defunct)'
-    limit_sec = 180
-
-    def get_urls(self):
-        return ()
-
-    def run(self):
-        pass
+API_MODULES = {
+    'atproto': atproto,
+    'flickr': flickr,
+    'friendfeed': friendfeed,
+    'mastodon': mastodon,
+    'pixelfed': pixelfed,
+    'pocket': pocket,
+    'selfposts': selfposts,
+    'twitter': twitter,
+    'vimeo': vimeo,
+    'webfeed': webfeed,
+    'youtube': youtube,
+}

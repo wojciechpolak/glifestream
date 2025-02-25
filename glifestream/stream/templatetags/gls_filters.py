@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2009, 2011, 2015 Wojciech Polak
+#  gLifestream Copyright (C) 2009, 2011, 2015, 2025 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -27,10 +27,12 @@ from django.utils.translation import ngettext
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
 from django import template
+
+from glifestream.apis.modules import API_MODULES
 from glifestream.stream import media
+from glifestream.stream.models import Entry
 from glifestream.utils.slugify import slugify
 from glifestream.utils.html import urlize as _urlize
-from glifestream.apis import *  # pylint: disable=wildcard-import,unused-wildcard-import
 
 register = template.Library()
 
@@ -60,7 +62,7 @@ def gls_media(s):
 
 
 @register.filter
-def gls_link(_, entry):
+def gls_link(_, entry: Entry):
     if not entry.service.public:
         if entry.author_name:
             return '?class=%s&author=%s' % (entry.service.cls,
@@ -71,11 +73,11 @@ def gls_link(_, entry):
 
 
 @register.filter
-def gls_title(_, entry):
+def gls_title(_, entry: Entry):
     title = entry.title
     try:
-        mod = eval(entry.service.api)
-        if hasattr(mod, 'filter_title'):
+        mod = API_MODULES.get(entry.service.api)
+        if mod and hasattr(mod, 'filter_title'):
             title = mod.filter_title(entry)
     except Exception:
         pass
@@ -87,16 +89,13 @@ def gls_title(_, entry):
 
 
 @register.filter
-def gls_content(_, entry):
+def gls_content(_, entry: Entry):
     if entry.friends_only:
         return mark_safe('<div class="friends-only-entry">' \
                          'The content of this entry is available only to my friends.</div>');
-        # return mark_safe('<div class="friends-only-entry"><p>' +
-        #                  _('The content of this entry is available only to my friends.') +
-        #                  '</p></div>')
     try:
-        mod = eval(entry.service.api)
-        if hasattr(mod, 'filter_content'):
+        mod = API_MODULES.get(entry.service.api)
+        if mod and hasattr(mod, 'filter_content'):
             s = mod.filter_content(entry)
             if entry.geolat and entry.geolng:
                 s += '<div class="geo"><a href="#" class="show-map"><span class="latitude">%.10f</span> ' \
@@ -109,14 +108,14 @@ def gls_content(_, entry):
 
 
 @register.filter
-def gls_mediarss(_, entry):
+def gls_mediarss(_, entry: Entry):
     if entry.friends_only:
         return ''
     return mark_safe(media.mrss_gen_xml(entry))
 
 
 @register.filter
-def gls_reply_url(_, entry):
+def gls_reply_url(_, entry: Entry):
     if entry.service.api == 'twitter':
         u = entry.link.split('/')
         return 'https://twitter.com/?status=@%s%%20&in_reply_to_status_id=%s&in_reply_to=%s' % (u[3], u[5], u[3])

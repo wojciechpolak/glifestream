@@ -28,6 +28,8 @@ from django.http import HttpResponseRedirect
 from django.forms import ModelForm
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
+
+from glifestream.apis.factory import ServiceFactory
 from glifestream.stream.models import Service, List
 from glifestream.gauth import gls_oauth, gls_oauth2
 from glifestream.stream import websub as gls_websub
@@ -213,6 +215,7 @@ def oauth(request, **args):
 
     service = Service.objects.get(id=id_service)
     c = gls_oauth.OAuth1Client(service=service,
+                               api=ServiceFactory.create_service(service),
                                identifier=request.POST.get('identifier'),
                                secret=request.POST.get('secret'),
                                callback_url=callback_url)
@@ -299,6 +302,7 @@ def oauth2(request, **args):
     service = Service.objects.get(id=id_service)
     c = gls_oauth2.OAuth2Client(
         service=service,
+        api=ServiceFactory.create_service(service),
         identifier=request.POST.get('identifier'),
         secret=request.POST.get('secret'),
         callback_url=redirect_uri)
@@ -391,16 +395,13 @@ def opml(request, **args):
 
     elif cmd == 'export':
         excluded_apis = ('selfposts', 'fb')
-        services = Service.objects.exclude(api__in=excluded_apis) \
+        services: list[Service] = Service.objects.exclude(api__in=excluded_apis) \
             .order_by('name')
 
         srvs = []
         for service in services:
             try:
-                mod = __import__('glifestream.apis.%s' % service.api,
-                                 {}, {}, ['API'])
-                mod_api = getattr(mod, 'API')
-                service_instance = mod_api(service)
+                service_instance = ServiceFactory.create_service(service)
                 srvs.extend([{'name': service.name, 'url': u}
                              for u in service_instance.get_urls()])
             except Exception:
@@ -689,10 +690,7 @@ def api(request, **args):
     elif cmd == 'import' and id_service:
         try:
             service = Service.objects.get(id=id_service)
-            mod = __import__('glifestream.apis.%s' %
-                             service.api, {}, {}, ['API'])
-            mod_api = getattr(mod, 'API')
-            service_instance = mod_api(service, False, False)
+            service_instance = ServiceFactory.create_service(service)
             service_instance.run()
         except Exception:
             pass

@@ -1,5 +1,5 @@
 """
-#  gLifestream Copyright (C) 2010, 2015, 2024 Wojciech Polak
+#  gLifestream Copyright (C) 2010, 2015, 2024, 2025 Wojciech Polak
 #
 #  This program is free software; you can redistribute it and/or modify it
 #  under the terms of the GNU General Public License as published by the
@@ -22,26 +22,17 @@ from urllib.parse import urlsplit
 from datetime import timedelta
 from django.conf import settings
 from django.urls import reverse
+
+from glifestream.apis.factory import ServiceFactory
+from glifestream.apis.webfeed import WebfeedService
 from glifestream.utils import httpclient
 from glifestream.utils.time import now
-from glifestream.stream.models import WebSub
+from glifestream.stream.models import WebSub, Service
 
 
-def subscribe(service, verbose=False):
-    try:
-        webfeed = __import__('glifestream.apis.webfeed', {}, {}, ['API'])
-    except ImportError:
-        return {'rc': 1, 'error': 'ImportError apis.webfeed'}
-    webfeed_api = getattr(webfeed, 'API')
-
-    try:
-        mod = __import__('glifestream.apis.%s' % service.api, {}, {}, ['API'])
-    except ImportError:
-        return {'rc': 1, 'error': 'ImportError apis.%s' % service.api}
-    mod_api = getattr(mod, 'API')
-    api = mod_api(service, False, False)
-
-    if not isinstance(api, webfeed_api):
+def subscribe(service: Service, verbose=False):
+    api = ServiceFactory.create_service(service)
+    if not isinstance(api, WebfeedService):
         return {'rc': 1, 'error': 'WebSub is not supported by this API.'}
 
     api.fetch_only = True
@@ -199,13 +190,7 @@ def accept_payload(id_sub, payload, meta=None):
             signature = signature[5:]
         if s != signature:
             return False  # signature mismatch
-    try:
-        mod = __import__('glifestream.apis.%s' %
-                         db.service.api, {}, {}, ['API'])
-    except ImportError:
-        return False
-    mod_api = getattr(mod, 'API')
-    api = mod_api(db.service, False, False)
+    api = ServiceFactory.create_service(db.service)
     api.payload = payload
     api.run()
     return True

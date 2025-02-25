@@ -26,11 +26,14 @@ from glifestream.apis import selfposts
 from glifestream.stream.models import Service
 
 
-class API:
+class MailService:
     name = 'Email API'
 
-    def __init__(self):
-        pass
+    def __init__(self, verbose: int = 0, force_overwrite: bool = False):
+        self.verbose = verbose
+        self.force_overwrite = force_overwrite
+        if self.verbose:
+            print('%s' % self.name)
 
     def get_urls(self):
         return ()
@@ -109,5 +112,5 @@ class API:
             args['files'] = MultiValueDict()
             args['files'].setlist('docs', files)
 
-        selfposts.API(None).share(args)
+        selfposts.SelfpostsService(Service()).share(args)
         return 0  # EX_OK

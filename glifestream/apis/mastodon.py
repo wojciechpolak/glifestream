@@ -21,6 +21,8 @@ import datetime
 from django.utils import timezone
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
+
+from glifestream.apis.base import BaseService
 from glifestream.filters import expand, truncate
 from glifestream.gauth import gls_oauth2
 from glifestream.utils import httpclient
@@ -30,17 +32,10 @@ from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
 
-class API:
+class MastodonService(BaseService):
     name = 'Mastodon API v1.0'
     base_url = 'https://mastodon.social'
     limit_sec = 120
-
-    def __init__(self, service: Service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
 
     def get_base_url(self) -> str:
         return self.service.url or self.base_url
@@ -83,7 +78,7 @@ class API:
 
     def fetch_oauth2(self, url) -> None:
         try:
-            oauth = gls_oauth2.OAuth2Client(self.service)
+            oauth = gls_oauth2.OAuth2Client(service=self.service, api=self)
             r = oauth.consumer.get(url)
             if r.status_code == 200:
                 self.json = r.json()

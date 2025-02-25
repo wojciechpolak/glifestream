@@ -42,6 +42,7 @@ if hasattr(django, 'setup'):
 
 # pylint: disable=wrong-import-position
 from glifestream.apis import mail
+from glifestream.apis.factory import ServiceFactory
 from glifestream.stream import media, websub
 from glifestream.stream.models import Service, Entry, Favorite
 from glifestream.utils.time import unixnow
@@ -256,20 +257,12 @@ def run():
         pool = None
 
     for service in Service.objects.filter(**fs):
-        try:
-            mod = __import__('glifestream.apis.%s' % service.api,
-                             {}, {}, ['API'])
-        except ImportError:
-            continue
-        mod_api = getattr(mod, 'API')
-
-        if service.last_checked and hasattr(mod_api, 'limit_sec'):
+        api = ServiceFactory.create_service(service, verbose, force_overwrite)
+        if service.last_checked and api.limit_sec:
             if not force_check:
                 d = timezone.now() - service.last_checked
-                if d.seconds < mod_api.limit_sec:
+                if d.seconds < api.limit_sec:
                     continue
-
-        api = mod_api(service, verbose, force_overwrite)
         if pool:
             pool.put(WorkerJob(api.run))
         else:
@@ -290,7 +283,7 @@ def run():
 
 
 def email2post():
-    api = mail.API()
+    api = mail.MailService()
     return api.share(sys.stdin)
 
 
@@ -324,7 +317,7 @@ and all have write permissions by your webserver.
             file = os.path.join(template_dir, i)
             if not os.path.isfile(file):
                 print("Creating empty file '%s'" % file)
-                open(file, 'w').close()
+                open(file, 'w', encoding='utf-8').close()
     except Exception as exc:
         print(exc)
         return 1

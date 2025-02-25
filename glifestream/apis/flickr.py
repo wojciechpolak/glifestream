@@ -17,13 +17,14 @@
 
 from itertools import groupby
 from django.utils.translation import gettext as _
+
+from glifestream.apis.webfeed import WebfeedService
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry
 from glifestream.stream import media
-from glifestream.apis import webfeed
 
 
-class API (webfeed.API):
+class FlickrService(WebfeedService):
     name = 'Flickr API'
     limit_sec = 600
 

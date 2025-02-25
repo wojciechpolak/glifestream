@@ -20,6 +20,8 @@ import traceback
 import datetime
 from django.utils import timezone
 from django.utils.html import strip_tags
+
+from glifestream.apis.base import BaseService
 from glifestream.filters import expand, truncate
 from glifestream.gauth import gls_oauth2
 from glifestream.utils.html import strip_entities
@@ -28,7 +30,7 @@ from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
 
-class API:
+class PocketService(BaseService):
     name = 'Pocket API v3.0'
     base_url = 'https://getpocket.com'
     limit_sec = 120
@@ -36,15 +38,11 @@ class API:
     tag = None
 
     def __init__(self, service: Service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
+        super().__init__(service, verbose, force_overwrite)
         if not self.service.last_checked:
             self.count = None
         if self.service.url:
             self.tag = self.service.url
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
 
     def get_base_url(self) -> str:
         return self.base_url
@@ -70,7 +68,7 @@ class API:
 
     def fetch_oauth2(self, url) -> None:
         try:
-            oauth = gls_oauth2.OAuth2Client(self.service)
+            oauth = gls_oauth2.OAuth2Client(service=self.service, api=self)
             payload = {
                 'consumer_key': oauth.consumer.client_id,
                 'access_token': oauth.consumer.token['access_token'],

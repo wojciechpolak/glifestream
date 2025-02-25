@@ -17,7 +17,10 @@
 
 from django.conf import settings
 from django.utils.translation import gettext as _
+
+from glifestream.apis.base import BaseService
 from glifestream.gauth import models
+from glifestream.stream.models import Service
 
 try:
     from requests_oauthlib import OAuth1Session
@@ -29,8 +32,8 @@ AGENT = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
 
 class OAuth1Client:
 
-    def __init__(self, service, identifier=None, secret=None,
-                 callback_url=None):
+    def __init__(self, service: Service, api: BaseService, identifier=None,
+                 secret=None, callback_url=None):
         if not OAuth1Session:
             raise Exception('requests-oauthlib is required.')
 
@@ -41,16 +44,11 @@ class OAuth1Client:
             if identifier and secret:
                 self.db.identifier = identifier
                 self.db.secret = secret
-        try:
-            mod = __import__('glifestream.apis.%s' % self.db.service.api,
-                             {}, {}, ['API'])
-        except ImportError:
-            raise Exception('Unable to load %s API.' % self.db.service.api)
 
         self.callback_url = callback_url
-        self.request_token_url = getattr(mod, 'OAUTH_REQUEST_TOKEN_URL', None)
-        self.authorize_url = getattr(mod, 'OAUTH_AUTHORIZE_URL', None)
-        self.access_token_url = getattr(mod, 'OAUTH_ACCESS_TOKEN_URL', None)
+        self.request_token_url = getattr(api, 'OAUTH_REQUEST_TOKEN_URL', None)
+        self.authorize_url = getattr(api, 'OAUTH_AUTHORIZE_URL', None)
+        self.access_token_url = getattr(api, 'OAUTH_ACCESS_TOKEN_URL', None)
         self.verifier = None
 
         self.consumer = OAuth1Session(

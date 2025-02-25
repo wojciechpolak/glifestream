@@ -19,6 +19,8 @@ import sys
 import traceback
 import datetime
 from django.utils.html import strip_tags
+
+from glifestream.apis.base import BaseService
 from glifestream.filters import expand, truncate, twyntax
 from glifestream.gauth import gls_oauth
 from glifestream.utils.html import strip_entities
@@ -26,21 +28,14 @@ from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 
-OAUTH_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
-OAUTH_AUTHORIZE_URL = 'https://api.twitter.com/oauth/authorize'
-OAUTH_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
 
-
-class API:
+class TwitterService(BaseService):
     name = 'Twitter API v1.1'
     limit_sec = 120
 
-    def __init__(self, service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
+    OAUTH_REQUEST_TOKEN_URL = 'https://api.twitter.com/oauth/request_token'
+    OAUTH_AUTHORIZE_URL = 'https://api.twitter.com/oauth/authorize'
+    OAUTH_ACCESS_TOKEN_URL = 'https://api.twitter.com/oauth/access_token'
 
     def get_urls(self):
         if not self.service.creds:
@@ -64,7 +59,7 @@ class API:
 
     def fetch(self, url):
         try:
-            oauth = gls_oauth.OAuth1Client(self.service)
+            oauth = gls_oauth.OAuth1Client(service=self.service, api=self)
             r = oauth.consumer.get('https://api.twitter.com' + url)
             if r.status_code == 200:
                 self.json = r.json()

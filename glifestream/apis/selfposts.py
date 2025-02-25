@@ -22,6 +22,8 @@ from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
 from django.utils.datastructures import MultiValueDict
+
+from glifestream.apis.base import BaseService
 from glifestream.utils.time import utcnow
 from glifestream.utils.html import strip_script, bytes_to_human
 from glifestream.stream.models import Service, Entry, Media
@@ -36,12 +38,11 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
-class API:
+class SelfpostsService(BaseService):
     name = 'Selfposts API'
 
-    def __init__(self, service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
+    def __init__(self, service: Service, verbose: int = 0, force_overwrite: bool = False):
+        super().__init__(service, verbose, force_overwrite)
 
     def get_urls(self):
         return ()

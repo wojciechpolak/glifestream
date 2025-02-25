@@ -19,22 +19,17 @@ import sys
 import datetime
 import traceback
 from django.utils.translation import gettext as _
+
+from glifestream.apis.base import BaseService
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
 
-class API:
+class VimeoService(BaseService):
     name = 'Vimeo Simple API v2'
     limit_sec = 3600
-
-    def __init__(self, service: Service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self) -> tuple[str]:
         if '/' in self.service.url:

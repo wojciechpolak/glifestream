@@ -18,25 +18,19 @@
 import sys
 import traceback
 import datetime
-from django.utils import timezone
 from django.utils.translation import gettext as _
+
+from glifestream.apis.base import BaseService
 from glifestream.stream import media
 from glifestream.stream.models import Entry, Service
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 
 
-class API:
+class YoutubeService(BaseService):
     name = 'YouTube API v3'
     limit_sec = 3600
     playlist_types = {}
-
-    def __init__(self, service: Service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self) -> tuple[str] | list[str]:
         if self.service.url.startswith('http://') or \

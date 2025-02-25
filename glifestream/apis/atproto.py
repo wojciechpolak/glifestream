@@ -23,6 +23,8 @@ from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 
 from django.utils import timezone
 from django.utils.html import strip_tags
+
+from glifestream.apis.base import BaseService
 from glifestream.filters import expand, truncate
 from glifestream.utils.html import strip_entities
 from glifestream.utils.time import mtime
@@ -31,20 +33,16 @@ from glifestream.stream import media
 from glifestream.utils import httpclient
 
 
-class API:
+class AtProtoService(BaseService):
     name = 'The AT Protocol API v1.0'
     limit_sec = 120
     count = 50
 
     def __init__(self, service: Service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
+        super().__init__(service, verbose, force_overwrite)
         self.client = Client()
         if not self.service.last_checked:
             self.count = None
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
 
     def run(self) -> None:
         try:

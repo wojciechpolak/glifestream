@@ -16,6 +16,8 @@
 """
 
 import feedparser
+
+from glifestream.apis.base import BaseService
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import strip_script
@@ -23,18 +25,11 @@ from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 
 
-class API:
+class WebfeedService(BaseService):
     name = 'Webfeed API'
     limit_sec = 3600
     fetch_only = False
     payload = None
-
-    def __init__(self, service: Service, verbose=0, force_overwrite=False):
-        self.service = service
-        self.verbose = verbose
-        self.force_overwrite = force_overwrite
-        if self.verbose:
-            print('%s: %s' % (self.name, self.service))
 
     def get_urls(self) -> tuple[str]:
         return (self.service.url,)
