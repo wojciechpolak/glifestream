@@ -81,9 +81,7 @@ class AtProtoService(BaseService):
             if self.verbose:
                 print('ID: %s' % guid)
 
-            t = datetime.datetime.strptime(record.created_at[:-6],
-                                           "%Y-%m-%dT%H:%M:%S")
-            t = t.replace(tzinfo=datetime.timezone.utc)
+            t = datetime.datetime.fromisoformat(record.created_at.replace('Z', '+00:00'))
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
@@ -113,8 +111,9 @@ class AtProtoService(BaseService):
             e.content = expand.run_all(expand.shorturls(record.text))
 
             if post.embed:
-                content = ' <p class="thumbnails">'
+                content = ''
                 if hasattr(post.embed, 'images') and post.embed.images:
+                    content += ' <p class="thumbnails">'
                     for view_image in post.embed.images:
                         image_url = view_image.thumb
                         large_url = view_image.fullsize
@@ -130,6 +129,10 @@ class AtProtoService(BaseService):
                         content += '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> ' % (
                             link, large_url, image_url, iwh)
                     content += '</p>'
+                elif hasattr(post.embed, 'external') and post.embed.external:
+                    if (post.embed.external.uri.startswith('https://www.youtube.com/') or
+                        post.embed.external.uri.startswith('https://www.vimeo.com/')):
+                        content += '\n' + expand.videolinks(post.embed.external.uri)
                 e.content += content
 
             try:

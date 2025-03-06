@@ -110,9 +110,7 @@ class MastodonService(BaseService):
             if self.verbose:
                 print("ID: %s" % guid)
 
-            t = datetime.datetime.strptime(ent['created_at'][:-5],
-                                           "%Y-%m-%dT%H:%M:%S")
-            t = t.replace(tzinfo=datetime.timezone.utc)
+            t = datetime.datetime.fromisoformat(ent['created_at'].replace('Z', '+00:00'))
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
