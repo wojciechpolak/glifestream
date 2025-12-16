@@ -1,18 +1,28 @@
-ARG python=python:3.12-slim-bookworm
+ARG python=python:3.14-slim-trixie
+ARG TARGETARCH
 
 FROM ${python} AS gls-builder-python
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+ARG TARGETARCH
+ENV TARGETARCH=${TARGETARCH:-amd64}
+
 RUN apt update -y
 RUN apt install -y gcc g++
 RUN apt-get clean
+
 WORKDIR /app
-RUN python -m venv /venv
-ENV PATH=/venv/bin:$PATH
-RUN pip install --no-cache-dir poetry==1.7.1
+ENV UV_NO_DEV=1
+
+RUN --mount=type=cache,target=/root/.cache/uv,id=uv-${TARGETARCH} \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-editable
+
 COPY pyproject.toml .
-COPY poetry.lock .
-RUN poetry config virtualenvs.create false
-RUN poetry config installer.max-workers 10
-RUN poetry install --no-dev -n
+COPY uv.lock .
+RUN --mount=type=cache,target=/root/.cache/uv,id=uv-${TARGETARCH} \
+    uv sync --locked --no-editable
 
 FROM ${python}
 RUN apt update -y
@@ -21,8 +31,9 @@ RUN pip install --no-cache-dir supervisor
 RUN apt-get clean
 RUN echo 'alias ll="ls -l"' >>~/.bashrc
 RUN mkdir /app /app/run
-COPY --from=gls-builder-python /venv /venv
-ENV PATH=/venv/bin:$PATH
+COPY --from=gls-builder-python --chown=app:app /app/.venv /app/.venv
+
+ENV PATH=/app/.venv/bin:$PATH
 ENV DJANGO_SETTINGS_MODULE=run.settings_docker
 WORKDIR /app
 COPY conf/docker/entrypoint.sh .
@@ -34,7 +45,6 @@ COPY worker.py .
 RUN usermod -a -G users www-data
 RUN chgrp -R users /app/glifestream/static && chmod -R g+w /app/glifestream/static
 RUN python manage.py compilemessages
-ENV PYTHONPATH="${PYTHONPATH}:/app"
 EXPOSE 80
 COPY conf/docker/etc/supervisord.conf /etc/supervisord.conf
 
@@ -44,4 +54,4 @@ RUN chmod 0644 /etc/cron.d/glifestream
 RUN crontab /etc/cron.d/glifestream
 
 HEALTHCHECK --interval=60m --timeout=3s CMD curl -f http://localhost/ || exit 1
-CMD /app/entrypoint.sh
+CMD ["/app/entrypoint.sh"]

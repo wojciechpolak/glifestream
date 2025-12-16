@@ -11,7 +11,8 @@ gLifestream joins several external and/or internal streams into a
 single one.  External streams may be represented by RSS/Atom channels
 or popular services such as Mastodon.  The user decides which of them
 are publicly visible and which are not.  Public streams are visible
-for anybody.  The rest of streams are visible only for logged in users.
+for anybody.  The rest of the streams are visible only for logged-in
+users.
 
 The gLifestream software requires an HTTP server capable of running
 Django applications and a database supported by it.  Data from the
@@ -21,7 +22,7 @@ operation ensures the user that his data (messages, links, photos,
 etc.) will remain intact even if the external service they came from
 ceases to exist.
 
-To install gLifestream read the [INSTALL](INSTALL.md) file.
+To install gLifestream, read the [INSTALL](INSTALL.md) file.
 
 Supported services (out of the box)
 -----------------------------------
@@ -50,7 +51,7 @@ Features
 - User views: Favorite entries, Archives, custom stream lists
 - Automatic expansion of shortened URLs
 - Embedded multimedia views
-- Out of the box output formats: HTML5, Atom, JSON
+- Out-of-the-box output formats: HTML5, Atom, JSON
 - Search functionality
 - WebSub support (publisher and subscriber)
 - OAuth 1.0 and 2.0 support

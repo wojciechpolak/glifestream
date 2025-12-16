@@ -1,5 +1,5 @@
 gLifestream -- INSTALL
-Copyright (C) 2009-2024 Wojciech Polak
+Copyright (C) 2009-2025 Wojciech Polak
 
 gLifestream requirements
 ========================
@@ -8,21 +8,20 @@ gLifestream requirements
 - A database supported by Django (e.g. SQLite, MySQL, PostgreSQL).
 - Universal Feed Parser (https://pypi.python.org/pypi/feedparser)
 
-Install all needed dependencies using [Poetry](https://python-poetry.org/) or PIP.
+Install all necessary dependencies using [uv](https://docs.astral.sh/uv/).
 
 ```shell
-$ poetry install
-# or
-$ pip install -r requirements.txt
+$ uv sync
 ```
+
 Installation instructions
 =========================
 
 1. Change the current working directory into the `glifestream` directory.
 2. Copy `settings_sample.py` to `settings.py` and edit your local site
    configuration.
-3. Run `python manage.py migrate --run-syncdb`
-4. Run `python manage.py compilemessages` (if you have 'gettext' installed)
+3. Run `uv run manage.py migrate --run-syncdb`
+4. Run `uv run manage.py compilemessages` (if you have 'gettext' installed)
 5. Run `./worker.py --init-files-dirs`
 
 Make sure that `media/thumbs/*` and `media/upload` directories exist
@@ -37,7 +36,7 @@ The development/test server
 ---------------------------
 
 Change the current working directory into the `glifestream` directory
-and run the command `python manage.py runserver`. You will see
+and run the command `uv run manage.py runserver`. You will see
 the following output:
 
     Performing system checks...

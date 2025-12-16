@@ -1,46 +1,53 @@
-[tool.poetry]
+[project]
 name = "glifestream"
 version = "0.1.0"
 description = "A free lifestream platform and social activity reader"
-authors = ["WAP"]
+authors = [{ name = "WAP" }]
+requires-python = ">=3.11,<4,<3.15"
+dependencies = [
+    "beautifulsoup4==4.11.1",
+    "django==5.2.9",
+    "django-pipeline==4.1.0",
+    "feedparser>=6.0,<7",
+    "libsasscompiler==0.1.8",
+    "Markdown>=2.6,<3",
+    "pillow==12.0.0",
+    "requests-oauthlib>=0.4,<0.5",
+    "uwsgi==2.0.31",
+    "workerpool>=0.9,<0.10",
+    "pymemcache>=4.0.0,<5",
+    "atproto==0.0.65",
+]
 
-[tool.poetry.dependencies]
-beautifulsoup4 = "4.11.1"
-Django = "^5.0.2"
-django-pipeline = "^3.0.0"
-feedparser = "^6.0"
-libsasscompiler = "0.1.8"
-Markdown = "^2.6"
-Pillow = "^10.0"
-python = "^3.11,<3.14"
-requests-oauthlib = "^0.4"
-uWSGI = "^2.0.21"
-workerpool = "^0.9"
-pymemcache = "^4.0.0"
-atproto = "^0.0.59"
+[dependency-groups]
+dev = [
+    "django-stubs[compatible-mypy]==5.2.8",
+    "mypy==1.19.1",
+    "pytest==9.0.2",
+    "pytest-django==4.11.1",
+    "types-beautifulsoup4[compatible-mypy]==4.12.0.20250516",
+    "types-markdown[compatible-mypy]==3.10.0.20251106",
+    "types-oauthlib[compatible-mypy]==3.3.0.20250822",
+    "types-pillow[compatible-mypy]>=10.0.0.3,<11",
+    "types-requests[compatible-mypy]==2.32.4.20250913",
+    "types-requests-oauthlib[compatible-mypy]>=1.3.0.1,<2",
+    "ruff>=0.14.9",
+    "types-pytz==2025.2.0.20251108",
+    "types-pyyaml==6.0.12.20250915",
+    "django-stubs-ext==5.2.8",
+]
 
-[tool.poetry.group.dev.dependencies]
-django-stubs = {extras = ["compatible-mypy"], version = "^4.2.4"}
-mypy = "1.5.1"
-pylint = "3.0.1"
-pytest = "7.1.2"
-pytest-django = "^4.8.0"
-types-beautifulsoup4 = {extras = ["compatible-mypy"], version = "^4.12.0.6"}
-types-markdown = {extras = ["compatible-mypy"], version = "^3.5.0.0"}
-types-oauthlib = {extras = ["compatible-mypy"], version = "^3.2.0.10"}
-types-pillow = {extras = ["compatible-mypy"], version = "^10.0.0.3"}
-types-requests = {extras = ["compatible-mypy"], version = "^2.31.0.9"}
-types-requests-oauthlib = {extras = ["compatible-mypy"], version = "^1.3.0.1"}
-pylint-django = "2.5.5"
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["glifestream"]
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.14"
 warn_return_any = true
 plugins = ["mypy_django_plugin.main"]
 
 [tool.django-stubs]
 django_settings_module = "glifestream.settings"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"

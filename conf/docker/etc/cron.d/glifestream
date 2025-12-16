@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 
 PATH=/app:/usr/local/bin:/usr/bin:/bin
-VENV=/venv/bin/activate
+VENV=/app/.venv/bin/activate
 DJANGO_SETTINGS_MODULE=run.settings_docker
 
 # Example of job definition:
