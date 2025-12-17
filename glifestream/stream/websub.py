@@ -81,7 +81,6 @@ def subscribe(service: Service, verbose=False):
             db.save()
         return {'hub': hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
-        # pylint: disable=no-member
         error = ''
         if hasattr(e, 'message'):
             error = e.message
@@ -115,7 +114,6 @@ def unsubscribe(id_sub, verbose=False):
             print('Response code: %d' % r.status_code)
         return {'hub': db.hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
-        # pylint: disable=no-member
         error = ''
         if hasattr(e, 'message'):
             error = e.message
@@ -164,7 +162,6 @@ def publish(hubs=None, verbose=False):
                     print('%s: Pinged and got %d (URL: %s)' % (hub, r.status_code, url))
                     print('Response content:\n', r.content)
         except (IOError, httpclient.HTTPError) as e:
-            # pylint: disable=no-member
             if hasattr(e, 'status_code') and e.status_code == 204:
                 continue
             if verbose:

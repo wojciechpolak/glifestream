@@ -15,7 +15,19 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from glifestream.apis import *
+from glifestream.apis import (
+    atproto,
+    flickr,
+    friendfeed,
+    mastodon,
+    pixelfed,
+    pocket,
+    selfposts,
+    twitter,
+    vimeo,
+    webfeed,
+    youtube,
+)
 
 API_MODULES = {
     'atproto': atproto,

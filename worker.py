@@ -40,12 +40,11 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
 if hasattr(django, 'setup'):
     django.setup()
 
-# pylint: disable=wrong-import-position
-from glifestream.apis import mail
-from glifestream.apis.factory import ServiceFactory
-from glifestream.stream import media, websub
-from glifestream.stream.models import Service, Entry, Favorite
-from glifestream.utils.time import unixnow
+from glifestream.apis import mail  # noqa: E402
+from glifestream.apis.factory import ServiceFactory  # noqa: E402
+from glifestream.stream import media, websub  # noqa: E402
+from glifestream.stream.models import Service, Entry, Favorite  # noqa: E402
+from glifestream.utils.time import unixnow  # noqa: E402
 
 if workerpool:
     class WorkerJob(workerpool.Job):

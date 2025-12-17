@@ -21,7 +21,7 @@ from glifestream.apis.base import BaseService
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import strip_script
-from glifestream.stream.models import Entry, Service
+from glifestream.stream.models import Entry
 from glifestream.stream import media
 
 
@@ -56,7 +56,6 @@ class WebfeedService(BaseService):
             except (IOError, httpclient.HTTPError) as e:
                 self.fp_error = True
                 if self.verbose:
-                    # pylint: disable=no-member
                     error = e.message if hasattr(e, 'message') else ''
                     print('%s (%d) HTTPError: %s' % (self.service.api,
                                                      self.service.id,
@@ -149,7 +148,7 @@ class WebfeedService(BaseService):
                         e.link_image = media.save_image(link.href)
 
             if hasattr(self, 'custom_process'):
-                self.custom_process(e, ent)  # pylint: disable=no-member
+                self.custom_process(e, ent)
 
             if hasattr(e, 'custom_mblob'):
                 e.mblob = e.custom_mblob

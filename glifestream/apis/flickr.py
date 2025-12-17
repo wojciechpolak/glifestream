@@ -64,7 +64,7 @@ class FlickrService(WebfeedService):
             guid = 'tag:flickr.com,2004:/photo/%s' % ent.id
 
             try:
-                e = Entry.objects.get(service=self.service, guid=ent.id)
+                e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and 'updated_parsed' in ent:
                     if e.date_updated and \
                        mtime(ent.updated_parsed) <= e.date_updated:
@@ -72,7 +72,7 @@ class FlickrService(WebfeedService):
                 if e.protected:
                     continue
             except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=ent.id)
+                e = Entry(service=self.service, guid=guid)
 
             e.mblob = media.mrss_gen_json(mblob)
             if lgroup > 1:

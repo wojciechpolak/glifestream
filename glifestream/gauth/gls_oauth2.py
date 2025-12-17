@@ -23,7 +23,7 @@ from glifestream.gauth import models
 from glifestream.stream.models import Service
 
 try:
-    from oauthlib.oauth2 import BackendApplicationClient
+    from oauthlib.oauth2 import BackendApplicationClient  # noqa: F401
     from requests_oauthlib import OAuth2Session
 except ImportError:
     OAuth2Session = None

@@ -49,7 +49,7 @@ class MailService:
         check = getattr(settings, 'EMAIL2POST_CHECK', {})
         for lhs in check:
             v = str(make_header(decode_header(msg.get(lhs, ''))))
-            if not check[lhs] in v:
+            if check[lhs] not in v:
                 return 77  # EX_NOPERM
 
         if msg.is_multipart():

@@ -28,7 +28,7 @@ from glifestream.gauth import gls_oauth2
 from glifestream.utils import httpclient
 from glifestream.utils.html import strip_entities
 from glifestream.utils.time import mtime
-from glifestream.stream.models import Entry, Service
+from glifestream.stream.models import Entry
 from glifestream.stream import media
 
 

@@ -92,7 +92,7 @@ def gls_title(_, entry: Entry):
 def gls_content(_, entry: Entry):
     if entry.friends_only:
         return mark_safe('<div class="friends-only-entry">' \
-                         'The content of this entry is available only to my friends.</div>');
+                         'The content of this entry is available only to my friends.</div>')
     try:
         mod = API_MODULES.get(entry.service.api)
         if mod and hasattr(mod, 'filter_content'):

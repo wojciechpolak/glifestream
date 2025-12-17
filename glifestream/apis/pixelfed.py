@@ -16,7 +16,7 @@
 """
 
 from django.utils.translation import gettext as _
-from glifestream.stream.models import Entry, Service
+from glifestream.stream.models import Entry
 from .mastodon import MastodonService
 
 

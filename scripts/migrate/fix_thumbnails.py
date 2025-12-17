@@ -31,9 +31,8 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
 if hasattr(django, 'setup'):
     django.setup()
 
-# pylint: disable=wrong-import-position
-from glifestream.stream import media
-from glifestream.stream.models import Entry, Media
+from glifestream.stream import media  # noqa: E402
+from glifestream.stream.models import Entry, Media  # noqa: E402
 
 dry_run = False
 

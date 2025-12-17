@@ -26,7 +26,7 @@ if 'DJANGO_SETTINGS_MODULE' not in os.environ:
     os.environ['DJANGO_SETTINGS_MODULE'] = 'glifestream.settings'
 
 python_home = os.path.join(SITE_ROOT, '..')
-python_version = '.'.join(map(str, sys.version_info[:2]))  # pylint: disable=all
+python_version = '.'.join(map(str, sys.version_info[:2]))
 site_packages = python_home + '/lib/python%s/site-packages' % python_version
 site.addsitedir(site_packages)
 

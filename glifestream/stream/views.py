@@ -471,7 +471,7 @@ def websub_dispatcher(request, **args):
     raise Http404
 
 
-def page_not_found(request, exception):  # pylint: disable=unused-argument
+def page_not_found(request, exception):
     page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -482,7 +482,7 @@ def page_not_found(request, exception):  # pylint: disable=unused-argument
     return HttpResponseNotFound(t.content)
 
 
-def page_internal_error(request):  # pylint: disable=unused-argument
+def page_internal_error(request):
     page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,

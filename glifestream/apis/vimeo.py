@@ -23,7 +23,7 @@ from django.utils.translation import gettext as _
 from glifestream.apis.base import BaseService
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
-from glifestream.stream.models import Entry, Service
+from glifestream.stream.models import Entry
 from glifestream.stream import media
 
 
