@@ -57,16 +57,21 @@ def services(request, **args):
     }
 
     services_all = Service.objects.all().order_by('api', 'name')
-    return render(request, 'services.html',
-                  {'page': page, 'authed': authed,
-                   'is_secure': request.is_secure(),
-                   'user': request.user,
-                   'services_supported': API_LIST,
-                   'services': services_all})
+    return render(
+        request,
+        'services.html',
+        {
+            'page': page,
+            'authed': authed,
+            'is_secure': request.is_secure(),
+            'user': request.user,
+            'services_supported': API_LIST,
+            'services': services_all,
+        },
+    )
 
 
-class ListForm (ModelForm):
-
+class ListForm(ModelForm):
     class Meta:
         model = List
         exclude = ('user',)
@@ -108,19 +113,25 @@ def lists(request, **args):
         form = ListForm(request.POST, instance=list_user)
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect(reverse('usettings-lists-slug',
-                                        args=[list_user.slug]))
+            return HttpResponseRedirect(
+                reverse('usettings-lists-slug', args=[list_user.slug])
+            )
     else:
         form = ListForm(instance=list_user)
 
-    return render(request, 'lists.html',
-                  {'page': page,
-                   'authed': authed,
-                   'is_secure': request.is_secure(),
-                   'user': request.user,
-                   'lists': lists_user,
-                   'curlist': curlist,
-                   'form': form})
+    return render(
+        request,
+        'lists.html',
+        {
+            'page': page,
+            'authed': authed,
+            'is_secure': request.is_secure(),
+            'user': request.user,
+            'lists': lists_user,
+            'curlist': curlist,
+            'form': form,
+        },
+    )
 
 
 @login_required
@@ -178,16 +189,24 @@ def websub(request, **args):
             page['msg'] = 'Hub %s: %s.' % (r['hub'], r['rc'])
 
     subs = gls_websub.list_subs(raw=True)
-    services = Service.objects.exclude(api__in=excluded_apis) \
-        .exclude(id__in=subs.values('service__id')).order_by('name')
+    services = (
+        Service.objects.exclude(api__in=excluded_apis)
+        .exclude(id__in=subs.values('service__id'))
+        .order_by('name')
+    )
 
-    return render(request, 'websub.html',
-                  {'page': page,
-                   'authed': authed,
-                   'is_secure': request.is_secure(),
-                   'user': request.user,
-                   'services': services,
-                   'subs': subs})
+    return render(
+        request,
+        'websub.html',
+        {
+            'page': page,
+            'authed': authed,
+            'is_secure': request.is_secure(),
+            'user': request.user,
+            'services': services,
+            'subs': subs,
+        },
+    )
 
 
 @login_required
@@ -211,18 +230,21 @@ def oauth(request, **args):
     id_service = args['id']
 
     callback_url = request.build_absolute_uri(
-        reverse('usettings-oauth', args=[id_service]))
+        reverse('usettings-oauth', args=[id_service])
+    )
 
     service = Service.objects.get(id=id_service)
-    c = gls_oauth.OAuth1Client(service=service,
-                               api=ServiceFactory.create_service(service),
-                               identifier=request.POST.get('identifier'),
-                               secret=request.POST.get('secret'),
-                               callback_url=callback_url)
+    c = gls_oauth.OAuth1Client(
+        service=service,
+        api=ServiceFactory.create_service(service),
+        identifier=request.POST.get('identifier'),
+        secret=request.POST.get('secret'),
+        callback_url=callback_url,
+    )
 
-    if c.db.phase == 0 and (not c.request_token_url or
-                            not c.authorize_url or
-                            not c.access_token_url):
+    if c.db.phase == 0 and (
+        not c.request_token_url or not c.authorize_url or not c.access_token_url
+    ):
         v['request_token_url'] = request.POST.get('request_token_url', '')
         v['authorize_url'] = request.POST.get('authorize_url', '')
         v['access_token_url'] = request.POST.get('access_token_url', '')
@@ -234,9 +256,9 @@ def oauth(request, **args):
     elif request.method == 'POST':
         if c.db.phase == 0:
             if not c.request_token_url:
-                c.set_urls(v['request_token_url'],
-                           v['authorize_url'],
-                           v['access_token_url'])
+                c.set_urls(
+                    v['request_token_url'], v['authorize_url'], v['access_token_url']
+                )
             try:
                 c.get_request_token()
             except Exception as e:
@@ -248,8 +270,7 @@ def oauth(request, **args):
     if request.method == 'GET':
         if c.db.phase == 1:
             if request.GET.get('oauth_token', '') == c.db.token:
-                c.consumer.parse_authorization_response(
-                    request.get_full_path())
+                c.consumer.parse_authorization_response(request.get_full_path())
                 c.verifier = request.GET.get('oauth_verifier', None)
                 c.db.phase = 2
 
@@ -257,21 +278,29 @@ def oauth(request, **args):
             try:
                 c.get_access_token()
                 c.save()
-                return HttpResponseRedirect(reverse('usettings-oauth', args=[id_service]))
+                return HttpResponseRedirect(
+                    reverse('usettings-oauth', args=[id_service])
+                )
             except Exception as e:
                 page['msg'] = e
 
-    api_help = apis_help.get(service.api,
-                             'http://oauth.net/documentation/getting-started/')
+    api_help = apis_help.get(
+        service.api, 'http://oauth.net/documentation/getting-started/'
+    )
 
-    return render(request, 'oauth.html',
-                  {'page': page,
-                   'is_secure': request.is_secure(),
-                   'title': str(service),
-                   'api_help': api_help,
-                   'callback_url': callback_url,
-                   'phase': c.db.phase,
-                   'v': v, })
+    return render(
+        request,
+        'oauth.html',
+        {
+            'page': page,
+            'is_secure': request.is_secure(),
+            'title': str(service),
+            'api_help': api_help,
+            'callback_url': callback_url,
+            'phase': c.db.phase,
+            'v': v,
+        },
+    )
 
 
 @login_required
@@ -297,7 +326,8 @@ def oauth2(request, **args):
     id_service = args['id']
 
     redirect_uri = request.build_absolute_uri(
-        reverse('usettings-oauth2', args=[id_service]))
+        reverse('usettings-oauth2', args=[id_service])
+    )
 
     service = Service.objects.get(id=id_service)
     c = gls_oauth2.OAuth2Client(
@@ -305,7 +335,8 @@ def oauth2(request, **args):
         api=ServiceFactory.create_service(service),
         identifier=request.POST.get('identifier'),
         secret=request.POST.get('secret'),
-        callback_url=redirect_uri)
+        callback_url=redirect_uri,
+    )
 
     if c.db.phase == gls_oauth2.PHASE_0:
         v['base_url'] = c.base_url
@@ -338,20 +369,27 @@ def oauth2(request, **args):
             try:
                 c.get_access_token(code)
                 c.save()
-                return HttpResponseRedirect(reverse('usettings-oauth2', args=[id_service]))
+                return HttpResponseRedirect(
+                    reverse('usettings-oauth2', args=[id_service])
+                )
             except Exception as e:
                 page['msg'] = e
 
     api_help = apis_help.get(service.api, 'https://oauth.net/2/')
 
-    return render(request, 'oauth2.html',
-                  {'page': page,
-                   'is_secure': request.is_secure(),
-                   'title': str(service),
-                   'api_help': api_help,
-                   'callback_url': redirect_uri,
-                   'phase': c.db.phase,
-                   'v': v, })
+    return render(
+        request,
+        'oauth2.html',
+        {
+            'page': page,
+            'is_secure': request.is_secure(),
+            'title': str(service),
+            'api_help': api_help,
+            'callback_url': redirect_uri,
+            'phase': c.db.phase,
+            'v': v,
+        },
+    )
 
 
 @login_required
@@ -376,39 +414,44 @@ def opml(request, **args):
                     tp = e.getAttribute('type')
                     if tp == 'rss':
                         xml_url = e.getAttribute('xmlUrl')
-                        title = e.getAttribute('text') or \
-                            e.getAttribute('title')
+                        title = e.getAttribute('text') or e.getAttribute('title')
                         _import_service(xml_url, title)
                     elif not tp:
-                        cls = e.getAttribute('text') or \
-                            e.getAttribute('title')
+                        cls = e.getAttribute('text') or e.getAttribute('title')
                         cls = cls.lower()
                         for f in e.childNodes:
-                            if f.nodeName == 'outline' and \
-                                    f.getAttribute('type') == 'rss':
+                            if (
+                                f.nodeName == 'outline'
+                                and f.getAttribute('type') == 'rss'
+                            ):
                                 xml_url = f.getAttribute('xmlUrl')
-                                title = f.getAttribute('text') or \
-                                    f.getAttribute('title')
+                                title = f.getAttribute('text') or f.getAttribute(
+                                    'title'
+                                )
                                 _import_service(xml_url, title, cls)
 
         return HttpResponseRedirect(reverse('usettings-services'))
 
     elif cmd == 'export':
         excluded_apis = ('selfposts', 'fb')
-        services: list[Service] = Service.objects.exclude(api__in=excluded_apis) \
-            .order_by('name')
+        services: list[Service] = Service.objects.exclude(
+            api__in=excluded_apis
+        ).order_by('name')
 
         srvs = []
         for service in services:
             try:
                 service_instance = ServiceFactory.create_service(service)
-                srvs.extend([{'name': service.name, 'url': u}
-                             for u in service_instance.get_urls()])
+                srvs.extend(
+                    [
+                        {'name': service.name, 'url': u}
+                        for u in service_instance.get_urls()
+                    ]
+                )
             except Exception:
                 pass
 
-        res = render(request, 'opml.xml', {'services': srvs},
-                     content_type='text/xml')
+        res = render(request, 'opml.xml', {'services': srvs}, content_type='text/xml')
         res['Content-Disposition'] = 'attachment; filename="gls-services.xml"'
         return res
 
@@ -420,7 +463,8 @@ def _import_service(url, title, cls='webfeed'):
 
     if 'flickr.com' in url:
         m = re.search(
-            r'flickr.com/services/feeds/photos_public\.gne\?id=([0-9@A-Z]+)', url)
+            r'flickr.com/services/feeds/photos_public\.gne\?id=([0-9@A-Z]+)', url
+        )
         if m:
             url = m.groups()[0]
         url = url.replace('format=atom', 'format=rss_200')
@@ -458,11 +502,13 @@ def _import_service(url, title, cls='webfeed'):
                 display = 'both'
             else:
                 display = 'content'
-            service = Service(api=api_name, cls=cls, url=url, name=title,
-                              display=display)
+            service = Service(
+                api=api_name, cls=cls, url=url, name=title, display=display
+            )
             service.save()
     except Exception:
         pass
+
 
 #
 # XHR API
@@ -499,10 +545,15 @@ def api(request, **args):
             if not s['name']:
                 miss['name'] = True
                 method = 'get'
-            if (s['api'] != 'selfposts' and
-                s['api'] != 'pocket' and
-                s['api'] != 'webfeed') and not s['user_id'] \
-               and request.POST.get('timeline', 'user') == 'user':
+            if (
+                (
+                    s['api'] != 'selfposts'
+                    and s['api'] != 'pocket'
+                    and s['api'] != 'webfeed'
+                )
+                and not s['user_id']
+                and request.POST.get('timeline', 'user') == 'user'
+            ):
                 miss['user_id'] = True
                 method = 'get'
 
@@ -513,7 +564,8 @@ def api(request, **args):
             'greader',
             'lastfm',
             'stumbleupon',
-            'yelp'):
+            'yelp',
+        ):
             s['display'] = 'both'
 
         # Save
@@ -553,19 +605,21 @@ def api(request, **args):
             try:
                 srv = Service.objects.get(id=id_service)
                 if len(miss) == 0:
-                    s.update({
-                        'id': srv.id,
-                        'api': srv.api,
-                        'name': srv.name,
-                        'cls': srv.cls,
-                        'url': srv.url,
-                        'user_id': srv.user_id,
-                        'creds': srv.creds,
-                        'display': srv.display,
-                        'public': srv.public,
-                        'home': srv.home,
-                        'active': srv.active,
-                    })
+                    s.update(
+                        {
+                            'id': srv.id,
+                            'api': srv.api,
+                            'name': srv.name,
+                            'cls': srv.cls,
+                            'url': srv.url,
+                            'user_id': srv.user_id,
+                            'creds': srv.creds,
+                            'display': srv.display,
+                            'public': srv.public,
+                            'home': srv.home,
+                            'active': srv.active,
+                        }
+                    )
                 else:
                     s['id'] = srv.id
                 s['delete'] = _('delete')
@@ -580,44 +634,105 @@ def api(request, **args):
 
         # Setup fields
         s['fields'] = [
-            {'type': 'text', 'name': 'name',
-             'placeholder': s['api'].capitalize(),
-             'value': s['name'], 'label': _('Short name'),
-             'miss': miss.get('name', False)},
-            {'type': 'text', 'name': 'cls',
-             'value': s['cls'], 'label': _('Class name'),
-             'hint': _('Any name for the service classification; a category.')}
+            {
+                'type': 'text',
+                'name': 'name',
+                'placeholder': s['api'].capitalize(),
+                'value': s['name'],
+                'label': _('Short name'),
+                'miss': miss.get('name', False),
+            },
+            {
+                'type': 'text',
+                'name': 'cls',
+                'value': s['cls'],
+                'label': _('Class name'),
+                'hint': _('Any name for the service classification; a category.'),
+            },
         ]
 
         if s['api'] == 'webfeed':
-            s['fields'].append({'type': 'text', 'name': 'url',
-                                'value': s['url'], 'label': _('URL'),
-                                'miss': miss.get('url', False)})
+            s['fields'].append(
+                {
+                    'type': 'text',
+                    'name': 'url',
+                    'value': s['url'],
+                    'label': _('URL'),
+                    'miss': miss.get('url', False),
+                }
+            )
 
-        elif s['api'] in ('atproto', 'fb', 'friendfeed', 'mastodon', 'pixelfed', 'twitter'):
+        elif s['api'] in (
+            'atproto',
+            'fb',
+            'friendfeed',
+            'mastodon',
+            'pixelfed',
+            'twitter',
+        ):
             v = 'user' if s['user_id'] else 'home'
-            s['fields'].append({'type': 'select', 'name': 'timeline',
-                                'options': (('user', _('User timeline')),
-                                            ('home', _('Home timeline'))),
-                                'value': v, 'label': _('Timeline')})
-            s['fields'].append({'type': 'text', 'name': 'url',
-                                'value': s['url'], 'label': _('URL'),
-                                'deps': {'timeline': 'user'}})
-            s['fields'].append({'type': 'text', 'name': 'user_id',
-                                'value': s['user_id'], 'label': _('User ID'),
-                                'deps': {'timeline': 'user'}})
+            s['fields'].append(
+                {
+                    'type': 'select',
+                    'name': 'timeline',
+                    'options': (
+                        ('user', _('User timeline')),
+                        ('home', _('Home timeline')),
+                    ),
+                    'value': v,
+                    'label': _('Timeline'),
+                }
+            )
+            s['fields'].append(
+                {
+                    'type': 'text',
+                    'name': 'url',
+                    'value': s['url'],
+                    'label': _('URL'),
+                    'deps': {'timeline': 'user'},
+                }
+            )
+            s['fields'].append(
+                {
+                    'type': 'text',
+                    'name': 'user_id',
+                    'value': s['user_id'],
+                    'label': _('User ID'),
+                    'deps': {'timeline': 'user'},
+                }
+            )
 
         elif s['api'] in ('pocket',):
-            s['fields'].append({'type': 'text', 'name': 'url',
-                                'value': s['url'], 'label': _('Tag name'),
-                                'hint': _('Optional tag name.')})
+            s['fields'].append(
+                {
+                    'type': 'text',
+                    'name': 'url',
+                    'value': s['url'],
+                    'label': _('Tag name'),
+                    'hint': _('Optional tag name.'),
+                }
+            )
 
         elif s['api'] != 'selfposts':
-            s['fields'].append({'type': 'text', 'name': 'url',
-                                'value': s['url'], 'label': _('ID/Username'),
-                                'miss': miss.get('url', False)})
+            s['fields'].append(
+                {
+                    'type': 'text',
+                    'name': 'url',
+                    'value': s['url'],
+                    'label': _('ID/Username'),
+                    'miss': miss.get('url', False),
+                }
+            )
 
-        if s['api'] in ('webfeed', 'atproto', 'friendfeed', 'mastodon', 'pixelfed', 'pocket', 'twitter'):
+        if s['api'] in (
+            'webfeed',
+            'atproto',
+            'friendfeed',
+            'mastodon',
+            'pixelfed',
+            'pocket',
+            'twitter',
+        ):
             basic_user = ''
             if s['creds'] == 'oauth':
                 v = 'oauth'
@@ -629,52 +744,112 @@ def api(request, **args):
             else:
                 v = 'none'
 
-            s['fields'].append({'type': 'select', 'name': 'auth',
-                                'options': (('none', _('none')),
-                                            ('basic', _('Basic')),
-                                            ('oauth', _('OAuth 1.0')),
-                                            ('oauth2', _('OAuth 2.0'))),
-                                'value': v, 'label': _('Authorization')})
+            s['fields'].append(
+                {
+                    'type': 'select',
+                    'name': 'auth',
+                    'options': (
+                        ('none', _('none')),
+                        ('basic', _('Basic')),
+                        ('oauth', _('OAuth 1.0')),
+                        ('oauth2', _('OAuth 2.0')),
+                    ),
+                    'value': v,
+                    'label': _('Authorization'),
+                }
+            )
 
             if 'id' in s:
-                s['fields'].append({'type': 'link', 'name': 'oauth_conf',
-                                    'value': _('configure access'),
-                                    'href': '#', 'label': '',
-                                    'deps': {'auth': 'oauth'}})
-                s['fields'].append({'type': 'link', 'name': 'oauth2_conf',
-                                    'value': _('configure access'),
-                                    'href': '#', 'label': '',
-                                    'deps': {'auth': 'oauth2'}})
+                s['fields'].append(
+                    {
+                        'type': 'link',
+                        'name': 'oauth_conf',
+                        'value': _('configure access'),
+                        'href': '#',
+                        'label': '',
+                        'deps': {'auth': 'oauth'},
+                    }
+                )
+                s['fields'].append(
+                    {
+                        'type': 'link',
+                        'name': 'oauth2_conf',
+                        'value': _('configure access'),
+                        'href': '#',
+                        'label': '',
+                        'deps': {'auth': 'oauth2'},
+                    }
+                )
 
-            s['fields'].append({'type': 'text', 'name': 'basic_user',
-                                'value': basic_user,
-                                'label': _('Basic username'),
-                                'deps': {'auth': 'basic'}})
-            s['fields'].append({'type': 'password', 'name': 'basic_pass',
-                                'value': '', 'label': _('Basic password'),
-                                'deps': {'auth': 'basic'}})
+            s['fields'].append(
+                {
+                    'type': 'text',
+                    'name': 'basic_user',
+                    'value': basic_user,
+                    'label': _('Basic username'),
+                    'deps': {'auth': 'basic'},
+                }
+            )
+            s['fields'].append(
+                {
+                    'type': 'password',
+                    'name': 'basic_pass',
+                    'value': '',
+                    'label': _('Basic password'),
+                    'deps': {'auth': 'basic'},
+                }
+            )
 
         if s['api'] in ('webfeed', 'flickr', 'pocket', 'youtube', 'vimeo'):
-            s['fields'].append({'type': 'select', 'name': 'display',
-                                'options': (('both', _('Title and Contents')),
-                                            ('content', _('Contents only')),
-                                            ('title', _('Title only'))),
-                                'value': s['display'],
-                                'label': _("Display entries'")})
+            s['fields'].append(
+                {
+                    'type': 'select',
+                    'name': 'display',
+                    'options': (
+                        ('both', _('Title and Contents')),
+                        ('content', _('Contents only')),
+                        ('title', _('Title only')),
+                    ),
+                    'value': s['display'],
+                    'label': _("Display entries'"),
+                }
+            )
 
-        s['fields'].append({'type': 'checkbox', 'name': 'public',
-                            'checked': s['public'], 'label': _('Public'),
-                            'hint': _('Public services are visible to anyone.')})
+        s['fields'].append(
+            {
+                'type': 'checkbox',
+                'name': 'public',
+                'checked': s['public'],
+                'label': _('Public'),
+                'hint': _('Public services are visible to anyone.'),
+            }
+        )
 
-        s['fields'].append({'type': 'checkbox', 'name': 'home',
-                            'checked': s['home'], 'label': _('Home'),
-                            'hint': _('If unchecked, this stream will be still active, but hidden and thus visible '
-                                      'only via custom lists.')})
+        s['fields'].append(
+            {
+                'type': 'checkbox',
+                'name': 'home',
+                'checked': s['home'],
+                'label': _('Home'),
+                'hint': _(
+                    'If unchecked, this stream will be still active, but hidden and thus visible '
+                    'only via custom lists.'
+                ),
+            }
+        )
 
         if s['api'] != 'selfposts':
-            s['fields'].append({'type': 'checkbox', 'name': 'active',
-                                'checked': s['active'], 'label': _('Active'),
-                                'hint': _('If not active, this service will not be further updated.')})
+            s['fields'].append(
+                {
+                    'type': 'checkbox',
+                    'name': 'active',
+                    'checked': s['active'],
+                    'label': _('Active'),
+                    'hint': _(
+                        'If not active, this service will not be further updated.'
+                    ),
+                }
+            )
 
         if 'creds' in s:
             del s['creds']

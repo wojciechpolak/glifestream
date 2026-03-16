@@ -63,18 +63,21 @@ class MailService:
                     else:
                         args['content'] = part.get_payload(decode=True)
 
-                if attach or \
-                   t.startswith('image/') or \
-                   t.startswith('audio/') or \
-                   t.startswith('video/') or \
-                   t.startswith('application/'):
+                if (
+                    attach
+                    or t.startswith('image/')
+                    or t.startswith('audio/')
+                    or t.startswith('video/')
+                    or t.startswith('application/')
+                ):
                     payload = part.get_payload(decode=True)
                     os.umask(0)
                     tmp = TemporaryUploadedFile(
                         name=part.get_filename('attachment'),
                         content_type=t,
                         size=len(payload),
-                        charset=None)
+                        charset=None,
+                    )
                     tmp.write(payload)
                     tmp.seek(0)
                     os.chmod(tmp.file.name, 0o644)
@@ -104,8 +107,7 @@ class MailService:
 
         # Mail subject may contain "!friends-only" literal.
         if '!friends-only' in args['title']:
-            args['title'] = args['title'].replace(
-                '!friends-only', '').strip()
+            args['title'] = args['title'].replace('!friends-only', '').strip()
             args['friends_only'] = True
 
         if len(files) > 0:

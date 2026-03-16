@@ -24,8 +24,7 @@ from django.conf import settings
 from glifestream.stream.models import Service
 
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (compatible; gLifestream; +%s/)' %
-    settings.BASE_URL
+    'User-Agent': 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
 }
 
 
@@ -46,8 +45,9 @@ def get(url: str, data=None, auth=None, timeout=45) -> Response:
     if not url.startswith('http'):
         url = 'http://' + url
     try:
-        return requests.get(url, params=data, headers=HEADERS, auth=auth,
-                            timeout=timeout)
+        return requests.get(
+            url, params=data, headers=HEADERS, auth=auth, timeout=timeout
+        )
     except requests.exceptions.RequestException as e:
         raise HTTPError(*e.args)
 
@@ -56,8 +56,9 @@ def post(url: str, data=None, auth=None, timeout=45) -> Response:
     if not url.startswith('http'):
         url = 'http://' + url
     try:
-        return requests.post(url, data=data, headers=HEADERS, auth=auth,
-                             timeout=timeout)
+        return requests.post(
+            url, data=data, headers=HEADERS, auth=auth, timeout=timeout
+        )
     except requests.exceptions.RequestException as e:
         raise HTTPError(*e.args)
 
@@ -87,10 +88,12 @@ def get_alturl_if_html(r: Response) -> str | None:
                 if not rx:
                     continue
                 alt_type = rx.groups()[0]
-                if alt_type in ('application/rss+xml',
-                                'application/atom+xml',
-                                'application/rdf+xml',
-                                'application/xml'):
+                if alt_type in (
+                    'application/rss+xml',
+                    'application/atom+xml',
+                    'application/rdf+xml',
+                    'application/xml',
+                ):
                     rx = re.search('href=[\'"](.*?)[\'"]', link)
                     if rx:
                         alt_href = rx.groups()[0]

@@ -57,21 +57,20 @@ class WebfeedService(BaseService):
                 self.fp_error = True
                 if self.verbose:
                     error = e.message if hasattr(e, 'message') else ''
-                    print('%s (%d) HTTPError: %s' % (self.service.api,
-                                                     self.service.id,
-                                                     error))
+                    print(
+                        '%s (%d) HTTPError: %s'
+                        % (self.service.api, self.service.id, error)
+                    )
                 return
         else:
             self.fp = feedparser.parse(self.payload)
 
         if hasattr(self.fp, 'bozo') and self.fp.bozo:
             self.fp_error = True
-            if isinstance(self.fp.bozo_exception,
-                          feedparser.CharacterEncodingOverride):
+            if isinstance(self.fp.bozo_exception, feedparser.CharacterEncodingOverride):
                 self.fp_error = False
             if self.verbose:
-                print('%s (%d) Bozo: %s' % (self.service.api,
-                                            self.service.id, self.fp))
+                print('%s (%d) Bozo: %s' % (self.service.api, self.service.id, self.fp))
 
         if not self.fp_error:
             self.service.etag = self.fp.get('etag', '')
@@ -96,8 +95,7 @@ class WebfeedService(BaseService):
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and 'updated_parsed' in ent:
-                    if e.date_updated and \
-                       mtime(ent.updated_parsed) <= e.date_updated:
+                    if e.date_updated and mtime(ent.updated_parsed) <= e.date_updated:
                         continue
                 if e.protected:
                     continue
@@ -115,8 +113,7 @@ class WebfeedService(BaseService):
                 e.author_name = ent.get('author', ent.get('creator', ''))
                 if not e.author_name and 'author_detail' in self.fp.feed:
                     e.author_name = self.fp.feed.author_detail.get('name', '')
-                    e.author_email = self.fp.feed.author_detail.get(
-                        'email', '')
+                    e.author_email = self.fp.feed.author_detail.get('email', '')
                     e.author_uri = self.fp.feed.author_detail.get('href', '')
 
             try:

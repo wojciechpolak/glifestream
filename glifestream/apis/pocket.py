@@ -62,8 +62,9 @@ class PocketService(BaseService):
                 self.fetch_oauth2(self.get_base_url() + url)
             except Exception as e:
                 if self.verbose:
-                    print('%s (%d) Exception: %s' % (self.service.api,
-                                                     self.service.id, e))
+                    print(
+                        '%s (%d) Exception: %s' % (self.service.api, self.service.id, e)
+                    )
                     traceback.print_exc(file=sys.stdout)
 
     def fetch_oauth2(self, url) -> None:
@@ -86,16 +87,18 @@ class PocketService(BaseService):
                 self.service.save()
                 self.process(self.json)
             elif self.verbose:
-                print('%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason))
+                print(
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, pocket_response) -> None:
-        if isinstance(pocket_response['list'], list) and not len(pocket_response['list']):
+        if isinstance(pocket_response['list'], list) and not len(
+            pocket_response['list']
+        ):
             return
         entries = pocket_response['list'].values()
         for ent in entries:
@@ -110,8 +113,11 @@ class PocketService(BaseService):
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and \
-                   e.date_updated and mtime(t.timetuple()) <= e.date_updated:
+                if (
+                    not self.force_overwrite
+                    and e.date_updated
+                    and mtime(t.timetuple()) <= e.date_updated
+                ):
                     continue
                 if e.protected:
                     continue
@@ -120,7 +126,8 @@ class PocketService(BaseService):
 
             e.guid = guid
             e.title = truncate.smart(
-                strip_entities(strip_tags(ent['given_title'])), max_length=40)
+                strip_entities(strip_tags(ent['given_title'])), max_length=40
+            )
 
             e.link = ent['given_url']
 

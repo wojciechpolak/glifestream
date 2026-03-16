@@ -3,18 +3,15 @@
 """
 
 import os
+
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = SITE_ROOT
 
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    'localhost'
-]
+ALLOWED_HOSTS = ['localhost']
 
-ADMINS = (
-    ('Your Name', 'your@email'),
-)
+ADMINS = (('Your Name', 'your@email'),)
 MANAGERS = ADMINS
 
 DATABASES = {
@@ -50,9 +47,7 @@ LANGUAGE_CODE = 'en-us'
 USE_I18N = True
 
 # Directories where Django looks for translation files.
-LOCALE_PATHS = (
-    os.path.join(SITE_ROOT, '../locale'),
-)
+LOCALE_PATHS = (os.path.join(SITE_ROOT, '../locale'),)
 
 SESSION_COOKIE_NAME = 'gls-sid'
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
@@ -182,17 +177,13 @@ PIPELINE = {
             'output_filename': 'js/main.js',
         },
         'quill': {
-            'source_filenames': (
-                'quill/quill.min.js',
-            ),
+            'source_filenames': ('quill/quill.min.js',),
             'output_filename': 'js/quill.js',
         },
     },
     'STYLESHEETS': {
         'quill': {
-            'source_filenames': (
-                'quill/quill.snow.css',
-            ),
+            'source_filenames': ('quill/quill.snow.css',),
             'output_filename': 'css/quill.css',
         },
         'default': {
@@ -213,16 +204,12 @@ PIPELINE = {
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        }
-    },
+    'filters': {'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'}},
     'handlers': {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
         }
     },
     'root': {
@@ -235,7 +222,7 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
-    }
+    },
 }
 
 #
@@ -244,30 +231,25 @@ LOGGING = {
 
 PWA_APP_NAME = 'gLifestream'
 PWA_APP_SHORT_NAME = 'GLS'
-PWA_APP_DESCRIPTION = "Personal Lifestream"
+PWA_APP_DESCRIPTION = 'Personal Lifestream'
 PWA_APP_DISPLAY = 'standalone'
 PWA_APP_ICONS = [
-    {
-        'src': '/static/themes/default/icons/rss.png',
-        'sizes': '512x512'
-    },
+    {'src': '/static/themes/default/icons/rss.png', 'sizes': '512x512'},
     {
         'src': '/static/themes/default/icons/rss_maskable.png',
         'sizes': '512x512',
-        'purpose': 'maskable'
-    }
+        'purpose': 'maskable',
+    },
 ]
 
 # A shortcut icon URL (favicon).
 FAVICON = '/favicon.ico'
 
-THEMES = (
-    'default',
-)
+THEMES = ('default',)
 
 STREAM_TITLE = 'Stream title'
 STREAM_TITLE_SUFFIX = ' | Lifestream'
-STREAM_DESCRIPTION = "A short description"
+STREAM_DESCRIPTION = 'A short description'
 
 # How many entries to display on one page.
 ENTRIES_ON_PAGE = 30

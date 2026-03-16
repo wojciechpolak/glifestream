@@ -44,11 +44,15 @@ class TwitterService(BaseService):
             return ('/1.1/statuses/home_timeline.json?count=50',)
         else:
             if not self.service.last_checked:
-                return ('/1.1/statuses/user_timeline.json?screen_name=%s&count=200' %
-                        self.service.url,)
+                return (
+                    '/1.1/statuses/user_timeline.json?screen_name=%s&count=200'
+                    % self.service.url,
+                )
             else:
-                return ('/1.1/statuses/user_timeline.json?screen_name=%s' %
-                        self.service.url,)
+                return (
+                    '/1.1/statuses/user_timeline.json?screen_name=%s'
+                    % self.service.url,
+                )
 
     def run(self):
         for url in self.get_urls():
@@ -67,28 +71,34 @@ class TwitterService(BaseService):
                 self.service.save()
                 self.process()
             elif self.verbose:
-                print('%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason))
+                print(
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self):
         for ent in self.json:
-            guid = 'tag:twitter.com,2007:http://twitter.com/%s/statuses/%s' % \
-                (ent['user']['screen_name'], ent['id'])
+            guid = 'tag:twitter.com,2007:http://twitter.com/%s/statuses/%s' % (
+                ent['user']['screen_name'],
+                ent['id'],
+            )
             if self.verbose:
-                print("ID: %s" % guid)
+                print('ID: %s' % guid)
 
-            t = datetime.datetime.strptime(ent['created_at'],
-                                           '%a %b %d %H:%M:%S +0000 %Y')
+            t = datetime.datetime.strptime(
+                ent['created_at'], '%a %b %d %H:%M:%S +0000 %Y'
+            )
             t = t.replace(tzinfo=datetime.timezone.utc)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and \
-                   e.date_updated and mtime(t.timetuple()) <= e.date_updated:
+                if (
+                    not self.force_overwrite
+                    and e.date_updated
+                    and mtime(t.timetuple()) <= e.date_updated
+                ):
                     continue
                 if e.protected:
                     continue
@@ -97,11 +107,14 @@ class TwitterService(BaseService):
 
             e.guid = guid
             e.title = 'Tweet: %s' % truncate.smart(
-                strip_entities(strip_tags(ent['text'])), max_length=40)
+                strip_entities(strip_tags(ent['text'])), max_length=40
+            )
             e.title = e.title.replace('#', '').replace('@', '')
 
-            e.link = 'https://twitter.com/%s/status/%s' % \
-                (ent['user']['screen_name'], ent['id'])
+            e.link = 'https://twitter.com/%s/status/%s' % (
+                ent['user']['screen_name'],
+                ent['id'],
+            )
             image_url = ent['user']['profile_image_url_https']
             e.link_image = media.save_image(image_url, direct_image=False)
 
@@ -128,12 +141,13 @@ class TwitterService(BaseService):
                             image_url = media.save_image(image_url)
                         if 'sizes' in t and tsize in t['sizes']:
                             sizes = t['sizes'][tsize]
-                            iwh = ' width="%d" height="%d"' % (sizes['w'],
-                                                               sizes['h'])
+                            iwh = ' width="%d" height="%d"' % (sizes['w'], sizes['h'])
                         else:
                             iwh = ''
-                        content += '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> ' % (
-                            link, large_url, image_url, iwh)
+                        content += (
+                            '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> '
+                            % (link, large_url, image_url, iwh)
+                        )
                 content += '</p>'
                 e.content += content
 

@@ -18,9 +18,7 @@
 import urllib.parse
 from glifestream.utils import httpclient
 
-providers = {
-    'flickr': 'https://www.flickr.com/services/oembed'
-}
+providers = {'flickr': 'https://www.flickr.com/services/oembed'}
 
 
 def discover(url, provider, maxwidth=None, maxheight=None):

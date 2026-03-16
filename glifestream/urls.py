@@ -35,43 +35,40 @@ urlpatterns = [
     re_path(r'^(?P<year>\d{4})/$', sv.index),
     re_path(r'^(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index),
     re_path(r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index),
-
     re_path(r'^public/$', sv.index, {'ctx': 'public'}, name='public'),
-    re_path(r'^public/(?P<year>\d{4})/$', sv.index, {
-        'ctx': 'public'}),
-    re_path(r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index,
-        {'ctx': 'public'}),
-    re_path(r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index,
-        {'ctx': 'public'}),
-
+    re_path(r'^public/(?P<year>\d{4})/$', sv.index, {'ctx': 'public'}),
+    re_path(r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index, {'ctx': 'public'}),
+    re_path(
+        r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+        sv.index,
+        {'ctx': 'public'},
+    ),
     re_path(r'^share$', sv.index, name='share'),
     re_path(r'^entry/(?P<entry>\d+)(/.*)?$', sv.index, {}, name='entry'),
     re_path(r'^api/(?P<cmd>[a-z]+)$', sv.api, name='api'),
-
-    re_path(r'^favorites/$', sv.index, {
-        'ctx': 'favorites'}, name='favorites'),
-    re_path(r'^favorites/(?P<year>\d{4})/$', sv.index, {
-        'ctx': 'favorites'}),
-    re_path(r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/$',
-        sv.index, {'ctx': 'favorites'}),
-    re_path(r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
-        sv.index, {'ctx': 'favorites'}),
-
+    re_path(r'^favorites/$', sv.index, {'ctx': 'favorites'}, name='favorites'),
+    re_path(r'^favorites/(?P<year>\d{4})/$', sv.index, {'ctx': 'favorites'}),
+    re_path(
+        r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index, {'ctx': 'favorites'}
+    ),
+    re_path(
+        r'^favorites/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+        sv.index,
+        {'ctx': 'favorites'},
+    ),
     re_path(r'^list/(?P<list>[a-z0-9\-]+)/$', sv.index, {}, name='list'),
     re_path(r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/$', sv.index),
-    re_path(r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/$',
-        sv.index),
-    re_path(r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
-        sv.index),
-
-    re_path(r'^websub/(?P<id>[a-f0-9]{20})$',
-            sv.websub_dispatcher, {}, name='websub'),
-
+    re_path(
+        r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index
+    ),
+    re_path(
+        r'^list/(?P<list>[a-z0-9\-]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+        sv.index,
+    ),
+    re_path(r'^websub/(?P<id>[a-f0-9]{20})$', sv.websub_dispatcher, {}, name='websub'),
     re_path(r'^login/?$', login, name='login'),
     re_path(r'^logout/?$', LogoutView.as_view(next_page='./'), name='logout'),
-
     re_path(r'^settings/', include('glifestream.usettings.urls')),
-
     path('admin/', admin.site.urls),
 ]
 
@@ -81,6 +78,7 @@ if getattr(settings, 'PWA_APP_NAME', None):
     ]
 
 urlpatterns += [
-    re_path(r'^media/(?P<path>.*)$', static_serve,
-        {'document_root': settings.MEDIA_ROOT})
+    re_path(
+        r'^media/(?P<path>.*)$', static_serve, {'document_root': settings.MEDIA_ROOT}
+    )
 ]

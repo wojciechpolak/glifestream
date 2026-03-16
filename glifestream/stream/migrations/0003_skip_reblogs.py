@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('stream', '0002_reblog'),
     ]
@@ -13,11 +12,30 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='service',
             name='skip_reblogs',
-            field=models.BooleanField(default=False, help_text='Skip importing reblogged posts.', verbose_name='Skip reblogs'),
+            field=models.BooleanField(
+                default=False,
+                help_text='Skip importing reblogged posts.',
+                verbose_name='Skip reblogs',
+            ),
         ),
         migrations.AlterField(
             model_name='service',
             name='api',
-            field=models.CharField(choices=[('selfposts', 'Self Posts'), ('webfeed', 'Webfeed'), ('mastodon', 'Mastodon'), ('pixelfed', 'PixelFed'), ('flickr', 'Flickr'), ('twitter', 'Twitter'), ('vimeo', 'Vimeo'), ('youtube', 'YouTube')], db_index=True, default='feed', max_length=16, verbose_name='API'),
+            field=models.CharField(
+                choices=[
+                    ('selfposts', 'Self Posts'),
+                    ('webfeed', 'Webfeed'),
+                    ('mastodon', 'Mastodon'),
+                    ('pixelfed', 'PixelFed'),
+                    ('flickr', 'Flickr'),
+                    ('twitter', 'Twitter'),
+                    ('vimeo', 'Vimeo'),
+                    ('youtube', 'YouTube'),
+                ],
+                db_index=True,
+                default='feed',
+                max_length=16,
+                verbose_name='API',
+            ),
         ),
     ]

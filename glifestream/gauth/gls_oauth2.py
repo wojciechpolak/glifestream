@@ -37,9 +37,14 @@ PHASE_3 = 3
 
 
 class OAuth2Client:
-
-    def __init__(self, service: Service, api: BaseService, identifier=None, secret=None,
-                 callback_url=None):
+    def __init__(
+        self,
+        service: Service,
+        api: BaseService,
+        identifier=None,
+        secret=None,
+        callback_url=None,
+    ):
         if not OAuth2Session:
             raise Exception('requests-oauthlib is required.')
 
@@ -65,20 +70,18 @@ class OAuth2Client:
                 client_id=self.db.identifier,
                 redirect_uri=self.callback_url,
                 scope=['read'],
-                token={
-                    'access_token': self.db.token,
-                    'token_type': 'Bearer'
-                } if self.db.token else None)
+                token={'access_token': self.db.token, 'token_type': 'Bearer'}
+                if self.db.token
+                else None,
+            )
             self.consumer.headers['User-Agent'] = AGENT
         elif self.db.token:
             self.consumer = OAuth2Session(
                 client_id='None',
                 redirect_uri=self.callback_url,
                 scope=['read'],
-                token={
-                    'access_token': self.db.token,
-                    'token_type': 'Bearer'
-                })
+                token={'access_token': self.db.token, 'token_type': 'Bearer'},
+            )
             self.consumer.headers['User-Agent'] = AGENT
 
     def save(self):
@@ -108,7 +111,8 @@ class OAuth2Client:
         res = self.consumer.fetch_token(
             token_url=self.token_url,
             code=authorization_response,
-            client_secret=self.db.secret)
+            client_secret=self.db.secret,
+        )
 
         if 'access_token' in res:
             self.db.phase = PHASE_3

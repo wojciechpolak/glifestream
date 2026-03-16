@@ -41,10 +41,15 @@ def __su_subs(m: Match) -> str:
 
 def shorturls(text: str) -> str:
     """Expand short URLs."""
-    return re.sub(r'(https?://)(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
-                  r'|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
-                  r'|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu'
-                  r')(/[\-\w]+)', __su_subs, text)
+    return re.sub(
+        r'(https?://)(tinyurl\.com|bit\.ly|goo\.gl|t\.co|is\.gd'
+        r'|ur1\.ca|2tu\.us|ff\.im|post\.ly|awe\.sm|lnk\.ms|pic\.gd'
+        r'|tl\.gd|youtu\.be|tiny\.cc|ow\.ly|j\.mp|url4\.eu'
+        r')(/[\-\w]+)',
+        __su_subs,
+        text,
+    )
+
 
 #
 # Short image services
@@ -52,18 +57,23 @@ def shorturls(text: str) -> str:
 
 
 def __gen_tai(link: str, img_src: str) -> str:
-    return '<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></p>' % (link, img_src)
+    return (
+        '<p class="thumbnails"><a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a></p>'
+        % (link, img_src)
+    )
 
 
 def __sp_twitpic(m: Match) -> str:
-    url = media.save_image('https://%s/show/full/%s' %
-                           (m.group(2), m.group(3)), downscale=True)
+    url = media.save_image(
+        'https://%s/show/full/%s' % (m.group(2), m.group(3)), downscale=True
+    )
     return __gen_tai(m.group(0), url)
 
 
 def __sp_instagram(m: Match) -> str:
-    url = media.save_image('https://www.instagram.com/p/%s/media/?size=t' %
-                           m.group(3), downscale=True)
+    url = media.save_image(
+        'https://www.instagram.com/p/%s/media/?size=t' % m.group(3), downscale=True
+    )
     return __gen_tai(m.group(0), url)
 
 
@@ -77,24 +87,31 @@ def __sp_flickr(m: Match) -> str:
 
 def __sp_imgloc(m: Match) -> str:
     url = media.save_image(m.group(2))
-    return '%s<p class="thumbnails"><img src="%s" alt="thumbnail" /></p>%s' % (m.group(1), url, m.group(4))
+    return '%s<p class="thumbnails"><img src="%s" alt="thumbnail" /></p>%s' % (
+        m.group(1),
+        url,
+        m.group(4),
+    )
 
 
 def shortpics(s: str) -> str:
     """Expand short picture-URLs."""
     s = re.sub(r'https?://(www\.)?(twitpic\.com)/(\w+)', __sp_twitpic, s)
     s = re.sub(r'https?://(instagr\.am)/p/([\w\-]+)/?', __sp_instagram, s)
-    s = re.sub(
-        r'https?://(www\.)?(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
+    s = re.sub(r'https?://(www\.)?(instagram\.com)/p/([\w\-]+)/?', __sp_instagram, s)
     s = re.sub(r'https?://(www\.)?flickr\.com/([\w\.\-/]+)', __sp_flickr, s)
     return s
 
 
 def imgloc(s: str) -> str:
     """Convert image location to html img."""
-    s = re.sub(r'([^"])(https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|webp|avif|heif|png|gif))([^"])',
-               __sp_imgloc, s)
+    s = re.sub(
+        r'([^"])(https?://[\w\.\-\+/=%~]+\.(jpg|jpeg|webp|avif|heif|png|gif))([^"])',
+        __sp_imgloc,
+        s,
+    )
     return s
+
 
 #
 # Video services
@@ -111,9 +128,11 @@ def __sv_youtube(m: Match) -> str:
     link = 'https://www.youtube.com/watch?v=%s' % id_video
     imgurl = 'https://i.ytimg.com/vi/%s/mqdefault.jpg' % id_video
     imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
-    return '<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">' \
-           '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">' \
-           '</div></div>%s' % (id_video, link, imgurl, rest)
+    return (
+        '<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">'
+        '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">'
+        '</div></div>%s' % (id_video, link, imgurl, rest)
+    )
 
 
 def __sv_vimeo(m: Match) -> str:
@@ -124,10 +143,11 @@ def __sv_vimeo(m: Match) -> str:
     imgurl = vimeo.get_thumbnail_url(id_video)
     if imgurl:
         imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
-        return '<div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">' \
-               '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>' \
-               '<div class="playbutton"></div></div>' % (
-                   id_video, link, imgurl)
+        return (
+            '<div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">'
+            '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>'
+            '<div class="playbutton"></div></div>' % (id_video, link, imgurl)
+        )
     return link
 
 
@@ -139,23 +159,27 @@ def __sv_dailymotion(m: Match) -> str:
     rest = rest[ltag:] if ltag != -1 else ''
     imgurl = 'https://www.dailymotion.com/thumbnail/video/%s' % id_video
     imgurl = media.save_image(imgurl)
-    return '<div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">' \
-           '<img src="%s" width="320" height="180" alt="Dailymotion Video" />' \
-           '</a><div class="playbutton"></div></div>%s' % (
-               id_video, link, imgurl, rest)
+    return (
+        '<div data-id="dailymotion-%s" class="play-video"><a href="%s" rel="nofollow">'
+        '<img src="%s" width="320" height="180" alt="Dailymotion Video" />'
+        '</a><div class="playbutton"></div></div>%s' % (id_video, link, imgurl, rest)
+    )
 
 
 def videolinks(s: str) -> str:
     """Expand video links."""
     if 'youtube.com/' in s:
-        s = re.sub(r'https?://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)',
-                   __sv_youtube, s)
+        s = re.sub(
+            r'https?://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)', __sv_youtube, s
+        )
     if 'vimeo.com/' in s:
         s = re.sub(r'https?://(www\.)?vimeo\.com/(\d+)', __sv_vimeo, s)
     if 'dailymotion.com/' in s:
-        s = re.sub(r'https?://www\.dailymotion\.com/video/([\-\w]+)(\S*)',
-                   __sv_dailymotion, s)
+        s = re.sub(
+            r'https?://www\.dailymotion\.com/video/([\-\w]+)(\S*)', __sv_dailymotion, s
+        )
     return s
+
 
 #
 # Audio services
@@ -166,26 +190,31 @@ def __sa_ogg(m: Match) -> str:
     link = m.group(1)
     name = m.group(2)
     id_audio = hashlib.md5(link).hexdigest()
-    return '<span data-id="audio-%s" class="play-audio"><a href="%s">%s</a></span>' % (id_audio, link, name)
+    return '<span data-id="audio-%s" class="play-audio"><a href="%s">%s</a></span>' % (
+        id_audio,
+        link,
+        name,
+    )
 
 
 def __sa_thesixtyone(m: Match) -> str:
     link = m.group(0)
     songid = m.group(1)
-    return '<span data-id="thesixtyone-art-%s" class="play-audio">' \
-           '<a href="%s" rel="nofollow">%s</a></span>' % (songid, link, link)
+    return (
+        '<span data-id="thesixtyone-art-%s" class="play-audio">'
+        '<a href="%s" rel="nofollow">%s</a></span>' % (songid, link, link)
+    )
 
 
 def audiolinks(s: str) -> str:
     """Expand audio links."""
     if '.ogg' in s:
-        s = re.sub(
-            r'<a href="(https?://[\w\.\-\+/=%~]+\.ogg)">(.*?)</a>', __sa_ogg, s)
+        s = re.sub(r'<a href="(https?://[\w\.\-\+/=%~]+\.ogg)">(.*?)</a>', __sa_ogg, s)
     if 'www.thesixtyone.com/' in s:
         # Scheme: http://www.thesixtyone.com/s/SONGID/
-        s = re.sub(
-            r'http://www.thesixtyone.com/s/(\w+)/', __sa_thesixtyone, s)
+        s = re.sub(r'http://www.thesixtyone.com/s/(\w+)/', __sa_thesixtyone, s)
     return s
+
 
 #
 # Map services
@@ -210,18 +239,20 @@ def __sm_googlemaps(m: Match) -> str:
         ll = ll.split(',')
         geolat = float(ll[0])
         geolng = float(ll[1])
-        return '<div class="geo"><a href="%s" class="map"><span class="latitude">%.10f</span> ' \
-               '<span class="longitude">%.10f</span></a></div>%s' % (
-                   link, geolat, geolng, rest)
+        return (
+            '<div class="geo"><a href="%s" class="map"><span class="latitude">%.10f</span> '
+            '<span class="longitude">%.10f</span></a></div>%s'
+            % (link, geolat, geolng, rest)
+        )
     return link
 
 
 def maplinks(s: str) -> str:
     """Expand map links."""
     if '//maps.google.' in s:
-        s = re.sub(r'https?://maps.google.[a-z]{2,3}/(maps)?(\S*)',
-                   __sm_googlemaps, s)
+        s = re.sub(r'https?://maps.google.[a-z]{2,3}/(maps)?(\S*)', __sm_googlemaps, s)
     return s
+
 
 #
 # Summary

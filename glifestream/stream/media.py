@@ -48,8 +48,11 @@ def set_upload_url(s: str) -> str:
 
 
 def set_thumbs_url(s: str) -> str:
-    return re.sub(r'\[GLS-THUMBS\]/([a-f0-9])([a-z0-9\.]+)',
-                  settings.MEDIA_URL + 'thumbs/\\1/\\1\\2', s)
+    return re.sub(
+        r'\[GLS-THUMBS\]/([a-f0-9])([a-z0-9\.]+)',
+        settings.MEDIA_URL + 'thumbs/\\1/\\1\\2',
+        s,
+    )
 
 
 def get_thumb_hash(s: str) -> str | None:
@@ -79,8 +82,13 @@ def get_thumb_info(thumb_hash: str, append_suffix: bool) -> ThumbInfo:
     }
 
 
-def save_image(url: str, direct_image=True, force=False, downscale=True,
-               size: tuple[int, int] | None = None) -> str:
+def save_image(
+    url: str,
+    direct_image=True,
+    force=False,
+    downscale=True,
+    size: tuple[int, int] | None = None,
+) -> str:
     if settings.BASE_URL in url:
         return url
     thumb_id = hashlib.sha1(force_bytes(url)).hexdigest()
@@ -160,10 +168,8 @@ def __img_subs(m: Match[str]) -> str:
 
 def transform_to_local(entry: Entry) -> None:
     entry.content = re.sub(
-        r'<img(.*)src="(https?://.*?)"',
-        __img_subs,
-        entry.content,
-        flags=re.DOTALL)
+        r'<img(.*)src="(https?://.*?)"', __img_subs, entry.content, flags=re.DOTALL
+    )
 
 
 def mrss_init(mblob=None) -> dict:
@@ -179,11 +185,13 @@ def mrss_scan(content: str) -> dict:
     # A limited solution.
     mblob = mrss_init()
     for v in re.findall(r'https?://www.youtube.com/watch\?v=([\-\w]+)', content):
-        mblob['content'].append([{'url': 'https://www.youtube.com/v/' + v,
-                                  'medium': 'video'}])
+        mblob['content'].append(
+            [{'url': 'https://www.youtube.com/v/' + v, 'medium': 'video'}]
+        )
     for dummy, v in re.findall(r'https?://(www\.)?vimeo.com/(\d+)', content):
-        mblob['content'].append([{'url': 'https://player.vimeo.com/video/' + v,
-                                  'medium': 'video'}])
+        mblob['content'].append(
+            [{'url': 'https://player.vimeo.com/video/' + v, 'medium': 'video'}]
+        )
     return mblob
 
 

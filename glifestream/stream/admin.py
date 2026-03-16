@@ -62,69 +62,87 @@ class ServiceAdmin(admin.ModelAdmin):
         'skip_reblogs',
     )
     fieldsets = (
-        (None, {'fields': (
-            'api',
-            'name',
-            'url',
-            'creds',
-            'display',
-            'public',
-            'active',
-            'home',
-            'skip_reblogs',
-        )}),
-        (_('Additional, optional fields'),
-         {'classes': ('collapse',), 'fields': ('link', 'cls'),
-          }),
-        (_('Fields updated automatically by gLifestream'),
-         {'classes': ('collapse',),
-          'fields': ('etag', 'last_modified', 'last_checked'),
-          })
+        (
+            None,
+            {
+                'fields': (
+                    'api',
+                    'name',
+                    'url',
+                    'creds',
+                    'display',
+                    'public',
+                    'active',
+                    'home',
+                    'skip_reblogs',
+                )
+            },
+        ),
+        (
+            _('Additional, optional fields'),
+            {
+                'classes': ('collapse',),
+                'fields': ('link', 'cls'),
+            },
+        ),
+        (
+            _('Fields updated automatically by gLifestream'),
+            {
+                'classes': ('collapse',),
+                'fields': ('etag', 'last_modified', 'last_checked'),
+            },
+        ),
     )
     search_fields = ['url', 'name']
     actions = [deactivate, activate]
 
 
 class EntryAdmin(admin.ModelAdmin):
-    list_display = (
-        truncate_title,
-        'service',
-        'reblog',
+    list_display = (truncate_title, 'service', 'reblog', 'active', 'view_website_link')
+    list_filter = (
         'active',
-        'view_website_link'
+        'service',
     )
-    list_filter = ('active', 'service',)
     search_fields = ['id', 'title', 'content']
     actions = [deactivate, activate, set_reblog, unset_reblog]
 
     def view_website_link(self, obj):
         website_url = reverse('entry', args=[obj.id])
-        return format_html('<a href="{}" target="_blank">View</a>',
-                           website_url)
+        return format_html('<a href="{}" target="_blank">View</a>', website_url)
 
     view_website_link.short_description = 'Link'
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}
         extra_context['website_link'] = self.view_website_link(
-            Entry.objects.get(pk=object_id))
-        return super().change_view(request, object_id,
-                                   form_url, extra_context)
+            Entry.objects.get(pk=object_id)
+        )
+        return super().change_view(request, object_id, form_url, extra_context)
 
 
 class MediaAdmin(admin.ModelAdmin):
-    list_display = ('entry', 'file',)
+    list_display = (
+        'entry',
+        'file',
+    )
     raw_id_fields = ('entry',)
 
 
 class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'entry',)
+    list_display = (
+        'id',
+        'user',
+        'entry',
+    )
     list_filter = ('user',)
     raw_id_fields = ('entry',)
 
 
 class ListAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name',)
+    list_display = (
+        'user',
+        'name',
+    )
     list_filter = ('user',)
 
 

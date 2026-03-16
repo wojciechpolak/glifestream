@@ -58,18 +58,26 @@ def strip_entities(value: str) -> str:
     """Returns the given HTML with all entities (&something;) stripped."""
     return re.sub(r'&(?:\w+|#\d+);', '', value)
 
+
 #
 # Code taken from Django 1.7
 #
 
 
-TRAILING_PUNCTUATION = ['.', ',', ':', ';', '.)', '"', '\'']
-WRAPPING_PUNCTUATION = [('(', ')'), ('<', '>'), ('[', ']'),
-                        ('&lt;', '&gt;'), ('"', '"'), ('\'', '\'')]
+TRAILING_PUNCTUATION = ['.', ',', ':', ';', '.)', '"', "'"]
+WRAPPING_PUNCTUATION = [
+    ('(', ')'),
+    ('<', '>'),
+    ('[', ']'),
+    ('&lt;', '&gt;'),
+    ('"', '"'),
+    ("'", "'"),
+]
 word_split_re = re.compile(r'(\s+)')
 simple_url_re = re.compile(r'^https?://\[?\w', re.IGNORECASE)
 simple_url_2_re = re.compile(
-    r'^www\.|^(?!http)\w[^@]+\.(com|edu|gov|int|mil|net|org)$', re.IGNORECASE)
+    r'^www\.|^(?!http)\w[^@]+\.(com|edu|gov|int|mil|net|org)$', re.IGNORECASE
+)
 simple_email_re = re.compile(r'^\S+@\S+\.\S+$')
 
 
@@ -89,7 +97,7 @@ def smart_urlquote(url):
         pass
 
     url = unquote(force_str(url))
-    url = quote(url, safe=b'!*\'();:@&=+$,/?#[]~')
+    url = quote(url, safe=b"!*'();:@&=+$,/?#[]~")
 
     return url
 
@@ -111,10 +119,12 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
 
     If autoescape is True, the link text and URLs will be autoescaped.
     """
+
     def trim_url(x, limit=trim_url_limit):
         if limit is None or len(x) <= limit:
             return x
-        return '%s...' % x[:max(0, limit - 3)]
+        return '%s...' % x[: max(0, limit - 3)]
+
     safe_input = isinstance(text, SafeData)
     words = word_split_re.split(text)
     for i, word in enumerate(words):
@@ -123,16 +133,18 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
             lead, middle, trail = '', word, ''
             for punctuation in TRAILING_PUNCTUATION:
                 if middle.endswith(punctuation):
-                    middle = middle[:-len(punctuation)]
+                    middle = middle[: -len(punctuation)]
                     trail = punctuation + trail
             for opening, closing in WRAPPING_PUNCTUATION:
                 if middle.startswith(opening):
-                    middle = middle[len(opening):]
+                    middle = middle[len(opening) :]
                     lead = lead + opening
                 # Keep parentheses at the end only if they're balanced.
-                if (middle.endswith(closing)
-                        and middle.count(closing) == middle.count(opening) + 1):
-                    middle = middle[:-len(closing)]
+                if (
+                    middle.endswith(closing)
+                    and middle.count(closing) == middle.count(opening) + 1
+                ):
+                    middle = middle[: -len(closing)]
                     trail = closing + trail
 
             # Make URL we want to point to.
@@ -157,8 +169,7 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
                 if autoescape and not safe_input:
                     lead, trail = escape(lead), escape(trail)
                     url, trimmed = escape(url), escape(trimmed)
-                middle = '<a href="%s"%s>%s</a>' % (url,
-                                                    nofollow_attr, trimmed)
+                middle = '<a href="%s"%s>%s</a>' % (url, nofollow_attr, trimmed)
                 words[i] = mark_safe('%s%s%s' % (lead, middle, trail))
             else:
                 if safe_input:

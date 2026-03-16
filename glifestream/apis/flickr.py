@@ -32,8 +32,10 @@ class FlickrService(WebfeedService):
         if self.service.url.startswith('http://'):
             return (self.service.url,)
         else:
-            return ('http://api.flickr.com/services/feeds/photos_public.gne?id=%s&format=rss_200' %
-                    self.service.url,)
+            return (
+                'http://api.flickr.com/services/feeds/photos_public.gne?id=%s&format=rss_200'
+                % self.service.url,
+            )
 
     def process(self, entries):
         for key, group in groupby(entries, lambda x: x.updated[0:19]):
@@ -47,14 +49,16 @@ class FlickrService(WebfeedService):
                     firstent = ent
                     first = False
                 if self.verbose:
-                    print("ID: %s" % ent.id)
+                    print('ID: %s' % ent.id)
 
                 if 'media_thumbnail' in ent:
                     tn = ent.media_thumbnail[0]
                     if self.service.public:
                         tn['url'] = media.save_image(tn['url'])
-                    content += """  <a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a>\n""" % (
-                        ent.link, tn['url'], tn['width'], tn['height'])
+                    content += (
+                        """  <a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a>\n"""
+                        % (ent.link, tn['url'], tn['width'], tn['height'])
+                    )
 
                 if 'media_content' in ent:
                     mblob['content'].append(ent.media_content)
@@ -66,8 +70,7 @@ class FlickrService(WebfeedService):
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
                 if not self.force_overwrite and 'updated_parsed' in ent:
-                    if e.date_updated and \
-                       mtime(ent.updated_parsed) <= e.date_updated:
+                    if e.date_updated and mtime(ent.updated_parsed) <= e.date_updated:
                         continue
                 if e.protected:
                     continue

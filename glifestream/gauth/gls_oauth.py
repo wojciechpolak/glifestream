@@ -31,9 +31,14 @@ AGENT = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
 
 
 class OAuth1Client:
-
-    def __init__(self, service: Service, api: BaseService, identifier=None,
-                 secret=None, callback_url=None):
+    def __init__(
+        self,
+        service: Service,
+        api: BaseService,
+        identifier=None,
+        secret=None,
+        callback_url=None,
+    ):
         if not OAuth1Session:
             raise Exception('requests-oauthlib is required.')
 
@@ -57,14 +62,16 @@ class OAuth1Client:
             resource_owner_key=self.db.token or None,
             resource_owner_secret=self.db.token_secret or None,
             verifier=self.verifier,
-            callback_uri=self.callback_url)
+            callback_uri=self.callback_url,
+        )
         self.consumer.headers['User-Agent'] = AGENT
 
     def save(self):
         self.db.save()
 
-    def set_urls(self, request_token_url=None, authorize_url=None,
-                 access_token_url=None):
+    def set_urls(
+        self, request_token_url=None, authorize_url=None, access_token_url=None
+    ):
         self.db.request_token_url = request_token_url
         self.db.authorize_url = authorize_url
         self.db.access_token_url = access_token_url

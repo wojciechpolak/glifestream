@@ -33,8 +33,9 @@ class YoutubeService(BaseService):
     playlist_types = {}
 
     def get_urls(self) -> tuple[str] | list[str]:
-        if self.service.url.startswith('http://') or \
-           self.service.url.startswith('https://'):
+        if self.service.url.startswith('http://') or self.service.url.startswith(
+            'https://'
+        ):
             return (self.service.url,)
         else:
             urls = []
@@ -45,11 +46,13 @@ class YoutubeService(BaseService):
                         playlist, kind = playlist.split('#')
                     else:
                         kind = 'video'
-                    url = ('https://www.googleapis.com/youtube/v3/'
-                           'playlistItems?part=snippet,contentDetails,status&'
-                           'playlistId=%s&'
-                           'maxResults=25&'
-                           'key=%s' % (playlist, apikey))
+                    url = (
+                        'https://www.googleapis.com/youtube/v3/'
+                        'playlistItems?part=snippet,contentDetails,status&'
+                        'playlistId=%s&'
+                        'maxResults=25&'
+                        'key=%s' % (playlist, apikey)
+                    )
                     self.playlist_types[url] = kind
                     urls.append(url)
             return urls
@@ -70,12 +73,12 @@ class YoutubeService(BaseService):
                 self.service.save()
                 self.process(url)
             elif self.verbose:
-                print('%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason))
+                print(
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, url: str) -> None:
@@ -89,20 +92,25 @@ class YoutubeService(BaseService):
                 guid = 'tag:youtube.com,2008:video:%s' % vid
 
             try:
-                t = datetime.datetime.strptime(snippet['publishedAt'],
-                                               '%Y-%m-%dT%H:%M:%SZ')
+                t = datetime.datetime.strptime(
+                    snippet['publishedAt'], '%Y-%m-%dT%H:%M:%SZ'
+                )
                 t = t.replace(tzinfo=datetime.timezone.utc)
             except ValueError:
-                t = datetime.datetime.strptime(snippet['publishedAt'],
-                                               '%Y-%m-%dT%H:%M:%S.000Z')
+                t = datetime.datetime.strptime(
+                    snippet['publishedAt'], '%Y-%m-%dT%H:%M:%S.000Z'
+                )
                 t = t.replace(tzinfo=datetime.timezone.utc)
 
             if self.verbose:
-                print("ID: %s" % guid)
+                print('ID: %s' % guid)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and e.date_updated \
-                   and mtime(t.timetuple()) <= e.date_updated:
+                if (
+                    not self.force_overwrite
+                    and e.date_updated
+                    and mtime(t.timetuple()) <= e.date_updated
+                ):
                     continue
                 if e.protected:
                     continue
@@ -128,11 +136,14 @@ class YoutubeService(BaseService):
                     tn['width'], tn['height'] = 200, 150
 
                 if self.service.public:
-                    tn['url'] = media.save_image(tn['url'], downscale=True,
-                                                 size=(tn['width'], tn['height']))
+                    tn['url'] = media.save_image(
+                        tn['url'], downscale=True, size=(tn['width'], tn['height'])
+                    )
 
-                e.content = """<div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>""" % (
-                    vid, e.link, tn['url'], tn['width'], tn['height'])
+                e.content = (
+                    """<div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>"""
+                    % (vid, e.link, tn['url'], tn['width'], tn['height'])
+                )
             else:
                 e.content = '<a href="%s">%s</a>' % (e.link, e.title)
 

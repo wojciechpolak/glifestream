@@ -37,8 +37,11 @@ from django.utils.html import escape, strip_spaces_between_tags
 from django.views.decorators.cache import never_cache
 
 from glifestream import VERSION, REVISION
-from glifestream.stream.templatetags.gls_filters import \
-    (gls_content, gls_slugify, fix_ampersands)
+from glifestream.stream.templatetags.gls_filters import (
+    gls_content,
+    gls_slugify,
+    fix_ampersands,
+)
 from glifestream.stream.models import Service, Entry, Favorite, List
 from glifestream.stream.typing import Page
 from glifestream.stream import media, websub
@@ -48,8 +51,10 @@ from glifestream.apis import API_LIST, selfposts
 
 
 def index(request, **args):
-    site_url = '%s://%s' % (request.is_secure() and 'https' or 'http',
-                            request.get_host())
+    site_url = '%s://%s' % (
+        request.is_secure() and 'https' or 'http',
+        request.get_host(),
+    )
     page: Page = {
         'ctx': args.get('ctx', ''),
         'version': VERSION,
@@ -104,8 +109,9 @@ def index(request, **args):
     if year:
         page['backtime'] = False
         page['title'] = dt
-        page['subtitle'] = _(
-            'You are currently browsing the archive for %s') % ('<b>' + dt + '</b>')
+        page['subtitle'] = _('You are currently browsing the archive for %s') % (
+            '<b>' + dt + '</b>'
+        )
         page['robots'] = 'noindex'
 
     if page['backtime']:
@@ -126,21 +132,22 @@ def index(request, **args):
         favs = Favorite.objects.filter(user__id=request.user.id)
         page['favorites'] = True
         page['title'] = _('Favorites')
-        page['subtitle'] = _(
-            'You are currently browsing your favorite entries')
+        page['subtitle'] = _('You are currently browsing your favorite entries')
         fs['id__in'] = favs.values('entry')
 
     # Filter lists.
     elif 'list' in args:
         try:
-            services = List.objects.get(user__id=request.user.id,
-                                        slug=args['list']).services
+            services = List.objects.get(
+                user__id=request.user.id, slug=args['list']
+            ).services
             del fs['service__home']
             fs['service__id__in'] = services.values('id')
             page['ctx'] = 'list/' + args['list']
             page['title'] = args['list']
-            page['subtitle'] = _('You are currently browsing entries from %s list only.') % (
-                '<b>' + args['list'] + '</b>')
+            page['subtitle'] = _(
+                'You are currently browsing entries from %s list only.'
+            ) % ('<b>' + args['list'] + '</b>')
         except List.DoesNotExist:
             if authed:
                 raise Http404
@@ -165,7 +172,8 @@ def index(request, **args):
             page['subtitle'] += ' <b>(%s)</b>' % escape(cls.capitalize())
         else:
             page['subtitle'] = _('You are currently browsing %s entries only.') % (
-                '<b>' + escape(cls) + '</b>')
+                '<b>' + escape(cls) + '</b>'
+            )
 
     # Filter by author name.
     author = request.GET.get('author', 'all')
@@ -184,12 +192,15 @@ def index(request, **args):
         if 'subtitle' in page:
             page['subtitle'] += ' <b>(%s)</b>' % escape(srvapi_name)
         else:
-            page['subtitle'] = _('You are currently browsing entries from %s service only.') % (
-                '<b>' + escape(srvapi_name) + '</b>')
+            page['subtitle'] = _(
+                'You are currently browsing entries from %s service only.'
+            ) % ('<b>' + escape(srvapi_name) + '</b>')
 
     # Filter out re-blogged items
-    if authed and request.GET.get('reblogs',
-                                  request.COOKIES.get('gls-reblogs', '1')) == '0':
+    if (
+        authed
+        and request.GET.get('reblogs', request.COOKIES.get('gls-reblogs', '1')) == '0'
+    ):
         fs['reblog'] = False
         page['reblogs'] = False
 
@@ -228,7 +239,8 @@ def index(request, **args):
         page['search'] = search_query
         page['title'] = 'Search Results for %s' % escape(search_query)
         page['subtitle'] = _('Your search for %s returned the following results.') % (
-            '<b>' + escape(search_query) + '</b>')
+            '<b>' + escape(search_query) + '</b>'
+        )
         urlparams.append('s=' + search_query)
         sfs = {}
         if not authed and not friend:
@@ -246,8 +258,7 @@ def index(request, **args):
                 select += ' LIMIT 1000'
 
                 cursor = connections['sphinx'].cursor()
-                cursor.execute(select % (settings.SPHINX_INDEX_NAME,
-                                         search_query))
+                cursor.execute(select % (settings.SPHINX_INDEX_NAME, search_query))
                 res = __dictfetchall(cursor)
                 uids = [ent['id'] for ent in res]
                 entries = entries.filter(id__in=uids).select_related()
@@ -271,7 +282,7 @@ def index(request, **args):
 
     # If not search, then normal query.
     else:
-        entries = entries.filter(**fs)[0:entries_on_page + 1].select_related()
+        entries = entries.filter(**fs)[0 : entries_on_page + 1].select_related()
         num = len(entries)
 
         if 'exactentry' in page and num:
@@ -331,11 +342,12 @@ def index(request, **args):
             pass  # FIXME: add friends-only support
 
         if not entry.friends_only:
-            entry.gls_link = '%s/%s' % (reverse('entry', args=[entry.id]),
-                                        gls_slugify(truncatewords(entry.title, 7)))
+            entry.gls_link = '%s/%s' % (
+                reverse('entry', args=[entry.id]),
+                gls_slugify(truncatewords(entry.title, 7)),
+            )
         else:
-            entry.gls_link = '%s/' % (
-                reverse('entry', args=[entry.id]))
+            entry.gls_link = '%s/' % (reverse('entry', args=[entry.id]))
             if 'title' in page:
                 del page['title']
 
@@ -347,35 +359,43 @@ def index(request, **args):
             gls_link = entries[0].gls_link
             if gls_link != request.path:
                 return HttpResponsePermanentRedirect(gls_link)
-            page['canonical_link'] = urljoin(
-                settings.BASE_URL, gls_link)
+            page['canonical_link'] = urljoin(settings.BASE_URL, gls_link)
         else:
             raise Http404
 
     if 'title' in page and page['title'] != '':
         if page_title:
-            page['title'] += getattr(settings, 'STREAM_TITLE_SUFFIX',
-                                     ' | ' + page_title)
+            page['title'] += getattr(
+                settings, 'STREAM_TITLE_SUFFIX', ' | ' + page_title
+            )
     elif page_title:
         page['title'] = page_title
 
     # Pickup right output format and finish.
     output_format = request.GET.get('format', 'html')
     if output_format == 'atom':
-        return render(request, 'stream.atom',
-                      {'entries': entries, 'page': page},
-                      content_type='application/atom+xml; charset=UTF-8')
+        return render(
+            request,
+            'stream.atom',
+            {'entries': entries, 'page': page},
+            content_type='application/atom+xml; charset=UTF-8',
+        )
     elif output_format == 'json':
         cb = request.GET.get('callback', False)
-        return render(request, 'stream.json',
-                      {'entries': entries, 'page': page, 'callback': cb},
-                      content_type='application/json')
-    elif output_format == 'html-pure' and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(
+            request,
+            'stream.json',
+            {'entries': entries, 'page': page, 'callback': cb},
+            content_type='application/json',
+        )
+    elif (
+        output_format == 'html-pure'
+        and request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    ):
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
-            favs = Favorite.objects.filter(user__id=request.user.id,
-                                           entry__id__in=ents)
+            favs = Favorite.objects.filter(user__id=request.user.id, entry__id__in=ents)
             favs = [f.entry_id for f in favs]
             for entry in entries:
                 if entry.id in favs:
@@ -385,11 +405,16 @@ def index(request, **args):
         d = {
             'next': page['start'],
             'stream': strip_spaces_between_tags(
-                render_to_string('stream-pure.html',
-                                 {'entries': entries,
-                                  'page': page,
-                                  'authed': authed,
-                                  'friend': friend})),
+                render_to_string(
+                    'stream-pure.html',
+                    {
+                        'entries': entries,
+                        'page': page,
+                        'authed': authed,
+                        'friend': friend,
+                    },
+                )
+            ),
         }
         if 'nextpage' in page:
             d['next'] = page['nextpage']
@@ -400,8 +425,7 @@ def index(request, **args):
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
-            favs = Favorite.objects.filter(user__id=request.user.id,
-                                           entry__id__in=ents)
+            favs = Favorite.objects.filter(user__id=request.user.id, entry__id__in=ents)
             favs = [f.entry_id for f in favs]
             for entry in entries:
                 if entry.id in favs:
@@ -410,8 +434,7 @@ def index(request, **args):
                     entry.sms = True
 
         # Get lists.
-        lists = List.objects.filter(
-            user__id=request.user.id).order_by('name')
+        lists = List.objects.filter(user__id=request.user.id).order_by('name')
 
         # Get archives.
         if 'entry' in args:
@@ -424,16 +447,16 @@ def index(request, **args):
                 del qs[entries_orderby + '__month']
             if day:
                 del qs[entries_orderby + '__day']
-        archs = Entry.objects.filter(**qs).dates('date_published',
-                                                 'month', order='DESC')
+        archs = Entry.objects.filter(**qs).dates(
+            'date_published', 'month', order='DESC'
+        )
         page['months12'] = [datetime.date(2010, x, 1) for x in range(1, 13)]
 
         # List available classes.
         fs = {}
         if not authed or page['ctx'] == 'public':
             fs['public'] = True
-        _classes = Service.objects.filter(**fs).order_by('id')\
-            .values('api', 'cls')
+        _classes = Service.objects.filter(**fs).order_by('id').values('api', 'cls')
         classes = {}
         for item in _classes:
             if item['cls'] not in classes:
@@ -445,17 +468,22 @@ def index(request, **args):
             accept_lang[i] = lang.split(';')[0]
         page['lang'] = accept_lang[0]
 
-        res = render(request, 'stream.html',
-                     {'classes': classes,
-                      'entries': entries,
-                      'lists': lists,
-                      'archives': archs,
-                      'page': page,
-                      'authed': authed,
-                      'friend': friend,
-                      'has_search': search_enable,
-                      'is_secure': request.is_secure(),
-                      'user': request.user})
+        res = render(
+            request,
+            'stream.html',
+            {
+                'classes': classes,
+                'entries': entries,
+                'lists': lists,
+                'archives': archs,
+                'page': page,
+                'authed': authed,
+                'friend': friend,
+                'has_search': search_enable,
+                'is_secure': request.is_secure(),
+                'user': request.user,
+            },
+        )
         return res
 
 
@@ -506,12 +534,8 @@ def webmanifest(request):
         'share_target': {
             'action': reverse('share'),
             'method': 'GET',
-            'params': {
-                'title': 'title',
-                'text': 'text',
-                'url': 'url'
-            }
-        }
+            'params': {'title': 'title', 'text': 'text', 'url': 'url'},
+        },
     }
     return JsonResponse(d, content_type='application/manifest+json')
 
@@ -537,8 +561,9 @@ def api(request, **args):
         Entry.objects.filter(id=int(entry)).update(active=True)
 
     elif cmd == 'gsc':  # get selfposts classes
-        _srvs = Service.objects.filter(api='selfposts')\
-            .order_by('cls').values('id', 'cls')
+        _srvs = (
+            Service.objects.filter(api='selfposts').order_by('cls').values('id', 'cls')
+        )
         srvs = {}
         for item in _srvs:
             if item['cls'] not in srvs:
@@ -558,23 +583,26 @@ def api(request, **args):
                 images.append(img)
         source = request.POST.get('from', '')
         entry = selfposts.SelfpostsService(Service()).share(
-            {'content': request.POST.get('content', ''),
-             'sid': request.POST.get('sid', None),
-             'draft': request.POST.get('draft', False),
-             'friends_only': request.POST.get('friends_only', False),
-             'link': request.POST.get('link', None),
-             'images': images,
-             'files': request.FILES,
-             'source': source,
-             'user': request.user})
+            {
+                'content': request.POST.get('content', ''),
+                'sid': request.POST.get('sid', None),
+                'draft': request.POST.get('draft', False),
+                'friends_only': request.POST.get('friends_only', False),
+                'link': request.POST.get('link', None),
+                'images': images,
+                'files': request.FILES,
+                'source': source,
+                'user': request.user,
+            }
+        )
         if entry:
             if not entry.draft:
                 websub.publish()
             entry.friends_only = False
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return render(request, 'stream-pure.html',
-                              {'entries': (entry,),
-                               'authed': authed})
+                return render(
+                    request, 'stream-pure.html', {'entries': (entry,), 'authed': authed}
+                )
             else:
                 return HttpResponseRedirect(settings.BASE_URL + '/')
 
@@ -583,13 +611,16 @@ def api(request, **args):
             entry = Entry.objects.get(id=int(entry))
             if entry:
                 entry = selfposts.SelfpostsService(Service()).reshare(
-                    entry, {'as_me': request.POST.get('as_me', False),
-                            'user': request.user})
+                    entry,
+                    {'as_me': request.POST.get('as_me', False), 'user': request.user},
+                )
                 if entry:
                     websub.publish()
-                    return render(request, 'stream-pure.html',
-                                  {'entries': (entry,),
-                                   'authed': authed})
+                    return render(
+                        request,
+                        'stream-pure.html',
+                        {'entries': (entry,), 'authed': authed},
+                    )
         except Entry.DoesNotExist:
             pass
 
@@ -613,8 +644,7 @@ def api(request, **args):
             if entry:
                 entry = Entry.objects.get(id=int(entry))
                 if entry:
-                    Favorite.objects.get(user=request.user,
-                                         entry=entry).delete()
+                    Favorite.objects.get(user=request.user, entry=entry).delete()
         except Entry.DoesNotExist:
             pass
 
@@ -622,8 +652,7 @@ def api(request, **args):
         try:
             if entry:
                 if not authed:
-                    entry = Entry.objects.get(id=int(entry),
-                                              service__public=True)
+                    entry = Entry.objects.get(id=int(entry), service__public=True)
                 else:
                     entry = Entry.objects.get(id=int(entry))
                 if entry:
@@ -642,8 +671,7 @@ def api(request, **args):
             if entry and authed:
                 content = request.POST.get('content', '')
                 if content:
-                    Entry.objects.filter(id=int(entry)).update(
-                        content=content)
+                    Entry.objects.filter(id=int(entry)).update(content=content)
                 entry = Entry.objects.get(id=int(entry))
                 if entry:
                     content = fix_ampersands(gls_content('', entry))
@@ -657,7 +685,4 @@ def api(request, **args):
 def __dictfetchall(cursor):
     """Returns all rows from a cursor as a dict"""
     desc = cursor.description
-    return [
-        dict(list(zip([col[0] for col in desc], row)))
-        for row in cursor.fetchall()
-    ]
+    return [dict(list(zip([col[0] for col in desc], row))) for row in cursor.fetchall()]

@@ -50,8 +50,7 @@ class AtProtoService(BaseService):
             self.connect(hs)
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def connect(self, hs) -> None:
@@ -60,16 +59,15 @@ class AtProtoService(BaseService):
             self.service.last_checked = timezone.now()
             self.service.save()
             if self.service.user_id:
-                data = self.client.get_author_feed(self.client.me.did,
-                                                   filter='posts_no_replies',
-                                                   limit=self.count)
+                data = self.client.get_author_feed(
+                    self.client.me.did, filter='posts_no_replies', limit=self.count
+                )
             else:
                 data = self.client.get_timeline(limit=self.count)
             self.process(data.feed)
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, entries: list[FeedViewPost]) -> None:
@@ -81,12 +79,17 @@ class AtProtoService(BaseService):
             if self.verbose:
                 print('ID: %s' % guid)
 
-            t = datetime.datetime.fromisoformat(record.created_at.replace('Z', '+00:00'))
+            t = datetime.datetime.fromisoformat(
+                record.created_at.replace('Z', '+00:00')
+            )
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and \
-                   e.date_updated and mtime(t.timetuple()) <= e.date_updated:
+                if (
+                    not self.force_overwrite
+                    and e.date_updated
+                    and mtime(t.timetuple()) <= e.date_updated
+                ):
                     continue
                 if e.protected:
                     continue
@@ -95,7 +98,8 @@ class AtProtoService(BaseService):
 
             e.guid = guid
             e.title = truncate.smart(
-                strip_entities(strip_tags(record.text)), max_length=40)
+                strip_entities(strip_tags(record.text)), max_length=40
+            )
             e.title = e.title.replace('#', '').replace('@', '')
 
             e.link = self.convert_uri_to_web_link(author.handle, post.uri)
@@ -122,16 +126,21 @@ class AtProtoService(BaseService):
                             image_url = media.save_image(image_url)
                         if 'aspect_ratio' in view_image:
                             sizes = view_image.aspect_ratio
-                            iwh = ' width="%d" height="%d"' % (sizes.width,
-                                                               sizes.height)
+                            iwh = ' width="%d" height="%d"' % (
+                                sizes.width,
+                                sizes.height,
+                            )
                         else:
                             iwh = ''
-                        content += '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> ' % (
-                            link, large_url, image_url, iwh)
+                        content += (
+                            '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> '
+                            % (link, large_url, image_url, iwh)
+                        )
                     content += '</p>'
                 elif hasattr(post.embed, 'external') and post.embed.external:
-                    if (post.embed.external.uri.startswith('https://www.youtube.com/') or
-                        post.embed.external.uri.startswith('https://www.vimeo.com/')):
+                    if post.embed.external.uri.startswith(
+                        'https://www.youtube.com/'
+                    ) or post.embed.external.uri.startswith('https://www.vimeo.com/'):
                         content += '\n' + expand.videolinks(post.embed.external.uri)
                 e.content += content
 
@@ -145,9 +154,11 @@ class AtProtoService(BaseService):
         # Example URI: "at://did:plc:abcdef/app.bsky.feed.post/123456"
         try:
             rkey = uri.split('/')[-1]
-            return f"https://bsky.app/profile/{profile}/post/{rkey}"
+            return f'https://bsky.app/profile/{profile}/post/{rkey}'
         except IndexError:
-            raise ValueError("The provided URI does not appear to be in the expected format.")
+            raise ValueError(
+                'The provided URI does not appear to be in the expected format.'
+            )
 
 
 def filter_title(entry: Entry) -> str:

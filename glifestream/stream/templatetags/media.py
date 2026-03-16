@@ -25,7 +25,6 @@ register = Library()
 
 
 class MediaUrl(template.Node):
-
     def render(self, ctx):
         url = settings.MEDIA_URL
         if 'is_secure' in ctx and ctx['is_secure']:
@@ -34,7 +33,6 @@ class MediaUrl(template.Node):
 
 
 class StaticUrl(template.Node):
-
     def render(self, ctx):
         url = settings.STATIC_URL
         if 'is_secure' in ctx and ctx['is_secure']:
@@ -55,7 +53,6 @@ def static(parser, token):
 
 
 class StaticUrlHash(template.Node):
-
     def __init__(self, path):
         self.path = path
         self.hash = None
@@ -83,5 +80,6 @@ def static_hash(parser, token):
         _, path = token.split_contents()
     except ValueError:
         raise template.TemplateSyntaxError(
-            "%r tag requires a single argument" % token.contents.split()[0])
+            '%r tag requires a single argument' % token.contents.split()[0]
+        )
     return StaticUrlHash(path)

@@ -61,8 +61,7 @@ def pn_month_start(dt=None) -> tuple:
     if dt.month == 12:
         dt_last = dt.replace(day=31)
     else:
-        dt_last = dt.replace(
-            month=dt.month + 1, day=1) - datetime.timedelta(days=1)
+        dt_last = dt.replace(month=dt.month + 1, day=1) - datetime.timedelta(days=1)
 
     prev_last = dt_first - datetime.timedelta(days=1)
     prev_first = datetime.date(prev_last.year, prev_last.month, 1)

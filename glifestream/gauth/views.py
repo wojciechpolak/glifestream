@@ -28,14 +28,14 @@ from glifestream.utils import common
 
 
 @never_cache
-def login(request, template_name='login.html',
-          redirect_field_name=REDIRECT_FIELD_NAME):
+def login(request, template_name='login.html', redirect_field_name=REDIRECT_FIELD_NAME):
 
-    redirect_to = request.GET.get(
-        redirect_field_name, reverse('index'))
+    redirect_to = request.GET.get(redirect_field_name, reverse('index'))
 
     if request.method == 'POST':
-        form = AuthenticationRememberMeForm(data=request.POST,)
+        form = AuthenticationRememberMeForm(
+            data=request.POST,
+        )
         if form.is_valid():
             if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
                 redirect_to = settings.BASE_URL + '/'
@@ -50,7 +50,9 @@ def login(request, template_name='login.html',
 
             return HttpResponseRedirect(redirect_to)
     else:
-        form = AuthenticationRememberMeForm(request,)
+        form = AuthenticationRememberMeForm(
+            request,
+        )
 
     request.session.set_test_cookie()
 
@@ -63,10 +65,15 @@ def login(request, template_name='login.html',
         'theme': common.get_theme(request),
     }
 
-    return render(request, template_name,
-                  {'page': page,
-                   'form': form,
-                   'site': current_site,
-                   'site_name': current_site.name,
-                   'is_secure': request.is_secure(),
-                   redirect_field_name: redirect_to})
+    return render(
+        request,
+        template_name,
+        {
+            'page': page,
+            'form': form,
+            'site': current_site,
+            'site_name': current_site.name,
+            'is_secure': request.is_secure(),
+            redirect_field_name: redirect_to,
+        },
+    )

@@ -21,6 +21,6 @@ from django.utils.translation import gettext_lazy as _
 
 
 class AuthenticationRememberMeForm(AuthenticationForm):
-    remember_me = forms.BooleanField(label=_('Remember Me'),
-                                     initial=False,
-                                     required=False)
+    remember_me = forms.BooleanField(
+        label=_('Remember Me'), initial=False, required=False
+    )

@@ -72,7 +72,7 @@ def file_lookup(filename):
 
 
 def thumb_replace(tmatch, suffix):
-    return f"[GLS-THUMBS]/{tmatch}{suffix}"
+    return f'[GLS-THUMBS]/{tmatch}{suffix}'
 
 
 #
@@ -113,14 +113,20 @@ for md in medias:
             except Exception as exc:
                 print('EXCEPTION', exc)
         else:
-            print(f'No media suffix for ID {md.id} (entry ID {md.entry.id})', md.file.name)
+            print(
+                f'No media suffix for ID {md.id} (entry ID {md.entry.id})', md.file.name
+            )
 
 
 entries = Entry.objects.all()
 
 for entry in entries:
     thumb_hash = media.get_thumb_hash(entry.link_image)
-    t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel'] if thumb_hash else ''
+    t = (
+        media.get_thumb_info(thumb_hash, append_suffix=False)['rel']
+        if thumb_hash
+        else ''
+    )
     if t and '.' not in thumb_hash:
         filename = os.path.join(settings.MEDIA_ROOT, t)
         suffix = get_file_suffix(file_lookup(filename))
@@ -141,8 +147,11 @@ for entry in entries:
             filename = os.path.join(settings.MEDIA_ROOT, t)
             suffix = get_file_suffix(file_lookup(filename))
             if suffix:
-                modified_content = re.sub(fr'\[GLS-THUMBS\]/{re.escape(thumb_hash)}',
-                                          thumb_replace(thumb_hash, suffix), modified_content)
+                modified_content = re.sub(
+                    rf'\[GLS-THUMBS\]/{re.escape(thumb_hash)}',
+                    thumb_replace(thumb_hash, suffix),
+                    modified_content,
+                )
     if modified_content != entry.content:
         print('Saving entry', entry.id)
         entry.content = modified_content

@@ -48,8 +48,9 @@ def subscribe(service: Service, verbose=False):
     if not hub:
         return {'rc': 2}
 
-    secret = hashlib.md5('%s:%d/%s/%s' % (hub, service.id, api.url,
-                                          settings.SECRET_KEY)).hexdigest()
+    secret = hashlib.md5(
+        '%s:%d/%s/%s' % (hub, service.id, api.url, settings.SECRET_KEY)
+    ).hexdigest()
     hash_sub = hashlib.sha1(secret).hexdigest()[0:20]
     secret = secret[0:8] if 'https://' in hub else None
 
@@ -66,10 +67,12 @@ def subscribe(service: Service, verbose=False):
     if settings.WEBSUB_HTTPS_CALLBACK:
         callback = callback.replace('http://', 'https://')
 
-    data = {'hub.mode': 'subscribe',
-            'hub.topic': topic,
-            'hub.callback': callback,
-            'hub.verify': 'async'}
+    data = {
+        'hub.mode': 'subscribe',
+        'hub.topic': topic,
+        'hub.callback': callback,
+        'hub.verify': 'async',
+    }
     if secret:
         data['hub.secret'] = secret
 
@@ -103,10 +106,12 @@ def unsubscribe(id_sub, verbose=False):
     if settings.WEBSUB_HTTPS_CALLBACK:
         callback = callback.replace('http://', 'https://')
 
-    data = {'hub.mode': 'unsubscribe',
-            'hub.topic': topic,
-            'hub.callback': callback,
-            'hub.verify': 'sync'}
+    data = {
+        'hub.mode': 'unsubscribe',
+        'hub.topic': topic,
+        'hub.callback': callback,
+        'hub.verify': 'sync',
+    }
 
     try:
         r = httpclient.post(db.hub, data=data)
@@ -207,8 +212,10 @@ def list_subs(raw=False):
     if raw:
         return subscriptions
     for s in subscriptions:
-        print('%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s' %
-              (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire))
+        print(
+            '%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s'
+            % (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire)
+        )
 
 
 def __get_absolute_url(path=''):

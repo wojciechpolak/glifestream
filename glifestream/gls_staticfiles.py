@@ -17,6 +17,7 @@
 
 from django.contrib.staticfiles.apps import StaticFilesConfig
 
+
 class GlsStaticFilesConfig(StaticFilesConfig):
     ignore_patterns = [
         '.*',

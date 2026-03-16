@@ -41,7 +41,9 @@ logger = logging.getLogger(__name__)
 class SelfpostsService(BaseService):
     name = 'Selfposts API'
 
-    def __init__(self, service: Service, verbose: int = 0, force_overwrite: bool = False):
+    def __init__(
+        self, service: Service, verbose: int = 0, force_overwrite: bool = False
+    ):
         super().__init__(service, verbose, force_overwrite)
 
     def get_urls(self):
@@ -62,8 +64,7 @@ class SelfpostsService(BaseService):
         user = args.get('user', None)
 
         un = utcnow()
-        guid = '%s/entry/%s' % (settings.FEED_TAGURI,
-                                un.strftime('%Y-%m-%dT%H:%M:%SZ'))
+        guid = '%s/entry/%s' % (settings.FEED_TAGURI, un.strftime('%Y-%m-%dT%H:%M:%SZ'))
         if sid:
             s = Service.objects.get(id=sid, api='selfposts')
         else:
@@ -95,8 +96,10 @@ class SelfpostsService(BaseService):
             thumbs = '\n<p class="thumbnails">\n'
             for img in images:
                 img = media.save_image(img, force=True, downscale=True)
-                thumbs += """  <a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a>\n""" % (
-                    e.link, img)
+                thumbs += (
+                    """  <a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a>\n"""
+                    % (e.link, img)
+                )
             thumbs += '</p>\n'
             e.content += thumbs
 
@@ -129,13 +132,14 @@ class SelfpostsService(BaseService):
                 thumbs = '\n<p class="thumbnails">\n'
                 for o in pictures:
                     thumb, orig = media.downsave_uploaded_image(o[0].file)
-                    thumbs += '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n' % (
-                        orig, thumb)
-                    mrss = {
-                        'url': orig,
-                        'medium': 'image',
-                        'fileSize': o[1].size
-                    }
+                    thumbs += (
+                        '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n'
+                        % (
+                            orig,
+                            thumb,
+                        )
+                    )
+                    mrss = {'url': orig, 'medium': 'image', 'fileSize': o[1].size}
                     if orig.lower().endswith('.jpg') or orig.lower().endswith('.jpeg'):
                         mrss['type'] = 'image/jpeg'
                     elif orig.lower().endswith('.webp'):
@@ -151,11 +155,11 @@ class SelfpostsService(BaseService):
             if len(docs) > 0:
                 doc = '\n<ul class="files">\n'
                 for o in docs:
-                    target = '[GLS-UPLOAD]/%s' % o[
-                        0].file.name.replace('upload/', '')
+                    target = '[GLS-UPLOAD]/%s' % o[0].file.name.replace('upload/', '')
                     doc += '  <li><a href="%s">%s</a> ' % (target, o[1].name)
-                    doc += '<span class="size">%s</span></li>\n' % \
-                        bytes_to_human(o[1].size)
+                    doc += '<span class="size">%s</span></li>\n' % bytes_to_human(
+                        o[1].size
+                    )
 
                     mrss = {'url': target, 'fileSize': o[1].size}
                     target = target.lower()
@@ -201,8 +205,7 @@ class SelfpostsService(BaseService):
         user = args.get('user', None)
 
         un = utcnow()
-        guid = '%s/entry/%s' % (settings.FEED_TAGURI,
-                                un.strftime('%Y-%m-%dT%H:%M:%SZ'))
+        guid = '%s/entry/%s' % (settings.FEED_TAGURI, un.strftime('%Y-%m-%dT%H:%M:%SZ'))
         if sid:
             s = Service.objects.get(id=sid, api='selfposts')
         else:
@@ -237,8 +240,7 @@ class SelfpostsService(BaseService):
 
         e.title = entry.title
         if entry.service.api == 'greader':
-            e.content = '<a href="%s" rel="nofollow">%s</a>' % (
-                e.link, e.title)
+            e.content = '<a href="%s" rel="nofollow">%s</a>' % (e.link, e.title)
         elif entry.service.api in ('youtube', 'vimeo'):
             e.content = '<p>%s</p>%s' % (df_title(e.title), entry.content)
         else:

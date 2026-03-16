@@ -37,8 +37,10 @@ class VimeoService(BaseService):
             url = url.replace('group/', 'groups/')
             return ('https://vimeo.com/%s/videos/rss' % url,)
         else:
-            return ('https://vimeo.com/%s/likes/rss' % self.service.url,
-                    'https://vimeo.com/%s/videos/rss' % self.service.url)
+            return (
+                'https://vimeo.com/%s/likes/rss' % self.service.url,
+                'https://vimeo.com/%s/videos/rss' % self.service.url,
+            )
 
     def run(self) -> None:
         if not self.service.link:
@@ -61,12 +63,12 @@ class VimeoService(BaseService):
                 self.service.save()
                 self.process()
             elif self.verbose:
-                print('%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason))
+                print(
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process_likes(self) -> None:
@@ -75,11 +77,14 @@ class VimeoService(BaseService):
             date = ent['liked_on'][:10]
             guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
             if self.verbose:
-                print("ID: %s" % guid)
+                print('ID: %s' % guid)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and e.date_updated \
-                        and mtime(ent['liked_on']) <= e.date_updated:
+                if (
+                    not self.force_overwrite
+                    and e.date_updated
+                    and mtime(ent['liked_on']) <= e.date_updated
+                ):
                     continue
                 if e.protected:
                     continue
@@ -87,8 +92,7 @@ class VimeoService(BaseService):
                 e = Entry(service=self.service, guid=guid)
 
             try:
-                t = datetime.datetime.strptime(ent['liked_on'],
-                                               '%Y-%m-%d %H:%M:%S')
+                t = datetime.datetime.strptime(ent['liked_on'], '%Y-%m-%d %H:%M:%S')
                 t = t.replace(tzinfo=datetime.timezone.utc)
             except ValueError:
                 t = ent['liked_on']
@@ -103,15 +107,23 @@ class VimeoService(BaseService):
 
             if self.service.public:
                 ent['thumbnail_large'] = media.save_image(
-                    ent['thumbnail_large'], downscale=True, size=(320, 180))
+                    ent['thumbnail_large'], downscale=True, size=(320, 180)
+                )
 
-            e.content = """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>""" % (
-                ent['id'], e.link, ent['thumbnail_large'], ent['title'])
+            e.content = (
+                """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>"""
+                % (ent['id'], e.link, ent['thumbnail_large'], ent['title'])
+            )
 
             mblob = media.mrss_init()
-            mblob[
-                'content'].append([{'url': 'https://player.vimeo.com/video/%s' % ent['id'],
-                                    'medium': 'video'}])
+            mblob['content'].append(
+                [
+                    {
+                        'url': 'https://player.vimeo.com/video/%s' % ent['id'],
+                        'medium': 'video',
+                    }
+                ]
+            )
             e.mblob = media.mrss_gen_json(mblob)
 
             try:
@@ -125,11 +137,14 @@ class VimeoService(BaseService):
             date = ent['upload_date'][:10]
             guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
             if self.verbose:
-                print("ID: %s" % guid)
+                print('ID: %s' % guid)
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and e.date_updated \
-                   and mtime(ent['upload_date']) <= e.date_updated:
+                if (
+                    not self.force_overwrite
+                    and e.date_updated
+                    and mtime(ent['upload_date']) <= e.date_updated
+                ):
                     continue
                 if e.protected:
                     continue
@@ -137,8 +152,7 @@ class VimeoService(BaseService):
                 e = Entry(service=self.service, guid=guid)
 
             try:
-                t = datetime.datetime.strptime(ent['upload_date'],
-                                               '%Y-%m-%d %H:%M:%S')
+                t = datetime.datetime.strptime(ent['upload_date'], '%Y-%m-%d %H:%M:%S')
                 t = t.replace(tzinfo=datetime.timezone.utc)
             except ValueError:
                 t = ent['upload_date']
@@ -151,14 +165,23 @@ class VimeoService(BaseService):
 
             if self.service.public:
                 ent['thumbnail_large'] = media.save_image(
-                    ent['thumbnail_large'], downscale=True, size=(320, 180))
+                    ent['thumbnail_large'], downscale=True, size=(320, 180)
+                )
 
-            e.content = """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>""" % (
-                ent['id'], e.link, ent['thumbnail_large'], ent['title'])
+            e.content = (
+                """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>"""
+                % (ent['id'], e.link, ent['thumbnail_large'], ent['title'])
+            )
 
             mblob = media.mrss_init()
-            mblob['content'].append([{'url': 'https://player.vimeo.com/video/%s' % ent['id'],
-                                     'medium': 'video'}])
+            mblob['content'].append(
+                [
+                    {
+                        'url': 'https://player.vimeo.com/video/%s' % ent['id'],
+                        'medium': 'video',
+                    }
+                ]
+            )
             e.mblob = media.mrss_gen_json(mblob)
 
             try:

@@ -65,8 +65,10 @@ def gls_media(s):
 def gls_link(_, entry: Entry):
     if not entry.service.public:
         if entry.author_name:
-            return '?class=%s&author=%s' % (entry.service.cls,
-                                            urlencode(entry.author_name))
+            return '?class=%s&author=%s' % (
+                entry.service.cls,
+                urlencode(entry.author_name),
+            )
     else:
         return '?class=%s' % entry.service.cls
     return entry.service.link
@@ -91,16 +93,20 @@ def gls_title(_, entry: Entry):
 @register.filter
 def gls_content(_, entry: Entry):
     if entry.friends_only:
-        return mark_safe('<div class="friends-only-entry">' \
-                         'The content of this entry is available only to my friends.</div>')
+        return mark_safe(
+            '<div class="friends-only-entry">'
+            'The content of this entry is available only to my friends.</div>'
+        )
     try:
         mod = API_MODULES.get(entry.service.api)
         if mod and hasattr(mod, 'filter_content'):
             s = mod.filter_content(entry)
             if entry.geolat and entry.geolng:
-                s += '<div class="geo"><a href="#" class="show-map"><span class="latitude">%.10f</span> ' \
-                     '<span class="longitude">%.10f</span>%s</a></div>' % (
-                     entry.geolat, entry.geolng, ('show map'))
+                s += (
+                    '<div class="geo"><a href="#" class="show-map"><span class="latitude">%.10f</span> '
+                    '<span class="longitude">%.10f</span>%s</a></div>'
+                    % (entry.geolat, entry.geolng, ('show map'))
+                )
             return mark_safe(gls_media(s))
     except Exception as exc:
         print(exc)
@@ -118,7 +124,14 @@ def gls_mediarss(_, entry: Entry):
 def gls_reply_url(_, entry: Entry):
     if entry.service.api == 'twitter':
         u = entry.link.split('/')
-        return 'https://twitter.com/?status=@%s%%20&in_reply_to_status_id=%s&in_reply_to=%s' % (u[3], u[5], u[3])
+        return (
+            'https://twitter.com/?status=@%s%%20&in_reply_to_status_id=%s&in_reply_to=%s'
+            % (
+                u[3],
+                u[5],
+                u[3],
+            )
+        )
     return '#'
 
 
@@ -148,12 +161,14 @@ def get_relative_time(t):
             rel = _('%d days ago') % rel
     elif diff_minutes > 60:
         rel = int(math.floor(diff_minutes / 60))
-        rel = ngettext('%(count)d hour ago', '%(count)d hours ago', rel) % \
-            {'count': rel, }
+        rel = ngettext('%(count)d hour ago', '%(count)d hours ago', rel) % {
+            'count': rel,
+        }
     else:
         rel = int(diff_minutes)
-        rel = ngettext('%(count)d minute ago', '%(count)d minutes ago', rel) % \
-            {'count': rel, }
+        rel = ngettext('%(count)d minute ago', '%(count)d minutes ago', rel) % {
+            'count': rel,
+        }
     return rel
 
 
@@ -186,5 +201,6 @@ def gls_urlizetrunc(value, limit, autoescape=None):
 
     Argument: Length to truncate URLs to.
     """
-    return mark_safe(_urlize(value, trim_url_limit=int(limit), nofollow=True,
-                             autoescape=autoescape))
+    return mark_safe(
+        _urlize(value, trim_url_limit=int(limit), nofollow=True, autoescape=autoescape)
+    )

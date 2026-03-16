@@ -24,8 +24,9 @@ def simple(content: str, max_length: int = 36, suffix: str = '...') -> str:
     return content + suffix
 
 
-def smart(content: str, max_words: int = 7,
-          max_length: int = 36, suffix: str = '...') -> str:
+def smart(
+    content: str, max_words: int = 7, max_length: int = 36, suffix: str = '...'
+) -> str:
     sx = ''
     content = content.strip()
     words = content.split(' ')

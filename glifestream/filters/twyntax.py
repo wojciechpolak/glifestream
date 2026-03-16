@@ -20,6 +20,7 @@ import re
 
 def parse(s: str, syntax_type='twitter') -> str:
     from glifestream.stream.templatetags.gls_filters import gls_urlizetrunc
+
     if syntax_type == 'twitter':
         s = s.split(': ', 1)[1]
     s = hash_tag(s)
@@ -29,13 +30,17 @@ def parse(s: str, syntax_type='twitter') -> str:
 
 
 def at_reply(tweet: str) -> str:
-    pattern = re.compile(r"(\A|\W)@(?P<user>\w+)(\Z|\W)")
-    repl = (r'\1@<a href="https://twitter.com/\g<user>"'
-            r' title="\g<user> on Twitter" rel="nofollow">\g<user></a>\3')
+    pattern = re.compile(r'(\A|\W)@(?P<user>\w+)(\Z|\W)')
+    repl = (
+        r'\1@<a href="https://twitter.com/\g<user>"'
+        r' title="\g<user> on Twitter" rel="nofollow">\g<user></a>\3'
+    )
     return pattern.sub(repl, tweet)
 
 
 def hash_tag(tweet: str) -> str:
-    return re.sub(r'(\A|\s)#(\w[\w\-]+)',
-                  r'\1#<a href="https://twitter.com/search/%23\2" title="#\2 search Twitter" rel="nofollow">\2</a>',
-                  tweet)
+    return re.sub(
+        r'(\A|\s)#(\w[\w\-]+)',
+        r'\1#<a href="https://twitter.com/search/%23\2" title="#\2 search Twitter" rel="nofollow">\2</a>',
+        tweet,
+    )

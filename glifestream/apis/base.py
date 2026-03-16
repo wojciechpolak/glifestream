@@ -28,7 +28,9 @@ class BaseService(ABC):
     name: str
     limit_sec: int
 
-    def __init__(self, service: Service, verbose: int = 0, force_overwrite: bool = False):
+    def __init__(
+        self, service: Service, verbose: int = 0, force_overwrite: bool = False
+    ):
         self.service = service
         self.verbose = verbose
         self.force_overwrite = force_overwrite

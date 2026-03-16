@@ -36,7 +36,9 @@ class ServiceFactory:
     """
 
     @staticmethod
-    def create_service(service: Service, verbose: int = 0, force_overwrite: bool = False) -> BaseService:
+    def create_service(
+        service: Service, verbose: int = 0, force_overwrite: bool = False
+    ) -> BaseService:
         if service.api == 'atproto':
             return AtProtoService(service, verbose, force_overwrite)
         elif service.api == 'flickr':

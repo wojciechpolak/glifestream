@@ -47,8 +47,8 @@ from glifestream.stream.models import Service, Entry, Favorite  # noqa: E402
 from glifestream.utils.time import unixnow  # noqa: E402
 
 if workerpool:
-    class WorkerJob(workerpool.Job):
 
+    class WorkerJob(workerpool.Job):
         def __init__(self, fn):
             self.fn = fn
 
@@ -69,21 +69,26 @@ def run():
     fs = {}
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'i:a:lvf',
-                                   ['id=',
-                                    'api=',
-                                    'list',
-                                    'verbose',
-                                    'force-check',
-                                    'force-overwrite',
-                                    'delete-old=',
-                                    'list-old=',
-                                    'only-inactive',
-                                    'thumbs-list-orphans',
-                                    'thumbs-delete-orphans',
-                                    'websub=',
-                                    'email2post',
-                                    'init-files-dirs'])
+        opts, args = getopt.getopt(
+            sys.argv[1:],
+            'i:a:lvf',
+            [
+                'id=',
+                'api=',
+                'list',
+                'verbose',
+                'force-check',
+                'force-overwrite',
+                'delete-old=',
+                'list-old=',
+                'only-inactive',
+                'thumbs-list-orphans',
+                'thumbs-delete-orphans',
+                'websub=',
+                'email2post',
+                'init-files-dirs',
+            ],
+        )
         for o, arg in opts:
             if o in ('-a', '--api'):
                 fs['api'] = arg
@@ -114,8 +119,9 @@ def run():
             elif o == '--init-files-dirs':
                 sys.exit(init_files_dirs())
     except getopt.GetoptError:
-        print("Usage: %s [OPTION...]" % sys.argv[0])
-        print("""%s -- gLifestream worker
+        print('Usage: %s [OPTION...]' % sys.argv[0])
+        print(
+            """%s -- gLifestream worker
 
   -a, --api=NAME               API name of services to update
   -i, --id=ID                  ID of the service to update
@@ -129,7 +135,9 @@ def run():
       --thumbs-delete-orphans  Delete orphaned thumbnails
       --websub=ACTION          WebSub's actions: (un)subscribe, list, renew, publish
       --email2post             Post things using e-mail (from stdin)
-  """ % sys.argv[0])
+  """
+            % sys.argv[0]
+        )
         sys.exit(0)
 
     if list_services:
@@ -172,19 +180,23 @@ def run():
 
     if thumbs in ('list-orphans', 'delete-orphans'):
         ths = {}
-        for root, dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT,
-                                                      'thumbs')):
+        for root, dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT, 'thumbs')):
             for file in files:
                 if file[0] != '.':
                     ths[media.get_thumb_info(file, append_suffix=False)['rel']] = True
         entries = Entry.objects.all()
         for entry in entries:
             thumb_hash = media.get_thumb_hash(entry.link_image)
-            t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel'] if thumb_hash else ''
+            t = (
+                media.get_thumb_info(thumb_hash, append_suffix=False)['rel']
+                if thumb_hash
+                else ''
+            )
             if t in ths:
                 del ths[t]
-            for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)',
-                                         entry.content):
+            for thumb_hash in re.findall(
+                r'\[GLS-THUMBS\]/([a-z0-9\.]+)', entry.content
+            ):
                 t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel']
                 if t in ths:
                     del ths[t]
@@ -228,9 +240,7 @@ def run():
         favs = Favorite.objects.all().values('entry')
         if list_old:
             for entry in Entry.objects.filter(**fs).exclude(id__in=favs):
-                print('%4d "%s" by %s' % (entry.id,
-                                          entry.title,
-                                          entry.author_name))
+                print('%4d "%s" by %s' % (entry.id, entry.title, entry.author_name))
         elif delete_old:
             Entry.objects.filter(**fs).exclude(id__in=favs).delete()
         sys.exit(0)
@@ -240,13 +250,15 @@ def run():
 
     if force_overwrite:
         sel = input(
-            "WARNING: This may create thumbnail orphans! Continue Y/N? ").strip()
+            'WARNING: This may create thumbnail orphans! Continue Y/N? '
+        ).strip()
         if sel != 'Y':
             sys.exit(0)
 
     try:
-        last1 = Entry.objects.filter(service__public=True).\
-            order_by('-date_published')[0]
+        last1 = Entry.objects.filter(service__public=True).order_by('-date_published')[
+            0
+        ]
     except IndexError:
         last1 = None
 
@@ -272,8 +284,9 @@ def run():
         pool.wait()
 
     try:
-        last2 = Entry.objects.filter(service__public=True).\
-            order_by('-date_published')[0]
+        last2 = Entry.objects.filter(service__public=True).order_by('-date_published')[
+            0
+        ]
     except IndexError:
         last2 = None
 

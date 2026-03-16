@@ -62,8 +62,9 @@ class MastodonService(BaseService):
                     self.fetch(self.get_base_url() + url)
             except Exception as e:
                 if self.verbose:
-                    print('%s (%d) Exception: %s' % (self.service.api,
-                                                     self.service.id, e))
+                    print(
+                        '%s (%d) Exception: %s' % (self.service.api, self.service.id, e)
+                    )
                     traceback.print_exc(file=sys.stdout)
 
     def fetch(self, url) -> None:
@@ -72,8 +73,7 @@ class MastodonService(BaseService):
             self.process(r.json())
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def fetch_oauth2(self, url) -> None:
@@ -86,12 +86,12 @@ class MastodonService(BaseService):
                 self.service.save()
                 self.process(self.json)
             elif self.verbose:
-                print('%s (%d) HTTP: %s' % (self.service.api,
-                                            self.service.id, r.reason))
+                print(
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api,
-                                                 self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, entries) -> None:
@@ -103,19 +103,24 @@ class MastodonService(BaseService):
                 entry = ent['reblog']
             if reblog and self.service.skip_reblogs:
                 if self.verbose:
-                    print("Skipping reblogged ID: %s" % entry['url'])
+                    print('Skipping reblogged ID: %s' % entry['url'])
                 continue
 
             guid = entry['url']
             if self.verbose:
-                print("ID: %s" % guid)
+                print('ID: %s' % guid)
 
-            t = datetime.datetime.fromisoformat(ent['created_at'].replace('Z', '+00:00'))
+            t = datetime.datetime.fromisoformat(
+                ent['created_at'].replace('Z', '+00:00')
+            )
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and \
-                   e.date_updated and mtime(t.timetuple()) <= e.date_updated:
+                if (
+                    not self.force_overwrite
+                    and e.date_updated
+                    and mtime(t.timetuple()) <= e.date_updated
+                ):
                     continue
                 if e.protected:
                     continue
@@ -124,7 +129,8 @@ class MastodonService(BaseService):
 
             e.guid = guid
             e.title = truncate.smart(
-                strip_entities(strip_tags(entry['content'])), max_length=40)
+                strip_entities(strip_tags(entry['content'])), max_length=40
+            )
             e.title = e.title.replace('#', '').replace('@', '')
 
             e.link = entry['url']
@@ -153,12 +159,16 @@ class MastodonService(BaseService):
                             image_url = media.save_image(image_url)
                         if 'meta' in t and 'small' in t['meta']:
                             sizes = t['meta']['small']
-                            iwh = ' width="%d" height="%d"' % (sizes['width'],
-                                                               sizes['height'])
+                            iwh = ' width="%d" height="%d"' % (
+                                sizes['width'],
+                                sizes['height'],
+                            )
                         else:
                             iwh = ''
-                        content += '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> ' % (
-                            link, large_url, image_url, iwh)
+                        content += (
+                            '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> '
+                            % (link, large_url, image_url, iwh)
+                        )
                 content += '</p>'
                 e.content += content
 
