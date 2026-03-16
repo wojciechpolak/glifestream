@@ -66,10 +66,10 @@ class Service (models.Model):
         verbose_name_plural = _('Services')
         ordering = ('-public', 'name', 'url',)
 
-    def save(self):
+    def save(self, *args, **kwargs):
         if not self.cls:
             self.cls = self.api
-        super().save()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return '%s' % self.name
@@ -168,9 +168,9 @@ class List (models.Model):
         ordering = ('name',)
         unique_together = (('user', 'slug'),)
 
-    def save(self):
+    def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        super().save()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return '%s: %s' % (self.user, self.name)

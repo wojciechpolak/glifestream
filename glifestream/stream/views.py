@@ -303,7 +303,7 @@ def index(request, **args):
     if len(entries):
         page['updated'] = entries[0].date_published
     else:
-        page['updated'] = datetime.datetime.utcnow()
+        page['updated'] = datetime.datetime.now(datetime.timezone.utc)
     page['urlparams'] = urlparams_str
     page['start'] = start
     page['after'] = after

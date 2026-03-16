@@ -25,8 +25,7 @@ def mtime(t) -> datetime.datetime:
         t = datetime.datetime.strptime(t, '%Y-%m-%d %H:%M:%S')
         t = t.replace(tzinfo=datetime.timezone.utc)
         t = t.timetuple()
-    d = datetime.datetime.utcfromtimestamp(calendar.timegm(t))
-    d = d.replace(tzinfo=datetime.timezone.utc)
+    d = datetime.datetime.fromtimestamp(calendar.timegm(t), datetime.timezone.utc)
     return d
 
 
@@ -34,8 +33,7 @@ def from_rfc3339(t) -> datetime.datetime:
     t = datetime.datetime.strptime(t[0:19], '%Y-%m-%dT%H:%M:%S')
     t = t.replace(tzinfo=datetime.timezone.utc)
     t = t.timetuple()
-    d = datetime.datetime.utcfromtimestamp(calendar.timegm(t))
-    d = d.replace(tzinfo=datetime.timezone.utc)
+    d = datetime.datetime.fromtimestamp(calendar.timegm(t), datetime.timezone.utc)
     return d
 
 
@@ -69,4 +67,7 @@ def pn_month_start(dt=None) -> tuple:
     prev_last = dt_first - datetime.timedelta(days=1)
     prev_first = datetime.date(prev_last.year, prev_last.month, 1)
     next_first = dt_last + datetime.timedelta(days=1)
+    # Ensure we return dates, not datetimes if dt was datetime
+    if isinstance(next_first, datetime.datetime):
+        next_first = next_first.date()
     return prev_first, next_first
