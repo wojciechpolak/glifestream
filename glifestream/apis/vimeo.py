@@ -25,22 +25,23 @@ from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
+from typing import cast
 
 
 class VimeoService(BaseService):
     name = 'Vimeo Simple API v2'
     limit_sec = 3600
 
-    def get_urls(self) -> tuple[str]:
+    def get_urls(self) -> list[str]:
         if '/' in self.service.url:
             url = self.service.url.replace('channel/', 'channels/')
             url = url.replace('group/', 'groups/')
-            return ('https://vimeo.com/%s/videos/rss' % url,)
+            return ['https://vimeo.com/%s/videos/rss' % url]
         else:
-            return (
+            return [
                 'https://vimeo.com/%s/likes/rss' % self.service.url,
                 'https://vimeo.com/%s/videos/rss' % self.service.url,
-            )
+            ]
 
     def run(self) -> None:
         if not self.service.link:
@@ -197,9 +198,9 @@ def get_thumbnail_url(id_video: str) -> str | None:
         if r.status_code == 200:
             jsn = r.json()
             if 'thumbnail_large' in jsn[0]:
-                return jsn[0]['thumbnail_large']
+                return cast(str | None, jsn[0]['thumbnail_large'])
             elif 'thumbnail_medium' in jsn[0]:
-                return jsn[0]['thumbnail_medium']
+                return cast(str | None, jsn[0]['thumbnail_medium'])
     except Exception:
         pass
     return None

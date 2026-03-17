@@ -18,8 +18,9 @@
 import sys
 import traceback
 import datetime
-from atproto import Client
-from atproto_client.models.app.bsky.feed.defs import FeedViewPost
+from typing import Optional
+from atproto import Client  # type: ignore
+from atproto_client.models.app.bsky.feed.defs import FeedViewPost  # type: ignore
 
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -36,7 +37,7 @@ from glifestream.utils import httpclient
 class AtProtoService(BaseService):
     name = 'The AT Protocol API v1.0'
     limit_sec = 120
-    count = 50
+    count: Optional[int] = 50
 
     def __init__(self, service: Service, verbose=0, force_overwrite=False):
         super().__init__(service, verbose, force_overwrite)

@@ -15,7 +15,7 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import feedparser
+import feedparser  # type: ignore
 
 from glifestream.apis.base import BaseService
 from glifestream.utils import httpclient
@@ -31,8 +31,8 @@ class WebfeedService(BaseService):
     fetch_only = False
     payload = None
 
-    def get_urls(self) -> tuple[str]:
-        return (self.service.url,)
+    def get_urls(self) -> list[str]:
+        return [self.service.url]
 
     def run(self) -> None:
         for url in self.get_urls():

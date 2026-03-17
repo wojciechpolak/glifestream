@@ -15,10 +15,12 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
 from django.conf import settings
+from django.http import HttpRequest
 
 
-def get_theme(request) -> str:
+def get_theme(request: HttpRequest) -> str:
     theme: str = request.COOKIES.get('gls-theme', settings.THEMES[0])
     if theme not in settings.THEMES:
         theme = settings.THEMES[0]

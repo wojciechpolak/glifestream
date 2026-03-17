@@ -15,7 +15,10 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
 from __future__ import unicode_literals
+
+from typing import Any
 
 from django.db import models
 from django.contrib.auth.models import User
@@ -86,7 +89,7 @@ class Service(models.Model):
             'url',
         )
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.cls:
             self.cls = self.api
         super().save(*args, **kwargs)
@@ -164,7 +167,7 @@ class Entry(models.Model):
         ordering = ('-date_published',)
         unique_together = (('service', 'guid'),)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%s: %s' % (self.service.name, self.title)
 
 
@@ -183,7 +186,7 @@ class Media(models.Model):
         verbose_name_plural = _('Media')
         unique_together = (('entry', 'file'),)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%s: %s' % (self.entry.title, self.file.name)
 
 
@@ -204,7 +207,7 @@ class Favorite(models.Model):
         ordering = ('-date_added',)
         unique_together = (('user', 'entry'),)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%s: %s' % (self.user, self.entry.title)
 
 
@@ -222,11 +225,11 @@ class List(models.Model):
         ordering = ('name',)
         unique_together = (('user', 'slug'),)
 
-    def save(self, *args, **kwargs):
+    def save(self, *args: Any, **kwargs: Any) -> None:
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '%s: %s' % (self.user, self.name)
 
 

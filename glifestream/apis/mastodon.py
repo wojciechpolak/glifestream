@@ -46,12 +46,12 @@ class MastodonService(BaseService):
     def get_token_url(self) -> str:
         return self.get_base_url() + '/oauth/token'
 
-    def get_urls(self) -> tuple[str]:
+    def get_urls(self) -> list[str]:
         if not self.service.user_id:
-            return ('/api/v1/timelines/home?limit=40',)
+            return ['/api/v1/timelines/home?limit=40']
         if not self.service.last_checked:
-            return ('/api/v1/accounts/%s/statuses?limit=40' % self.service.user_id,)
-        return ('/api/v1/accounts/%s/statuses' % self.service.user_id,)
+            return ['/api/v1/accounts/%s/statuses?limit=40' % self.service.user_id]
+        return ['/api/v1/accounts/%s/statuses' % self.service.user_id]
 
     def run(self) -> None:
         for url in self.get_urls():

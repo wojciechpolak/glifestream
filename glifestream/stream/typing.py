@@ -21,11 +21,11 @@ from typing import TypedDict, Any
 class Page(TypedDict, total=False):
     after: int
     author_name: str
-    author_uri: str
+    author_uri: str | bool
     backtime: bool
     base_url: str
     canonical_link: str
-    copyright_years: str
+    copyright_years: str | int
     ctx: str
     description: str
     exactentry: bool
@@ -42,7 +42,7 @@ class Page(TypedDict, total=False):
     nextpage: int
     prevpage: int
     public: bool
-    pwa: str
+    pwa: str | None
     reblogs: bool
     revision: str
     robots: str
@@ -52,12 +52,12 @@ class Page(TypedDict, total=False):
     subtitle: str
     taguri: str
     theme: str
-    themes: list[str] | tuple[str]
+    themes: list[str] | tuple[str, ...]
     themes_more: bool
     title: str
     updated: Any
     urlparams: str
-    websub_hubs: list[str] | tuple[str]
+    websub_hubs: list[str] | tuple[str, ...]
     version: str
 
 

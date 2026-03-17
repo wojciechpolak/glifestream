@@ -49,10 +49,12 @@ def subscribe(service: Service, verbose=False):
         return {'rc': 2}
 
     secret = hashlib.md5(
-        '%s:%d/%s/%s' % (hub, service.id, api.url, settings.SECRET_KEY)
+        ('%s:%d/%s/%s' % (hub, service.id, service.url, settings.SECRET_KEY)).encode(
+            'utf-8'
+        )
     ).hexdigest()
-    hash_sub = hashlib.sha1(secret).hexdigest()[0:20]
-    secret = secret[0:8] if 'https://' in hub else None
+    hash_sub = hashlib.sha1(secret.encode('utf-8')).hexdigest()[0:20]
+    secret_val: str | None = secret[0:8] if 'https://' in hub else None
 
     save_db = False
     try:
@@ -73,8 +75,8 @@ def subscribe(service: Service, verbose=False):
         'hub.callback': callback,
         'hub.verify': 'async',
     }
-    if secret:
-        data['hub.secret'] = secret
+    if secret_val:
+        data['hub.secret'] = secret_val
 
     try:
         r = httpclient.post(hub, data=data)

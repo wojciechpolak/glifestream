@@ -15,6 +15,8 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+from typing import Any, cast
 import time
 import datetime
 from functools import reduce
@@ -22,13 +24,17 @@ from urllib.parse import urljoin
 from django.conf import settings
 from django.db import connections
 from django.urls import reverse
-from django.http import HttpResponse
-from django.http import HttpResponseForbidden
-from django.http import HttpResponseRedirect
-from django.http import HttpResponseNotFound
-from django.http import HttpResponsePermanentRedirect
-from django.http import Http404
-from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+    HttpResponseNotFound,
+    HttpResponsePermanentRedirect,
+    Http404,
+    JsonResponse,
+)
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.template.defaultfilters import truncatewords
@@ -50,8 +56,8 @@ from glifestream.utils.time import pn_month_start
 from glifestream.apis import API_LIST, selfposts
 
 
-def index(request, **args):
-    site_url = '%s://%s' % (
+def index(request: HttpRequest, **args: Any) -> HttpResponse:
+    site_url: str = '%s://%s' % (
         request.is_secure() and 'https' or 'http',
         request.get_host(),
     )
@@ -82,7 +88,7 @@ def index(request, **args):
     entries_orderby = 'date_published'
 
     # Entries filter.
-    fs = {'active': True, 'service__home': True}
+    fs: dict[str, Any] = {'active': True, 'service__home': True}
 
     # Filter by dates.
     year = int(args.get('year', 0))
@@ -95,16 +101,16 @@ def index(request, **args):
     if day:
         fs[entries_orderby + '__day'] = day
     if year and month and day:
-        dt = datetime.date(year, month, day).strftime('%Y/%m/%d')
+        dt = cast(Any, datetime.date(year, month, day).strftime('%Y/%m/%d'))
     elif year and month:
-        dt = datetime.date(year, month, 1)
+        dt = cast(Any, datetime.date(year, month, 1))
         month_prev, month_next = pn_month_start(dt)
         page['month_nav'] = True
         page['month_prev'] = month_prev.strftime('%Y/%m')
         page['month_next'] = month_next.strftime('%Y/%m')
-        dt = dt.strftime('%Y/%m')
+        dt = cast(Any, dt.strftime('%Y/%m'))
     elif year:
-        dt = datetime.date(year, 1, 1).strftime('%Y')
+        dt = cast(Any, datetime.date(year, 1, 1).strftime('%Y'))
 
     if year:
         page['backtime'] = False
@@ -129,7 +135,7 @@ def index(request, **args):
     if page['ctx'] == 'favorites':
         if not authed:
             return HttpResponseRedirect(settings.BASE_URL + '/')
-        favs = Favorite.objects.filter(user__id=request.user.id)
+        favs: Any = Favorite.objects.filter(user__id=cast(User, request.user).id)
         page['favorites'] = True
         page['title'] = _('Favorites')
         page['subtitle'] = _('You are currently browsing your favorite entries')
@@ -139,7 +145,7 @@ def index(request, **args):
     elif 'list' in args:
         try:
             services = List.objects.get(
-                user__id=request.user.id, slug=args['list']
+                user__id=cast(User, request.user).id, slug=args['list']
             ).services
             del fs['service__home']
             fs['service__id__in'] = services.values('id')
@@ -205,8 +211,8 @@ def index(request, **args):
         page['reblogs'] = False
 
     # Filter entries after specified timestamp 'start'.
-    after = False
-    start = request.GET.get('start', False)
+    after: Any = False
+    start: Any = request.GET.get('start', False)
     if start:
         qs = fs.copy()
         try:
@@ -242,7 +248,7 @@ def index(request, **args):
             '<b>' + escape(search_query) + '</b>'
         )
         urlparams.append('s=' + search_query)
-        sfs = {}
+        sfs: dict[str, Any] = {}
         if not authed and not friend:
             sfs['friends_only'] = False
         page_number = int(request.GET.get('page', 1))
@@ -276,7 +282,7 @@ def index(request, **args):
 
             entries = entries[offset:limit]
         except Exception:
-            entries = []
+            entries = cast(Any, [])
 
         start = False
 
@@ -334,7 +340,7 @@ def index(request, **args):
 
     # Setup links.
     for entry in entries:
-        entry.only_for_friends = entry.friends_only
+        cast(Any, entry).only_for_friends = entry.friends_only
 
         if authed or friend:
             entry.friends_only = False
@@ -342,21 +348,24 @@ def index(request, **args):
             pass  # FIXME: add friends-only support
 
         if not entry.friends_only:
-            entry.gls_link = '%s/%s' % (
+            cast(Any, entry).gls_link = '%s/%s' % (
                 reverse('entry', args=[entry.id]),
                 gls_slugify(truncatewords(entry.title, 7)),
             )
         else:
-            entry.gls_link = '%s/' % (reverse('entry', args=[entry.id]))
+            cast(Any, entry).gls_link = '%s/' % (reverse('entry', args=[entry.id]))
             if 'title' in page:
                 del page['title']
 
-        entry.gls_absolute_link = '%s%s' % (page['site_url'], entry.gls_link)
+        cast(Any, entry).gls_absolute_link = '%s%s' % (
+            page['site_url'],
+            cast(Any, entry).gls_link,
+        )
 
     # Check single-entry URL
     if 'exactentry' in page:
         if len(entries):
-            gls_link = entries[0].gls_link
+            gls_link = cast(Any, entries[0]).gls_link
             if gls_link != request.path:
                 return HttpResponsePermanentRedirect(gls_link)
             page['canonical_link'] = urljoin(settings.BASE_URL, gls_link)
@@ -395,13 +404,18 @@ def index(request, **args):
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
-            favs = Favorite.objects.filter(user__id=request.user.id, entry__id__in=ents)
+            favs = cast(
+                Any,
+                Favorite.objects.filter(
+                    user__id=cast(User, request.user).id, entry__id__in=ents
+                ),
+            )
             favs = [f.entry_id for f in favs]
             for entry in entries:
                 if entry.id in favs:
-                    entry.fav = True
+                    cast(Any, entry).fav = True
                 if entry.service.api in ('twitter', 'identica'):
-                    entry.sms = True
+                    cast(Any, entry).sms = True
         d = {
             'next': page['start'],
             'stream': strip_spaces_between_tags(
@@ -425,16 +439,23 @@ def index(request, **args):
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
             ents = [entry.id for entry in entries]
-            favs = Favorite.objects.filter(user__id=request.user.id, entry__id__in=ents)
+            favs = cast(
+                Any,
+                Favorite.objects.filter(
+                    user__id=cast(User, request.user).id, entry__id__in=ents
+                ),
+            )
             favs = [f.entry_id for f in favs]
             for entry in entries:
                 if entry.id in favs:
-                    entry.fav = True
+                    cast(Any, entry).fav = True
                 if entry.service.api in ('twitter', 'identica'):
-                    entry.sms = True
+                    cast(Any, entry).sms = True
 
         # Get lists.
-        lists = List.objects.filter(user__id=request.user.id).order_by('name')
+        lists = List.objects.filter(user__id=cast(User, request.user).id).order_by(
+            'name'
+        )
 
         # Get archives.
         if 'entry' in args:
@@ -453,11 +474,11 @@ def index(request, **args):
         page['months12'] = [datetime.date(2010, x, 1) for x in range(1, 13)]
 
         # List available classes.
-        fs = {}
+        fs = cast(dict[str, Any], {})
         if not authed or page['ctx'] == 'public':
             fs['public'] = True
-        _classes = Service.objects.filter(**fs).order_by('id').values('api', 'cls')
-        classes = {}
+        _classes: Any = Service.objects.filter(**fs).order_by('id').values('api', 'cls')
+        classes = cast(Any, {})
         for item in _classes:
             if item['cls'] not in classes:
                 classes[item['cls']] = item
@@ -488,7 +509,7 @@ def index(request, **args):
 
 
 @never_cache
-def websub_dispatcher(request, **args):
+def websub_dispatcher(request: HttpRequest, **args: Any) -> HttpResponse:
     if request.method == 'GET':
         res = websub.verify(args['id'], request.GET)
         if res:
@@ -499,7 +520,7 @@ def websub_dispatcher(request, **args):
     raise Http404
 
 
-def page_not_found(request, exception):
+def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponseNotFound:
     page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
@@ -521,7 +542,7 @@ def page_internal_error(request):
     return HttpResponseNotFound(t.content)
 
 
-def webmanifest(request):
+def webmanifest(request: HttpRequest) -> JsonResponse:
     d = {
         'id': reverse('index'),
         'name': settings.PWA_APP_NAME,
@@ -545,9 +566,9 @@ def webmanifest(request):
 #
 
 
-def api(request, **args):
+def api(request: HttpRequest, **args: Any) -> HttpResponse:
     cmd = args.get('cmd', '')
-    entry = request.POST.get('entry', None)
+    entry: Any = request.POST.get('entry', None)
 
     authed = request.user.is_authenticated and request.user.is_staff
     friend = request.user.is_authenticated and not request.user.is_staff
@@ -564,7 +585,7 @@ def api(request, **args):
         _srvs = (
             Service.objects.filter(api='selfposts').order_by('cls').values('id', 'cls')
         )
-        srvs = {}
+        srvs: Any = {}
         for item in _srvs:
             if item['cls'] not in srvs:
                 srvs[item['cls']] = item
@@ -629,9 +650,9 @@ def api(request, **args):
             entry = Entry.objects.get(id=int(entry))
             if entry:
                 try:
-                    Favorite.objects.get(user=request.user, entry=entry)
+                    Favorite.objects.get(user=cast(User, request.user), entry=entry)
                 except Favorite.DoesNotExist:
-                    fav = Favorite(user=request.user, entry=entry)
+                    fav = Favorite(user=cast(User, request.user), entry=entry)
                     fav.save()
                     media.transform_to_local(entry)
                     media.extract_and_register(entry)
@@ -644,7 +665,9 @@ def api(request, **args):
             if entry:
                 entry = Entry.objects.get(id=int(entry))
                 if entry:
-                    Favorite.objects.get(user=request.user, entry=entry).delete()
+                    Favorite.objects.get(
+                        user=cast(User, request.user), entry=entry
+                    ).delete()
         except Entry.DoesNotExist:
             pass
 

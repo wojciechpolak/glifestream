@@ -16,6 +16,7 @@
 """
 
 import re
+from typing import cast
 import os
 import requests
 from requests import Response
@@ -97,7 +98,7 @@ def get_alturl_if_html(r: Response) -> str | None:
                     rx = re.search('href=[\'"](.*?)[\'"]', link)
                     if rx:
                         alt_href = rx.groups()[0]
-                        return urljoin(r.url, alt_href)
+                        return cast(str | None, urljoin(r.url, alt_href))
     return None
 
 

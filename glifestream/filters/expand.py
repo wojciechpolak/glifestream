@@ -17,7 +17,7 @@
 
 import re
 import hashlib
-from typing import Match
+from typing import Match, cast
 from urllib.parse import urlparse
 from urllib.parse import parse_qsl
 from django.utils.html import strip_tags
@@ -36,7 +36,7 @@ def __su_subs(m: Match) -> str:
         res = httpclient.head(url)
         return res.headers.get('location') or m.group(0)
     except Exception:
-        return m.group(0)
+        return cast(str, m.group(0))
 
 
 def shorturls(text: str) -> str:
@@ -82,7 +82,7 @@ def __sp_flickr(m: Match) -> str:
     j = oembed.discover(url, provider='flickr', maxwidth=400)
     if j and j['type'] == 'photo':
         return __gen_tai(url, j['url'])
-    return url
+    return cast(str, url)
 
 
 def __sp_imgloc(m: Match) -> str:
@@ -120,7 +120,7 @@ def imgloc(s: str) -> str:
 
 def __sv_youtube(m: Match) -> str:
     if m.start() > 0 and m.string[m.start() - 1] == '"':
-        return m.group(0)
+        return cast(str, m.group(0))
     id_video = m.group(2)
     rest = m.group(3)
     ltag = rest.find('<') if rest else -1
@@ -137,7 +137,7 @@ def __sv_youtube(m: Match) -> str:
 
 def __sv_vimeo(m: Match) -> str:
     if m.start() > 0 and m.string[m.start() - 1] == '"':
-        return m.group(0)
+        return cast(str, m.group(0))
     id_video = m.group(2)
     link = m.group(0)
     imgurl = vimeo.get_thumbnail_url(id_video)
@@ -148,7 +148,7 @@ def __sv_vimeo(m: Match) -> str:
             '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>'
             '<div class="playbutton"></div></div>' % (id_video, link, imgurl)
         )
-    return link
+    return cast(str, link)
 
 
 def __sv_dailymotion(m: Match) -> str:

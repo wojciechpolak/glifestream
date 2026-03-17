@@ -15,6 +15,7 @@
 # with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from glifestream.stream.models import Service
 
@@ -40,3 +41,15 @@ class BaseService(ABC):
     @abstractmethod
     def run(self) -> None:
         pass
+
+    def get_urls(self) -> list[str]:
+        return []
+
+    def get_base_url(self) -> str | None:
+        return None
+
+    def get_authorize_url(self) -> str | None:
+        return None
+
+    def get_token_url(self) -> str | None:
+        return None

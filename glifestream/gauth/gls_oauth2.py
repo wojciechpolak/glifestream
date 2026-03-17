@@ -26,7 +26,7 @@ try:
     from oauthlib.oauth2 import BackendApplicationClient  # noqa: F401
     from requests_oauthlib import OAuth2Session
 except ImportError:
-    OAuth2Session = None
+    OAuth2Session = None  # type: ignore
 
 AGENT = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
 
@@ -45,7 +45,7 @@ class OAuth2Client:
         secret=None,
         callback_url=None,
     ):
-        if not OAuth2Session:
+        if OAuth2Session is None:
             raise Exception('requests-oauthlib is required.')
 
         try:

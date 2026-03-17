@@ -24,12 +24,12 @@ from django.utils.safestring import mark_safe, SafeData
 try:
     from bs4 import BeautifulSoup
 except ImportError:
-    BeautifulSoup = None
+    BeautifulSoup = None  # type: ignore
 
 
 def strip_script(s: str) -> str:
     try:
-        if BeautifulSoup:
+        if BeautifulSoup is not None:
             soup = BeautifulSoup(s, features='html.parser')
             to_extract = soup.findAll('script')
             for item in to_extract:

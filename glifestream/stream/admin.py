@@ -15,6 +15,8 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from typing import Any, cast
+
 from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
@@ -38,10 +40,10 @@ def unset_reblog(modeladmin, request, queryset):
     queryset.update(reblog=False)
 
 
-activate.short_description = _('Activate item')
-deactivate.short_description = _('Deactivate item')
-set_reblog.short_description = _('Set as reblogged')
-unset_reblog.short_description = _('Unset as reblogged')
+cast(Any, activate).short_description = _('Activate item')
+cast(Any, deactivate).short_description = _('Deactivate item')
+cast(Any, set_reblog).short_description = _('Set as reblogged')
+cast(Any, unset_reblog).short_description = _('Unset as reblogged')
 
 
 def truncate_title(self):
@@ -110,7 +112,7 @@ class EntryAdmin(admin.ModelAdmin):
         website_url = reverse('entry', args=[obj.id])
         return format_html('<a href="{}" target="_blank">View</a>', website_url)
 
-    view_website_link.short_description = 'Link'
+    cast(Any, view_website_link).short_description = 'Link'
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
         extra_context = extra_context or {}

@@ -20,7 +20,7 @@
 import re
 import os
 import sys
-import magic  # requires external libmagic
+import magic  # type: ignore  # requires external libmagic
 import django
 from django.conf import settings
 
@@ -127,7 +127,7 @@ for entry in entries:
         if thumb_hash
         else ''
     )
-    if t and '.' not in thumb_hash:
+    if t and isinstance(thumb_hash, str) and '.' not in thumb_hash:
         filename = os.path.join(settings.MEDIA_ROOT, t)
         suffix = get_file_suffix(file_lookup(filename))
         if suffix:

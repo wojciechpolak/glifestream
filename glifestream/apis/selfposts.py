@@ -33,7 +33,7 @@ from glifestream.filters import expand, truncate
 try:
     import markdown
 except ImportError:
-    markdown = None
+    markdown = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +46,8 @@ class SelfpostsService(BaseService):
     ):
         super().__init__(service, verbose, force_overwrite)
 
-    def get_urls(self):
-        return ()
+    def get_urls(self) -> list[str]:
+        return []
 
     def run(self):
         pass

@@ -30,13 +30,13 @@ from glifestream.utils.time import mtime, now
 class YoutubeService(BaseService):
     name = 'YouTube API v3'
     limit_sec = 3600
-    playlist_types = {}
+    playlist_types: dict[str, str] = {}
 
-    def get_urls(self) -> tuple[str] | list[str]:
+    def get_urls(self) -> list[str]:
         if self.service.url.startswith('http://') or self.service.url.startswith(
             'https://'
         ):
-            return (self.service.url,)
+            return [self.service.url]
         else:
             urls = []
             if ':' in self.service.url:

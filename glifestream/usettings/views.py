@@ -15,16 +15,22 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+from typing import Any, cast
 import os
 import re
 from django.conf import settings
 from django.urls import reverse
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.http import HttpResponse
-from django.http import HttpResponseForbidden
-from django.http import HttpResponseRedirect
+from django.contrib.auth.models import User
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseRedirect,
+    JsonResponse,
+)
 from django.forms import ModelForm
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
@@ -39,7 +45,7 @@ from glifestream.utils import common
 
 @login_required
 @never_cache
-def services(request, **args):
+def services(request: HttpRequest, **args: Any) -> HttpResponse:
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -78,7 +84,7 @@ class ListForm(ModelForm):
 
 
 @login_required
-def lists(request, **args):
+def lists(request: HttpRequest, **args: Any) -> HttpResponse:
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -95,16 +101,18 @@ def lists(request, **args):
         'menu': 'lists',
     }
     curlist = ''
-    lists_user = List.objects.filter(user=request.user).order_by('name')
+    lists_user = List.objects.filter(user=cast(User, request.user)).order_by('name')
 
     if 'list' in args:
         try:
-            list_user = List.objects.get(user=request.user, slug=args['list'])
+            list_user = List.objects.get(
+                user=cast(User, request.user), slug=args['list']
+            )
             curlist = args['list']
         except List.DoesNotExist:
-            list_user = List(user=request.user)
+            list_user = List(user=cast(User, request.user))
     else:
-        list_user = List(user=request.user)
+        list_user = List(user=cast(User, request.user))
 
     if request.method == 'POST':
         if request.POST.get('delete', False):
@@ -135,7 +143,7 @@ def lists(request, **args):
 
 
 @login_required
-def websub(request, **args):
+def websub(request: HttpRequest, **args: Any) -> HttpResponse:
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -211,7 +219,7 @@ def websub(request, **args):
 
 @login_required
 @never_cache
-def oauth(request, **args):
+def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -271,7 +279,7 @@ def oauth(request, **args):
         if c.db.phase == 1:
             if request.GET.get('oauth_token', '') == c.db.token:
                 c.consumer.parse_authorization_response(request.get_full_path())
-                c.verifier = request.GET.get('oauth_verifier', None)
+                cast(Any, c).verifier = request.GET.get('oauth_verifier', None)
                 c.db.phase = 2
 
         if c.db.phase == 2:
@@ -305,7 +313,7 @@ def oauth(request, **args):
 
 @login_required
 @never_cache
-def oauth2(request, **args):
+def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -393,7 +401,7 @@ def oauth2(request, **args):
 
 
 @login_required
-def opml(request, **args):
+def opml(request: HttpRequest, **args: Any) -> HttpResponse:
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -404,39 +412,41 @@ def opml(request, **args):
         from xml.dom.minidom import parseString
 
         if 'opml' in request.FILES:
-            xml = request.FILES['opml'].read()
+            xml = cast(Any, request.FILES['opml']).read()
 
             # Parse OPML
             dom = parseString(xml)
             body = dom.getElementsByTagName('body')
             for e in body[0].childNodes:
                 if e.nodeName == 'outline':
-                    tp = e.getAttribute('type')
+                    tp = cast(Any, e).getAttribute('type')
                     if tp == 'rss':
-                        xml_url = e.getAttribute('xmlUrl')
-                        title = e.getAttribute('text') or e.getAttribute('title')
+                        xml_url = cast(Any, e).getAttribute('xmlUrl')
+                        title = cast(Any, e).getAttribute('text') or cast(
+                            Any, e
+                        ).getAttribute('title')
                         _import_service(xml_url, title)
                     elif not tp:
-                        cls = e.getAttribute('text') or e.getAttribute('title')
+                        cls = cast(Any, e).getAttribute('text') or cast(
+                            Any, e
+                        ).getAttribute('title')
                         cls = cls.lower()
                         for f in e.childNodes:
                             if (
                                 f.nodeName == 'outline'
-                                and f.getAttribute('type') == 'rss'
+                                and cast(Any, f).getAttribute('type') == 'rss'
                             ):
-                                xml_url = f.getAttribute('xmlUrl')
-                                title = f.getAttribute('text') or f.getAttribute(
-                                    'title'
-                                )
+                                xml_url = cast(Any, f).getAttribute('xmlUrl')
+                                title = cast(Any, f).getAttribute('text') or cast(
+                                    Any, f
+                                ).getAttribute('title')
                                 _import_service(xml_url, title, cls)
 
         return HttpResponseRedirect(reverse('usettings-services'))
 
     elif cmd == 'export':
         excluded_apis = ('selfposts', 'fb')
-        services: list[Service] = Service.objects.exclude(
-            api__in=excluded_apis
-        ).order_by('name')
+        services: Any = Service.objects.exclude(api__in=excluded_apis).order_by('name')
 
         srvs = []
         for service in services:
@@ -458,7 +468,7 @@ def opml(request, **args):
     return HttpResponse()
 
 
-def _import_service(url, title, cls='webfeed'):
+def _import_service(url: str, title: str, cls: str = 'webfeed') -> None:
     api_name = 'webfeed'
 
     if 'flickr.com' in url:
@@ -515,7 +525,7 @@ def _import_service(url, title, cls='webfeed'):
 #
 
 
-def api(request, **args):
+def api(request: HttpRequest, **args: Any) -> HttpResponse:
     authed = request.user.is_authenticated and request.user.is_staff
     if not authed:
         return HttpResponseForbidden()
@@ -523,11 +533,11 @@ def api(request, **args):
     cmd = args.get('cmd', '')
 
     method = request.POST.get('method', 'get')
-    id_service = request.POST.get('id', None)
+    id_service: Any = request.POST.get('id', None)
 
     # Add/edit services
     if cmd == 'service':
-        s = {
+        s: dict[str, Any] = {
             'api': request.POST.get('api', ''),
             'name': request.POST.get('name', ''),
             'cls': request.POST.get('cls', ''),
@@ -538,7 +548,7 @@ def api(request, **args):
             'home': bool(request.POST.get('home', False)),
             'active': bool(request.POST.get('active', False)),
         }
-        miss = {}
+        miss: dict[str, bool] = {}
 
         # Data validation
         if method == 'post':

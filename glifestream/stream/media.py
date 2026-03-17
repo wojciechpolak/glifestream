@@ -23,7 +23,7 @@ import hashlib
 import tempfile
 import time
 import shutil
-from typing import Match
+from typing import Match, cast
 
 from django.conf import settings
 from django.db.models.fields.files import FieldFile
@@ -36,9 +36,9 @@ try:
     from PIL import Image
 except ImportError:
     try:
-        import Image
+        import Image  # type: ignore
     except ImportError:
-        Image = None
+        Image = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -139,17 +139,23 @@ def downscale_image(filename: str, size=None, iformat='JPEG') -> None:
 
 
 def downsave_uploaded_image(file: FieldFile) -> tuple[str, str]:
-    url = '[GLS-UPLOAD]/%s' % file.name.replace('upload/', '')
+    if file.name is None:
+        return '', ''
+    url = file.name.replace('upload/', '')
+    if url is not None:
+        url = '[GLS-UPLOAD]/%s' % url
     try:
-        thumb_id = hashlib.sha1(file.name.encode('utf-8')).hexdigest()
-        thumb = get_thumb_info(thumb_id, append_suffix=True)
-        if not os.path.isfile(thumb['local']):
-            shutil.copy(file.path, thumb['local'])
-            downscale_image(thumb['local'], iformat=thumb['format'])
-        return thumb['internal'], url
+        if file.name is not None:
+            thumb_id = hashlib.sha1(file.name.encode('utf-8')).hexdigest()
+            thumb = get_thumb_info(thumb_id, append_suffix=True)
+            if not os.path.isfile(thumb['local']):
+                shutil.copy(file.path, thumb['local'])
+                downscale_image(thumb['local'], iformat=thumb['format'])
+            return thumb['internal'], cast(str, url)
     except Exception as exc:
         logger.error(exc)
-    return url, url
+    res_url = cast(str, url)
+    return res_url, res_url
 
 
 def extract_and_register(entry: Entry) -> None:
@@ -177,7 +183,7 @@ def mrss_init(mblob=None) -> dict:
         if isinstance(mblob, str):
             mblob = json.loads(mblob)
         if 'content' in mblob:
-            return mblob
+            return cast(dict, mblob)
     return {'content': []}
 
 

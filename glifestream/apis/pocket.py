@@ -28,13 +28,14 @@ from glifestream.utils.html import strip_entities
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
+from typing import Optional
 
 
 class PocketService(BaseService):
     name = 'Pocket API v3.0'
     base_url = 'https://getpocket.com'
     limit_sec = 120
-    count = 20
+    count: Optional[int] = 20
     tag = None
 
     def __init__(self, service: Service, verbose=0, force_overwrite=False):
@@ -53,8 +54,8 @@ class PocketService(BaseService):
     def get_token_url(self) -> str:
         return self.get_base_url() + '/404'
 
-    def get_urls(self) -> tuple[str]:
-        return ('/v3/get',)
+    def get_urls(self) -> list[str]:
+        return ['/v3/get']
 
     def run(self) -> None:
         for url in self.get_urls():
