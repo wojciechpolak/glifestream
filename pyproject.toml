@@ -10,7 +10,7 @@ dependencies = [
     "django-pipeline==4.1.0",
     "feedparser>=6.0,<7",
     "libsasscompiler==0.1.8",
-    "Markdown>=2.6,<3",
+    "markdown==3.10.2",
     "pillow==12.1.1",
     "requests-oauthlib>=0.4,<0.5",
     "uwsgi==2.0.31",
