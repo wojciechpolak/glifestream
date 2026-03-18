@@ -7,6 +7,7 @@
 .version
 .idea/
 .pytest_cache/
+test-results/
 pip-selfcheck.json
 pyvenv.cfg
 run/

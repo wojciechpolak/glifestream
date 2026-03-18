@@ -111,3 +111,43 @@ by extending `/etc/mail/aliases` file:
 `
 gls.secret.address: "|/usr/local/django/glifestream/worker.py --email2post"
 `
+
+Testing
+=======
+
+Install development dependencies and the Playwright browser runtime:
+
+```shell
+uv sync --group dev
+uv run python -m playwright install chromium
+```
+
+Run the test and code quality checks:
+
+```shell
+uv run pytest
+uv run pytest -m e2e
+uv run ruff check .
+uv run mypy .
+```
+
+The browser E2E suite uses local mocked RSS/Atom feeds and runs the real
+`worker.py` ingestion path before asserting the rendered UI.
+
+To watch the E2E suite in a visible browser window, run it in headed mode:
+
+```shell
+GLS_E2E_HEADED=1 uv run pytest -m e2e
+```
+
+If you want the run to slow down so the navigation is easier to follow:
+
+```shell
+GLS_E2E_HEADED=1 GLS_E2E_SLOWMO_MS=1000 uv run pytest -m e2e
+```
+
+If you also want each browser test name printed as it starts:
+
+```shell
+GLS_E2E_PRINT_TESTS=1 uv run pytest -m e2e
+```

@@ -29,7 +29,7 @@ except ImportError:
 
 def strip_script(s: str) -> str:
     try:
-        if BeautifulSoup is not None:
+        if BeautifulSoup is not None and '<' in s:
             soup = BeautifulSoup(s, features='html.parser')
             to_extract = soup.findAll('script')
             for item in to_extract:

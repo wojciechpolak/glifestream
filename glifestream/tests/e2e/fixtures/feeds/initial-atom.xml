@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Playwright Atom Feed</title>
+  <link href="http://example.test/feeds/private" />
+  <updated>2024-01-01T13:00:00Z</updated>
+  <id>urn:playwright:private-atom</id>
+  <entry>
+    <title>Private Atom Entry</title>
+    <link href="http://example.test/posts/private-atom-entry" />
+    <id>urn:playwright:private-atom-entry</id>
+    <updated>2024-01-01T13:00:00Z</updated>
+    <published>2024-01-01T13:00:00Z</published>
+    <content type="html">&lt;p&gt;Private Atom content only visible to staff.&lt;/p&gt;</content>
+  </entry>
+</feed>

@@ -23,6 +23,7 @@ dependencies = [
 dev = [
     "django-stubs[compatible-mypy]==5.2.8",
     "mypy==1.19.1",
+    "playwright>=1.55,<2",
     "pytest==9.0.2",
     "pytest-django==4.11.1",
     "types-beautifulsoup4[compatible-mypy]==4.12.0.20250516",

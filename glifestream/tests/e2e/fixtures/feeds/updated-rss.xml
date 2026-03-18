@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>Playwright RSS Feed</title>
+    <link>http://example.test/feeds/public</link>
+    <description>Updated mock RSS feed for browser tests.</description>
+    <item>
+      <title>Public RSS Entry Updated</title>
+      <link>http://example.test/posts/public-rss-entry</link>
+      <guid>public-rss-entry</guid>
+      <description><![CDATA[Public RSS content updated after a second worker run.]]></description>
+      <pubDate>Mon, 01 Jan 2024 12:00:00 GMT</pubDate>
+      <lastBuildDate>Tue, 02 Jan 2024 12:00:00 GMT</lastBuildDate>
+    </item>
+    <item>
+      <title>Public RSS Entry Two</title>
+      <link>http://example.test/posts/public-rss-entry-two</link>
+      <guid>public-rss-entry-two</guid>
+      <description><![CDATA[A second public entry imported on the next worker pass.]]></description>
+      <pubDate>Tue, 02 Jan 2024 12:30:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

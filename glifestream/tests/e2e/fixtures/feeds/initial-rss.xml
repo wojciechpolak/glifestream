@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+  <channel>
+    <title>Playwright RSS Feed</title>
+    <link>http://example.test/feeds/public</link>
+    <description>Mock RSS feed for browser tests.</description>
+    <item>
+      <title>Public RSS Entry</title>
+      <link>http://example.test/posts/public-rss-entry</link>
+      <guid>public-rss-entry</guid>
+      <description><![CDATA[Public RSS content seeded through the mock feed server.]]></description>
+      <pubDate>Mon, 01 Jan 2024 12:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

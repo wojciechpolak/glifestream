@@ -16,6 +16,7 @@
 """
 
 from django.conf import settings
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path, re_path
 from django.conf.urls import include
 from django.contrib import admin
@@ -83,3 +84,6 @@ urlpatterns += [
         r'^media/(?P<path>.*)$', static_serve, {'document_root': settings.MEDIA_ROOT}
     )
 ]
+
+if settings.DEBUG:
+    urlpatterns += staticfiles_urlpatterns()
