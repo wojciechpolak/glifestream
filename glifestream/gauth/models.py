@@ -15,9 +15,33 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext as _
 from glifestream.stream.models import Service
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        verbose_name=_('User'),
+        related_name='userprofile',
+    )
+    must_change_password = models.BooleanField(
+        _('Must change password'),
+        default=False,
+        help_text=_(
+            'If set, the user will be forced to change their password on next login.'
+        ),
+    )
+
+    class Meta:
+        verbose_name = _('User Profile')
+        verbose_name_plural = _('User Profiles')
+
+    def __str__(self):
+        return '%s' % self.user.username
 
 
 class OAuthClient(models.Model):

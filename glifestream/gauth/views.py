@@ -18,10 +18,12 @@
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth import login as django_login
-from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.contrib.auth import update_session_auth_hash, REDIRECT_FIELD_NAME
+from django.contrib.auth.decorators import login_required
 from django.contrib.sites.requests import RequestSite
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from glifestream.gauth.forms import AuthenticationRememberMeForm
 from glifestream.utils import common
@@ -77,3 +79,57 @@ def login(request, template_name='login.html', redirect_field_name=REDIRECT_FIEL
             redirect_field_name: redirect_to,
         },
     )
+
+
+@login_required
+@never_cache
+def change_password(request):
+    # Only allow access when forced password change is required.
+    must_change = getattr(
+        getattr(request.user, 'userprofile', None), 'must_change_password', False
+    )
+    if not must_change:
+        return HttpResponseForbidden()
+
+    page = {
+        'robots': 'noindex,nofollow',
+        'favicon': settings.FAVICON,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
+        'theme': common.get_theme(request),
+    }
+
+    if request.method == 'POST':
+        password1 = request.POST.get('new_password1', '')
+        password2 = request.POST.get('new_password2', '')
+
+        if not password1 or not password2:
+            return render(
+                request,
+                'change_password.html',
+                {'page': page, 'error': _('Please fill in both password fields.')},
+            )
+
+        if password1 != password2:
+            return render(
+                request,
+                'change_password.html',
+                {'page': page, 'error': _('Passwords do not match.')},
+            )
+
+        request.user.set_password(password1)
+        request.user.save()
+
+        # Clear the forced password change flag.
+        try:
+            profile = request.user.userprofile
+            profile.must_change_password = False
+            profile.save()
+        except AttributeError:
+            pass
+
+        # Keep the user logged in after password change.
+        update_session_auth_hash(request, request.user)
+
+        return HttpResponseRedirect(reverse('index'))
+
+    return render(request, 'change_password.html', {'page': page})

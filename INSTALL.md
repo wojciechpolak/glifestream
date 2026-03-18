@@ -1,5 +1,5 @@
 gLifestream -- INSTALL
-Copyright (C) 2009-2025 Wojciech Polak
+Copyright (C) 2009-2026 Wojciech Polak
 
 gLifestream requirements
 ========================
@@ -54,7 +54,6 @@ Docker deployment
 ```shell
 # [adjust files in the `run` folder]
 docker-compose up
-docker exec -it glifestream-app-1 python manage.py createsuperuser
 ```
 
 Other deployments
