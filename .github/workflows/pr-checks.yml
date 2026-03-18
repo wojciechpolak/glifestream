@@ -43,6 +43,7 @@ jobs:
             sed -i "/'LOCATION': '127.0.0.1:11211',/d" glifestream/settings.py
           fi
           mkdir -p run/db run/templates run/static media static
+          uv run manage.py collectstatic --no-input
 
       - name: Install Playwright Chromium
         run: uv run python -m playwright install --with-deps chromium
