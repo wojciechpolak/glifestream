@@ -34,6 +34,16 @@ jobs:
       - name: Install development dependencies
         run: uv sync --locked --group dev
 
+      - name: Prepare Django settings for CI
+        run: |
+          if [ ! -f glifestream/settings.py ]; then
+            cp glifestream/settings_sample.py glifestream/settings.py
+            sed -i "s/SECRET_KEY = 'YOUR-SECRET-KEY'/SECRET_KEY = 'ci-secret-key'/g" glifestream/settings.py
+            sed -i "s/django.core.cache.backends.memcached.PyMemcacheCache/django.core.cache.backends.dummy.DummyCache/g" glifestream/settings.py
+            sed -i "/'LOCATION': '127.0.0.1:11211',/d" glifestream/settings.py
+          fi
+          mkdir -p run/db run/templates run/static media static
+
       - name: Install Playwright Chromium
         run: uv run python -m playwright install --with-deps chromium
 
