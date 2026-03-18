@@ -55,7 +55,8 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 # Caching, see http://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        # 'BACKEND': 'django.core.cache.backends.memcached.PyMemcacheCache',
         'LOCATION': '127.0.0.1:11211',
         'KEY_PREFIX': 'gls',
     },
@@ -207,12 +208,22 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'filters': {'require_debug_false': {'()': 'django.utils.log.RequireDebugFalse'}},
+    'formatters': {
+        'simple': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
     'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler',
-        }
+        },
     },
     'root': {
         'handlers': ['console'],
