@@ -15,9 +15,11 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
 import os
 import re
 import email
+from typing import Any, IO, cast
 from email.header import decode_header, make_header
 from django.conf import settings
 from django.core.files.uploadedfile import TemporaryUploadedFile
@@ -35,15 +37,15 @@ class MailService:
         if self.verbose:
             print('%s' % self.name)
 
-    def get_urls(self):
+    def get_urls(self) -> tuple[str, ...]:
         return ()
 
     def run(self):
         pass
 
-    def share(self, msgfile):
+    def share(self, msgfile: IO[Any] | Any) -> int:
         msg = email.message_from_file(msgfile)
-        args = {}
+        args: dict[str, Any] = {}
         files = []
 
         check = getattr(settings, 'EMAIL2POST_CHECK', {})
@@ -61,7 +63,7 @@ class MailService:
                     if part.get_filename(None):
                         attach = True
                     else:
-                        args['content'] = part.get_payload(decode=True)
+                        args['content'] = cast(Any, part.get_payload(decode=True))
 
                 if (
                     attach
@@ -80,10 +82,10 @@ class MailService:
                     )
                     tmp.write(payload)
                     tmp.seek(0)
-                    os.chmod(tmp.file.name, 0o644)
+                    os.chmod(cast(Any, tmp.file).name, 0o644)
                     files.append(tmp)
         else:
-            args['content'] = msg.get_payload(decode=True)
+            args['content'] = cast(Any, msg.get_payload(decode=True))
 
         subject = msg.get('Subject', None)
         if subject:
@@ -101,13 +103,15 @@ class MailService:
                 args['id'] = s[0]['id']
 
         # Mail subject may contain "!draft" literal.
-        if '!draft' in args['title']:
-            args['title'] = args['title'].replace('!draft', '').strip()
+        if '!draft' in cast(str, args['title']):
+            args['title'] = cast(str, args['title']).replace('!draft', '').strip()
             args['draft'] = True
 
         # Mail subject may contain "!friends-only" literal.
-        if '!friends-only' in args['title']:
-            args['title'] = args['title'].replace('!friends-only', '').strip()
+        if '!friends-only' in cast(str, args['title']):
+            args['title'] = (
+                cast(str, args['title']).replace('!friends-only', '').strip()
+            )
             args['friends_only'] = True
 
         if len(files) > 0:

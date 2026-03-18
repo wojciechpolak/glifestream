@@ -16,6 +16,7 @@
 """
 
 import logging
+from typing import Any
 
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
@@ -52,7 +53,7 @@ class SelfpostsService(BaseService):
     def run(self):
         pass
 
-    def share(self, args=None):
+    def share(self, args: dict[str, Any] | None = None) -> Entry | None:
         if args is None:
             args = {}
         content = args.get('content', '')
@@ -74,8 +75,8 @@ class SelfpostsService(BaseService):
         e.link = link if link else settings.BASE_URL + '/'
         e.date_published = un
         e.date_updated = un
-        e.draft = int(args.get('draft', False))
-        e.friends_only = int(args.get('friends_only', False))
+        e.draft = bool(args.get('draft', False))
+        e.friends_only = bool(args.get('friends_only', False))
 
         if user and user.first_name and user.last_name:
             e.author_name = user.first_name + ' ' + user.last_name
@@ -196,12 +197,13 @@ class SelfpostsService(BaseService):
             return e
         except Exception as exc:
             logger.error(exc)
+        return None
 
     def reshare(self, entry, args=None):
         if args is None:
             args = {}
         sid = args.get('sid', None)
-        as_me = int(args.get('as_me', False))
+        as_me = bool(args.get('as_me', False))
         user = args.get('user', None)
 
         un = utcnow()

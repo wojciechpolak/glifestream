@@ -531,7 +531,7 @@ def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponseNo
     return HttpResponseNotFound(t.content)
 
 
-def page_internal_error(request):
+def page_internal_error(request: HttpRequest) -> HttpResponseNotFound:
     page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
