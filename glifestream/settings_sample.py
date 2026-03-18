@@ -79,6 +79,7 @@ assert SECRET_KEY != 'YOUR-SECRET-KEY', 'SECRET_KEY must be long and unique.'
 MIDDLEWARE = [
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'glifestream.gauth.middleware.ForcePasswordChangeMiddleware',
     'django.middleware.locale.LocaleMiddleware',

@@ -25,6 +25,7 @@
 	     size="40" onfocus="this.select()" />
     </p>
     <form id="oauth-form" method="post">
+      {% csrf_token %}
       <fieldset class="aligned">
 	{% if page.msg %}
 	<ul class="errorlist">

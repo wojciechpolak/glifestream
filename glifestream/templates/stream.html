@@ -68,6 +68,7 @@
 <aside id="share">
   <span tabindex="0" class="link" id="ashare">{% trans "Add content" %}</span>
   <form action="{% url 'api' cmd='share' %}" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
     <div class="fieldset" style="display:none">
       <h3><label for="status">{% trans "What's up?" %}</label></h3>
       <div class="editor">

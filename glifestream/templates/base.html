@@ -48,7 +48,10 @@
         </a>
         <span class="vb">|</span>
       {% endif %}
-      <a href="{% url 'logout' %}">
+      <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display:none;">
+        {% csrf_token %}
+      </form>
+      <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
         <i class="fas fa-right-from-bracket"></i>
         <span class="text">{% trans "Logout" %}</span>
       </a>
@@ -56,14 +59,12 @@
       {% if friend %}
         <span class="text">{% trans "Hello" %}</span>
         <span class="vb">|</span>
-        <a href="{% url 'logout' %}">
+        <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
           <i class="fas fa-right-from-bracket"></i>
           <span class="text">{% trans "Logout" %}</span>
         </a>
-      {% else %}
-        {% if page.login_url %}
-          <a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>
-        {% endif %}
+      {% elif page.login_url %}
+        <a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>
       {% endif %}
     {% endif %}
   </nav>

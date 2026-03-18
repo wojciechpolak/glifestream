@@ -32,6 +32,7 @@
 
   {% if services %}
   <form id="websub-form" method="post" action="{% url 'usettings-websub' %}">
+    {% csrf_token %}
     <select name="subscribe">
       <option value="">-- {% trans "service" %} --</option>
       {% for s in services %}

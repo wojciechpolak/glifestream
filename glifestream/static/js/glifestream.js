@@ -926,9 +926,19 @@
     }
 
     es('gls.unhide_entry', unhide_entry);
+
     $.ajaxSetup({
+        beforeSend: function(xhr, settings) {
+            if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type || 'GET')) {
+                const csrftoken = read_cookie('csrftoken');
+                if (csrftoken) {
+                    xhr.setRequestHeader('X-CSRFToken', csrftoken);
+                }
+            }
+        },
         error: ajax_error
     });
+
     let baseurl = '/';
     let continuous_reading = 300;
     let social_sharing_sites = [];

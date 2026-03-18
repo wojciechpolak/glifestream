@@ -8,6 +8,7 @@
 <div id="loginbox">
 {% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
 <form name="loginform" method="post" action="{% url 'login' %}">
+  {% csrf_token %}
   <p>
     <label>{% trans "Username" %}<br />
       <input type="text" name="username" id="username" size="20" autocomplete="username" autofocus />

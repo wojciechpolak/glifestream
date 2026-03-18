@@ -22,6 +22,7 @@
 
   <p id="opml-form">
     <form action="{% url 'opml-import' %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
       <input type="file" name="opml" />
       <input type="submit" value="{% trans "Import OPML" %}"/>
       {% trans "or" %}

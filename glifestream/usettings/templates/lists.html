@@ -13,6 +13,7 @@
 
   {% if form %}
   <form id="list-form" method="post">
+    {% csrf_token %}
     <fieldset class="aligned">
       {% for field in form %}
       <div class="form-row">{{ field.errors }}
