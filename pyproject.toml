@@ -50,6 +50,10 @@ python_version = "3.14"
 warn_return_any = true
 plugins = ["mypy_django_plugin.main"]
 
+[[tool.mypy.overrides]]
+module = ["workerpool"]
+ignore_missing_imports = true
+
 [tool.django-stubs]
 django_settings_module = "glifestream.settings"
 
