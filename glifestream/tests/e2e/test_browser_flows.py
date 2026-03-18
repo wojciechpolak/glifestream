@@ -19,6 +19,16 @@ def _open_entry_menu(article: Locator) -> None:
     article.locator('span.entry-controls-switch').click()
 
 
+def _is_settings_service_response(response, *, method: str) -> bool:
+    if not response.url.endswith('/settings/api/service'):
+        return False
+    if response.request.method != 'POST':
+        return False
+
+    post_data = response.request.post_data or ''
+    return f'method={method}' in post_data
+
+
 def test_initial_admin_login_requires_password_change(
     page: Page,
     app_base_url: str,
@@ -86,16 +96,25 @@ def test_worker_ingests_mocked_feeds_and_updates_browser_state(
 
     article = _entry_article(page, 'Public RSS Entry')
     _open_entry_menu(article)
-    article.get_by_text('Favorite', exact=True).click()
-    page.wait_for_timeout(300)
+    with page.expect_response(
+        lambda response: (
+            response.url.endswith('/api/favorite') and response.request.method == 'POST'
+        )
+    ):
+        article.get_by_text('Favorite', exact=True).click()
 
     page.goto(f'{app_base_url}/favorites/')
     expect(page.get_by_text('Public RSS Entry')).to_be_visible()
 
     article = _entry_article(page, 'Public RSS Entry')
     _open_entry_menu(article)
-    article.get_by_text('Unfavorite', exact=True).click()
-    page.wait_for_timeout(300)
+    with page.expect_response(
+        lambda response: (
+            response.url.endswith('/api/unfavorite')
+            and response.request.method == 'POST'
+        )
+    ):
+        article.get_by_text('Unfavorite', exact=True).click()
     page.reload()
     expect(page.get_by_text('Public RSS Entry', exact=True)).to_have_count(0)
 
@@ -126,10 +145,17 @@ def test_settings_services_lists_and_websub(
     page.locator('#save').click()
     expect(page.locator('#edit-service')).to_contain_text('Playwright Service')
 
-    page.locator('#edit-service a', has_text='Playwright Service').click()
+    with page.expect_response(
+        lambda response: _is_settings_service_response(response, method='get')
+    ):
+        page.locator('#edit-service a', has_text='Playwright Service').click()
     expect(page.locator('#service-form')).to_be_visible()
     page.locator('#name').fill('Playwright Service Updated')
-    page.locator('#save').click()
+    with page.expect_response(
+        lambda response: _is_settings_service_response(response, method='post')
+    ):
+        page.locator('#save').click()
+    assert Service.objects.filter(name='Playwright Service Updated').exists()
     page.goto(f'{app_base_url}/settings/services')
     expect(page.locator('#edit-service')).to_contain_text('Playwright Service Updated')
 
