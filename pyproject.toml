@@ -36,6 +36,7 @@ dev = [
     "types-pytz==2025.2.0.20251108",
     "types-pyyaml==6.0.12.20250915",
     "django-stubs-ext==5.2.8",
+    "ty>=0.0.24",
 ]
 
 [build-system]
