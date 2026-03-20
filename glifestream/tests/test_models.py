@@ -70,6 +70,6 @@ def test_media_logic(service, settings, tmp_path):
 
         m = Media(entry=entry)
         m.file.save('test.jpg', ContentFile(b'fake image data'))
-        assert m.id is not None
+        assert m.pk is not None
         # str(m) returns "EntryTitle: Filename"
         assert 'Media Entry: test.jpg' == str(m)

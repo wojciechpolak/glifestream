@@ -45,13 +45,13 @@ def entry(db, service):
 @pytest.mark.django_db
 def test_api_hide_unhide(admin_client, entry):
     url = reverse('api', kwargs={'cmd': 'hide'})
-    response = admin_client.post(url, {'entry': entry.id})
+    response = admin_client.post(url, {'entry': entry.pk})
     assert response.status_code == 200
     entry.refresh_from_db()
     assert entry.active is False
 
     url = reverse('api', kwargs={'cmd': 'unhide'})
-    response = admin_client.post(url, {'entry': entry.id})
+    response = admin_client.post(url, {'entry': entry.pk})
     assert response.status_code == 200
     entry.refresh_from_db()
     assert entry.active is True
@@ -61,7 +61,7 @@ def test_api_hide_unhide(admin_client, entry):
 def test_api_favorite_unfavorite(admin_client, user, entry):
     # Favorite
     url = reverse('api', kwargs={'cmd': 'favorite'})
-    response = admin_client.post(url, {'entry': entry.id})
+    response = admin_client.post(url, {'entry': entry.pk})
     assert response.status_code == 200
     # Note: admin_client is an admin user, but the command uses request.user
     # Need to check if a favorite was created for the logged in user
@@ -70,7 +70,7 @@ def test_api_favorite_unfavorite(admin_client, user, entry):
 
     # Unfavorite
     url = reverse('api', kwargs={'cmd': 'unfavorite'})
-    response = admin_client.post(url, {'entry': entry.id})
+    response = admin_client.post(url, {'entry': entry.pk})
     assert response.status_code == 200
     assert not Favorite.objects.filter(user=admin_user, entry=entry).exists()
 
@@ -90,7 +90,7 @@ def test_api_getcontent_public(client, service):
     service.save()
 
     url = reverse('api', kwargs={'cmd': 'getcontent'})
-    response = client.post(url, {'entry': entry.id})
+    response = client.post(url, {'entry': entry.pk})
     assert response.status_code == 200
     assert 'Secret Content' in response.content.decode()
 
@@ -98,5 +98,5 @@ def test_api_getcontent_public(client, service):
 @pytest.mark.django_db
 def test_api_putcontent_forbidden_for_anonymous(client, entry):
     url = reverse('api', kwargs={'cmd': 'putcontent'})
-    response = client.post(url, {'entry': entry.id, 'content': 'new'})
+    response = client.post(url, {'entry': entry.pk, 'content': 'new'})
     assert response.status_code == 403

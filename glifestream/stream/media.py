@@ -102,7 +102,9 @@ def save_image(
             stale = True
 
     if not is_file:
-        tmp = tempfile.mktemp('_gls')
+        fd, tmp = tempfile.mkstemp(suffix='_gls')
+        os.close(fd)
+        moved = False
         try:
             resp = httpclient.retrieve(url, tmp)
             if 'image/' not in resp.headers.get('content-type', ''):
@@ -115,10 +117,14 @@ def save_image(
             if downscale:
                 downscale_image(tmp, size=size, iformat=thumb['format'])
             shutil.move(tmp, thumb['local'])
+            moved = True
         except Exception as exc:
             logger.error(exc)
             if not stale:
                 return url
+        finally:
+            if not moved and os.path.exists(tmp):
+                os.remove(tmp)
     return thumb['internal']
 
 
@@ -151,11 +157,10 @@ def downsave_uploaded_image(file: FieldFile) -> tuple[str, str]:
             if not os.path.isfile(thumb['local']):
                 shutil.copy(file.path, thumb['local'])
                 downscale_image(thumb['local'], iformat=thumb['format'])
-            return thumb['internal'], cast(str, url)
+            return thumb['internal'], url
     except Exception as exc:
         logger.error(exc)
-    res_url = cast(str, url)
-    return res_url, res_url
+    return url, url
 
 
 def extract_and_register(entry: Entry) -> None:

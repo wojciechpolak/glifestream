@@ -65,11 +65,11 @@ class VimeoService(BaseService):
                 self.process()
             elif self.verbose:
                 print(
-                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.pk, r.reason)
                 )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process_likes(self) -> None:

@@ -57,6 +57,7 @@ from glifestream.apis import API_LIST, selfposts
 
 
 def index(request: HttpRequest, **args: Any) -> HttpResponse:
+    user = cast(User, request.user)
     site_url: str = '%s://%s' % (
         request.is_secure() and 'https' or 'http',
         request.get_host(),
@@ -81,8 +82,8 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
         'websub_hubs': settings.WEBSUB_HUBS,
         'reblogs': True,
     }
-    authed = request.user.is_authenticated and request.user.is_staff
-    friend = request.user.is_authenticated and not request.user.is_staff
+    authed = user.is_authenticated and user.is_staff
+    friend = user.is_authenticated and not user.is_staff
     urlparams: list[str] = []
     entries_on_page = settings.ENTRIES_ON_PAGE
     entries_orderby = 'date_published'
@@ -108,9 +109,9 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
         page['month_nav'] = True
         page['month_prev'] = month_prev.strftime('%Y/%m')
         page['month_next'] = month_next.strftime('%Y/%m')
-        dt = cast(Any, dt.strftime('%Y/%m'))
+        dt = dt.strftime('%Y/%m')
     elif year:
-        dt = cast(Any, datetime.date(year, 1, 1).strftime('%Y'))
+        dt = datetime.date(year, 1, 1).strftime('%Y')
 
     if year:
         page['backtime'] = False
@@ -135,7 +136,7 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
     if page['ctx'] == 'favorites':
         if not authed:
             return HttpResponseRedirect(settings.BASE_URL + '/')
-        favs: Any = Favorite.objects.filter(user__id=cast(User, request.user).id)
+        favs: Any = Favorite.objects.filter(user=user)
         page['favorites'] = True
         page['title'] = _('Favorites')
         page['subtitle'] = _('You are currently browsing your favorite entries')
@@ -144,9 +145,7 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
     # Filter lists.
     elif 'list' in args:
         try:
-            services = List.objects.get(
-                user__id=cast(User, request.user).id, slug=args['list']
-            ).services
+            services = List.objects.get(user=user, slug=args['list']).services
             del fs['service__home']
             fs['service__id__in'] = services.values('id')
             page['ctx'] = 'list/' + args['list']
@@ -349,11 +348,13 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
 
         if not entry.friends_only:
             cast(Any, entry).gls_link = '%s/%s' % (
-                reverse('entry', args=[entry.id]),
+                reverse('entry', args=[cast(int, entry.pk)]),
                 gls_slugify(truncatewords(entry.title, 7)),
             )
         else:
-            cast(Any, entry).gls_link = '%s/' % (reverse('entry', args=[entry.id]))
+            cast(Any, entry).gls_link = '%s/' % (
+                reverse('entry', args=[cast(int, entry.pk)])
+            )
             if 'title' in page:
                 del page['title']
 
@@ -403,16 +404,15 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
     ):
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
-            ents = [entry.id for entry in entries]
+            ents = [cast(int, entry.pk) for entry in entries]
             favs = cast(
                 Any,
-                Favorite.objects.filter(
-                    user__id=cast(User, request.user).id, entry__id__in=ents
-                ),
+                Favorite.objects.filter(user=user, entry_id__in=ents),
             )
             favs = [f.entry_id for f in favs]
             for entry in entries:
-                if entry.id in favs:
+                entry_pk = cast(int, entry.pk)
+                if entry_pk in favs:
                     cast(Any, entry).fav = True
                 if entry.service.api in ('twitter', 'identica'):
                     cast(Any, entry).sms = True
@@ -438,24 +438,21 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
     else:
         # Check which entry is already favorite.
         if authed and page['ctx'] != 'favorites':
-            ents = [entry.id for entry in entries]
+            ents = [cast(int, entry.pk) for entry in entries]
             favs = cast(
                 Any,
-                Favorite.objects.filter(
-                    user__id=cast(User, request.user).id, entry__id__in=ents
-                ),
+                Favorite.objects.filter(user=user, entry_id__in=ents),
             )
             favs = [f.entry_id for f in favs]
             for entry in entries:
-                if entry.id in favs:
+                entry_pk = cast(int, entry.pk)
+                if entry_pk in favs:
                     cast(Any, entry).fav = True
                 if entry.service.api in ('twitter', 'identica'):
                     cast(Any, entry).sms = True
 
         # Get lists.
-        lists = List.objects.filter(user__id=cast(User, request.user).id).order_by(
-            'name'
-        )
+        lists = List.objects.filter(user_id=cast(int, user.pk)).order_by('name')
 
         # Get archives.
         if 'entry' in args:
@@ -567,19 +564,21 @@ def webmanifest(request: HttpRequest) -> JsonResponse:
 
 
 def api(request: HttpRequest, **args: Any) -> HttpResponse:
+    user = cast(User, request.user)
     cmd = args.get('cmd', '')
     entry: Any = request.POST.get('entry', None)
+    entry_id: int | None = int(cast(str, entry)) if entry else None
 
-    authed = request.user.is_authenticated and request.user.is_staff
-    friend = request.user.is_authenticated and not request.user.is_staff
+    authed = user.is_authenticated and user.is_staff
+    friend = user.is_authenticated and not user.is_staff
     if not authed and cmd != 'getcontent':
         return HttpResponseForbidden()
 
-    if cmd == 'hide' and entry:
-        Entry.objects.filter(id=int(entry)).update(active=False)
+    if cmd == 'hide' and entry_id is not None:
+        Entry.objects.filter(pk=entry_id).update(active=False)
 
-    elif cmd == 'unhide' and entry:
-        Entry.objects.filter(id=int(entry)).update(active=True)
+    elif cmd == 'unhide' and entry_id is not None:
+        Entry.objects.filter(pk=entry_id).update(active=True)
 
     elif cmd == 'gsc':  # get selfposts classes
         _srvs = (
@@ -627,13 +626,13 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
             else:
                 return HttpResponseRedirect(settings.BASE_URL + '/')
 
-    elif cmd == 'reshare' and entry:
+    elif cmd == 'reshare' and entry_id is not None:
         try:
-            entry = Entry.objects.get(id=int(entry))
+            entry = Entry.objects.get(pk=entry_id)
             if entry:
                 entry = selfposts.SelfpostsService(Service()).reshare(
                     entry,
-                    {'as_me': request.POST.get('as_me', False), 'user': request.user},
+                    {'as_me': request.POST.get('as_me', False), 'user': user},
                 )
                 if entry:
                     websub.publish()
@@ -645,14 +644,14 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
         except Entry.DoesNotExist:
             pass
 
-    elif cmd == 'favorite':
+    elif cmd == 'favorite' and entry_id is not None:
         try:
-            entry = Entry.objects.get(id=int(entry))
+            entry = Entry.objects.get(pk=entry_id)
             if entry:
                 try:
-                    Favorite.objects.get(user=cast(User, request.user), entry=entry)
+                    Favorite.objects.get(user=user, entry=entry)
                 except Favorite.DoesNotExist:
-                    fav = Favorite(user=cast(User, request.user), entry=entry)
+                    fav = Favorite(user=user, entry=entry)
                     fav.save()
                     media.transform_to_local(entry)
                     media.extract_and_register(entry)
@@ -660,42 +659,38 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
         except Entry.DoesNotExist:
             pass
 
-    elif cmd == 'unfavorite':
+    elif cmd == 'unfavorite' and entry_id is not None:
         try:
+            entry = Entry.objects.get(pk=entry_id)
             if entry:
-                entry = Entry.objects.get(id=int(entry))
-                if entry:
-                    Favorite.objects.get(
-                        user=cast(User, request.user), entry=entry
-                    ).delete()
+                Favorite.objects.get(user=user, entry=entry).delete()
         except Entry.DoesNotExist:
             pass
 
-    elif cmd == 'getcontent':
+    elif cmd == 'getcontent' and entry_id is not None:
         try:
+            if not authed:
+                entry = Entry.objects.get(pk=entry_id, service__public=True)
+            else:
+                entry = Entry.objects.get(pk=entry_id)
             if entry:
-                if not authed:
-                    entry = Entry.objects.get(id=int(entry), service__public=True)
-                else:
-                    entry = Entry.objects.get(id=int(entry))
-                if entry:
-                    if request.POST.get('raw', False) and authed:
-                        return HttpResponse(entry.content)
+                if request.POST.get('raw', False) and authed:
+                    return HttpResponse(entry.content)
 
-                    if authed or friend:
-                        entry.friends_only = False
-                    content = fix_ampersands(gls_content('', entry))
-                    return HttpResponse(content)
+                if authed or friend:
+                    entry.friends_only = False
+                content = fix_ampersands(gls_content('', entry))
+                return HttpResponse(content)
         except Entry.DoesNotExist:
             pass
 
-    elif cmd == 'putcontent':
+    elif cmd == 'putcontent' and entry_id is not None:
         try:
-            if entry and authed:
+            if authed:
                 content = request.POST.get('content', '')
                 if content:
-                    Entry.objects.filter(id=int(entry)).update(content=content)
-                entry = Entry.objects.get(id=int(entry))
+                    Entry.objects.filter(pk=entry_id).update(content=content)
+                entry = Entry.objects.get(pk=entry_id)
                 if entry:
                     content = fix_ampersands(gls_content('', entry))
                     return HttpResponse(content)

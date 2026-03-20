@@ -63,7 +63,7 @@ class MastodonService(BaseService):
             except Exception as e:
                 if self.verbose:
                     print(
-                        '%s (%d) Exception: %s' % (self.service.api, self.service.id, e)
+                        '%s (%d) Exception: %s' % (self.service.api, self.service.pk, e)
                     )
                     traceback.print_exc(file=sys.stdout)
 
@@ -73,7 +73,7 @@ class MastodonService(BaseService):
             self.process(r.json())
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
                 traceback.print_exc(file=sys.stdout)
 
     def fetch_oauth2(self, url) -> None:
@@ -87,11 +87,11 @@ class MastodonService(BaseService):
                 self.process(self.json)
             elif self.verbose:
                 print(
-                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.pk, r.reason)
                 )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, entries) -> None:

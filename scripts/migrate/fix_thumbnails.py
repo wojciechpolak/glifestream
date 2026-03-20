@@ -114,7 +114,7 @@ for md in medias:
                 print('EXCEPTION', exc)
         else:
             print(
-                f'No media suffix for ID {md.id} (entry ID {md.entry.id})', md.file.name
+                f'No media suffix for ID {md.pk} (entry ID {md.entry.pk})', md.file.name
             )
 
 
@@ -143,7 +143,7 @@ for entry in entries:
     for thumb_hash in matches:
         t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel']
         if t and '.' not in thumb_hash:
-            print(f'Fixing thumbnail {thumb_hash} (entry ID {entry.id})')
+            print(f'Fixing thumbnail {thumb_hash} (entry ID {entry.pk})')
             filename = os.path.join(settings.MEDIA_ROOT, t)
             suffix = get_file_suffix(file_lookup(filename))
             if suffix:
@@ -153,7 +153,7 @@ for entry in entries:
                     modified_content,
                 )
     if modified_content != entry.content:
-        print('Saving entry', entry.id)
+        print('Saving entry', entry.pk)
         entry.content = modified_content
         try:
             entry.save()

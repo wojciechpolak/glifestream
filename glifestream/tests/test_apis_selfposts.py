@@ -30,4 +30,5 @@ def test_selfposts_share_no_markdown_fallback(service):
         content = 'Line 1\nLine 2'
         entry = api.share({'content': content})
         # The content is escaped during processing in SelfpostsService
+        assert entry is not None
         assert 'Line 1&lt;br/&gt;Line 2' in entry.content

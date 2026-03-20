@@ -29,8 +29,8 @@ class ForcePasswordChangeMiddleware:
         if request.user.is_authenticated:
             # Only check if user has a profile with must_change_password
             try:
-                profile = request.user.userprofile
-                if profile.must_change_password:
+                profile = getattr(request.user, 'userprofile', None)
+                if profile and profile.must_change_password:
                     change_password_url = reverse('change-password')
                     exempt_paths = (
                         change_password_url,

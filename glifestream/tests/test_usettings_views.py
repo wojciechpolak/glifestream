@@ -44,7 +44,7 @@ def test_usettings_lists_management(logged_in_client, staff_user):
     # CREATE
     srv = Service.objects.create(name='S1', api='webfeed')
     response = logged_in_client.post(
-        reverse('usettings-lists'), {'name': 'New List', 'services': [srv.id]}
+        reverse('usettings-lists'), {'name': 'New List', 'services': [srv.pk]}
     )
     assert response.status_code == 302
     assert List.objects.filter(name='New List', user=staff_user).exists()
@@ -53,7 +53,7 @@ def test_usettings_lists_management(logged_in_client, staff_user):
     List.objects.get(slug='new-list')
     response = logged_in_client.post(
         reverse('usettings-lists-slug', args=['new-list']),
-        {'name': 'Updated List', 'services': [srv.id]},
+        {'name': 'Updated List', 'services': [srv.pk]},
     )
     assert response.status_code == 302
     assert List.objects.filter(name='Updated List').exists()

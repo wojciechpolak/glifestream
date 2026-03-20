@@ -46,7 +46,8 @@ from glifestream.utils import common
 @login_required
 @never_cache
 def services(request: HttpRequest, **args: Any) -> HttpResponse:
-    authed = request.user.is_authenticated and request.user.is_staff
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -85,7 +86,8 @@ class ListForm(ModelForm):
 
 @login_required
 def lists(request: HttpRequest, **args: Any) -> HttpResponse:
-    authed = request.user.is_authenticated and request.user.is_staff
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -101,18 +103,16 @@ def lists(request: HttpRequest, **args: Any) -> HttpResponse:
         'menu': 'lists',
     }
     curlist = ''
-    lists_user = List.objects.filter(user=cast(User, request.user)).order_by('name')
+    lists_user = List.objects.filter(user=user).order_by('name')
 
     if 'list' in args:
         try:
-            list_user = List.objects.get(
-                user=cast(User, request.user), slug=args['list']
-            )
+            list_user = List.objects.get(user=user, slug=args['list'])
             curlist = args['list']
         except List.DoesNotExist:
-            list_user = List(user=cast(User, request.user))
+            list_user = List(user=user)
     else:
-        list_user = List(user=cast(User, request.user))
+        list_user = List(user=user)
 
     if request.method == 'POST':
         if request.POST.get('delete', False):
@@ -144,7 +144,8 @@ def lists(request: HttpRequest, **args: Any) -> HttpResponse:
 
 @login_required
 def websub(request: HttpRequest, **args: Any) -> HttpResponse:
-    authed = request.user.is_authenticated and request.user.is_staff
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -220,7 +221,8 @@ def websub(request: HttpRequest, **args: Any) -> HttpResponse:
 @login_required
 @never_cache
 def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
-    authed = request.user.is_authenticated and request.user.is_staff
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -314,7 +316,8 @@ def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
 @login_required
 @never_cache
 def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
-    authed = request.user.is_authenticated and request.user.is_staff
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -402,7 +405,8 @@ def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
 
 @login_required
 def opml(request: HttpRequest, **args: Any) -> HttpResponse:
-    authed = request.user.is_authenticated and request.user.is_staff
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -526,7 +530,8 @@ def _import_service(url: str, title: str, cls: str = 'webfeed') -> None:
 
 
 def api(request: HttpRequest, **args: Any) -> HttpResponse:
-    authed = request.user.is_authenticated and request.user.is_staff
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
     if not authed:
         return HttpResponseForbidden()
 
@@ -604,9 +609,9 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
                 elif auth == 'none':
                     srv.creds = ''
 
-                s['need_import'] = not srv.id
+                s['need_import'] = not srv.pk
                 srv.save()
-                id_service = srv.id
+                id_service = srv.pk
             except Exception as exc:
                 print(exc)
 
@@ -617,7 +622,7 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
                 if len(miss) == 0:
                     s.update(
                         {
-                            'id': srv.id,
+                            'id': srv.pk,
                             'api': srv.api,
                             'name': srv.name,
                             'cls': srv.cls,
@@ -631,7 +636,7 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
                         }
                     )
                 else:
-                    s['id'] = srv.id
+                    s['id'] = srv.pk
                 s['delete'] = _('delete')
             except Service.DoesNotExist:
                 pass
@@ -641,6 +646,8 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
 
         if 'creds' not in s:
             s['creds'] = ''
+
+        s = cast(Any, s)
 
         # Setup fields
         s['fields'] = [

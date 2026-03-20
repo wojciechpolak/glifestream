@@ -101,15 +101,22 @@ class OAuth2Client:
     def get_authorize_url(self):
         if self.db.phase != PHASE_0:
             raise Exception('Not ready to authorize.')
-        url, state = self.consumer.authorization_url(self.authorize_url)
+        authorize_url = self.authorize_url
+        if not authorize_url:
+            raise Exception(_('Authorize URL not set.'))
+        url, state = self.consumer.authorization_url(authorize_url)
         return url
 
     def get_access_token(self, authorization_response):
         if self.db.phase != PHASE_2:
             raise Exception('Not ready to get access token.')
 
+        token_url = self.token_url
+        if not token_url:
+            raise Exception(_('Token URL not set.'))
+
         res = self.consumer.fetch_token(
-            token_url=self.token_url,
+            token_url=token_url,
             code=authorization_response,
             client_secret=self.db.secret,
         )

@@ -20,6 +20,7 @@ import hmac
 import hashlib
 from urllib.parse import urlsplit
 from datetime import timedelta
+from typing import cast
 from django.conf import settings
 from django.urls import reverse
 
@@ -49,9 +50,10 @@ def subscribe(service: Service, verbose=False):
         return {'rc': 2}
 
     secret = hashlib.md5(
-        ('%s:%d/%s/%s' % (hub, service.id, service.url, settings.SECRET_KEY)).encode(
-            'utf-8'
-        )
+        (
+            '%s:%d/%s/%s'
+            % (hub, cast(int, service.pk), service.url, settings.SECRET_KEY)
+        ).encode('utf-8')
     ).hexdigest()
     hash_sub = hashlib.sha1(secret.encode('utf-8')).hexdigest()[0:20]
     secret_val: str | None = secret[0:8] if 'https://' in hub else None
@@ -87,10 +89,13 @@ def subscribe(service: Service, verbose=False):
         return {'hub': hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
         error = ''
-        if hasattr(e, 'message'):
-            error = e.message
-        elif hasattr(e, 'read'):
-            error = e.read()
+        message = getattr(e, 'message', None)
+        if message:
+            error = message
+        else:
+            read_fn = getattr(e, 'read', None)
+            if callable(read_fn):
+                error = read_fn()
         if verbose:
             print('%s, Response: "%s"' % (e, error))
         return {'hub': hub, 'rc': error}
@@ -122,10 +127,13 @@ def unsubscribe(id_sub, verbose=False):
         return {'hub': db.hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
         error = ''
-        if hasattr(e, 'message'):
-            error = e.message
-        elif hasattr(e, 'read'):
-            error = e.read()
+        message = getattr(e, 'message', None)
+        if message:
+            error = message
+        else:
+            read_fn = getattr(e, 'read', None)
+            if callable(read_fn):
+                error = read_fn()
         if verbose:
             print('%s, Response: "%s"' % (e, error))
         return {'hub': db.hub, 'rc': error}
@@ -175,8 +183,10 @@ def publish(hubs=None, verbose=False):
                 error = ''
                 if hasattr(e, 'message'):
                     error = e.message
-                elif hasattr(e, 'read'):
-                    error = e.read()
+                else:
+                    read_fn = getattr(e, 'read', None)
+                    if callable(read_fn):
+                        error = read_fn()
                 print('%s, Response: "%s"' % (e, error))
 
 
@@ -188,7 +198,7 @@ def accept_payload(id_sub, payload, meta=None):
     except WebSub.DoesNotExist:
         return False
     if db.secret:
-        s = hmac.new(str(db.secret), payload, hashlib.sha1).hexdigest()
+        s = hmac.new(str(db.secret).encode('utf-8'), payload, hashlib.sha1).hexdigest()
         signature = meta.get('HTTP_X_HUB_SIGNATURE', None)
         if signature and 'sha1=' in signature:
             signature = signature[5:]
@@ -216,7 +226,7 @@ def list_subs(raw=False):
     for s in subscriptions:
         print(
             '%4d V=%d hash=%s, hub=%s, topic=%s, expire=%s'
-            % (s.id, s.verified, s.hash, s.hub, s.service.url, s.expire)
+            % (cast(int, s.pk), s.verified, s.hash, s.hub, s.service.url, s.expire)
         )
 
 

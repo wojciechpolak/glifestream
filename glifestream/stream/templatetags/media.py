@@ -19,13 +19,13 @@ import os
 import hashlib
 from django.conf import settings
 from django import template
-from django.template import Library
+from django.template import Context, Library
 
 register = Library()
 
 
 class MediaUrl(template.Node):
-    def render(self, ctx):
+    def render(self, ctx: Context) -> str:  # type: ignore[override]
         url = settings.MEDIA_URL
         if 'is_secure' in ctx and ctx['is_secure']:
             url = url.replace('http://', 'https://')
@@ -33,7 +33,7 @@ class MediaUrl(template.Node):
 
 
 class StaticUrl(template.Node):
-    def render(self, ctx):
+    def render(self, ctx: Context) -> str:  # type: ignore[override]
         url = settings.STATIC_URL
         if 'is_secure' in ctx and ctx['is_secure']:
             url = url.replace('http://', 'https://')
@@ -53,17 +53,16 @@ def static(parser, token):
 
 
 class StaticUrlHash(template.Node):
-    def __init__(self, path):
+    def __init__(self, path: str):
         self.path = path
         self.hash = None
         try:
-            f = open(os.path.join(settings.STATIC_ROOT, path))
-            self.hash = hashlib.md5(f.read()).hexdigest()[:5]
-            f.close()
+            with open(os.path.join(settings.STATIC_ROOT, path), 'rb') as f:
+                self.hash = hashlib.md5(f.read()).hexdigest()[:5]
         except Exception:
             pass
 
-    def render(self, ctx):
+    def render(self, ctx: Context) -> str:  # type: ignore[override]
         url = settings.STATIC_URL
         if 'is_secure' in ctx and ctx['is_secure']:
             url = url.replace('http://', 'https://')

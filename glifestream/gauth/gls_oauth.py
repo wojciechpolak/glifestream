@@ -100,13 +100,20 @@ class OAuth1Client:
     def get_authorize_url(self):
         if self.db.phase != 1:
             raise Exception('Not ready to authorize.')
-        return self.consumer.authorization_url(self.authorize_url)
+        authorize_url = self.authorize_url
+        if not authorize_url:
+            raise Exception(_('Authorize URL not set.'))
+        return self.consumer.authorization_url(authorize_url)
 
     def get_access_token(self):
         if self.db.phase != 2:
             raise Exception('Not ready to get access token.')
 
-        res = self.consumer.fetch_access_token(self.access_token_url)
+        access_token_url = self.access_token_url
+        if not access_token_url:
+            raise Exception(_('Access token URL not set.'))
+
+        res = self.consumer.fetch_access_token(access_token_url)
 
         if 'oauth_token' in res and 'oauth_token_secret' in res:
             self.db.phase = 3

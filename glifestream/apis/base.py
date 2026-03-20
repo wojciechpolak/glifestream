@@ -28,6 +28,7 @@ class BaseService(ABC):
 
     name: str
     limit_sec: int
+    payload: str | bytes | None = None
 
     def __init__(
         self, service: Service, verbose: int = 0, force_overwrite: bool = False

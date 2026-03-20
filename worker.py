@@ -27,11 +27,17 @@ import time
 import django
 from django.conf import settings
 from django.utils import timezone
+from typing import Any
 
+workerpool_module: Any = None
 try:
-    import workerpool
+    import workerpool as _workerpool
 except ImportError:
-    workerpool = None
+    pass
+else:
+    workerpool_module = _workerpool
+
+workerpool: Any = workerpool_module
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 if 'DJANGO_SETTINGS_MODULE' not in os.environ:
@@ -142,7 +148,7 @@ def run():
 
     if list_services:
         for service in Service.objects.all().order_by('id'):
-            print('%4d "%s"  API=%s' % (service.id, service.name, service.api))
+            print('%4d "%s"  API=%s' % (service.pk, service.name, service.api))
         sys.exit(0)
 
     if websub_cmd:
@@ -240,7 +246,7 @@ def run():
         favs = Favorite.objects.all().values('entry')
         if list_old:
             for entry in Entry.objects.filter(**fs).exclude(id__in=favs):
-                print('%4d "%s" by %s' % (entry.id, entry.title, entry.author_name))
+                print('%4d "%s" by %s' % (entry.pk, entry.title, entry.author_name))
         elif delete_old:
             Entry.objects.filter(**fs).exclude(id__in=favs).delete()
         sys.exit(0)

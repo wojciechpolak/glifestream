@@ -64,7 +64,7 @@ class PocketService(BaseService):
             except Exception as e:
                 if self.verbose:
                     print(
-                        '%s (%d) Exception: %s' % (self.service.api, self.service.id, e)
+                        '%s (%d) Exception: %s' % (self.service.api, self.service.pk, e)
                     )
                     traceback.print_exc(file=sys.stdout)
 
@@ -89,11 +89,11 @@ class PocketService(BaseService):
                 self.process(self.json)
             elif self.verbose:
                 print(
-                    '%s (%d) HTTP: %s' % (self.service.api, self.service.id, r.reason)
+                    '%s (%d) HTTP: %s' % (self.service.api, self.service.pk, r.reason)
                 )
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
+                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, pocket_response) -> None:
@@ -109,8 +109,9 @@ class PocketService(BaseService):
             if ent['status'] == '2':  # deleted
                 continue
 
-            t = datetime.datetime.utcfromtimestamp(int(ent['time_added']))
-            t = t.replace(tzinfo=datetime.timezone.utc)
+            t = datetime.datetime.fromtimestamp(
+                int(ent['time_added']), tz=datetime.timezone.utc
+            )
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)

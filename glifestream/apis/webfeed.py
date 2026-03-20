@@ -15,7 +15,7 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import feedparser  # type: ignore
+import feedparser
 
 from glifestream.apis.base import BaseService
 from glifestream.utils import httpclient
@@ -56,10 +56,10 @@ class WebfeedService(BaseService):
             except (IOError, httpclient.HTTPError) as e:
                 self.fp_error = True
                 if self.verbose:
-                    error = e.message if hasattr(e, 'message') else ''
+                    error = getattr(e, 'message', '')
                     print(
                         '%s (%d) HTTPError: %s'
-                        % (self.service.api, self.service.id, error)
+                        % (self.service.api, self.service.pk, error)
                     )
                 return
         else:
@@ -70,7 +70,7 @@ class WebfeedService(BaseService):
             if isinstance(self.fp.bozo_exception, feedparser.CharacterEncodingOverride):
                 self.fp_error = False
             if self.verbose:
-                print('%s (%d) Bozo: %s' % (self.service.api, self.service.id, self.fp))
+                print('%s (%d) Bozo: %s' % (self.service.api, self.service.pk, self.fp))
 
         if not self.fp_error:
             self.service.etag = self.fp.get('etag', '')
@@ -144,13 +144,11 @@ class WebfeedService(BaseService):
                     if link.rel == 'image' or link.rel == 'photo':
                         e.link_image = media.save_image(link.href)
 
-            if hasattr(self, 'custom_process'):
-                self.custom_process(e, ent)
+            custom_process = getattr(self, 'custom_process', None)
+            if callable(custom_process):
+                custom_process(e, ent)
 
-            if hasattr(e, 'custom_mblob'):
-                e.mblob = e.custom_mblob
-            else:
-                e.mblob = None
+            e.mblob = getattr(e, 'custom_mblob', None)
 
             mblob = media.mrss_init(e.mblob)
             if 'media_content' in ent:

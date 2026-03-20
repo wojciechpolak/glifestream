@@ -18,9 +18,9 @@
 import sys
 import traceback
 import datetime
-from typing import Optional
-from atproto import Client  # type: ignore
-from atproto_client.models.app.bsky.feed.defs import FeedViewPost  # type: ignore
+from typing import Any, Optional, cast
+from atproto import Client
+from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -51,7 +51,10 @@ class AtProtoService(BaseService):
             self.connect(hs)
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
+                print(
+                    '%s (%d) Exception: %s'
+                    % (self.service.api, cast(int, self.service.pk), e)
+                )
                 traceback.print_exc(file=sys.stdout)
 
     def connect(self, hs) -> None:
@@ -60,29 +63,32 @@ class AtProtoService(BaseService):
             self.service.last_checked = timezone.now()
             self.service.save()
             if self.service.user_id:
+                me = cast(Any, self.client.me)
                 data = self.client.get_author_feed(
-                    self.client.me.did, filter='posts_no_replies', limit=self.count
+                    me.did, filter='posts_no_replies', limit=self.count
                 )
             else:
                 data = self.client.get_timeline(limit=self.count)
             self.process(data.feed)
         except Exception as e:
             if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.id, e))
+                print(
+                    '%s (%d) Exception: %s'
+                    % (self.service.api, cast(int, self.service.pk), e)
+                )
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, entries: list[FeedViewPost]) -> None:
         for ent in entries:
-            post = ent.post
+            post = cast(Any, ent.post)
             author = post.author
             record = post.record
             guid = post.cid
             if self.verbose:
                 print('ID: %s' % guid)
 
-            t = datetime.datetime.fromisoformat(
-                record.created_at.replace('Z', '+00:00')
-            )
+            created_at = cast(str, record.created_at)
+            t = datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
 
             try:
                 e = Entry.objects.get(service=self.service, guid=guid)
@@ -99,7 +105,7 @@ class AtProtoService(BaseService):
 
             e.guid = guid
             e.title = truncate.smart(
-                strip_entities(strip_tags(record.text)), max_length=40
+                strip_entities(strip_tags(cast(str, record.text))), max_length=40
             )
             e.title = e.title.replace('#', '').replace('@', '')
 
@@ -113,19 +119,21 @@ class AtProtoService(BaseService):
             e.author_name = author.display_name
 
             # double expand
-            e.content = expand.run_all(expand.shorturls(record.text))
+            e.content = expand.run_all(expand.shorturls(cast(str, record.text)))
 
-            if post.embed:
+            post_embed = post.embed
+            if post_embed:
                 content = ''
-                if hasattr(post.embed, 'images') and post.embed.images:
+                images = getattr(post_embed, 'images', None)
+                if images:
                     content += ' <p class="thumbnails">'
-                    for view_image in post.embed.images:
+                    for view_image in images:
                         image_url = view_image.thumb
                         large_url = view_image.fullsize
                         link = large_url
                         if self.service.public:
                             image_url = media.save_image(image_url)
-                        if 'aspect_ratio' in view_image:
+                        if getattr(view_image, 'aspect_ratio', None):
                             sizes = view_image.aspect_ratio
                             iwh = ' width="%d" height="%d"' % (
                                 sizes.width,
@@ -138,11 +146,14 @@ class AtProtoService(BaseService):
                             % (link, large_url, image_url, iwh)
                         )
                     content += '</p>'
-                elif hasattr(post.embed, 'external') and post.embed.external:
-                    if post.embed.external.uri.startswith(
-                        'https://www.youtube.com/'
-                    ) or post.embed.external.uri.startswith('https://www.vimeo.com/'):
-                        content += '\n' + expand.videolinks(post.embed.external.uri)
+                else:
+                    external = getattr(post_embed, 'external', None)
+                    uri = getattr(external, 'uri', None)
+                    if uri and (
+                        uri.startswith('https://www.youtube.com/')
+                        or uri.startswith('https://www.vimeo.com/')
+                    ):
+                        content += '\n' + expand.videolinks(uri)
                 e.content += content
 
             try:
