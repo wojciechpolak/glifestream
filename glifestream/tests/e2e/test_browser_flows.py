@@ -1,3 +1,20 @@
+"""
+#  gLifestream Copyright (C) 2026 Wojciech Polak
+#
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by the
+#  Free Software Foundation; either version 3 of the License, or (at your
+#  option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License along
+#  with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from __future__ import annotations
 
 import re
@@ -34,6 +51,7 @@ def test_initial_admin_login_requires_password_change(
     app_base_url: str,
     login_as_initial_admin,
     finish_forced_password_change,
+    vrt,
 ):
     login_as_initial_admin()
 
@@ -42,6 +60,12 @@ def test_initial_admin_login_requires_password_change(
 
     expect(page).to_have_url(f'{app_base_url}/')
     expect(page.get_by_text('Seeded Private Entry')).to_be_visible()
+    vrt.screenshot(
+        page,
+        'main-stream.png',
+        full_page=True,
+        mask=[page.locator('#calendar')],
+    )
 
 
 def test_invalid_login_and_logout(
@@ -71,6 +95,7 @@ def test_worker_ingests_mocked_feeds_and_updates_browser_state(
     create_webfeed_service,
     run_worker,
     ensure_admin_session,
+    vrt,
 ):
     public_url = mock_feed_server.publish_fixture('feeds/public.xml', 'initial-rss.xml')
     private_url = mock_feed_server.publish_fixture(
@@ -88,6 +113,12 @@ def test_worker_ingests_mocked_feeds_and_updates_browser_state(
     page.goto(f'{app_base_url}/public/')
     expect(page.get_by_text('Public RSS Entry')).to_be_visible()
     expect(page.get_by_text('Private Atom Entry', exact=True)).to_have_count(0)
+    vrt.screenshot(
+        page,
+        'public-stream.png',
+        full_page=True,
+        mask=[page.locator('#calendar')],
+    )
 
     ensure_admin_session()
     page.goto(f'{app_base_url}/')
@@ -131,6 +162,7 @@ def test_settings_services_lists_and_websub(
     page: Page,
     app_base_url: str,
     ensure_admin_session,
+    vrt,
 ):
     ensure_admin_session()
 
@@ -150,6 +182,10 @@ def test_settings_services_lists_and_websub(
     ):
         page.locator('#edit-service a', has_text='Playwright Service').click()
     expect(page.locator('#service-form')).to_be_visible()
+    vrt.screenshot(
+        page.locator('#settings'),
+        'settings-services.png',
+    )
     page.locator('#name').fill('Playwright Service Updated')
     with page.expect_response(
         lambda response: _is_settings_service_response(response, method='post')
@@ -173,6 +209,7 @@ def test_settings_services_lists_and_websub(
 
     expect(page).to_have_url(re.compile(r'/settings/lists/playwright-list-updated/?$'))
     expect(page.locator('#select-list')).to_contain_text('Playwright List Updated')
+    vrt.screenshot(page.locator('#settings'), 'settings-lists.png')
 
     page.on('dialog', lambda dialog: dialog.accept())
     page.locator('#list-form a', has_text='delete').click()

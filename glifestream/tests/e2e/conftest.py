@@ -1,3 +1,20 @@
+"""
+#  gLifestream Copyright (C) 2026 Wojciech Polak
+#
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by the
+#  Free Software Foundation; either version 3 of the License, or (at your
+#  option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License along
+#  with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from __future__ import annotations
 
 import os
@@ -27,11 +44,13 @@ from playwright.sync_api import (
 )
 
 from glifestream.stream.models import Service
+from glifestream.tests.e2e.vrt import VisualRegressionSession
 
 import worker as worker_module
 
 FIXTURES_DIR = Path(__file__).parent / 'fixtures' / 'feeds'
 ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'playwright'
+VRT_ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'vrt'
 
 
 def _slugify_nodeid(nodeid: str) -> str:
@@ -41,6 +60,13 @@ def _slugify_nodeid(nodeid: str) -> str:
 def _env_flag(name: str) -> bool:
     value = os.environ.get(name, '')
     return value.lower() in {'1', 'true', 'yes', 'on'}
+
+
+@pytest.fixture(scope='session', autouse=True)
+def clean_e2e_artifacts() -> Generator[None, None, None]:
+    for path in (ARTIFACTS_DIR, VRT_ARTIFACTS_DIR):
+        shutil.rmtree(path, ignore_errors=True)
+    yield
 
 
 class QuietStaticHandler(SimpleHTTPRequestHandler):
@@ -229,6 +255,32 @@ def page(
     context: BrowserContext = browser.new_context(
         viewport={'width': 1440, 'height': 960}
     )
+    if _env_flag('VRT'):
+        context.add_init_script(
+            """
+            (() => {
+                const disableEffects = () => {
+                    if (window.jQuery && window.jQuery.fx) {
+                        window.jQuery.fx.off = true;
+                        return true;
+                    }
+                    return false;
+                };
+
+                if (disableEffects()) {
+                    return;
+                }
+
+                let attempts = 0;
+                const timer = window.setInterval(() => {
+                    attempts += 1;
+                    if (disableEffects() || attempts > 200) {
+                        window.clearInterval(timer);
+                    }
+                }, 5);
+            })();
+            """
+        )
     context.tracing.start(screenshots=True, snapshots=True)
     page = context.new_page()
 
@@ -243,6 +295,11 @@ def page(
     else:
         context.tracing.stop()
     context.close()
+
+
+@pytest.fixture
+def vrt(request: pytest.FixtureRequest) -> VisualRegressionSession:
+    return VisualRegressionSession.from_request(request)
 
 
 @pytest.fixture

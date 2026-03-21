@@ -126,13 +126,25 @@ Run the test and code quality checks:
 
 ```shell
 uv run pytest
-uv run pytest -m e2e
-uv run ruff check .
+uv run ruff check
+uv run ty check
 uv run mypy .
 ```
 
 The browser E2E suite uses local mocked RSS/Atom feeds and runs the real
 `worker.py` ingestion path before asserting the rendered UI.
+
+Visual regression testing is layered on top of those same browser tests.
+Run the baseline refresh command once when you intentionally accept a new
+UI state, then rerun the comparison command to check for visual drift:
+
+```shell
+./scripts/vrt-docker.sh baseline
+```
+
+```shell
+./scripts/vrt-docker.sh compare
+```
 
 To watch the E2E suite in a visible browser window, run it in headed mode:
 
