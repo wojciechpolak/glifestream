@@ -50,6 +50,7 @@ packages = ["glifestream"]
 python_version = "3.14"
 warn_return_any = true
 plugins = ["mypy_django_plugin.main"]
+exclude = '(?x)^(run/vrt-uv-cache/|run/vrt-venv/|run/vrt-home/)'
 
 [[tool.mypy.overrides]]
 module = ["workerpool", "feedparser", "atproto", "atproto_client.models.app.bsky.feed.defs"]
