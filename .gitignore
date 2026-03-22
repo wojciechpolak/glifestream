@@ -4,6 +4,7 @@
 *.pyo
 *.mo
 *.iml
+.env*
 .version
 .idea/
 .pytest_cache/
@@ -11,6 +12,7 @@ test-results/
 pip-selfcheck.json
 pyvenv.cfg
 run/
+run-*/
 venv*/
 media/
 static/

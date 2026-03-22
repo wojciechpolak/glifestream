@@ -51,6 +51,9 @@ the following output:
 Docker deployment
 -----------------
 
+The Docker image serves the Django application with Gunicorn behind the
+bundled Nginx container.
+
 ```shell
 # [adjust files in the `run` folder]
 docker-compose up

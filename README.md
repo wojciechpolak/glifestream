@@ -16,7 +16,7 @@ users.
 
 The gLifestream software requires an HTTP server capable of running
 Django applications and a database supported by it.  Data from the
-configured streams are automatically pulled from the remote services
+configured streams is automatically pulled from the remote services
 associated with them and stored in the database.  This mode of
 operation ensures the user that his data (messages, links, photos,
 etc.) will remain intact even if the external service they came from

@@ -13,7 +13,7 @@ dependencies = [
     "markdown==3.10.2",
     "pillow==12.1.1",
     "requests-oauthlib>=0.4,<0.5",
-    "uwsgi==2.0.31",
+    "gunicorn==25.1.0",
     "workerpool>=0.9,<0.10",
     "pymemcache>=4.0.0,<5",
     "atproto==0.0.65",
