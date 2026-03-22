@@ -39,6 +39,12 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def _parse_form_bool(value: Any) -> bool:
+    if isinstance(value, str):
+        return value.strip().lower() in {'1', 'true', 'on', 'yes'}
+    return bool(value)
+
+
 class SelfpostsService(BaseService):
     name = 'Selfposts API'
 
@@ -75,8 +81,8 @@ class SelfpostsService(BaseService):
         e.link = link if link else settings.BASE_URL + '/'
         e.date_published = un
         e.date_updated = un
-        e.draft = bool(args.get('draft', False))
-        e.friends_only = bool(args.get('friends_only', False))
+        e.draft = _parse_form_bool(args.get('draft', False))
+        e.friends_only = _parse_form_bool(args.get('friends_only', False))
 
         if user and user.first_name and user.last_name:
             e.author_name = user.first_name + ' ' + user.last_name
@@ -203,7 +209,7 @@ class SelfpostsService(BaseService):
         if args is None:
             args = {}
         sid = args.get('sid', None)
-        as_me = bool(args.get('as_me', False))
+        as_me = _parse_form_bool(args.get('as_me', False))
         user = args.get('user', None)
 
         un = utcnow()
