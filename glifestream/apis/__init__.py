@@ -36,7 +36,6 @@ API_LIST = (
     ('mastodon', 'Mastodon'),
     ('atproto', 'AT Protocol'),
     ('pixelfed', 'PixelFed'),
-    ('pocket', 'Pocket'),
     ('flickr', 'Flickr'),
     ('twitter', 'Twitter'),
     ('vimeo', 'Vimeo'),

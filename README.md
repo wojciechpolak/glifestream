@@ -34,7 +34,6 @@ gLifestream supports the following services by default:
 - Bluesky
 - Flickr
 - PixelFed
-- Pocket
 - Twitter
 - Vimeo
 - YouTube
