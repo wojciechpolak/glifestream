@@ -31,8 +31,12 @@ from urllib.parse import urlsplit
 
 import pytest
 from django.conf import settings as django_settings
+from django.core.servers.basehttp import WSGIServer
+from django.db import connections
+from django.db.backends.base.base import BaseDatabaseWrapper
+from django.test.testcases import LiveServerThread
 from django.core.management import call_command
-from django.test.utils import setup_databases, teardown_databases
+from django.test.utils import modify_settings, setup_databases, teardown_databases
 from pytest_django.fixtures import _get_databases_for_setup
 
 from playwright.sync_api import (
@@ -60,6 +64,11 @@ def _slugify_nodeid(nodeid: str) -> str:
 def _env_flag(name: str) -> bool:
     value = os.environ.get(name, '')
     return value.lower() in {'1', 'true', 'yes', 'on'}
+
+
+def _sqlite_connection_is_in_memory(conn: BaseDatabaseWrapper) -> bool:
+    name = str(conn.settings_dict.get('NAME', ''))
+    return name == ':memory:' or 'mode=memory' in name
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -114,6 +123,93 @@ def pytest_runtest_logstart(nodeid: str, location: tuple[str, int, str]) -> None
     del location
     if _env_flag('GLS_E2E_PRINT_TESTS'):
         print(f'[e2e] {nodeid}')
+
+
+class SingleThreadLiveServerThread(LiveServerThread):
+    # Avoid Django's threaded test server for SQLite-backed e2e runs.
+    # Python 3.14 on Linux can segfault in _sqlite3 when many browser-driven
+    # requests overlap across server threads.
+    server_class = WSGIServer
+
+    def _create_server(self, connections_override=None):
+        del connections_override
+        from django.test.testcases import QuietWSGIRequestHandler
+
+        return self.server_class(
+            (self.host, self.port),
+            QuietWSGIRequestHandler,
+            allow_reuse_address=False,
+        )
+
+
+class SingleThreadLiveServer:
+    def __init__(self, addr: str, *, start: bool = True) -> None:
+        from django.conf import settings
+        from django.contrib.staticfiles.handlers import StaticFilesHandler
+        from django.test.testcases import _StaticFilesHandler
+
+        liveserver_kwargs: dict[str, Any] = {}
+        connections_override = {}
+        uses_sqlite = False
+
+        for conn in connections.all():
+            if conn.vendor == 'sqlite':
+                uses_sqlite = True
+                if _sqlite_connection_is_in_memory(conn):
+                    connections_override[conn.alias] = conn
+
+        liveserver_kwargs['connections_override'] = connections_override
+        if 'django.contrib.staticfiles' in settings.INSTALLED_APPS:
+            liveserver_kwargs['static_handler'] = StaticFilesHandler
+        else:
+            liveserver_kwargs['static_handler'] = _StaticFilesHandler
+
+        try:
+            host, port = addr.split(':')
+        except ValueError:
+            host = addr
+        else:
+            liveserver_kwargs['port'] = int(port)
+
+        thread_class = SingleThreadLiveServerThread if uses_sqlite else LiveServerThread
+        self.thread = thread_class(host, **liveserver_kwargs)
+        self._live_server_modified_settings = modify_settings(
+            ALLOWED_HOSTS={'append': host},
+        )
+        self.thread.daemon = True
+
+        if start:
+            self.start()
+
+    def start(self) -> None:
+        for conn in self.thread.connections_override.values():
+            conn.inc_thread_sharing()
+
+        self.thread.start()
+        self.thread.is_ready.wait()
+
+        if self.thread.error:
+            error = self.thread.error
+            self.stop()
+            raise error
+
+    def stop(self) -> None:
+        self.thread.terminate()
+        for conn in self.thread.connections_override.values():
+            conn.dec_thread_sharing()
+
+    @property
+    def url(self) -> str:
+        return f'http://{self.thread.host}:{self.thread.port}'
+
+    def __str__(self) -> str:
+        return self.url
+
+    def __add__(self, other) -> str:
+        return f'{self}{other}'
+
+    def __repr__(self) -> str:
+        return f'<LiveServer listening at {self.url}>'
 
 
 @pytest.fixture(scope='session')
@@ -171,6 +267,21 @@ def django_db_setup(
         del os.environ['DJANGO_ALLOW_ASYNC_UNSAFE']
     else:
         os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = old_async_unsafe
+
+
+@pytest.fixture(scope='session')
+def live_server(
+    request: pytest.FixtureRequest,
+) -> Generator[SingleThreadLiveServer, None, None]:
+    addr = (
+        request.config.getvalue('liveserver')
+        or os.getenv('DJANGO_LIVE_TEST_SERVER_ADDRESS')
+        or 'localhost'
+    )
+
+    server = SingleThreadLiveServer(addr)
+    yield server
+    server.stop()
 
 
 @pytest.fixture(autouse=True)
