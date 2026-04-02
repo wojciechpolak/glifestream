@@ -100,22 +100,22 @@ for filename in ths:
 medias = Media.objects.all()
 
 for md in medias:
-    if '.' not in md.file.name:
-        print('Fixing media', md.file.name)
-        filename = os.path.join(settings.MEDIA_ROOT, md.file.name)
-        suffix = get_file_suffix(file_lookup(filename))
-        if suffix is None:
-            md.delete()
-        elif suffix:
-            md.file.name = md.file.name + suffix
-            try:
-                md.save()
-            except Exception as exc:
-                print('EXCEPTION', exc)
-        else:
-            print(
-                f'No media suffix for ID {md.pk} (entry ID {md.entry.pk})', md.file.name
-            )
+    file_name = md.file.name
+    if not file_name or '.' in file_name:
+        continue
+    print('Fixing media', file_name)
+    filename = os.path.join(settings.MEDIA_ROOT, file_name)
+    suffix = get_file_suffix(file_lookup(filename))
+    if suffix is None:
+        md.delete()
+    elif suffix:
+        md.file.name = file_name + suffix
+        try:
+            md.save()
+        except Exception as exc:
+            print('EXCEPTION', exc)
+    else:
+        print(f'No media suffix for ID {md.pk} (entry ID {md.entry.pk})', file_name)
 
 
 entries = Entry.objects.all()

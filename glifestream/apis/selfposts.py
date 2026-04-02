@@ -162,7 +162,10 @@ class SelfpostsService(BaseService):
             if len(docs) > 0:
                 doc = '\n<ul class="files">\n'
                 for o in docs:
-                    target = '[GLS-UPLOAD]/%s' % o[0].file.name.replace('upload/', '')
+                    file_name = o[0].file.name
+                    if not file_name:
+                        continue
+                    target = '[GLS-UPLOAD]/%s' % file_name.replace('upload/', '')
                     doc += '  <li><a href="%s">%s</a> ' % (target, o[1].name)
                     doc += '<span class="size">%s</span></li>\n' % bytes_to_human(
                         o[1].size

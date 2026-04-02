@@ -25,17 +25,17 @@ register = Library()
 
 
 class MediaUrl(template.Node):
-    def render(self, ctx: Context) -> str:  # type: ignore[override]
+    def render(self, context: Context) -> str:
         url = settings.MEDIA_URL
-        if 'is_secure' in ctx and ctx['is_secure']:
+        if 'is_secure' in context and context['is_secure']:
             url = url.replace('http://', 'https://')
         return url
 
 
 class StaticUrl(template.Node):
-    def render(self, ctx: Context) -> str:  # type: ignore[override]
+    def render(self, context: Context) -> str:
         url = settings.STATIC_URL
-        if 'is_secure' in ctx and ctx['is_secure']:
+        if 'is_secure' in context and context['is_secure']:
             url = url.replace('http://', 'https://')
         return url
 
@@ -62,9 +62,9 @@ class StaticUrlHash(template.Node):
         except Exception:
             pass
 
-    def render(self, ctx: Context) -> str:  # type: ignore[override]
+    def render(self, context: Context) -> str:
         url = settings.STATIC_URL
-        if 'is_secure' in ctx and ctx['is_secure']:
+        if 'is_secure' in context and context['is_secure']:
             url = url.replace('http://', 'https://')
         url += self.path
         if self.hash:

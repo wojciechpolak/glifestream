@@ -31,7 +31,7 @@ def strip_script(s: str) -> str:
     try:
         if BeautifulSoup is not None and '<' in s:
             soup = BeautifulSoup(s, features='html.parser')
-            to_extract = soup.findAll('script')
+            to_extract = soup.find_all('script')
             for item in to_extract:
                 item.extract()
             s = str(soup)

@@ -37,7 +37,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pytest
 from django.conf import settings as django_settings
-from django.core.servers.basehttp import WSGIServer
+from django.core.servers.basehttp import ThreadedWSGIServer, WSGIServer
 from django.db import connections
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.test.testcases import LiveServerThread
@@ -501,7 +501,7 @@ class SingleThreadLiveServerThread(LiveServerThread):
     # Avoid Django's threaded test server for SQLite-backed e2e runs.
     # Python 3.14 on Linux can segfault in _sqlite3 when many browser-driven
     # requests overlap across server threads.
-    server_class = WSGIServer
+    server_class = cast(type[ThreadedWSGIServer], WSGIServer)
 
     def _create_server(self, connections_override=None):
         del connections_override
@@ -554,7 +554,8 @@ class SingleThreadLiveServer:
             self.start()
 
     def start(self) -> None:
-        for conn in self.thread.connections_override.values():
+        connections_override = self.thread.connections_override or {}
+        for conn in connections_override.values():
             conn.inc_thread_sharing()
 
         self.thread.start()
@@ -567,7 +568,8 @@ class SingleThreadLiveServer:
 
     def stop(self) -> None:
         self.thread.terminate()
-        for conn in self.thread.connections_override.values():
+        connections_override = self.thread.connections_override or {}
+        for conn in connections_override.values():
             conn.dec_thread_sharing()
 
     @property
