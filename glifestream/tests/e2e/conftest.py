@@ -17,6 +17,8 @@
 
 from __future__ import annotations
 
+import base64
+import json
 import os
 import re
 import shutil
@@ -24,10 +26,14 @@ import sys
 import threading
 from collections.abc import Generator
 from functools import partial
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from http.server import (
+    BaseHTTPRequestHandler,
+    SimpleHTTPRequestHandler,
+    ThreadingHTTPServer,
+)
 from pathlib import Path
 from typing import Any, cast
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pytest
 from django.conf import settings as django_settings
@@ -52,9 +58,19 @@ from glifestream.tests.e2e.vrt import VisualRegressionSession
 
 import worker as worker_module
 
-FIXTURES_DIR = Path(__file__).parent / 'fixtures' / 'feeds'
+FIXTURES_DIR = Path(__file__).parent / 'fixtures'
+FEED_FIXTURES_DIR = FIXTURES_DIR / 'feeds'
+MASTODON_FIXTURES_DIR = FIXTURES_DIR / 'mastodon'
+ATPROTO_FIXTURES_DIR = FIXTURES_DIR / 'atproto'
 ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'playwright'
 VRT_ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'vrt'
+MOCK_OAUTH2_CODE = 'gls-e2e-auth-code'
+MOCK_OAUTH2_TOKEN = 'gls-e2e-access-token'
+MOCK_AVATAR_PNG = base64.b64decode(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9pQnUnYAAAAASUVORK5CYII='
+)
+MOCK_ATPROTO_HANDLE = 'playwright.test'
+MOCK_ATPROTO_DID = 'did:plc:playwrighttestaccount'
 
 
 def _slugify_nodeid(nodeid: str) -> str:
@@ -100,7 +116,7 @@ class MockFeedServer:
     def publish_fixture(self, route: str, fixture_name: str) -> str:
         target = self.root / route.lstrip('/')
         target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(FIXTURES_DIR / fixture_name, target)
+        shutil.copyfile(FEED_FIXTURES_DIR / fixture_name, target)
         return self.url_for(route)
 
     def url_for(self, route: str) -> str:
@@ -110,6 +126,362 @@ class MockFeedServer:
         self.server.shutdown()
         self.server.server_close()
         self.thread.join(timeout=5)
+
+
+def _with_mock_base_url(value: Any, base_url: str) -> Any:
+    if isinstance(value, dict):
+        return {key: _with_mock_base_url(item, base_url) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_with_mock_base_url(item, base_url) for item in value]
+    if isinstance(value, str):
+        return value.replace('__MOCK_BASE_URL__', base_url)
+    return value
+
+
+def _make_mock_jwt(subject: str) -> str:
+    def _encode(payload: dict[str, Any]) -> str:
+        raw = json.dumps(payload, separators=(',', ':')).encode('utf-8')
+        return base64.urlsafe_b64encode(raw).decode('ascii').rstrip('=')
+
+    header = _encode({'alg': 'none', 'typ': 'JWT'})
+    payload = _encode({'sub': subject, 'exp': 4102444800, 'iat': 1893456000})
+    signature = _encode({'sig': 'mock'})
+    return f'{header}.{payload}.{signature}'
+
+
+MOCK_ATPROTO_ACCESS_JWT = _make_mock_jwt('access')
+MOCK_ATPROTO_REFRESH_JWT = _make_mock_jwt('refresh')
+
+
+class MockOAuth2Server:
+    def __init__(self, server: ThreadingHTTPServer, thread: threading.Thread):
+        self.server = server
+        self.thread = thread
+        self.token_requests: list[dict[str, Any]] = []
+        self.api_requests: list[dict[str, Any]] = []
+        self.authorization_requests: list[dict[str, Any]] = []
+        self._home_timeline: list[dict[str, Any]] = []
+
+    @property
+    def base_url(self) -> str:
+        host = cast(str, self.server.server_address[0])
+        port = cast(int, self.server.server_address[1])
+        return f'http://{host}:{port}'
+
+    def set_home_timeline(
+        self, fixture_name_or_payload: str | list[dict[str, Any]]
+    ) -> None:
+        if isinstance(fixture_name_or_payload, str):
+            payload = json.loads(
+                (MASTODON_FIXTURES_DIR / fixture_name_or_payload).read_text(
+                    encoding='utf-8'
+                )
+            )
+        else:
+            payload = fixture_name_or_payload
+        self._home_timeline = cast(
+            list[dict[str, Any]],
+            _with_mock_base_url(payload, self.base_url),
+        )
+
+    def get_home_timeline(self) -> list[dict[str, Any]]:
+        return cast(
+            list[dict[str, Any]],
+            json.loads(json.dumps(self._home_timeline)),
+        )
+
+    def stop(self) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=5)
+
+
+class MockAtProtoServer:
+    def __init__(self, server: ThreadingHTTPServer, thread: threading.Thread):
+        self.server = server
+        self.thread = thread
+        self.session_requests: list[dict[str, Any]] = []
+        self.profile_requests: list[dict[str, Any]] = []
+        self.timeline_requests: list[dict[str, Any]] = []
+        self._timeline: list[dict[str, Any]] = []
+
+    @property
+    def base_url(self) -> str:
+        host = cast(str, self.server.server_address[0])
+        port = cast(int, self.server.server_address[1])
+        return f'http://{host}:{port}'
+
+    def set_timeline(self, fixture_name_or_payload: str | list[dict[str, Any]]) -> None:
+        if isinstance(fixture_name_or_payload, str):
+            payload = json.loads(
+                (ATPROTO_FIXTURES_DIR / fixture_name_or_payload).read_text(
+                    encoding='utf-8'
+                )
+            )
+        else:
+            payload = fixture_name_or_payload
+        self._timeline = cast(
+            list[dict[str, Any]],
+            _with_mock_base_url(payload, self.base_url),
+        )
+
+    def get_timeline(self) -> list[dict[str, Any]]:
+        return cast(
+            list[dict[str, Any]],
+            json.loads(json.dumps(self._timeline)),
+        )
+
+    def stop(self) -> None:
+        self.server.shutdown()
+        self.server.server_close()
+        self.thread.join(timeout=5)
+
+
+class MockOAuth2Handler(BaseHTTPRequestHandler):
+    server_version = 'MockOAuth2/1.0'
+
+    @property
+    def mock_server(self) -> MockOAuth2Server:
+        return cast(MockOAuth2Server, getattr(self.server, 'mock_server'))
+
+    def log_message(self, format: str, *args: object) -> None:
+        return
+
+    def _headers_dict(self) -> dict[str, str]:
+        return {key: value for key, value in self.headers.items()}
+
+    def _send_html(self, html: str, *, status: int = 200) -> None:
+        data = html.encode('utf-8')
+        self.send_response(status)
+        self.send_header('Content-Type', 'text/html; charset=utf-8')
+        self.send_header('Content-Length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _send_json(self, payload: Any, *, status: int = 200) -> None:
+        data = json.dumps(payload).encode('utf-8')
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Cache-Control', 'no-store')
+        self.send_header('Content-Length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def _redirect(self, location: str) -> None:
+        self.send_response(302)
+        self.send_header('Location', location)
+        self.end_headers()
+
+    def do_GET(self) -> None:
+        parsed = urlsplit(self.path)
+        query = parse_qs(parsed.query, keep_blank_values=True)
+
+        if parsed.path == '/oauth/authorize':
+            self.mock_server.authorization_requests.append(
+                {
+                    'path': parsed.path,
+                    'query': query,
+                    'headers': self._headers_dict(),
+                }
+            )
+            approve_query = urlencode(
+                {
+                    'redirect_uri': query.get('redirect_uri', [''])[0],
+                    'state': query.get('state', [''])[0],
+                }
+            )
+            self._send_html(
+                f"""
+<!DOCTYPE html>
+<html>
+  <body>
+    <main>
+      <h1>Mock Mastodon Authorization</h1>
+      <p>Authorize this test client.</p>
+      <a id="authorize" href="/oauth/authorize/approve?{approve_query}">
+        Authorize
+      </a>
+    </main>
+  </body>
+</html>
+"""
+            )
+            return
+
+        if parsed.path == '/oauth/authorize/approve':
+            redirect_uri = query.get('redirect_uri', [''])[0]
+            location = redirect_uri
+            separator = '&' if '?' in redirect_uri else '?'
+            location += separator + urlencode(
+                {
+                    'code': MOCK_OAUTH2_CODE,
+                    'state': query.get('state', [''])[0],
+                }
+            )
+            self._redirect(location)
+            return
+
+        if parsed.path == '/api/v1/timelines/home':
+            self.mock_server.api_requests.append(
+                {
+                    'path': parsed.path,
+                    'query': query,
+                    'headers': self._headers_dict(),
+                }
+            )
+            if self.headers.get('Authorization') != f'Bearer {MOCK_OAUTH2_TOKEN}':
+                self._send_json({'error': 'unauthorized'}, status=401)
+                return
+            self._send_json(self.mock_server.get_home_timeline())
+            return
+
+        if parsed.path == '/media/avatar.png':
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(MOCK_AVATAR_PNG)))
+            self.end_headers()
+            self.wfile.write(MOCK_AVATAR_PNG)
+            return
+
+        self._send_json({'error': 'not_found'}, status=404)
+
+    def do_POST(self) -> None:
+        parsed = urlsplit(self.path)
+        content_length = int(self.headers.get('Content-Length', '0') or '0')
+        body = self.rfile.read(content_length).decode('utf-8')
+        form = parse_qs(body, keep_blank_values=True)
+
+        if parsed.path == '/oauth/token':
+            self.mock_server.token_requests.append(
+                {
+                    'path': parsed.path,
+                    'body': body,
+                    'form': form,
+                    'headers': self._headers_dict(),
+                }
+            )
+            if form.get('code', [''])[0] != MOCK_OAUTH2_CODE:
+                self._send_json({'error': 'invalid_grant'}, status=400)
+                return
+            self._send_json(
+                {
+                    'access_token': MOCK_OAUTH2_TOKEN,
+                    'token_type': 'Bearer',
+                    'scope': 'read',
+                }
+            )
+            return
+
+        self._send_json({'error': 'not_found'}, status=404)
+
+
+class MockAtProtoHandler(BaseHTTPRequestHandler):
+    server_version = 'MockAtProto/1.0'
+
+    @property
+    def mock_server(self) -> MockAtProtoServer:
+        return cast(MockAtProtoServer, getattr(self.server, 'mock_server'))
+
+    def log_message(self, format: str, *args: object) -> None:
+        return
+
+    def _headers_dict(self) -> dict[str, str]:
+        return {key: value for key, value in self.headers.items()}
+
+    def _send_json(self, payload: Any, *, status: int = 200) -> None:
+        data = json.dumps(payload).encode('utf-8')
+        self.send_response(status)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Cache-Control', 'no-store')
+        self.send_header('Content-Length', str(len(data)))
+        self.end_headers()
+        self.wfile.write(data)
+
+    def do_GET(self) -> None:
+        parsed = urlsplit(self.path)
+        query = parse_qs(parsed.query, keep_blank_values=True)
+
+        if parsed.path == '/xrpc/app.bsky.actor.getProfile':
+            self.mock_server.profile_requests.append(
+                {
+                    'path': parsed.path,
+                    'query': query,
+                    'headers': self._headers_dict(),
+                }
+            )
+            self._send_json(
+                {
+                    '$type': 'app.bsky.actor.defs#profileViewDetailed',
+                    'did': MOCK_ATPROTO_DID,
+                    'handle': MOCK_ATPROTO_HANDLE,
+                    'displayName': 'Playwright Bluesky',
+                    'avatar': f'{self.mock_server.base_url}/avatar.png',
+                    'createdAt': '2026-04-02T07:30:00.000Z',
+                    'indexedAt': '2026-04-02T07:30:00.000Z',
+                }
+            )
+            return
+
+        if parsed.path == '/xrpc/app.bsky.feed.getTimeline':
+            self.mock_server.timeline_requests.append(
+                {
+                    'path': parsed.path,
+                    'query': query,
+                    'headers': self._headers_dict(),
+                }
+            )
+            if self.headers.get('Authorization') != f'Bearer {MOCK_ATPROTO_ACCESS_JWT}':
+                self._send_json(
+                    {'error': 'Unauthorized', 'message': 'Bad token'}, status=401
+                )
+                return
+            self._send_json({'feed': self.mock_server.get_timeline()})
+            return
+
+        if parsed.path == '/avatar.png':
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(MOCK_AVATAR_PNG)))
+            self.end_headers()
+            self.wfile.write(MOCK_AVATAR_PNG)
+            return
+
+        self._send_json({'error': 'NotFound'}, status=404)
+
+    def do_POST(self) -> None:
+        parsed = urlsplit(self.path)
+        content_length = int(self.headers.get('Content-Length', '0') or '0')
+        body = self.rfile.read(content_length).decode('utf-8')
+        payload = json.loads(body) if body else {}
+
+        if parsed.path == '/xrpc/com.atproto.server.createSession':
+            self.mock_server.session_requests.append(
+                {
+                    'path': parsed.path,
+                    'payload': payload,
+                    'headers': self._headers_dict(),
+                }
+            )
+            if (
+                payload.get('identifier') != MOCK_ATPROTO_HANDLE
+                or payload.get('password') != 'playwright-app-password'
+            ):
+                self._send_json(
+                    {'error': 'AuthFailed', 'message': 'Invalid credentials'},
+                    status=401,
+                )
+                return
+            self._send_json(
+                {
+                    'accessJwt': MOCK_ATPROTO_ACCESS_JWT,
+                    'refreshJwt': MOCK_ATPROTO_REFRESH_JWT,
+                    'did': MOCK_ATPROTO_DID,
+                    'handle': MOCK_ATPROTO_HANDLE,
+                }
+            )
+            return
+
+        self._send_json({'error': 'NotFound'}, status=404)
 
 
 @pytest.hookimpl(hookwrapper=True, tryfirst=True)
@@ -285,12 +657,13 @@ def live_server(
 
 
 @pytest.fixture(autouse=True)
-def e2e_runtime_settings(settings, tmp_path: Path):
+def e2e_runtime_settings(settings, tmp_path: Path) -> Generator[Any, None, None]:
     media_root = tmp_path / 'media'
     upload_root = media_root / 'upload'
     thumbs_root = media_root / 'thumbs'
     session_root = tmp_path / 'sessions'
     static_root = tmp_path / 'static'
+    old_insecure_transport = os.environ.get('OAUTHLIB_INSECURE_TRANSPORT')
 
     for path in (upload_root, session_root, static_root):
         path.mkdir(parents=True, exist_ok=True)
@@ -310,9 +683,15 @@ def e2e_runtime_settings(settings, tmp_path: Path):
     settings.SESSION_ENGINE = 'django.contrib.sessions.backends.file'
     settings.SESSION_FILE_PATH = str(session_root)
     settings.STATIC_ROOT = str(static_root)
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     call_command('collectstatic', interactive=False, verbosity=0, clear=True)
 
-    return settings
+    yield settings
+
+    if old_insecure_transport is None:
+        del os.environ['OAUTHLIB_INSECURE_TRANSPORT']
+    else:
+        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = old_insecure_transport
 
 
 @pytest.fixture
@@ -429,6 +808,34 @@ def mock_feed_server(tmp_path: Path) -> Generator[MockFeedServer, None, None]:
 
 
 @pytest.fixture
+def mock_oauth2_server() -> Generator[MockOAuth2Server, None, None]:
+    server = ThreadingHTTPServer(('127.0.0.1', 0), MockOAuth2Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    oauth2_server = MockOAuth2Server(server=server, thread=thread)
+    setattr(server, 'mock_server', oauth2_server)
+    oauth2_server.set_home_timeline('home-initial.json')
+    thread.start()
+
+    yield oauth2_server
+
+    oauth2_server.stop()
+
+
+@pytest.fixture
+def mock_atproto_server() -> Generator[MockAtProtoServer, None, None]:
+    server = ThreadingHTTPServer(('127.0.0.1', 0), MockAtProtoHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    atproto_server = MockAtProtoServer(server=server, thread=thread)
+    setattr(server, 'mock_server', atproto_server)
+    atproto_server.set_timeline('timeline-initial.json')
+    thread.start()
+
+    yield atproto_server
+
+    atproto_server.stop()
+
+
+@pytest.fixture
 def create_webfeed_service():
     def _create(name: str, url: str, *, public: bool) -> Service:
         return Service.objects.create(
@@ -443,6 +850,21 @@ def create_webfeed_service():
         )
 
     return _create
+
+
+@pytest.fixture
+def configure_mock_atproto_client(monkeypatch):
+    def _configure(base_url: str) -> None:
+        from atproto import Client as RealClient
+
+        def _client_factory(*args: Any, **kwargs: Any):
+            if 'base_url' not in kwargs or kwargs['base_url'] is None:
+                kwargs['base_url'] = base_url
+            return RealClient(*args, **kwargs)
+
+        monkeypatch.setattr('glifestream.apis.atproto.Client', _client_factory)
+
+    return _configure
 
 
 @pytest.fixture

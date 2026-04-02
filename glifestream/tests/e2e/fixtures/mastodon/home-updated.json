@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1002",
+    "created_at": "2026-04-02T09:00:00.000Z",
+    "url": "https://example.social/@playwright/1002",
+    "content": "<p>Playwright Mastodon Entry Two</p>",
+    "uri": "https://example.social/users/playwright/statuses/1002",
+    "reblog": null,
+    "account": {
+      "display_name": "Playwright Bot",
+      "avatar_static": "__MOCK_BASE_URL__/media/avatar.png"
+    },
+    "media_attachments": []
+  },
+  {
+    "id": "1001",
+    "created_at": "2026-04-02T08:00:00.000Z",
+    "url": "https://example.social/@playwright/1001",
+    "content": "<p>Playwright Mastodon Entry One</p>",
+    "uri": "https://example.social/users/playwright/statuses/1001",
+    "reblog": null,
+    "account": {
+      "display_name": "Playwright Bot",
+      "avatar_static": "__MOCK_BASE_URL__/media/avatar.png"
+    },
+    "media_attachments": []
+  }
+]

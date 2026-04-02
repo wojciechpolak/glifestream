@@ -1,0 +1,44 @@
+[
+  {
+    "$type": "app.bsky.feed.defs#feedViewPost",
+    "post": {
+      "$type": "app.bsky.feed.defs#postView",
+      "author": {
+        "$type": "app.bsky.actor.defs#profileViewBasic",
+        "did": "did:plc:playwrighttestaccount",
+        "handle": "playwright.test",
+        "displayName": "Playwright Bluesky",
+        "avatar": "__MOCK_BASE_URL__/avatar.png"
+      },
+      "cid": "bafyreiblueskyentrytwo000000000000000000000000000000000002",
+      "indexedAt": "2026-04-02T11:00:00.000Z",
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Playwright Bluesky Entry Two",
+        "createdAt": "2026-04-02T11:00:00.000Z"
+      },
+      "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-two"
+    }
+  },
+  {
+    "$type": "app.bsky.feed.defs#feedViewPost",
+    "post": {
+      "$type": "app.bsky.feed.defs#postView",
+      "author": {
+        "$type": "app.bsky.actor.defs#profileViewBasic",
+        "did": "did:plc:playwrighttestaccount",
+        "handle": "playwright.test",
+        "displayName": "Playwright Bluesky",
+        "avatar": "__MOCK_BASE_URL__/avatar.png"
+      },
+      "cid": "bafyreiblueskyentryone000000000000000000000000000000000001",
+      "indexedAt": "2026-04-02T10:00:00.000Z",
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Playwright Bluesky Entry One",
+        "createdAt": "2026-04-02T10:00:00.000Z"
+      },
+      "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-one"
+    }
+  }
+]
