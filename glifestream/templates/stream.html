@@ -54,7 +54,7 @@
       {% if page.themes_more %}<span tabindex="0" id="change-theme" class="link">{% trans "Change theme" %}</span>{% endif %}
     </p>
     <p id="poweredby">
-      {% trans "Powered by" %} <a href="https://glifestream.gnu.org.ua/" title="{% trans "A free and open source lifestream platform and social activity reader" %}">gLifestream</a>
+      {% trans "Powered by" %} <a href="https://github.com/wojciechpolak/glifestream" title="{% trans "A free and open source lifestream platform and social activity reader" %}">gLifestream</a>
     </p>
   </footer>
 </aside>
@@ -65,8 +65,9 @@
 <section id="stream" class="hfeed">
 
 {% if authed %}
-<aside id="share">
+<aside id="share" class="share-collapsed">
   <span tabindex="0" class="link" id="ashare">{% trans "Add content" %}</span>
+  <p class="share-summary">{% trans "Quick post, draft, or upload." %}</p>
   <form action="{% url 'api' cmd='share' %}" method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="fieldset" style="display:none">

@@ -318,6 +318,8 @@
             e.preventDefault();
         }
         $('#status-editor').css('height', '400px');
+        set_share_expanded(true);
+        $('#share > form').show();
         $('#share .fieldset').show();
         if (!gsc_done) {
             get_selfposts_classes();
@@ -480,19 +482,32 @@
     let gsc_done = false;
     let editor_id = 0;
 
+    function set_share_expanded(expanded) {
+        $('#share > form').toggle(expanded);
+        $('#share').toggleClass('share-collapsed', !expanded);
+    }
+
     function open_sharing() {
         editor_id = 0;
         $('#update').hide();
         $('#post').show();
-        $('#share .fieldset').toggle(function() {
-            if (quill) {
-                quill.focus();
+        const fieldset = $('#share .fieldset');
+        const expanding = !fieldset.is(':visible');
+        set_share_expanded(expanding);
+        fieldset.stop(true, true)[expanding ? 'slideDown' : 'slideUp'](function() {
+            if (expanding) {
+                if (quill) {
+                    quill.focus();
+                }
+                else {
+                    $('#status').focus();
+                }
+                if (!gsc_done) {
+                    get_selfposts_classes();
+                }
             }
             else {
-                $('#status').focus();
-            }
-            if (!gsc_done) {
-                get_selfposts_classes();
+                set_share_expanded(false);
             }
         });
         return false;
@@ -569,7 +584,9 @@
                     $('#stream article.hentry').first().before(html);
                     $('#stream article:first a.map').each(render_map);
                     postButton.removeAttr('disabled');
-                    $('#share .fieldset').slideUp();
+                    $('#share .fieldset').slideUp(function() {
+                        set_share_expanded(false);
+                    });
                     editor_clear();
                     scaledown_images('#stream article:first img');
                 });
@@ -865,35 +882,36 @@
         }
         year = year || stream_data.view_date.split('/')[0];
         let month = 1;
-        let cal = '<table>';
-        cal += '<tr><th colspan="3">' +
-            '<a href="#" class="prev">&nbsp;</a>';
-        cal += '<span class="year">' + year + '</span> ';
+        let cal = '<div class="calendar-head">';
+        cal += '<span class="nav-prev"><a href="#" class="prev" aria-label="' +
+            _('Previous year') + '">&nbsp;</a></span>';
+        cal += '<span class="nav-year"><span class="year">' + year + '</span></span>';
         if (parseInt(year, 10) < stream_data.year_now) {
-            cal += '<a href="#" class="next">&nbsp;</a>';
+            cal += '<span class="nav-next"><a href="#" class="next" aria-label="' +
+                _('Next year') + '">&nbsp;</a></span>';
         }
         else {
-            cal += '<span class="next-disabled">&nbsp;</span>';
+            cal += '<span class="nav-next"><span class="next-disabled" aria-hidden="true">&nbsp;</span></span>';
         }
-        cal += '</th></tr>';
+        cal += '</div><div class="calendar-grid">';
         for (let row = 0; row < 4; row++) {
-            cal += '<tr>';
             for (let col = 0; col < 3; col++, month++) {
                 let d = year + '/' + pad(month, 2);
-                let u = d === stream_data.view_date ? ' class="view-month"' : '';
+                let u = d === stream_data.view_date ? ' view-month' : '';
                 if ($.inArray(d, stream_data.archives) !== -1) {
                     const ctx = stream_data.ctx !== '' ? stream_data.ctx + '/' : '';
-                    cal += '<td> <a href="' + settings.baseurl + ctx +
-                        d + '/" rel="nofollow"' + u + '>' +
-                        stream_data.month_names[month - 1] + '</a></td>';
+                    cal += '<span class="month-cell"><a href="' + settings.baseurl + ctx +
+                        d + '/" rel="nofollow" class="month-item' + u + '"><span class="month-label">' +
+                        stream_data.month_names[month - 1] + '</span></a></span>';
                 }
                 else {
-                    cal += '<td> ' + stream_data.month_names[month - 1] + '</td>';
+                    cal += '<span class="month-cell"><span class="month-item">' +
+                        '<span class="month-label">' + stream_data.month_names[month - 1] +
+                        '</span></span></span>';
                 }
             }
-            cal += '</tr>';
         }
-        cal += '</table>';
+        cal += '</div>';
         $('#calendar').html(cal);
     }
 
@@ -1537,8 +1555,8 @@
 
         this.open = function(opts) {
             self.init();
-            let width = opts.width || 270;
-            let height = opts.height || 130;
+            let width = opts.width || 356;
+            let height = opts.height;
             let url = opts.url || '';
             let title = opts.title || '';
             let reshareit = opts.reshareit || false;
@@ -1622,15 +1640,18 @@
             else {
                 sbox.style.width = width;
             }
-            if (typeof height == 'number') {
+            if (!height) {
+                sbox.style.height = 'auto';
+            }
+            else if (typeof height == 'number') {
                 sbox.style.height = height + 'px';
             }
             else {
                 sbox.style.height = height;
             }
             sbox.style.position = 'absolute';
-            MDOM.center(sbox, $(sbox).width(), $(sbox).height());
             sbox.style.display = 'block';
+            MDOM.center(sbox, $(sbox).outerWidth(), $(sbox).outerHeight());
 
             $('#overlay').click(this.close);
             document.onkeydown = function(e) {

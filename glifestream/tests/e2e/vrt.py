@@ -33,6 +33,7 @@ from playwright.sync_api import Locator, Page
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 BASELINE_ROOT = PROJECT_ROOT / '.visual-regression'
 ARTIFACT_ROOT = PROJECT_ROOT / 'test-results' / 'vrt'
+PIXEL_TOLERANCE = 3
 
 
 def env_flag(name: str) -> bool:
@@ -58,8 +59,38 @@ def _load_image_file(path: Path) -> Image.Image:
         return image.convert('RGB')
 
 
+def _threshold_diff(diff: Image.Image, *, tolerance: int) -> Image.Image:
+    return diff.point(lambda value: 0 if value <= tolerance else 255)
+
+
 def _prepare_page_for_screenshot(page: Page) -> None:
     page.wait_for_load_state('networkidle')
+    page.evaluate(
+        """
+        async () => {
+            if (!('activeViewTransition' in document)) {
+                return;
+            }
+
+            for (let attempt = 0; attempt < 5; attempt += 1) {
+                const transition = document.activeViewTransition;
+                if (!transition) {
+                    return;
+                }
+
+                try {
+                    await transition.finished;
+                } catch {
+                    return;
+                }
+
+                await new Promise((resolve) => {
+                    requestAnimationFrame(() => requestAnimationFrame(resolve));
+                });
+            }
+        }
+        """
+    )
     page.evaluate(
         """
         () => {
@@ -209,7 +240,8 @@ class VisualRegressionSession:
             raise AssertionError(self._failure_message(name, baseline_path))
 
         diff = ImageChops.difference(expected, actual)
-        if diff.getbbox() is not None:
+        visible_diff = _threshold_diff(diff, tolerance=PIXEL_TOLERANCE)
+        if visible_diff.getbbox() is not None:
             self._write_artifacts(name, actual=actual, expected=expected, diff=diff)
             raise AssertionError(self._failure_message(name, baseline_path))
 

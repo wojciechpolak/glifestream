@@ -751,22 +751,49 @@ def page(
         context.add_init_script(
             """
             (() => {
+                const installVrtStyle = () => {
+                    if (document.getElementById('gls-vrt-disable-view-transitions')) {
+                        return;
+                    }
+
+                    const style = document.createElement('style');
+                    style.id = 'gls-vrt-disable-view-transitions';
+                    style.textContent = `
+                        @view-transition {
+                            navigation: none;
+                        }
+
+                        ::view-transition-group(*),
+                        ::view-transition-image-pair(*),
+                        ::view-transition-old(*),
+                        ::view-transition-new(*) {
+                            animation: none !important;
+                        }
+                    `;
+                    document.documentElement.append(style);
+                };
+
                 const disableEffects = () => {
                     if (window.jQuery && window.jQuery.fx) {
                         window.jQuery.fx.off = true;
-                        return true;
                     }
-                    return false;
                 };
 
-                if (disableEffects()) {
-                    return;
+                installVrtStyle();
+                disableEffects();
+
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', installVrtStyle, {
+                        once: true,
+                    });
                 }
 
                 let attempts = 0;
                 const timer = window.setInterval(() => {
                     attempts += 1;
-                    if (disableEffects() || attempts > 200) {
+                    installVrtStyle();
+                    disableEffects();
+                    if (attempts > 200) {
                         window.clearInterval(timer);
                     }
                 }, 5);
