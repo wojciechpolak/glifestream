@@ -7,12 +7,12 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 ARG TARGETARCH
 ENV TARGETARCH=${TARGETARCH:-amd64}
 
-RUN apt update -y
-RUN apt install -y gcc g++
-RUN apt-get clean
-
 WORKDIR /app
 ENV UV_NO_DEV=1
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gcc g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=cache,target=/root/.cache/uv,id=uv-${TARGETARCH} \
     --mount=type=bind,source=uv.lock,target=uv.lock \
@@ -25,21 +25,21 @@ RUN --mount=type=cache,target=/root/.cache/uv,id=uv-${TARGETARCH} \
     uv sync --locked --no-editable
 
 FROM ${python}
-RUN apt update -y
-RUN apt install -y cron curl gettext procps
-RUN pip install --no-cache-dir supervisor
-RUN apt-get clean
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends cron curl gettext procps \
+    && pip install --no-cache-dir supervisor \
+    && rm -rf /var/lib/apt/lists/*
 RUN echo 'alias ll="ls -l"' >>~/.bashrc
-RUN mkdir /app /app/run
+RUN mkdir -p /app/run/db /app/run/static/themes /app/run/templates /app/media /app/static
 COPY --from=gls-builder-python --chown=app:app /app/.venv /app/.venv
 
 ENV PATH=/app/.venv/bin:$PATH
 ENV DJANGO_SETTINGS_MODULE=run.settings_docker
 WORKDIR /app
 COPY conf/docker/entrypoint.sh .
-ADD run run
-ADD locale locale
-ADD glifestream glifestream
+COPY run/__init__.py run/settings_docker.py run/
+COPY locale locale
+COPY glifestream glifestream
 COPY manage.py .
 COPY worker.py .
 RUN usermod -a -G users www-data
