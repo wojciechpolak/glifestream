@@ -132,6 +132,7 @@ SITE_ID = 1
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
 MEDIA_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../media'))
+FILE_UPLOAD_PERMISSIONS = 0o644
 
 # URL that handles the media served from MEDIA_ROOT.
 # Make sure to use a trailing slash.
@@ -150,9 +151,12 @@ STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
 STATIC_URL = '/static/'
 
 STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
     'staticfiles': {
         'BACKEND': 'pipeline.storage.PipelineManifestStorage',
-    }
+    },
 }
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',

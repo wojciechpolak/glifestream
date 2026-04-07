@@ -123,11 +123,15 @@ SITE_ID = 1
 
 MEDIA_ROOT = os.path.join(SITE_ROOT, '../media')
 MEDIA_URL = os.getenv('VIRTUAL_PATH', '/') + 'media/'
+FILE_UPLOAD_PERMISSIONS = 0o644
 
 STATIC_ROOT = os.path.abspath(os.path.join(SITE_ROOT, '../static'))
 STATIC_URL = os.getenv('VIRTUAL_PATH', '/') + 'static/'
 
 STORAGES = {
+    'default': {
+        'BACKEND': 'django.core.files.storage.FileSystemStorage',
+    },
     'staticfiles': {
         'BACKEND': 'pipeline.storage.PipelineManifestStorage',
     }

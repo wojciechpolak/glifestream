@@ -1,3 +1,4 @@
+import os
 import json
 from unittest.mock import patch, MagicMock
 from glifestream.stream import media
@@ -77,3 +78,57 @@ def test_save_image_skip_local():
     with patch('django.conf.settings.BASE_URL', 'http://mysite.com'):
         res = media.save_image(url)
         assert res == url  # Skipped because it's local
+
+
+def test_save_image_applies_file_upload_permissions(tmp_path):
+    target = tmp_path / 'thumb.webp'
+    thumb = {
+        'format': 'WEBP',
+        'local': str(target),
+        'url': '/media/thumbs/a/thumb.webp',
+        'rel': 'thumbs/a/thumb.webp',
+        'internal': '[GLS-THUMBS]/thumb.webp',
+    }
+
+    def fake_retrieve(url, filename):
+        with open(filename, 'wb') as handle:
+            handle.write(b'fake image data')
+        return MagicMock(headers={'content-type': 'image/jpeg'})
+
+    with patch('django.conf.settings.BASE_URL', 'http://mysite.com'):
+        with patch('django.conf.settings.FILE_UPLOAD_PERMISSIONS', 0o644):
+            with patch('glifestream.stream.media.get_thumb_info', return_value=thumb):
+                with patch(
+                    'glifestream.stream.media.httpclient.retrieve',
+                    side_effect=fake_retrieve,
+                ):
+                    res = media.save_image('http://remote.com/img.jpg', downscale=False)
+
+    assert res == '[GLS-THUMBS]/thumb.webp'
+    assert os.stat(target).st_mode & 0o777 == 0o644
+
+
+def test_downsave_uploaded_image_applies_file_upload_permissions(tmp_path):
+    source = tmp_path / 'upload.jpg'
+    source.write_bytes(b'fake image data')
+    os.chmod(source, 0o600)
+
+    target = tmp_path / 'thumb.webp'
+    thumb = {
+        'format': 'WEBP',
+        'local': str(target),
+        'url': '/media/thumbs/a/thumb.webp',
+        'rel': 'thumbs/a/thumb.webp',
+        'internal': '[GLS-THUMBS]/thumb.webp',
+    }
+    field = MagicMock()
+    field.name = 'upload/2026/04/07/upload.jpg'
+    field.path = str(source)
+
+    with patch('django.conf.settings.FILE_UPLOAD_PERMISSIONS', 0o644):
+        with patch('glifestream.stream.media.get_thumb_info', return_value=thumb):
+            with patch('glifestream.stream.media.downscale_image'):
+                res = media.downsave_uploaded_image(field)
+
+    assert res == ('[GLS-THUMBS]/thumb.webp', '[GLS-UPLOAD]/2026/04/07/upload.jpg')
+    assert os.stat(target).st_mode & 0o777 == 0o644

@@ -43,6 +43,16 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+def apply_media_permissions(filename: str) -> None:
+    mode = getattr(settings, 'FILE_UPLOAD_PERMISSIONS', None)
+    if mode is None:
+        return
+    try:
+        os.chmod(filename, mode)
+    except OSError as exc:
+        logger.error(exc)
+
+
 def set_upload_url(s: str) -> str:
     return s.replace('[GLS-UPLOAD]/', settings.MEDIA_URL + 'upload/')
 
@@ -117,6 +127,7 @@ def save_image(
             if downscale:
                 downscale_image(tmp, size=size, iformat=thumb['format'])
             shutil.move(tmp, thumb['local'])
+            apply_media_permissions(thumb['local'])
             moved = True
         except Exception as exc:
             logger.error(exc)
@@ -157,6 +168,7 @@ def downsave_uploaded_image(file: FieldFile) -> tuple[str, str]:
             if not os.path.isfile(thumb['local']):
                 shutil.copy(file.path, thumb['local'])
                 downscale_image(thumb['local'], iformat=thumb['format'])
+                apply_media_permissions(thumb['local'])
             return thumb['internal'], url
     except Exception as exc:
         logger.error(exc)
