@@ -15,6 +15,8 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import io
+
 import pytest
 from django.contrib.auth.models import User
 from glifestream.stream.models import Service
@@ -32,3 +34,38 @@ def service(db):
     )
     s.save()
     return s
+
+
+def _coverage_enabled(config: pytest.Config) -> bool:
+    return not bool(getattr(config.option, 'no_cov', False)) and bool(
+        getattr(config.option, 'cov_source', None)
+        or getattr(config.option, 'cov_report', None)
+    )
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_terminal_summary(
+    terminalreporter: pytest.TerminalReporter,
+    exitstatus: int,
+    config: pytest.Config,
+) -> None:
+    del exitstatus
+    if not _coverage_enabled(config):
+        return
+
+    try:
+        from coverage import Coverage
+        from coverage.exceptions import CoverageException
+    except ImportError:
+        return
+
+    coverage = Coverage(config_file=True)
+    try:
+        coverage.load()
+        coverage.html_report(directory='htmlcov')
+        coverage.lcov_report(outfile='coverage.lcov')
+        total = coverage.report(file=io.StringIO())
+    except CoverageException:
+        return
+
+    terminalreporter.write_line(f'total coverage: {total:.2f}%')

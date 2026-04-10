@@ -25,6 +25,7 @@ dev = [
     "mypy>=1,<2",
     "playwright>=1.55,<2",
     "pytest>=9,<10",
+    "pytest-cov>=6,<7",
     "pytest-django>=4,<5",
     "types-beautifulsoup4==4.12.0.20250516",
     "types-markdown==3.10.2.20260211",
@@ -61,3 +62,19 @@ django_settings_module = "glifestream.settings"
 
 [tool.ruff.format]
 quote-style = "single"
+
+[tool.coverage.run]
+source = ["glifestream"]
+omit = [
+    "*/migrations/*",
+    "*/tests/*",
+    "glifestream/settings*.py",
+    "glifestream/settings_sample.py",
+    "manage.py",
+    "worker.py",
+    "run/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

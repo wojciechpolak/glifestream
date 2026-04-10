@@ -18,3 +18,7 @@ media/
 static/
 settings.py*
 glifestream/templates/user-*
+htmlcov/
+.coverage
+.coverage.*
+coverage.lcov
