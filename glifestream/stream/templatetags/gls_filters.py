@@ -21,8 +21,10 @@ import json
 import time
 import math
 import re
+from django.conf import settings
 from django.template.defaultfilters import urlencode, stringfilter
 from django.template.defaultfilters import date as ddate
+from django.urls import reverse
 from django.utils.translation import ngettext
 from django.utils.translation import gettext as _
 from django.utils.safestring import mark_safe
@@ -93,9 +95,21 @@ def gls_title(_, entry: Entry):
 @register.filter
 def gls_content(_, entry: Entry):
     if entry.friends_only:
+        friends_login_url = getattr(entry, 'friends_login_url', None)
+        if friends_login_url is None and getattr(settings, 'MAGICSSO_ENABLED', False):
+            friends_login_url = reverse('magic_sso:login')
+
+        login_link = ''
+        if friends_login_url:
+            login_link = (
+                f' <a href="{friends_login_url}" rel="nofollow">Friends Login</a>.'
+            )
+
         return mark_safe(
             '<div class="friends-only-entry">'
-            'The content of this entry is available only to my friends.</div>'
+            'The content of this entry is available only to my friends.'
+            f'{login_link}'
+            '</div>'
         )
     try:
         mod = API_MODULES.get(entry.service.api)

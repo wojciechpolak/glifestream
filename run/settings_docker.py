@@ -3,6 +3,9 @@
 """
 
 import os
+
+from glifestream.settings_magic_sso import apply_magic_sso_defaults
+
 SITE_ROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../glifestream/')
 BASE_DIR = SITE_ROOT
 
@@ -47,6 +50,8 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 SESSION_COOKIE_NAME = 'gls-sid'
 SESSION_COOKIE_AGE = 30 * 86400  # 30 days
 
+apply_magic_sso_defaults(globals())
+
 # Caching, see https://docs.djangoproject.com/en/dev/topics/cache/#topics-cache
 CACHES = {
     'default': {
@@ -75,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'magic_sso_django.middleware.MagicSsoMiddleware',
     'glifestream.gauth.middleware.ForcePasswordChangeMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -111,6 +117,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.admin',
     'django.contrib.sites',
+    'magic_sso_django',
     'pipeline',
     'glifestream.gls_staticfiles.GlsStaticFilesConfig',
     'glifestream.gauth',

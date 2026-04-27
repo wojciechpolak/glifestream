@@ -20,7 +20,7 @@ from typing import Any, cast
 import time
 import datetime
 from functools import reduce
-from urllib.parse import urljoin
+from urllib.parse import urlencode, urljoin
 from django.conf import settings
 from django.db import connections
 from django.urls import reverse
@@ -51,13 +51,25 @@ from glifestream.stream.templatetags.gls_filters import (
 from glifestream.stream.models import Service, Entry, Favorite, List
 from glifestream.stream.typing import Page
 from glifestream.stream import media, websub
+from glifestream.gauth.request_auth import get_request_auth_state
 from glifestream.utils import common
 from glifestream.utils.time import pn_month_start
 from glifestream.apis import API_LIST, selfposts
 
 
+def _build_friends_login_url(return_url: str) -> str | None:
+    if not getattr(settings, 'MAGICSSO_ENABLED', False):
+        return None
+
+    return '%s?%s' % (
+        reverse('magic_sso:login'),
+        urlencode({'returnUrl': return_url}),
+    )
+
+
 def index(request: HttpRequest, **args: Any) -> HttpResponse:
     user = cast(User, request.user)
+    auth_state = get_request_auth_state(request)
     site_url: str = '%s://%s' % (
         request.is_secure() and 'https' or 'http',
         request.get_host(),
@@ -82,8 +94,8 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
         'websub_hubs': settings.WEBSUB_HUBS,
         'reblogs': True,
     }
-    authed = user.is_authenticated and user.is_staff
-    friend = user.is_authenticated and not user.is_staff
+    authed = auth_state.authed
+    friend = auth_state.friend
     urlparams: list[str] = []
     entries_on_page = settings.ENTRIES_ON_PAGE
     entries_orderby = 'date_published'
@@ -362,6 +374,9 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
             page['site_url'],
             cast(Any, entry).gls_link,
         )
+        cast(Any, entry).friends_login_url = _build_friends_login_url(
+            cast(Any, entry).gls_absolute_link
+        )
 
     # Check single-entry URL
     if 'exactentry' in page:
@@ -497,6 +512,7 @@ def index(request: HttpRequest, **args: Any) -> HttpResponse:
                 'page': page,
                 'authed': authed,
                 'friend': friend,
+                'friend_email': auth_state.friend_email,
                 'has_search': search_enable,
                 'is_secure': request.is_secure(),
                 'user': request.user,
@@ -565,12 +581,13 @@ def webmanifest(request: HttpRequest) -> JsonResponse:
 
 def api(request: HttpRequest, **args: Any) -> HttpResponse:
     user = cast(User, request.user)
+    auth_state = get_request_auth_state(request)
     cmd = args.get('cmd', '')
     entry: Any = request.POST.get('entry', None)
     entry_id: int | None = int(cast(str, entry)) if entry else None
 
-    authed = user.is_authenticated and user.is_staff
-    friend = user.is_authenticated and not user.is_staff
+    authed = auth_state.authed
+    friend = auth_state.friend
     if not authed and cmd != 'getcontent':
         return HttpResponseForbidden()
 
@@ -669,14 +686,23 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
 
     elif cmd == 'getcontent' and entry_id is not None:
         try:
-            if not authed:
-                entry = Entry.objects.get(pk=entry_id, service__public=True)
-            else:
+            if authed:
                 entry = Entry.objects.get(pk=entry_id)
+            else:
+                filters: dict[str, Any] = {
+                    'pk': entry_id,
+                    'active': True,
+                    'draft': False,
+                    'service__public': True,
+                }
+                entry = Entry.objects.get(**filters)
             if entry:
                 if request.POST.get('raw', False) and authed:
                     return HttpResponse(entry.content)
 
+                cast(Any, entry).friends_login_url = _build_friends_login_url(
+                    request.build_absolute_uri(reverse('entry', args=[entry.pk]))
+                )
                 if authed or friend:
                     entry.friends_only = False
                 content = fix_ampersands(gls_content('', entry))

@@ -3,7 +3,7 @@ name = "glifestream"
 version = "0.1.0"
 description = "A free lifestream platform and social activity reader"
 authors = [{ name = "WAP" }]
-requires-python = ">=3.11,<4,<3.15"
+requires-python = ">=3.12,<4"
 dependencies = [
     "beautifulsoup4>=4,<5",
     "django>=5,<6",
@@ -17,6 +17,7 @@ dependencies = [
     "workerpool>=0.9,<0.10",
     "pymemcache>=4.0.0,<5",
     "atproto==0.0.65",
+    "magic-link-sso-django",
 ]
 
 [dependency-groups]

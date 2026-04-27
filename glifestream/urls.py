@@ -20,9 +20,8 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path, re_path
 from django.conf.urls import include
 from django.contrib import admin
-from django.contrib.auth.views import LogoutView
 from django.views.static import serve as static_serve
-from glifestream.gauth.views import login, change_password
+from glifestream.gauth.views import login, change_password, logout
 from glifestream.stream import views as sv
 
 
@@ -68,8 +67,12 @@ urlpatterns = [
     ),
     re_path(r'^websub/(?P<id>[a-f0-9]{20})$', sv.websub_dispatcher, {}, name='websub'),
     re_path(r'^login/?$', login, name='login'),
-    re_path(r'^logout/?$', LogoutView.as_view(next_page='./'), name='logout'),
+    re_path(r'^logout/?$', logout, name='logout'),
     re_path(r'^change-password/?$', change_password, name='change-password'),
+    path(
+        'friends/',
+        include(('magic_sso_django.urls', 'magic_sso'), namespace='magic_sso'),
+    ),
     re_path(r'^settings/', include('glifestream.usettings.urls')),
     path('admin/', admin.site.urls),
 ]

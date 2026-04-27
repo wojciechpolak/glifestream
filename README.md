@@ -47,6 +47,7 @@ Features
 - Free, self-hosted web application
 - Automatic imports of external streams
 - Public and Private views
+- Friends-only posts via [Magic Link SSO](https://github.com/magic-link-sso/magic-sso)
 - User views: Favorite entries, Archives, custom stream lists
 - Automatic expansion of shortened URLs
 - Embedded multimedia views

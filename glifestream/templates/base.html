@@ -25,6 +25,9 @@
 
 <header id="head">
   <nav id="navtop" class="tb">
+    <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display:none;">
+      {% csrf_token %}
+    </form>
     {% if authed %}
       <span class="hello">
         <span class="text">{% trans "Hello" %}</span>
@@ -48,23 +51,23 @@
         </a>
         <span class="vb">|</span>
       {% endif %}
-      <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display:none;">
-        {% csrf_token %}
-      </form>
       <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
         <i class="fas fa-right-from-bracket"></i>
         <span class="text">{% trans "Logout" %}</span>
       </a>
     {% else %}
       {% if friend %}
-        <span class="text">{% trans "Hello" %}</span>
+        <span class="hello">
+          <span class="text">{% trans "Hello" %}</span>
+          <b class="email">{{ friend_email|default:'Friend' }}</b>
+        </span>
         <span class="vb">|</span>
         <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
           <i class="fas fa-right-from-bracket"></i>
           <span class="text">{% trans "Logout" %}</span>
         </a>
-      {% elif page.login_url %}
-        <a href="{{ page.login_url }}" rel="nofollow">{% trans "Login" %}</a>
+      {% else %}
+        <a href="{% url 'login' %}" rel="nofollow">{% trans "Login" %}</a>
       {% endif %}
     {% endif %}
   </nav>

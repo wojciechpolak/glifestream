@@ -1,8 +1,12 @@
 import pytest
 import datetime
+from urllib.parse import quote
+from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.test import override_settings
 from glifestream.stream.models import Entry, Favorite
+from glifestream.testsupport.magic_sso import make_magic_sso_token
 
 UTC = datetime.timezone.utc
 
@@ -93,6 +97,120 @@ def test_api_getcontent_public(client, service):
     response = client.post(url, {'entry': entry.pk})
     assert response.status_code == 200
     assert 'Secret Content' in response.content.decode()
+
+
+@override_settings(MAGICSSO_ENABLED=False)
+@pytest.mark.django_db
+def test_api_getcontent_hides_friends_only_entry_for_anonymous(client, service):
+    entry = Entry.objects.create(
+        service=service,
+        title='Friends',
+        guid='fo-public',
+        link='http://friend.com',
+        content='Friends only body',
+        friends_only=True,
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+    service.public = True
+    service.save()
+
+    response = client.post(
+        reverse('api', kwargs={'cmd': 'getcontent'}), {'entry': entry.pk}
+    )
+
+    assert response.status_code == 200
+    assert 'Friends only body' not in response.content.decode()
+    assert 'friends-only-entry' in response.content.decode()
+    assert 'Friends Login' not in response.content.decode()
+
+
+@override_settings(MAGICSSO_ENABLED=True)
+@pytest.mark.django_db
+def test_api_getcontent_shows_magic_sso_login_when_enabled(client, service):
+    entry = Entry.objects.create(
+        service=service,
+        title='Friends',
+        guid='fo-public-sso',
+        link='http://friend.com',
+        content='Friends only body',
+        friends_only=True,
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+    service.public = True
+    service.save()
+
+    response = client.post(
+        reverse('api', kwargs={'cmd': 'getcontent'}), {'entry': entry.pk}
+    )
+
+    assert response.status_code == 200
+    assert 'Friends Login' in response.content.decode()
+    expected_return_url = quote(f'http://testserver/entry/{entry.pk}', safe='')
+    assert (
+        f'/friends/login/?returnUrl={expected_return_url}' in response.content.decode()
+    )
+
+
+@override_settings(MAGICSSO_ENABLED=True)
+@pytest.mark.django_db
+def test_api_getcontent_reveals_friends_only_entry_for_magic_sso_friend(
+    client, service
+):
+    entry = Entry.objects.create(
+        service=service,
+        title='Friends',
+        guid='fo-friend-api',
+        link='http://friend.com',
+        content='Friends only body',
+        friends_only=True,
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+    service.public = True
+    service.save()
+    client.cookies[settings.MAGICSSO_COOKIE_NAME] = make_magic_sso_token()
+
+    response = client.post(
+        reverse('api', kwargs={'cmd': 'getcontent'}), {'entry': entry.pk}
+    )
+
+    assert response.status_code == 200
+    assert 'Friends only body' in response.content.decode()
+
+
+@override_settings(MAGICSSO_ENABLED=True)
+@pytest.mark.django_db
+def test_api_getcontent_does_not_expose_private_service_entries_to_magic_sso_friend(
+    client, service
+):
+    entry = Entry.objects.create(
+        service=service,
+        title='Private Service Entry',
+        guid='private-friend-api',
+        link='http://private.com',
+        content='Private body',
+        friends_only=True,
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+    service.public = False
+    service.save()
+    client.cookies[settings.MAGICSSO_COOKIE_NAME] = make_magic_sso_token()
+
+    response = client.post(
+        reverse('api', kwargs={'cmd': 'getcontent'}), {'entry': entry.pk}
+    )
+
+    assert response.status_code == 200
+    assert response.content == b''
+
+
+@override_settings(MAGICSSO_ENABLED=True)
+@pytest.mark.django_db
+def test_api_hide_forbidden_for_magic_sso_friend(client, entry):
+    client.cookies[settings.MAGICSSO_COOKIE_NAME] = make_magic_sso_token()
+
+    response = client.post(reverse('api', kwargs={'cmd': 'hide'}), {'entry': entry.pk})
+
+    assert response.status_code == 403
 
 
 @pytest.mark.django_db

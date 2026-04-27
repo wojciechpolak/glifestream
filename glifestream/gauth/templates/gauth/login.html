@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block mainClass %}login{% endblock mainClass %}
+{% block main %}
+<section id="login">
+
+<div id="loginbox">
+{% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
+<form name="loginform" method="post" action="{% url 'login' %}">
+  {% csrf_token %}
+  <p>
+    <label>{% trans "Username" %}<br />
+      <input type="text" name="username" id="username" size="20" autocomplete="username" autofocus />
+    </label>
+  </p>
+  <p>
+    <label>{% trans "Password" %}<br />
+      <input type="password" name="password" id="password" size="20" autocomplete="current-password" />
+    </label>
+  </p>
+  <p class="rememberme">
+    <label>
+      <input type="checkbox" name="remember_me" value="1" /> {% trans "Remember Me" %}
+    </label>
+  </p>
+  <p class="submit">
+    <input type="submit" value="{% trans "Log In" %}" />
+    <input type="hidden" name="next" value="{{ next }}" />
+  </p>
+</form>
+</div>
+
+</section><!-- /login -->
+
+{% endblock main %}

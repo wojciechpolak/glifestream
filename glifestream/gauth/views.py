@@ -17,20 +17,32 @@
 
 from django.conf import settings
 from django.urls import reverse
-from django.contrib.auth import login as django_login
+from django.contrib.auth import login as django_login, logout as django_logout
+from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.requests import RequestSite
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import (
+    HttpRequest,
+    HttpResponse,
+    HttpResponseForbidden,
+    HttpResponseNotAllowed,
+    HttpResponseRedirect,
+)
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
+from magic_sso_django.views import get_magic_sso_cookie_options
 from glifestream.gauth.forms import AuthenticationRememberMeForm
 from glifestream.utils import common
 
 
 @never_cache
-def login(request, template_name='login.html', redirect_field_name=REDIRECT_FIELD_NAME):
+def login(
+    request: HttpRequest,
+    template_name='gauth/login.html',
+    redirect_field_name=REDIRECT_FIELD_NAME,
+):
 
     redirect_to = request.GET.get(redirect_field_name, reverse('index'))
 
@@ -83,10 +95,11 @@ def login(request, template_name='login.html', redirect_field_name=REDIRECT_FIEL
 
 @login_required
 @never_cache
-def change_password(request):
+def change_password(request: HttpRequest):
+    user = request.user
     # Only allow access when forced password change is required.
     must_change = getattr(
-        getattr(request.user, 'userprofile', None), 'must_change_password', False
+        getattr(user, 'userprofile', None), 'must_change_password', False
     )
     if not must_change:
         return HttpResponseForbidden()
@@ -105,31 +118,53 @@ def change_password(request):
         if not password1 or not password2:
             return render(
                 request,
-                'change_password.html',
+                'gauth/change_password.html',
                 {'page': page, 'error': _('Please fill in both password fields.')},
             )
 
         if password1 != password2:
             return render(
                 request,
-                'change_password.html',
+                'gauth/change_password.html',
                 {'page': page, 'error': _('Passwords do not match.')},
             )
 
-        request.user.set_password(password1)
-        request.user.save()
+        authed_user = user
+        if not isinstance(authed_user, User):
+            return HttpResponseForbidden()
+
+        authed_user.set_password(password1)
+        authed_user.save()
 
         # Clear the forced password change flag.
-        try:
-            profile = request.user.userprofile
+        profile = getattr(authed_user, 'userprofile', None)
+        if profile is not None:
             profile.must_change_password = False
             profile.save()
-        except AttributeError:
-            pass
 
         # Keep the user logged in after password change.
-        update_session_auth_hash(request, request.user)
+        update_session_auth_hash(request, authed_user)
 
         return HttpResponseRedirect(reverse('index'))
 
-    return render(request, 'change_password.html', {'page': page})
+    return render(request, 'gauth/change_password.html', {'page': page})
+
+
+@never_cache
+def logout(request: HttpRequest) -> HttpResponse:
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    if request.user.is_authenticated:
+        django_logout(request)
+
+    response = HttpResponseRedirect(reverse('index'))
+    cookie_options = get_magic_sso_cookie_options()
+    cookie_name = getattr(settings, 'MAGICSSO_COOKIE_NAME', 'magic-sso')
+    response.delete_cookie(
+        cookie_name,
+        domain=cookie_options['domain'],
+        path=cookie_options['path'],
+        samesite=cookie_options['samesite'],
+    )
+    return response
