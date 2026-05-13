@@ -1723,6 +1723,9 @@
                 href = $(this).data('imgurl');
                 type = 'image';
             }
+            else if (href.match(/cdn\.bsky\.app\/img\//)) {
+                type = 'image';
+            }
             else if (href.match(/instagram\.com\/p\/([\w\-]+)\/?/)) {
                 href = 'https://instagram.com/p/' + RegExp.$1 + '/media/?size=l';
                 type = 'image';

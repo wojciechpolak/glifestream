@@ -89,6 +89,7 @@ def test_fix_ampersands_filter():
     assert fix_ampersands_filter('a & b') == 'a &amp; b'
     assert fix_ampersands_filter('a & b &amp;') == 'a &amp; b &amp;'
     assert fix_ampersands_filter('a &amp; b') == 'a &amp; b'
+    assert fix_ampersands_filter('Poster&#x27;s Republic') == 'Poster&#x27;s Republic'
     assert fix_ampersands_filter('Fast&Fun;') == 'Fast&amp;Fun;'
 
 

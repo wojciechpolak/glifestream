@@ -15,11 +15,10 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import re
 import hashlib
+import re
 from typing import Match, cast
-from urllib.parse import urlparse
-from urllib.parse import parse_qsl
+from urllib.parse import parse_qsl, urlparse
 from django.utils.html import strip_tags
 from glifestream.apis import vimeo
 from glifestream.stream import media
@@ -118,21 +117,79 @@ def imgloc(s: str) -> str:
 #
 
 
-def __sv_youtube(m: Match) -> str:
-    if m.start() > 0 and m.string[m.start() - 1] == '"':
-        return cast(str, m.group(0))
-    id_video = m.group(2)
-    rest = m.group(3)
-    ltag = rest.find('<') if rest else -1
-    rest = rest[ltag:] if ltag != -1 else ''
-    link = 'https://www.youtube.com/watch?v=%s' % id_video
+def normalize_youtube_url(url: str) -> str | None:
+    parsed = urlparse(url)
+    if parsed.scheme not in ('http', 'https'):
+        return None
+
+    host = parsed.netloc.lower()
+    if host.startswith('www.'):
+        host = host[4:]
+
+    path = parsed.path.rstrip('/')
+    query = dict(parse_qsl(parsed.query))
+    video_id = None
+
+    if host in ('youtube.com', 'm.youtube.com'):
+        if path == '/watch':
+            video_id = query.get('v')
+        else:
+            parts = [part for part in path.split('/') if part]
+            if len(parts) >= 2 and parts[0] in ('shorts', 'live', 'embed'):
+                video_id = parts[1]
+    elif host == 'youtu.be':
+        parts = [part for part in path.split('/') if part]
+        if parts:
+            video_id = parts[0]
+    elif host == 'youtube-nocookie.com':
+        parts = [part for part in path.split('/') if part]
+        if len(parts) >= 2 and parts[0] == 'embed':
+            video_id = parts[1]
+
+    if not video_id or not re.fullmatch(r'[\-\w]+', video_id):
+        return None
+    return 'https://www.youtube.com/watch?v=%s' % video_id
+
+
+def is_video_url(url: str) -> bool:
+    return normalize_youtube_url(url) is not None or bool(
+        re.match(r'https?://(www\.)?vimeo\.com/\d+$', url)
+    )
+
+
+def __split_trailing_url_punctuation(url: str) -> tuple[str, str]:
+    trail = ''
+    while url and url[-1] in '.,:;!?)]}\'"':
+        trail = url[-1] + trail
+        url = url[:-1]
+    return url, trail
+
+
+def __youtube_card(link: str, rest: str = '') -> str:
+    canonical_link = normalize_youtube_url(link)
+    if not canonical_link:
+        return link
+
+    id_video = dict(parse_qsl(urlparse(canonical_link).query)).get('v')
+    if not id_video:
+        return link
     imgurl = 'https://i.ytimg.com/vi/%s/mqdefault.jpg' % id_video
     imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
     return (
         '<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">'
         '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">'
-        '</div></div>%s' % (id_video, link, imgurl, rest)
+        '</div></div>%s' % (id_video, canonical_link, imgurl, rest)
     )
+
+
+def __sv_youtube(m: Match) -> str:
+    if m.start() > 0 and m.string[m.start() - 1] == '"':
+        return cast(str, m.group(0))
+    link, trail = __split_trailing_url_punctuation(m.group(1))
+    rest = trail + m.group(2)
+    ltag = rest.find('<') if rest else -1
+    rest = rest[ltag:] if ltag != -1 else rest
+    return __youtube_card(link, rest=rest)
 
 
 def __sv_vimeo(m: Match) -> str:
@@ -168,9 +225,11 @@ def __sv_dailymotion(m: Match) -> str:
 
 def videolinks(s: str) -> str:
     """Expand video links."""
-    if 'youtube.com/' in s:
+    if 'youtube.com/' in s or 'youtu.be/' in s or 'youtube-nocookie.com/' in s:
         s = re.sub(
-            r'https?://(www\.)?youtube\.com/watch\?v=([\-\w]+)(\S*)', __sv_youtube, s
+            r'(https?://(?:www\.)?(?:youtube\.com/watch\?[^\s<"]+|youtube\.com/(?:shorts|live|embed)/[\-\w]+[^\s<"]*|m\.youtube\.com/watch\?[^\s<"]+|youtu\.be/[\-\w]+[^\s<"]*|youtube-nocookie\.com/embed/[\-\w]+[^\s<"]*))(\S*)',
+            __sv_youtube,
+            s,
         )
     if 'vimeo.com/' in s:
         s = re.sub(r'https?://(www\.)?vimeo\.com/(\d+)', __sv_vimeo, s)

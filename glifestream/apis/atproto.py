@@ -18,20 +18,123 @@
 import sys
 import traceback
 import datetime
+import re
 from typing import Any, Optional, cast
 from atproto import Client
 from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 
 from django.utils import timezone
-from django.utils.html import strip_tags
+from django.utils.html import escape, strip_tags
 
 from glifestream.apis.base import BaseService
 from glifestream.filters import expand, truncate
-from glifestream.utils.html import strip_entities
+from glifestream.utils.html import strip_entities, urlize
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
 from glifestream.utils import httpclient
+
+URL_RE = re.compile(r'https?://\S+')
+
+
+def _replace_newlines(value: str) -> str:
+    return value.replace('\n', '<br/>')
+
+
+def _iter_text_urls(text: str) -> list[str]:
+    urls = []
+    for match in URL_RE.finditer(text):
+        url = match.group(0).rstrip('.,:;!?)]}\'"')
+        if url:
+            urls.append(url)
+    return urls
+
+
+def _render_text_fallback(text: str) -> str:
+    return _replace_newlines(urlize(text, nofollow=True, autoescape=True))
+
+
+def _render_facet_text(text: str, facets: list[Any]) -> str:
+    text_bytes = text.encode('utf-8')
+    chunks: list[str] = []
+    current = 0
+
+    for facet in sorted(
+        facets,
+        key=lambda item: getattr(getattr(item, 'index', None), 'byte_start', -1),
+    ):
+        index = getattr(facet, 'index', None)
+        start = getattr(index, 'byte_start', None)
+        end = getattr(index, 'byte_end', None)
+        if not isinstance(start, int) or not isinstance(end, int):
+            continue
+        if start < current or start >= end or end > len(text_bytes):
+            continue
+
+        target = None
+        for feature in getattr(facet, 'features', []):
+            uri = getattr(feature, 'uri', None)
+            did = getattr(feature, 'did', None)
+            tag = getattr(feature, 'tag', None)
+            if uri:
+                target = cast(str, uri)
+                break
+            if did:
+                target = 'https://bsky.app/profile/%s' % did
+                break
+            if tag:
+                target = 'https://bsky.app/hashtag/%s' % tag
+                break
+        if not target:
+            continue
+
+        try:
+            raw_before = text_bytes[current:start].decode('utf-8')
+            raw_slice = text_bytes[start:end].decode('utf-8')
+        except UnicodeDecodeError:
+            continue
+
+        chunks.append(_replace_newlines(escape(raw_before)))
+        chunks.append(
+            '<a href="%s" rel="nofollow">%s</a>'
+            % (escape(target), _replace_newlines(escape(raw_slice)))
+        )
+        current = end
+
+    try:
+        raw_tail = text_bytes[current:].decode('utf-8')
+    except UnicodeDecodeError:
+        raw_tail = text
+    chunks.append(_replace_newlines(escape(raw_tail)))
+    return ''.join(chunks)
+
+
+def render_post_text(record: Any) -> str:
+    text = cast(str, getattr(record, 'text', '') or '')
+    facets = cast(list[Any], getattr(record, 'facets', None) or [])
+    if facets:
+        return _render_facet_text(text, facets)
+    return _render_text_fallback(text)
+
+
+def collect_post_media_urls(record: Any, post_embed: Any) -> list[str]:
+    text = cast(str, getattr(record, 'text', '') or '')
+    urls: list[str] = []
+
+    for facet in cast(list[Any], getattr(record, 'facets', None) or []):
+        for feature in getattr(facet, 'features', []):
+            uri = getattr(feature, 'uri', None)
+            if uri:
+                urls.append(cast(str, uri))
+
+    urls.extend(_iter_text_urls(text))
+
+    external = getattr(post_embed, 'external', None) if post_embed else None
+    external_uri = getattr(external, 'uri', None)
+    if external_uri:
+        urls.append(cast(str, external_uri))
+
+    return list(dict.fromkeys(urls))
 
 
 class AtProtoService(BaseService):
@@ -118,10 +221,10 @@ class AtProtoService(BaseService):
             e.date_updated = t
             e.author_name = author.display_name
 
-            # double expand
-            e.content = expand.run_all(expand.shorturls(cast(str, record.text)))
+            e.content = render_post_text(record)
 
             post_embed = post.embed
+            media_urls = collect_post_media_urls(record, post_embed)
             if post_embed:
                 content = ''
                 images = getattr(post_embed, 'images', None)
@@ -146,15 +249,12 @@ class AtProtoService(BaseService):
                             % (link, large_url, image_url, iwh)
                         )
                     content += '</p>'
-                else:
-                    external = getattr(post_embed, 'external', None)
-                    uri = getattr(external, 'uri', None)
-                    if uri and (
-                        uri.startswith('https://www.youtube.com/')
-                        or uri.startswith('https://www.vimeo.com/')
-                    ):
-                        content += '\n' + expand.videolinks(uri)
                 e.content += content
+
+            for uri in media_urls:
+                video = expand.videolinks(uri)
+                if video != uri:
+                    e.content += '\n' + video
 
             try:
                 e.save()
