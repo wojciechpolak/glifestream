@@ -25,35 +25,54 @@ from pathlib import Path
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', default='glifestream/settings_sample.py')
+    parser.add_argument('--source', default='glifestream/settings.py')
     parser.add_argument('--output', default='/tmp/vrt_settings.py')
     parser.add_argument('--site-root', default='/work/glifestream')
     parser.add_argument('--secret-key', default='ci-secret-key')
     args = parser.parse_args()
 
-    source_path = Path(args.source)
     output_path = Path(args.output)
-    source = source_path.read_text()
-    source = source.replace(
-        'SITE_ROOT = os.path.dirname(os.path.realpath(__file__))',
-        f'SITE_ROOT = "{args.site_root}"',
-    )
-    source = source.replace(
-        "SECRET_KEY = 'YOUR-SECRET-KEY'",
-        f'SECRET_KEY = "{args.secret_key}"',
-    )
-    source = source.replace(
-        'django.core.cache.backends.memcached.PyMemcacheCache',
-        'django.core.cache.backends.dummy.DummyCache',
-    )
-    source = source.replace(
-        "        'DIRS': [\n            os.path.join(SITE_ROOT, '../run/templates'),\n            os.path.join(SITE_ROOT, 'templates'),\n        ],",
-        "        'DIRS': [\n            os.path.join(SITE_ROOT, 'templates'),\n        ],",
-    )
-    source = source.replace(
-        "STATICFILES_DIRS = (\n    os.path.join(SITE_ROOT, '../run/static'),\n    os.path.join(SITE_ROOT, 'static'),\n)",
-        "STATICFILES_DIRS = (\n    os.path.join(SITE_ROOT, 'static'),\n)",
-    )
+    source = f"""\
+import os
+from pathlib import Path
+
+os.environ['GLIFESTREAM_LOAD_DOTENV'] = '0'
+os.environ['GLIFESTREAM_ENABLE_SETTINGS_LOCAL'] = '0'
+
+from glifestream.settings import *  # noqa: F403
+
+SITE_ROOT = "{args.site_root}"
+BASE_DIR = SITE_ROOT
+
+SECRET_KEY = "{args.secret_key}"
+ALLOWED_HOSTS = ['localhost']
+TIME_ZONE = 'UTC'
+BASE_URL = 'http://localhost:8000'
+LOGIN_URL = '/login'
+FAVICON = '/favicon.ico'
+THEMES = ('default',)
+STREAM_TITLE = 'Stream title'
+STREAM_TITLE_SUFFIX = ' | Lifestream'
+STREAM_DESCRIPTION = 'A short description'
+WEBSUB_HUBS = ('https://pubsubhubbub.appspot.com/',)
+WEBSUB_HTTPS_CALLBACK = True
+CACHES = {{
+    'default': {{
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+        'LOCATION': '127.0.0.1:11211',
+        'KEY_PREFIX': 'gls',
+    }},
+}}
+TEMPLATES[0]['DIRS'] = [  # noqa: F405
+    str(Path(SITE_ROOT) / 'templates'),
+]
+STATICFILES_DIRS = (  # noqa: F405
+    str(Path(SITE_ROOT) / 'static'),
+)
+
+FEED_AUTHOR_NAME = ''
+FEED_AUTHOR_URI = ''
+"""
     output_path.write_text(source)
 
 

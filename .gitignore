@@ -5,6 +5,7 @@
 *.mo
 *.iml
 .env*
+!.env.example
 .version
 .idea/
 .pytest_cache/
@@ -17,6 +18,8 @@ venv*/
 media/
 static/
 settings.py*
+!glifestream/settings.py
+glifestream/settings_local.py
 glifestream/templates/user-*
 htmlcov/
 .coverage

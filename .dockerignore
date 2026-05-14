@@ -17,4 +17,3 @@ run/**
 !run/settings_docker.py
 static/
 test-results/
-glifestream/settings.py

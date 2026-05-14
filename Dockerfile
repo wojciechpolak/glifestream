@@ -44,7 +44,10 @@ COPY manage.py .
 COPY worker.py .
 RUN usermod -a -G users www-data
 RUN chgrp -R users /app/glifestream/static && chmod -R g+w /app/glifestream/static
-RUN python manage.py compilemessages
+RUN GLIFESTREAM_LOAD_DOTENV=0 \
+    GLIFESTREAM_ENABLE_SETTINGS_LOCAL=0 \
+    GLIFESTREAM_VALIDATE_SETTINGS_SECRETS=0 \
+    python manage.py compilemessages
 EXPOSE 80
 COPY conf/docker/etc/supervisord.conf /etc/supervisord.conf
 

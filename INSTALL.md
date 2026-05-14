@@ -18,8 +18,12 @@ Installation instructions
 =========================
 
 1. Change the current working directory into the `glifestream` directory.
-2. Copy `settings_sample.py` to `settings.py` and edit your local site
-   configuration.
+2. Copy `.env.example` to `.env` and edit your local site configuration.
+   Django uses the committed `glifestream.settings` module for local
+   development and loads environment overrides from `.env`.
+   For advanced local-only customisation such as private themes, create
+   `glifestream/settings_local.py`; it is loaded automatically and is
+   ignored by Git.
 3. Run `uv run manage.py migrate --run-syncdb`
 4. Run `uv run manage.py compilemessages` (if you have 'gettext' installed)
 5. Run `./worker.py --init-files-dirs`
@@ -55,9 +59,11 @@ The Docker image serves the Django application with Gunicorn behind the
 bundled Nginx container.
 
 ```shell
-# [adjust files in the `run` folder]
+# Copy `.env.example` to `.env`, set `APP_SECRET_KEY`, then adjust files in `run/`
 docker-compose up
 ```
+
+Docker uses the `run.settings_docker` settings overlay.
 
 Other deployments
 -----------------
@@ -71,7 +77,8 @@ The search functionality via Sphinx
 
 To use the search functionality in GLS via Sphinx, you must add the
 following configuration to your `/etc/sphinx/sphinx.conf` (replace the
-`DATABASE_*` values with the proper ones from your `settings.py`):
+`DATABASE_*` values with the proper ones from your environment or
+`glifestream.settings`):
 
 ```
 source glifestream

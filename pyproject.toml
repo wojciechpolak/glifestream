@@ -70,7 +70,6 @@ omit = [
     "*/migrations/*",
     "*/tests/*",
     "glifestream/settings*.py",
-    "glifestream/settings_sample.py",
     "manage.py",
     "worker.py",
     "run/*",
