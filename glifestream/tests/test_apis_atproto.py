@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 from types import SimpleNamespace
 from django.utils import timezone
-from glifestream.apis.atproto import AtProtoService
+from glifestream.apis.atproto import AtProtoService, filter_content
 from glifestream.stream.models import Entry
 
 
@@ -46,6 +46,82 @@ def test_atproto_process_entries(service):
         assert entry.title == 'Hello Bluesky!'
         assert 'Hello Bluesky!' in entry.content
         assert entry.author_name == 'User'
+
+
+@pytest.mark.django_db
+def test_atproto_process_marks_reposts_with_reposter_context(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = MagicMock()
+        mock_post.cid = 'repost-cid'
+        mock_post.uri = 'at://did:plc:original/app.bsky.feed.post/456'
+        mock_post.record.text = 'Original author post'
+        mock_post.record.created_at = '2025-01-01T12:00:00Z'
+        mock_post.author.handle = 'original-author.bsky.social'
+        mock_post.author.display_name = 'Original Author'
+        mock_post.author.avatar = None
+        mock_post.embed = None
+
+        mock_entry = MagicMock()
+        mock_entry.post = mock_post
+        mock_entry.reason = SimpleNamespace(
+            py_type='app.bsky.feed.defs#reasonRepost',
+            indexed_at='2025-01-02T15:30:00Z',
+            uri='at://did:plc:reposter/app.bsky.feed.repost/repost-123',
+            by=SimpleNamespace(
+                handle='reposter.bsky.social',
+                display_name='Followed Reposter',
+            ),
+        )
+
+        api.process([mock_entry])
+
+        entry = Entry.objects.get(guid='repost-cid')
+        assert entry.author_name == 'Original Author'
+        assert entry.reblog is True
+        assert entry.reblog_by == 'Followed Reposter'
+        assert entry.reblog_uri == 'at://did:plc:reposter/app.bsky.feed.repost/repost-123'
+        assert entry.date_published.isoformat() == '2025-01-02T15:30:00+00:00'
+        assert filter_content(entry).startswith('Followed Reposter reblogged')
+
+
+@pytest.mark.django_db
+def test_atproto_process_skips_reposts_when_configured(service):
+    service.api = 'atproto'
+    service.skip_reblogs = True
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = MagicMock()
+        mock_post.cid = 'skipped-repost-cid'
+        mock_post.uri = 'at://did:plc:original/app.bsky.feed.post/457'
+        mock_post.record.text = 'Should be skipped'
+        mock_post.record.created_at = '2025-01-01T12:00:00Z'
+        mock_post.author.handle = 'original-author.bsky.social'
+        mock_post.author.display_name = 'Original Author'
+        mock_post.author.avatar = None
+        mock_post.embed = None
+
+        mock_entry = MagicMock()
+        mock_entry.post = mock_post
+        mock_entry.reason = SimpleNamespace(
+            py_type='app.bsky.feed.defs#reasonRepost',
+            indexed_at='2025-01-02T15:30:00Z',
+            by=SimpleNamespace(
+                handle='reposter.bsky.social',
+                display_name='Followed Reposter',
+            ),
+        )
+
+        api.process([mock_entry])
+
+        assert Entry.objects.filter(guid='skipped-repost-cid').count() == 0
 
 
 @pytest.mark.django_db

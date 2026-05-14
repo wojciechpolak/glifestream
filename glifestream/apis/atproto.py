@@ -25,6 +25,7 @@ from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 
 from django.utils import timezone
 from django.utils.html import escape, strip_tags
+from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
 from glifestream.filters import expand, truncate
@@ -137,6 +138,20 @@ def collect_post_media_urls(record: Any, post_embed: Any) -> list[str]:
     return list(dict.fromkeys(urls))
 
 
+def _get_post_created_at(record: Any) -> str:
+    created_at = getattr(record, 'created_at', None) or getattr(record, 'createdAt', None)
+    if not created_at:
+        raise ValueError('ATProto post record is missing created_at/createdAt.')
+    return cast(str, created_at)
+
+
+def _get_repost_reason(entry: FeedViewPost) -> Any:
+    reason = getattr(entry, 'reason', None)
+    if getattr(reason, 'py_type', None) == 'app.bsky.feed.defs#reasonRepost':
+        return reason
+    return None
+
+
 class AtProtoService(BaseService):
     name = 'The AT Protocol API v1.0'
     limit_sec = 120
@@ -183,6 +198,12 @@ class AtProtoService(BaseService):
 
     def process(self, entries: list[FeedViewPost]) -> None:
         for ent in entries:
+            repost_reason = _get_repost_reason(ent)
+            if repost_reason and self.service.skip_reblogs:
+                if self.verbose:
+                    print('Skipping reposted ID: %s' % ent.post.cid)
+                continue
+
             post = cast(Any, ent.post)
             author = post.author
             record = post.record
@@ -190,7 +211,9 @@ class AtProtoService(BaseService):
             if self.verbose:
                 print('ID: %s' % guid)
 
-            created_at = cast(str, record.created_at)
+            created_at = cast(
+                str, getattr(repost_reason, 'indexed_at', None) or _get_post_created_at(record)
+            )
             t = datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
 
             try:
@@ -219,9 +242,17 @@ class AtProtoService(BaseService):
 
             e.date_published = t
             e.date_updated = t
-            e.author_name = author.display_name
+            e.author_name = author.display_name or author.handle
 
             e.content = render_post_text(record)
+            e.reblog = False
+            e.reblog_by = ''
+            e.reblog_uri = ''
+            if repost_reason:
+                reposted_by = repost_reason.by
+                e.reblog = True
+                e.reblog_by = reposted_by.display_name or reposted_by.handle
+                e.reblog_uri = cast(str, getattr(repost_reason, 'uri', '') or '')
 
             post_embed = post.embed
             media_urls = collect_post_media_urls(record, post_embed)
@@ -278,4 +309,6 @@ def filter_title(entry: Entry) -> str:
 
 
 def filter_content(entry: Entry) -> str:
+    if entry.reblog:
+        return _('%s reblogged') % entry.reblog_by + '\n\n' + entry.content
     return entry.content
