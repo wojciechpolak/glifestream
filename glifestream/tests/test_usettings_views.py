@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 from django.urls import reverse
 from django.contrib.auth.models import User
 from glifestream.stream.models import Service, List
@@ -33,6 +34,16 @@ def test_usettings_services_list(logged_in_client):
     response = logged_in_client.get(reverse('usettings-services'))
     assert response.status_code == 200
     assert 'S1' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_usettings_services_list_legacy_unknown_api_does_not_crash(logged_in_client):
+    Service.objects.create(name='Legacy Facebook', api='fb', url='http://s1.com')
+    response = logged_in_client.get(reverse('usettings-services'))
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert 'Legacy Facebook' in body
+    assert 'class="run-fetch"' not in body
 
 
 @pytest.mark.django_db
@@ -71,12 +82,40 @@ def test_usettings_api_json(logged_in_client):
     # Test XHR API for service settings
     response = logged_in_client.post(
         reverse('usettings-api-cmd', args=['service']),
-        {'api': 'webfeed', 'name': 'Test Feed', 'url': 'http://test.com'},
+        {
+            'api': 'webfeed',
+            'name': 'Test Feed',
+            'url': 'http://test.com',
+            'method': 'post',
+        },
     )
     assert response.status_code == 200
     data = response.json()
     assert data['name'] == 'Test Feed'
+    assert data['method'] == 'post'
     assert 'fields' in data
+
+
+@pytest.mark.django_db
+def test_usettings_fetch_now_and_status(logged_in_client):
+    service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+
+    with patch('glifestream.fetching.send_worker_wake_signal', return_value=True):
+        response = logged_in_client.post(
+            reverse('usettings-api-cmd', args=['fetch-now']),
+            {'id': service.pk},
+        )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data['queued'] is True
+    assert data['state']['status'] == 'queued'
+
+    response = logged_in_client.get(reverse('usettings-api-cmd', args=['fetch-status']))
+    assert response.status_code == 200
+    data = response.json()
+    assert str(service.pk) in data['services']
+    assert 'max-age=0' in response.headers['Cache-Control']
 
 
 @pytest.mark.django_db

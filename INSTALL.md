@@ -32,7 +32,10 @@ Make sure that `media/thumbs/*` and `media/upload` directories exist
 and all have write permissions by your webserver.
 
 Use `glifestream/worker.py` to automatically fetch external streams
-(via cron), list available streams or remove old entries. See
+(via `worker.py --daemon`), schedule maintenance cleanup jobs, list available
+streams or remove old entries. The cleanup schedule is configurable with the
+`WORKER_MAINTENANCE_JOBS` JSON setting/environment variable using 5-field
+crontab expressions. See
 `worker.py --help`.
 
 

@@ -4,8 +4,10 @@
 
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
+from collections.abc import Mapping
 from typing import Any
 
 from glifestream.settings_magic_sso import (
@@ -39,6 +41,49 @@ def _project_path(value: str) -> str:
         return value
 
     return os.path.abspath(os.path.join(PROJECT_ROOT, value))
+
+
+def _default_worker_maintenance_jobs() -> list[dict[str, Any]]:
+    return [
+        {
+            'name': 'delete-inactive-old-entries',
+            'schedule': '5 9 * * 0',
+            'args': ['--only-inactive', '--delete-old=80'],
+        },
+        {
+            'name': 'delete-old-entries',
+            'schedule': '6 9 1 * *',
+            'args': ['--delete-old=365'],
+        },
+        {
+            'name': 'delete-orphan-thumbnails',
+            'schedule': '7 9 1 * *',
+            'args': ['--thumbs-delete-orphans'],
+        },
+    ]
+
+
+def _load_worker_maintenance_jobs(
+    environ: Mapping[str, str]
+) -> list[dict[str, Any]]:
+    raw = get_env(environ, 'WORKER_MAINTENANCE_JOBS')
+    if raw is None:
+        return _default_worker_maintenance_jobs()
+
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError('WORKER_MAINTENANCE_JOBS must be valid JSON.') from exc
+
+    if not isinstance(value, list):
+        raise ValueError('WORKER_MAINTENANCE_JOBS must be a JSON array.')
+
+    jobs: list[dict[str, Any]] = []
+    for item in value:
+        if not isinstance(item, dict):
+            raise ValueError('Each WORKER_MAINTENANCE_JOBS item must be an object.')
+        jobs.append(dict(item))
+    return jobs
 
 
 RUN_DIR = _project_path(get_env(ENV, 'RUN_DIR', default='run') or 'run')
@@ -135,6 +180,16 @@ BASE_URL = (
 # The URL where requests are redirected for login.
 # For HTTPS use an absolute URL.
 LOGIN_URL = get_env(ENV, 'LOGIN_URL', default='/login') or '/login'
+
+WORKER_SOCKET = (
+    get_env(ENV, 'WORKER_SOCKET', default='/tmp/glifestream-worker.sock')
+    or '/tmp/glifestream-worker.sock'
+)
+WORKER_POOL_SIZE = get_int(ENV, 'WORKER_POOL_SIZE', default=4) or 4
+FETCH_DEFAULT_INTERVAL_SEC = (
+    get_int(ENV, 'FETCH_DEFAULT_INTERVAL_SEC', default=7200) or 7200
+)
+WORKER_MAINTENANCE_JOBS = _load_worker_maintenance_jobs(ENV)
 
 SECRET_KEY = (
     get_env(ENV, 'SECRET_KEY', 'APP_SECRET_KEY', default='dev-secret-key')

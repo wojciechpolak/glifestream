@@ -18,6 +18,8 @@
 from __future__ import annotations
 
 import re
+import time
+from collections.abc import Callable
 from typing import cast
 
 import pytest
@@ -37,6 +39,22 @@ def _entry_article(page: Page, title: str) -> Locator:
 
 def _open_entry_menu(article: Locator) -> None:
     article.locator('span.entry-controls-switch').click()
+
+
+def _wait_for(
+    condition: Callable[[], bool],
+    timeout: float = 10.0,
+    interval: float = 0.1,
+    tick: Callable[[], object] | None = None,
+) -> None:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if tick is not None:
+            tick()
+        if condition():
+            return
+        time.sleep(interval)
+    raise AssertionError('Timed out waiting for condition')
 
 
 def _is_settings_service_response(response, *, method: str) -> bool:
@@ -421,3 +439,42 @@ def test_settings_services_lists_and_websub(
     expect(page.get_by_role('link', name='WebSub')).to_be_visible()
 
     assert Service.objects.filter(name='Playwright Service Updated').exists()
+
+
+def test_settings_async_create_fetches_feed_content(
+    page: Page,
+    app_base_url: str,
+    ensure_admin_session,
+    mock_feed_server,
+    fetch_worker_runner,
+):
+    ensure_admin_session()
+
+    feed_url = mock_feed_server.publish_fixture('feeds/async.xml', 'initial-rss.xml')
+
+    page.goto(f'{app_base_url}/settings/services')
+    page.locator('#add-service a.webfeed').click()
+    expect(page.locator('#service-form')).to_be_visible()
+    page.locator('#name').fill('Playwright Async Feed')
+    page.locator('#url').fill(feed_url)
+    page.locator('#public').check()
+    with page.expect_response(
+        lambda response: _is_settings_service_response(response, method='post')
+    ):
+        page.locator('#save').click()
+
+    page.goto(f'{app_base_url}/settings/services?refresh=async-created')
+    service_row = page.locator('#edit-service li', has_text='Playwright Async Feed')
+    expect(service_row).to_be_visible()
+    _wait_for(
+        lambda: Entry.objects.filter(
+            service__name='Playwright Async Feed', title='Public RSS Entry'
+        ).exists(),
+        tick=fetch_worker_runner.run_ready_jobs,
+    )
+    assert Service.objects.filter(
+        name='Playwright Async Feed', public=True, home=True, active=True
+    ).exists()
+    assert Entry.objects.filter(
+        service__name='Playwright Async Feed', title='Public RSS Entry'
+    ).exists()

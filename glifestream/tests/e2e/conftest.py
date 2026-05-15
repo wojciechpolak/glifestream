@@ -53,6 +53,7 @@ from playwright.sync_api import (
     sync_playwright,
 )
 
+from glifestream.fetching import FetchWorker
 from glifestream.stream.models import Service
 from glifestream.tests.e2e.vrt import VisualRegressionSession
 
@@ -601,7 +602,10 @@ def django_db_setup(
     db_path = db_dir / 'glifestream-e2e.sqlite3'
     database_settings = cast(dict[str, Any], django_settings.DATABASES['default'])
     test_settings = cast(dict[str, Any], database_settings.get('TEST', {}))
+    options = cast(dict[str, Any], database_settings.get('OPTIONS', {}))
     database_settings['NAME'] = str(db_path)
+    options['timeout'] = 30
+    database_settings['OPTIONS'] = options
     test_settings['NAME'] = str(db_path)
     test_settings.setdefault('MIRROR', None)
     database_settings['TEST'] = test_settings
@@ -908,6 +912,18 @@ def run_worker():
             sys.argv = original_argv
 
     return _run
+
+
+@pytest.fixture
+def fetch_worker_runner(monkeypatch, transactional_db):
+    del transactional_db
+    fetch_worker = FetchWorker(socket_path='.e2e-worker.sock', max_workers=1)
+
+    monkeypatch.setattr('glifestream.fetching.send_worker_wake_signal', lambda: True)
+    try:
+        yield fetch_worker
+    finally:
+        connections.close_all()
 
 
 @pytest.fixture

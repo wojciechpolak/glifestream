@@ -2,6 +2,68 @@
 {% load media i18n %}
 
 {% block settings %}
+  <style>
+    #edit-service li {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      padding: 0.22rem 0;
+    }
+    #edit-service a.run-fetch {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.12rem 0.55rem;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.3;
+      text-decoration: none;
+      opacity: 0.88;
+    }
+    #edit-service a.run-fetch:hover,
+    #edit-service a.run-fetch:focus-visible {
+      text-decoration: none;
+      opacity: 1;
+    }
+    #edit-service a.run-fetch[aria-busy="true"] {
+      opacity: 0.56;
+      pointer-events: none;
+    }
+    #edit-service .fetch-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.5rem;
+      padding: 0.08rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      line-height: 1.25;
+      background: rgba(127, 127, 127, 0.12);
+      color: inherit;
+      opacity: 0.84;
+    }
+    #edit-service .fetch-status[data-status="queued"],
+    #edit-service .fetch-status[data-status="running"] {
+      background: rgba(196, 132, 31, 0.16);
+    }
+    #edit-service .fetch-status[data-status="failed"] {
+      background: rgba(180, 32, 32, 0.14);
+    }
+    #edit-service .fetch-status[data-status="succeeded"] {
+      background: rgba(45, 140, 62, 0.14);
+    }
+    #edit-service #service-form {
+      flex: 1 0 100%;
+      order: 20;
+      width: 100%;
+      margin: 0.3rem 0 0 1.7rem;
+    }
+    #edit-service #service-form fieldset {
+      width: 100%;
+      margin: 0;
+    }
+  </style>
   <p id="add-service">
     <span class="fleft bold" style="padding-right:5px">{% trans "Add a service:" %}</span>
     {% for s in services_supported %}
@@ -16,6 +78,10 @@
     <li>
       <span class="service {{ s.api }}"></span>
       <a href="#" id="service-{{ s.id }}" class="{{ s.api }}">{{ s.name }}</a>
+      {% if s.fetch_state_snapshot.can_fetch %}
+      <a href="#" class="run-fetch" data-service-id="{{ s.id }}" onclick="return gls.run_fetch_service(this)">{% trans "Run now" %}</a>
+      <span class="fetch-status" id="fetch-status-{{ s.id }}" data-service-id="{{ s.id }}" data-status="{{ s.fetch_state_snapshot.status }}">{{ s.fetch_state_snapshot.status }}</span>
+      {% endif %}
     </li>
     {% endfor %}
   </ul>

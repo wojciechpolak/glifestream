@@ -36,6 +36,13 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 
 from glifestream.apis.factory import ServiceFactory
+from glifestream.fetching import (
+    enqueue_manual_fetch,
+    get_fetch_status_payload,
+    is_service_fetchable,
+    serialize_fetch_state,
+    sync_service_schedule,
+)
 from glifestream.stream.models import Service, List
 from glifestream.gauth import gls_oauth, gls_oauth2
 from glifestream.stream import websub as gls_websub
@@ -63,7 +70,11 @@ def services(request: HttpRequest, **args: Any) -> HttpResponse:
         'menu': 'services',
     }
 
-    services_all = Service.objects.all().order_by('api', 'name')
+    services_all = Service.objects.select_related('fetch_state').all().order_by(
+        'api', 'name'
+    )
+    for service in services_all:
+        cast(Any, service).fetch_state_snapshot = serialize_fetch_state(service)
     return render(
         request,
         'services.html',
@@ -529,6 +540,7 @@ def _import_service(url: str, title: str, cls: str = 'webfeed') -> None:
 #
 
 
+@never_cache
 def api(request: HttpRequest, **args: Any) -> HttpResponse:
     user = cast(User, request.user)
     authed = user.is_authenticated and user.is_staff
@@ -540,26 +552,44 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
     method = request.POST.get('method', 'get')
     id_service: Any = request.POST.get('id', None)
 
+    if cmd == 'fetch-status':
+        ids_arg = request.GET.get('id', request.POST.get('id', ''))
+        ids = None
+        if ids_arg:
+            ids = [int(item) for item in ids_arg.split(',') if item.strip()]
+        return JsonResponse(get_fetch_status_payload(ids))
+
     # Add/edit services
     if cmd == 'service':
+        fetch_interval_raw = request.POST.get('fetch_interval_sec', '').strip()
         s: dict[str, Any] = {
             'api': request.POST.get('api', ''),
             'name': request.POST.get('name', ''),
             'cls': request.POST.get('cls', ''),
             'url': request.POST.get('url', ''),
             'user_id': request.POST.get('user_id', ''),
+            'fetch_interval_sec': fetch_interval_raw,
             'display': request.POST.get('display', 'content'),
             'public': bool(request.POST.get('public', False)),
             'home': bool(request.POST.get('home', False)),
             'active': bool(request.POST.get('active', False)),
         }
         miss: dict[str, bool] = {}
+        fetch_interval: int | None = None
 
         # Data validation
         if method == 'post':
             if not s['name']:
                 miss['name'] = True
                 method = 'get'
+            if fetch_interval_raw:
+                try:
+                    fetch_interval = int(fetch_interval_raw)
+                    if fetch_interval < 0:
+                        raise ValueError
+                except ValueError:
+                    miss['fetch_interval_sec'] = True
+                    method = 'get'
             if (
                 (
                     s['api'] != 'selfposts'
@@ -610,7 +640,9 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
                     srv.creds = ''
 
                 s['need_import'] = not srv.pk
+                srv.fetch_interval_sec = fetch_interval
                 srv.save()
+                sync_service_schedule(srv)
                 id_service = srv.pk
             except Exception as exc:
                 print(exc)
@@ -628,6 +660,7 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
                             'cls': srv.cls,
                             'url': srv.url,
                             'user_id': srv.user_id,
+                            'fetch_interval_sec': srv.fetch_interval_sec or '',
                             'creds': srv.creds,
                             'display': srv.display,
                             'public': srv.public,
@@ -738,6 +771,20 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
                     'value': s['url'],
                     'label': _('ID/Username'),
                     'miss': miss.get('url', False),
+                }
+            )
+
+        if s['api'] != 'selfposts':
+            s['fields'].append(
+                {
+                    'type': 'number',
+                    'name': 'fetch_interval_sec',
+                    'value': s['fetch_interval_sec'],
+                    'label': _('Fetch interval (seconds)'),
+                    'hint': _(
+                        'Leave empty to use the service default refresh interval.'
+                    ),
+                    'miss': miss.get('fetch_interval_sec', False),
                 }
             )
 
@@ -872,19 +919,39 @@ def api(request: HttpRequest, **args: Any) -> HttpResponse:
             del s['creds']
 
         s['action'] = request.build_absolute_uri()
+        s['method'] = method
         s['save'] = _('Save')
         s['cancel'] = _('Cancel')
+        s['can_fetch'] = bool(
+            s['api']
+            and is_service_fetchable(
+                Service(api=cast(str, s['api']))
+            )
+        )
+        if id_service:
+            srv = Service.objects.select_related('fetch_state').get(id=id_service)
+            s['fetch_status'] = serialize_fetch_state(srv)
 
         # print(json.dumps(s, indent=2))
         return JsonResponse(s)
 
-    # Import
-    elif cmd == 'import' and id_service:
+    elif cmd in ('import', 'fetch-now') and id_service:
         try:
-            service = Service.objects.get(id=id_service)
-            service_instance = ServiceFactory.create_service(service)
-            service_instance.run()
-        except Exception:
-            pass
+            service = Service.objects.select_related('fetch_state').get(id=id_service)
+            if not is_service_fetchable(service):
+                return JsonResponse(
+                    {'error': _('This service cannot be fetched.')}, status=400
+                )
+            result = enqueue_manual_fetch(service, triggered_by_user=user)
+            service.refresh_from_db()
+            return JsonResponse(
+                {
+                    'queued': result.queued,
+                    'wake_sent': result.wake_sent,
+                    'state': serialize_fetch_state(service),
+                }
+            )
+        except Service.DoesNotExist:
+            return JsonResponse({'error': _('Service not found.')}, status=404)
 
     return HttpResponse()

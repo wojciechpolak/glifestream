@@ -1238,6 +1238,7 @@
             return false;
         });
         $('#change-theme').click(change_theme);
+        maybe_start_fetch_status_polling(true);
     }
 
     function get_service_form(params, dest) {
@@ -1260,6 +1261,20 @@
 
     function hide_settings_form() {
         $('#service-form').fadeOut();
+    }
+
+    function set_run_fetch_busy(serviceId, busy) {
+        const btn = $('#edit-service .run-fetch[data-service-id="' + serviceId + '"]');
+        if (!btn.length) {
+            return;
+        }
+        btn.attr('aria-busy', busy ? 'true' : 'false');
+        if (busy) {
+            btn.addClass('busy');
+        }
+        else {
+            btn.removeClass('busy');
+        }
     }
 
     function submit_service_form() {
@@ -1292,6 +1307,194 @@
     }
 
     let settings_deps = null;
+    let fetch_status_poll_timer = null;
+    let fetch_status_request_in_flight = false;
+    const fetch_status_poll_interval_ms = 3000;
+
+    function has_active_fetch_statuses() {
+        return $('#edit-service .fetch-status[data-status="queued"], ' +
+                 '#edit-service .fetch-status[data-status="running"]').length > 0;
+    }
+
+    function stop_fetch_status_polling() {
+        if (fetch_status_poll_timer !== null) {
+            window.clearTimeout(fetch_status_poll_timer);
+            fetch_status_poll_timer = null;
+        }
+    }
+
+    function schedule_fetch_status_poll(delayMs) {
+        if (fetch_status_poll_timer !== null || fetch_status_request_in_flight) {
+            return;
+        }
+        fetch_status_poll_timer = window.setTimeout(function() {
+            fetch_status_poll_timer = null;
+            refresh_fetch_status();
+        }, delayMs);
+    }
+
+    function maybe_start_fetch_status_polling(immediate) {
+        if (!has_active_fetch_statuses()) {
+            stop_fetch_status_polling();
+            return;
+        }
+        if (immediate) {
+            stop_fetch_status_polling();
+            if (!fetch_status_request_in_flight) {
+                refresh_fetch_status();
+            }
+            return;
+        }
+        schedule_fetch_status_poll(fetch_status_poll_interval_ms);
+    }
+
+    function fetch_status_label(state) {
+        if (!state || !state.status) {
+            return _('idle');
+        }
+        if (state.status === 'queued') {
+            return _('queued');
+        }
+        if (state.status === 'running') {
+            return _('running');
+        }
+        if (state.status === 'succeeded') {
+            return _('succeeded');
+        }
+        if (state.status === 'failed') {
+            return _('failed');
+        }
+        return state.status;
+    }
+
+    function update_fetch_status(state) {
+        if (!state || !state.service_id) {
+            return;
+        }
+        const el = $('#fetch-status-' + state.service_id);
+        if (!el.length) {
+            return;
+        }
+        el.text(fetch_status_label(state));
+        el.attr('data-status', state.status || '');
+        el.attr('title', state.last_error || state.last_result || '');
+        set_run_fetch_busy(
+            state.service_id,
+            state.status === 'queued' || state.status === 'running'
+        );
+        if (has_active_fetch_statuses()) {
+            maybe_start_fetch_status_polling(false);
+        }
+        else {
+            stop_fetch_status_polling();
+        }
+    }
+
+    function refresh_fetch_status() {
+        if (fetch_status_request_in_flight) {
+            return;
+        }
+        fetch_status_request_in_flight = true;
+        $.ajax({
+            url: baseurl + 'settings/api/fetch-status',
+            dataType: 'json',
+            cache: false,
+            success: function(json) {
+                if (!json.services) {
+                    return;
+                }
+                $.each(json.services, function(_serviceId, state) {
+                    update_fetch_status(state);
+                });
+            }
+        }).always(function() {
+            fetch_status_request_in_flight = false;
+            if (has_active_fetch_statuses()) {
+                schedule_fetch_status_poll(fetch_status_poll_interval_ms);
+            }
+            else {
+                stop_fetch_status_polling();
+            }
+        });
+    }
+
+    function render_service_list_item(data) {
+        let html = '<li data-service-id="' + data.id + '">';
+        html += '<span class="service ' + data.api + '"></span>';
+        html += '<a href="#" class="' + data.api + '" id="service-' + data.id + '">' +
+            data.name + '</a>';
+        const canFetch = data.api !== 'selfposts' && data.can_fetch !== false;
+        if (canFetch) {
+            html += ' <a href="#" class="run-fetch" data-service-id="' +
+                data.id + '" onclick="return gls.run_fetch_service(this)">' +
+                _('Run now') + '</a>';
+            html += ' <span class="fetch-status" id="fetch-status-' + data.id +
+                '" data-service-id="' + data.id + '" data-status="' +
+                ((data.fetch_status && data.fetch_status.status) || 'idle') + '">' +
+                fetch_status_label(data.fetch_status || {status: 'idle'}) + '</span>';
+        }
+        html += '</li>';
+        return html;
+    }
+
+    function run_fetch_service(trigger) {
+        const serviceId = trigger.getAttribute('data-service-id');
+        if (!serviceId) {
+            return false;
+        }
+        show_spinner(trigger);
+        set_run_fetch_busy(serviceId, true);
+        update_fetch_status({
+            service_id: Number(serviceId),
+            status: 'queued',
+            last_result: _('Fetch queued.')
+        });
+        maybe_start_fetch_status_polling(true);
+        $.ajax({
+            url: baseurl + 'settings/api/fetch-now',
+            data: $.param({id: serviceId}),
+            dataType: 'json',
+            type: 'POST',
+            success: function(json) {
+                if (json.state) {
+                    update_fetch_status(json.state);
+                }
+                refresh_fetch_status();
+            },
+            error: function(xhr) {
+                const message = xhr.responseJSON && xhr.responseJSON.error
+                    ? xhr.responseJSON.error
+                    : _('Unable to queue fetch.');
+                update_fetch_status({
+                    service_id: Number(serviceId),
+                    status: 'failed',
+                    last_error: message
+                });
+            },
+            complete: function() {
+                hide_spinner();
+                maybe_start_fetch_status_polling(false);
+            }
+        });
+        return false;
+    }
+
+    es('gls.run_fetch_service', run_fetch_service);
+
+    function upsert_service_list_item(data) {
+        const item = $('#service-' + data.id).closest('li');
+        const html = render_service_list_item(data);
+        if (item.length) {
+            item.replaceWith(html);
+        }
+        else {
+            $('#edit-service').prepend(html);
+        }
+        if (data.fetch_status) {
+            update_fetch_status(data.fetch_status);
+        }
+    }
+
     const settings_onchange_field = function() {
         if (this.id in settings_deps) {
             let deps = settings_deps[this.id];
@@ -1458,14 +1661,23 @@
             }
             fs.append(row);
 
+            if (data.id && data.method === 'post') {
+                upsert_service_list_item(data);
+            }
             if (data['need_import']) {
-                $('#edit-service').prepend(
-                    '<li><span class="service ' + data.api +
-                        '"></span><a class="' + data.api +
-                        '" id="service-' + data.id +
-                        '" href="#">' + data.name + '</a></li>');
-                $.post(baseurl + 'settings/api/import', {
-                    id: data.id
+                $.ajax({
+                    url: baseurl + 'settings/api/import',
+                    dataType: 'json',
+                    type: 'POST',
+                    data: {
+                        id: data.id
+                    },
+                    success: function(json) {
+                        if (json.state) {
+                            update_fetch_status(json.state);
+                        }
+                        maybe_start_fetch_status_polling(false);
+                    }
                 });
             }
         }

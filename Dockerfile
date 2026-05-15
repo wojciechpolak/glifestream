@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/uv,id=uv-${TARGETARCH} \
 
 FROM ${python}
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends cron curl gettext procps \
+    && apt-get install -y --no-install-recommends curl gettext procps \
     && pip install --no-cache-dir supervisor \
     && rm -rf /var/lib/apt/lists/*
 RUN echo 'alias ll="ls -l"' >>~/.bashrc
@@ -50,11 +50,6 @@ RUN GLIFESTREAM_LOAD_DOTENV=0 \
     python manage.py compilemessages
 EXPOSE 80
 COPY conf/docker/etc/supervisord.conf /etc/supervisord.conf
-
-COPY conf/docker/etc/cron.d/ /etc/cron.d/
-RUN touch /var/log/cron.log
-RUN chmod 0644 /etc/cron.d/glifestream
-RUN crontab /etc/cron.d/glifestream
 
 HEALTHCHECK --interval=60m --timeout=3s CMD curl -f http://localhost/ || exit 1
 CMD ["/app/entrypoint.sh"]

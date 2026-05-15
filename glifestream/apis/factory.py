@@ -29,6 +29,20 @@ from glifestream.apis.webfeed import WebfeedService
 from glifestream.apis.youtube import YoutubeService
 from glifestream.stream.models import Service
 
+SERVICE_CLASSES = {
+    'atproto': AtProtoService,
+    'flickr': FlickrService,
+    'friendfeed': FriendFeedService,
+    'mastodon': MastodonService,
+    'pixelfed': PixelFedService,
+    'pocket': PocketService,
+    'selfposts': SelfpostsService,
+    'twitter': TwitterService,
+    'vimeo': VimeoService,
+    'webfeed': WebfeedService,
+    'youtube': YoutubeService,
+}
+
 
 class ServiceFactory:
     """
@@ -39,26 +53,12 @@ class ServiceFactory:
     def create_service(
         service: Service, verbose: int = 0, force_overwrite: bool = False
     ) -> BaseService:
-        if service.api == 'atproto':
-            return AtProtoService(service, verbose, force_overwrite)
-        elif service.api == 'flickr':
-            return FlickrService(service, verbose, force_overwrite)
-        elif service.api == 'friendfeed':
-            return FriendFeedService(service, verbose, force_overwrite)
-        elif service.api == 'mastodon':
-            return MastodonService(service, verbose, force_overwrite)
-        elif service.api == 'pixelfed':
-            return PixelFedService(service, verbose, force_overwrite)
-        elif service.api == 'pocket':
-            return PocketService(service, verbose, force_overwrite)
-        elif service.api == 'selfposts':
-            return SelfpostsService(service, verbose, force_overwrite)
-        elif service.api == 'twitter':
-            return TwitterService(service, verbose, force_overwrite)
-        elif service.api == 'vimeo':
-            return VimeoService(service, verbose, force_overwrite)
-        elif service.api == 'webfeed':
-            return WebfeedService(service, verbose, force_overwrite)
-        elif service.api == 'youtube':
-            return YoutubeService(service, verbose, force_overwrite)
-        raise ValueError(f'Unknown service: {service}')
+        service_class = ServiceFactory.get_service_class(service.api)
+        return service_class(service, verbose, force_overwrite)
+
+    @staticmethod
+    def get_service_class(api_name: str) -> type[BaseService]:
+        try:
+            return SERVICE_CLASSES[api_name]
+        except KeyError as exc:
+            raise ValueError(f'Unknown service API: {api_name}') from exc

@@ -7,9 +7,11 @@ from __future__ import annotations
 import os
 
 from glifestream.settings import *  # noqa: F403
+from glifestream.settings import _load_worker_maintenance_jobs
 from glifestream.settings_magic_sso import (  # noqa: F401
     get_bool,
     get_env,
+    get_int,
     validate_magic_sso_settings,
     validate_secret_value,
 )
@@ -68,6 +70,24 @@ LOGIN_URL = BASE_URL + '/login'
 MEDIA_URL = path_prefix + 'media/'
 STATIC_URL = path_prefix + 'static/'
 FAVICON = STATIC_URL + 'favicon.ico'
+
+WORKER_SOCKET = (
+    get_env(ENV, 'WORKER_SOCKET', default=WORKER_SOCKET)  # noqa: F405
+    or WORKER_SOCKET  # noqa: F405
+)
+WORKER_POOL_SIZE = (
+    get_int(ENV, 'WORKER_POOL_SIZE', default=WORKER_POOL_SIZE)  # noqa: F405
+    or WORKER_POOL_SIZE  # noqa: F405
+)
+FETCH_DEFAULT_INTERVAL_SEC = (
+    get_int(
+        ENV,
+        'FETCH_DEFAULT_INTERVAL_SEC',
+        default=FETCH_DEFAULT_INTERVAL_SEC,  # noqa: F405
+    )
+    or FETCH_DEFAULT_INTERVAL_SEC  # noqa: F405
+)
+WORKER_MAINTENANCE_JOBS = _load_worker_maintenance_jobs(ENV)
 
 SECRET_KEY = (
     get_env(ENV, 'SECRET_KEY', 'APP_SECRET_KEY', default='YOUR-SECRET-KEY')

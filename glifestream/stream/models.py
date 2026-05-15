@@ -44,6 +44,13 @@ class Service(models.Model):
     etag = models.CharField('ETag', max_length=64, blank=True)
     last_modified = models.DateTimeField(_('Last modified'), null=True, blank=True)
     last_checked = models.DateTimeField(_('Last checked'), null=True, blank=True)
+    fetch_interval_sec = models.PositiveIntegerField(
+        _('Fetch interval (seconds)'),
+        null=True,
+        blank=True,
+        help_text=_('Optional override for scheduled fetch interval in seconds.'),
+    )
+    next_fetch_at = models.DateTimeField(_('Next fetch at'), null=True, blank=True)
     DISPLAY_CHOICES = (
         ('both', _('Title and Contents')),
         ('content', _('Contents only')),
@@ -252,3 +259,67 @@ class WebSub(models.Model):
         verbose_name_plural = 'WebSub'
         ordering = ('service',)
         unique_together = (('hash', 'service', 'hub'),)
+
+
+class ServiceFetchState(models.Model):
+    STATUS_IDLE = 'idle'
+    STATUS_QUEUED = 'queued'
+    STATUS_RUNNING = 'running'
+    STATUS_SUCCEEDED = 'succeeded'
+    STATUS_FAILED = 'failed'
+    STATUS_CHOICES = (
+        (STATUS_IDLE, _('Idle')),
+        (STATUS_QUEUED, _('Queued')),
+        (STATUS_RUNNING, _('Running')),
+        (STATUS_SUCCEEDED, _('Succeeded')),
+        (STATUS_FAILED, _('Failed')),
+    )
+
+    TRIGGER_MANUAL = 'manual'
+    TRIGGER_SCHEDULE = 'schedule'
+    TRIGGER_CHOICES = (
+        (TRIGGER_MANUAL, _('Manual')),
+        (TRIGGER_SCHEDULE, _('Schedule')),
+    )
+
+    service = models.OneToOneField(
+        Service,
+        on_delete=models.CASCADE,
+        related_name='fetch_state',
+        verbose_name=_('Service'),
+    )
+    status = models.CharField(
+        _('Status'),
+        max_length=16,
+        choices=STATUS_CHOICES,
+        default=STATUS_IDLE,
+    )
+    trigger = models.CharField(
+        _('Trigger'),
+        max_length=16,
+        choices=TRIGGER_CHOICES,
+        blank=True,
+        default='',
+    )
+    requested_at = models.DateTimeField(_('Requested at'), null=True, blank=True)
+    started_at = models.DateTimeField(_('Started at'), null=True, blank=True)
+    finished_at = models.DateTimeField(_('Finished at'), null=True, blank=True)
+    last_result = models.CharField(_('Last result'), max_length=128, blank=True)
+    last_error = models.TextField(_('Last error'), blank=True)
+    triggered_by_user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='service_fetches_triggered',
+        verbose_name=_('Triggered by user'),
+    )
+    worker_token = models.CharField(_('Worker token'), max_length=64, blank=True)
+
+    class Meta:
+        verbose_name = _('Service fetch state')
+        verbose_name_plural = _('Service fetch states')
+        ordering = ('service',)
+
+    def __str__(self) -> str:
+        return '%s: %s' % (self.service.name, self.status)

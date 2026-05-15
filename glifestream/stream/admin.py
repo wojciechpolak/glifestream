@@ -21,7 +21,14 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.translation import gettext as _
-from glifestream.stream.models import Service, Entry, Media, Favorite, List
+from glifestream.stream.models import (
+    Service,
+    Entry,
+    Media,
+    Favorite,
+    List,
+    ServiceFetchState,
+)
 
 
 def activate(modeladmin, request, queryset):
@@ -73,6 +80,7 @@ class ServiceAdmin(admin.ModelAdmin):
                     'url',
                     'creds',
                     'display',
+                    'fetch_interval_sec',
                     'public',
                     'active',
                     'home',
@@ -91,7 +99,12 @@ class ServiceAdmin(admin.ModelAdmin):
             _('Fields updated automatically by gLifestream'),
             {
                 'classes': ('collapse',),
-                'fields': ('etag', 'last_modified', 'last_checked'),
+                'fields': (
+                    'etag',
+                    'last_modified',
+                    'last_checked',
+                    'next_fetch_at',
+                ),
             },
         ),
     )
@@ -148,8 +161,23 @@ class ListAdmin(admin.ModelAdmin):
     list_filter = ('user',)
 
 
+class ServiceFetchStateAdmin(admin.ModelAdmin):
+    list_display = (
+        'service',
+        'status',
+        'trigger',
+        'requested_at',
+        'started_at',
+        'finished_at',
+    )
+    list_filter = ('status', 'trigger')
+    search_fields = ['service__name', 'service__url', 'last_result', 'last_error']
+    raw_id_fields = ('service', 'triggered_by_user')
+
+
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(Media, MediaAdmin)
 admin.site.register(Favorite, FavoriteAdmin)
 admin.site.register(List, ListAdmin)
+admin.site.register(ServiceFetchState, ServiceFetchStateAdmin)
