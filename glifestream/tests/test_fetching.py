@@ -15,6 +15,7 @@ from glifestream.fetching import (
     get_effective_interval_sec,
     initialize_missing_schedules,
     ProcessedFetchJob,
+    run_service_fetch,
     send_worker_wake_signal,
     sync_service_schedule,
 )
@@ -93,6 +94,32 @@ def test_enqueue_manual_fetch_deduplicates(service):
 
 
 @pytest.mark.django_db
+def test_enqueue_manual_fetch_preserves_last_completed_summary(service):
+    now = timezone.now()
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        finished_at=now,
+        last_succeeded_at=now - timedelta(hours=2),
+        last_failed_at=now,
+        last_result='Fetch failed.',
+        last_error='connection timeout',
+    )
+
+    with patch('glifestream.fetching.send_worker_wake_signal', return_value=True):
+        result = enqueue_manual_fetch(service)
+
+    state.refresh_from_db()
+    assert result.queued is True
+    assert state.status == ServiceFetchState.STATUS_QUEUED
+    assert state.finished_at == now
+    assert state.last_succeeded_at == now - timedelta(hours=2)
+    assert state.last_failed_at == now
+    assert state.last_result == 'Fetch failed.'
+    assert state.last_error == 'connection timeout'
+
+
+@pytest.mark.django_db
 def test_claim_runnable_jobs_returns_due_scheduled_service(service):
     service.api = 'webfeed'
     service.active = True
@@ -109,6 +136,38 @@ def test_claim_runnable_jobs_returns_due_scheduled_service(service):
     state = ServiceFetchState.objects.get(service=service)
     assert state.status == ServiceFetchState.STATUS_RUNNING
     assert state.worker_token == 'worker-token'
+
+
+@pytest.mark.django_db
+def test_claim_runnable_jobs_preserves_last_completed_summary(service):
+    now = timezone.now()
+    service.api = 'webfeed'
+    service.active = True
+    service.fetch_interval_sec = 10
+    service.last_checked = now - timedelta(minutes=5)
+    service.next_fetch_at = now - timedelta(seconds=1)
+    service.save()
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        finished_at=now - timedelta(minutes=1),
+        last_succeeded_at=now - timedelta(hours=3),
+        last_failed_at=now - timedelta(minutes=1),
+        last_result='Fetch failed.',
+        last_error='feed offline',
+    )
+
+    claimed = claim_runnable_jobs('worker-token', now=now)
+
+    assert claimed == [(state.pk, service.pk)]
+    state.refresh_from_db()
+    assert state.status == ServiceFetchState.STATUS_RUNNING
+    assert state.started_at == now
+    assert state.finished_at == now - timedelta(minutes=1)
+    assert state.last_succeeded_at == now - timedelta(hours=3)
+    assert state.last_failed_at == now - timedelta(minutes=1)
+    assert state.last_result == 'Fetch failed.'
+    assert state.last_error == 'feed offline'
 
 
 @pytest.mark.django_db
@@ -231,3 +290,58 @@ def test_fetch_worker_wake_flow_smoke(settings):
         assert fetch_worker.run_ready_jobs() == 1
 
     assert ran.is_set()
+
+
+@pytest.mark.django_db
+def test_run_service_fetch_records_success_timestamp(service):
+    service.api = 'webfeed'
+    service.save()
+    previous_failure = timezone.now() - timedelta(days=1)
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_RUNNING,
+        worker_token='worker-token',
+        last_failed_at=previous_failure,
+        last_error='temporary error',
+    )
+    api = Mock()
+
+    with patch('glifestream.fetching.ServiceFactory.create_service', return_value=api):
+        run_service_fetch(service, state_id=state.pk, worker_token='worker-token')
+
+    state.refresh_from_db()
+    assert state.status == ServiceFetchState.STATUS_SUCCEEDED
+    assert state.finished_at is not None
+    assert state.last_succeeded_at == state.finished_at
+    assert state.last_failed_at == previous_failure
+    assert state.last_result == 'Fetch completed.'
+    assert state.last_error == ''
+
+
+@pytest.mark.django_db
+def test_run_service_fetch_failure_preserves_last_success(service):
+    service.api = 'webfeed'
+    service.save()
+    previous_success = timezone.now() - timedelta(days=1)
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_RUNNING,
+        worker_token='worker-token',
+        last_succeeded_at=previous_success,
+        finished_at=previous_success,
+        last_result='Fetch completed.',
+    )
+
+    with patch(
+        'glifestream.fetching.ServiceFactory.create_service',
+        return_value=Mock(run=Mock(side_effect=RuntimeError('boom'))),
+    ), pytest.raises(RuntimeError, match='boom'):
+        run_service_fetch(service, state_id=state.pk, worker_token='worker-token')
+
+    state.refresh_from_db()
+    assert state.status == ServiceFetchState.STATUS_FAILED
+    assert state.finished_at is not None
+    assert state.last_failed_at == state.finished_at
+    assert state.last_succeeded_at == previous_success
+    assert state.last_result == 'Fetch failed.'
+    assert state.last_error == 'boom'

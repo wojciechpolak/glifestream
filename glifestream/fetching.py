@@ -225,6 +225,14 @@ def serialize_fetch_state(
         'finished_at': (
             state.finished_at.isoformat() if state and state.finished_at else None
         ),
+        'last_succeeded_at': (
+            state.last_succeeded_at.isoformat()
+            if state and state.last_succeeded_at
+            else None
+        ),
+        'last_failed_at': (
+            state.last_failed_at.isoformat() if state and state.last_failed_at else None
+        ),
         'last_result': state.last_result if state else '',
         'last_error': state.last_error if state else '',
         'next_fetch_at': (
@@ -255,9 +263,6 @@ def enqueue_manual_fetch(
             state.trigger = ServiceFetchState.TRIGGER_MANUAL
             state.requested_at = now
             state.started_at = None
-            state.finished_at = None
-            state.last_result = ''
-            state.last_error = ''
             state.triggered_by_user = triggered_by_user
             state.worker_token = ''
             state.save()
@@ -305,6 +310,7 @@ def _update_state_success(
     ).update(
         status=ServiceFetchState.STATUS_SUCCEEDED,
         finished_at=finished_at,
+        last_succeeded_at=finished_at,
         last_result='Fetch completed.',
         last_error='',
         worker_token='',
@@ -334,6 +340,7 @@ def _update_state_failure(
     ).update(
         status=ServiceFetchState.STATUS_FAILED,
         finished_at=finished_at,
+        last_failed_at=finished_at,
         last_result='Fetch failed.',
         last_error=str(error),
         worker_token='',
@@ -459,10 +466,9 @@ def claim_runnable_jobs(
 
             state.status = ServiceFetchState.STATUS_RUNNING
             state.started_at = now
-            state.finished_at = None
             state.worker_token = worker_token
             state.save(
-                update_fields=['status', 'started_at', 'finished_at', 'worker_token']
+                update_fields=['status', 'started_at', 'worker_token']
             )
             claimed.append((state.pk, state.service.pk))
 
@@ -487,9 +493,6 @@ def claim_runnable_jobs(
             state.trigger = ServiceFetchState.TRIGGER_SCHEDULE
             state.requested_at = now
             state.started_at = now
-            state.finished_at = None
-            state.last_result = ''
-            state.last_error = ''
             state.triggered_by_user = None
             state.worker_token = worker_token
             state.save()

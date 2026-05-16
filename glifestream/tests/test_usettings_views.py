@@ -1,8 +1,11 @@
+from datetime import timedelta
 import pytest
 from unittest.mock import patch
 from django.urls import reverse
 from django.contrib.auth.models import User
-from glifestream.stream.models import Service, List
+from django.utils import timezone
+
+from glifestream.stream.models import Service, List, ServiceFetchState
 
 
 @pytest.fixture
@@ -30,10 +33,60 @@ def test_usettings_services_access(client, staff_user):
 
 @pytest.mark.django_db
 def test_usettings_services_list(logged_in_client):
-    Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+    service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        finished_at=timezone.now(),
+        last_failed_at=timezone.now(),
+        last_error='feed timeout',
+    )
     response = logged_in_client.get(reverse('usettings-services'))
     assert response.status_code == 200
-    assert 'S1' in response.content.decode()
+    body = response.content.decode()
+    assert 'S1' in body
+    assert 'Last successful import' not in body
+    assert 'Last completed attempt' not in body
+    assert 'Next scheduled fetch' not in body
+    assert 'feed timeout' not in body
+    assert 'Run now' not in body
+    assert 'fetch-status-' not in body
+
+
+@pytest.mark.django_db
+def test_usettings_status_list(logged_in_client):
+    service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+    succeeded_at = timezone.now() - timedelta(hours=1)
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        finished_at=timezone.now(),
+        last_succeeded_at=succeeded_at,
+        last_failed_at=timezone.now(),
+        last_error='feed timeout',
+    )
+    response = logged_in_client.get(reverse('usettings-status'))
+    assert response.status_code == 200
+    body = response.content.decode()
+    assert 'Service fetch status' in body
+    assert 'S1' in body
+    assert 'Last successful import' in body
+    assert 'Last completed attempt' in body
+    assert 'Next scheduled fetch' in body
+    assert 'feed timeout' in body
+    assert 'data-last-failed-at=' in body
+    assert 'Run now' in body
+    assert 'fetch-status-' in body
+
+
+@pytest.mark.django_db
+def test_usettings_status_hides_non_fetchable_services(logged_in_client):
+    Service.objects.create(name='Notes', api='selfposts')
+
+    response = logged_in_client.get(reverse('usettings-status'))
+
+    assert response.status_code == 200
+    assert 'No fetchable services are connected yet.' in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -110,12 +163,44 @@ def test_usettings_fetch_now_and_status(logged_in_client):
     data = response.json()
     assert data['queued'] is True
     assert data['state']['status'] == 'queued'
+    assert 'last_succeeded_at' in data['state']
+    assert 'last_failed_at' in data['state']
 
     response = logged_in_client.get(reverse('usettings-api-cmd', args=['fetch-status']))
     assert response.status_code == 200
     data = response.json()
     assert str(service.pk) in data['services']
+    assert 'last_succeeded_at' in data['services'][str(service.pk)]
+    assert 'last_failed_at' in data['services'][str(service.pk)]
     assert 'max-age=0' in response.headers['Cache-Control']
+
+
+@pytest.mark.django_db
+def test_usettings_fetch_status_exposes_failure_state(logged_in_client):
+    service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+    failed_at = timezone.now()
+    succeeded_at = failed_at - timedelta(hours=2)
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        finished_at=failed_at,
+        last_succeeded_at=succeeded_at,
+        last_failed_at=failed_at,
+        last_result='Fetch failed.',
+        last_error='remote 500',
+    )
+
+    response = logged_in_client.get(
+        reverse('usettings-api-cmd', args=['fetch-status']),
+        {'id': str(service.pk)},
+    )
+
+    assert response.status_code == 200
+    state = response.json()['services'][str(service.pk)]
+    assert state['status'] == 'failed'
+    assert state['last_error'] == 'remote 500'
+    assert state['last_succeeded_at'] == succeeded_at.isoformat()
+    assert state['last_failed_at'] == failed_at.isoformat()
 
 
 @pytest.mark.django_db

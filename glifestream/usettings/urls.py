@@ -27,6 +27,7 @@ urlpatterns = [
     re_path(r'services$', views.services, name='usettings-services'),
     re_path(r'services/import$', views.opml, {'cmd': 'import'}, 'opml-import'),
     re_path(r'services/export$', views.opml, {'cmd': 'export'}, 'opml-export'),
+    re_path(r'status$', views.status, name='usettings-status'),
     re_path(r'lists$', views.lists, name='usettings-lists'),
     re_path(r'lists/(?P<list>[a-z0-9\-]+)$', views.lists, name='usettings-lists-slug'),
     re_path(r'websub$', views.websub, name='usettings-websub'),

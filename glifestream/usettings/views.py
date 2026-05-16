@@ -89,6 +89,49 @@ def services(request: HttpRequest, **args: Any) -> HttpResponse:
     )
 
 
+@login_required
+@never_cache
+def status(request: HttpRequest, **args: Any) -> HttpResponse:
+    user = cast(User, request.user)
+    authed = user.is_authenticated and user.is_staff
+    if not authed:
+        return HttpResponseForbidden()
+
+    page = {
+        'robots': 'noindex',
+        'base_url': settings.BASE_URL,
+        'pwa': getattr(settings, 'PWA_APP_NAME', None),
+        'favicon': settings.FAVICON,
+        'themes': settings.THEMES,
+        'themes_more': len(settings.THEMES) > 1,
+        'theme': common.get_theme(request),
+        'title': _('Status - Settings'),
+        'menu': 'status',
+    }
+
+    services_all = Service.objects.select_related('fetch_state').all().order_by(
+        'api', 'name'
+    )
+    fetchable_services: list[Service] = []
+    for service in services_all:
+        snapshot = serialize_fetch_state(service)
+        cast(Any, service).fetch_state_snapshot = snapshot
+        if snapshot['can_fetch']:
+            fetchable_services.append(service)
+
+    return render(
+        request,
+        'status.html',
+        {
+            'page': page,
+            'authed': authed,
+            'is_secure': request.is_secure(),
+            'user': request.user,
+            'services': fetchable_services,
+        },
+    )
+
+
 class ListForm(ModelForm):
     class Meta:
         model = List

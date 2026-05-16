@@ -1238,6 +1238,7 @@
             return false;
         });
         $('#change-theme').click(change_theme);
+        initialize_fetch_diagnostics();
         maybe_start_fetch_status_polling(true);
     }
 
@@ -1264,7 +1265,7 @@
     }
 
     function set_run_fetch_busy(serviceId, busy) {
-        const btn = $('#edit-service .run-fetch[data-service-id="' + serviceId + '"]');
+        const btn = $('.run-fetch[data-service-id="' + serviceId + '"]');
         if (!btn.length) {
             return;
         }
@@ -1312,14 +1313,94 @@
     const fetch_status_poll_interval_ms = 3000;
 
     function has_active_fetch_statuses() {
-        return $('#edit-service .fetch-status[data-status="queued"], ' +
-                 '#edit-service .fetch-status[data-status="running"]').length > 0;
+        return $('.fetch-status[data-status="queued"], ' +
+                 '.fetch-status[data-status="running"]').length > 0;
     }
 
     function stop_fetch_status_polling() {
         if (fetch_status_poll_timer !== null) {
             window.clearTimeout(fetch_status_poll_timer);
             fetch_status_poll_timer = null;
+        }
+    }
+
+    function format_fetch_timestamp(value, emptyLabel) {
+        if (!value) {
+            return emptyLabel;
+        }
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+            return value;
+        }
+        return parsed.toLocaleString();
+    }
+
+    function get_fetch_diagnostics_state(serviceId) {
+        const diagnostics = $('#fetch-diagnostics-' + serviceId);
+        const statusEl = $('#fetch-status-' + serviceId);
+        if (!diagnostics.length) {
+            return {
+                service_id: Number(serviceId),
+                status: statusEl.attr('data-status') || 'idle'
+            };
+        }
+        return {
+            service_id: Number(serviceId),
+            status: diagnostics.attr('data-status') || statusEl.attr('data-status') || 'idle',
+            requested_at: diagnostics.attr('data-requested-at') || null,
+            started_at: diagnostics.attr('data-started-at') || null,
+            finished_at: diagnostics.attr('data-finished-at') || null,
+            last_succeeded_at: diagnostics.attr('data-last-succeeded-at') || null,
+            last_failed_at: diagnostics.attr('data-last-failed-at') || null,
+            next_fetch_at: diagnostics.attr('data-next-fetch-at') || null,
+            last_result: diagnostics.attr('data-last-result') || '',
+            last_error: diagnostics.attr('data-last-error') || ''
+        };
+    }
+
+    function store_fetch_diagnostics_state(state) {
+        if (!state || !state.service_id) {
+            return;
+        }
+        const diagnostics = $('#fetch-diagnostics-' + state.service_id);
+        if (!diagnostics.length) {
+            return;
+        }
+        diagnostics.attr('data-status', state.status || '');
+        diagnostics.attr('data-requested-at', state.requested_at || '');
+        diagnostics.attr('data-started-at', state.started_at || '');
+        diagnostics.attr('data-finished-at', state.finished_at || '');
+        diagnostics.attr('data-last-succeeded-at', state.last_succeeded_at || '');
+        diagnostics.attr('data-last-failed-at', state.last_failed_at || '');
+        diagnostics.attr('data-next-fetch-at', state.next_fetch_at || '');
+        diagnostics.attr('data-last-result', state.last_result || '');
+        diagnostics.attr('data-last-error', state.last_error || '');
+    }
+
+    function render_fetch_diagnostics(state) {
+        if (!state || !state.service_id) {
+            return;
+        }
+        store_fetch_diagnostics_state(state);
+        $('#fetch-summary-last-succeeded-' + state.service_id).text(
+            format_fetch_timestamp(state.last_succeeded_at, _('Never'))
+        );
+        $('#fetch-summary-finished-' + state.service_id).text(
+            format_fetch_timestamp(state.finished_at, _('No completed runs'))
+        );
+        $('#fetch-summary-next-fetch-' + state.service_id).text(
+            format_fetch_timestamp(state.next_fetch_at, _('Not scheduled'))
+        );
+
+        const errorWrap = $('#fetch-error-' + state.service_id);
+        const errorText = $('#fetch-error-text-' + state.service_id);
+        if (state.last_error) {
+            errorText.text(state.last_error);
+            errorWrap.removeClass('empty');
+        }
+        else {
+            errorText.text('\u2014');
+            errorWrap.addClass('empty');
         }
     }
 
@@ -1348,6 +1429,16 @@
         schedule_fetch_status_poll(fetch_status_poll_interval_ms);
     }
 
+    function initialize_fetch_diagnostics() {
+        $('[id^="fetch-diagnostics-"]').each(function() {
+            const serviceId = $(this).attr('data-service-id');
+            if (!serviceId) {
+                return;
+            }
+            render_fetch_diagnostics(get_fetch_diagnostics_state(serviceId));
+        });
+    }
+
     function fetch_status_label(state) {
         if (!state || !state.status) {
             return _('idle');
@@ -1371,6 +1462,12 @@
         if (!state || !state.service_id) {
             return;
         }
+        state = $.extend(
+            {},
+            get_fetch_diagnostics_state(state.service_id),
+            state,
+            {service_id: Number(state.service_id)}
+        );
         const el = $('#fetch-status-' + state.service_id);
         if (!el.length) {
             return;
@@ -1378,6 +1475,7 @@
         el.text(fetch_status_label(state));
         el.attr('data-status', state.status || '');
         el.attr('title', state.last_error || state.last_result || '');
+        render_fetch_diagnostics(state);
         set_run_fetch_busy(
             state.service_id,
             state.status === 'queued' || state.status === 'running'
@@ -1423,16 +1521,6 @@
         html += '<span class="service ' + data.api + '"></span>';
         html += '<a href="#" class="' + data.api + '" id="service-' + data.id + '">' +
             data.name + '</a>';
-        const canFetch = data.api !== 'selfposts' && data.can_fetch !== false;
-        if (canFetch) {
-            html += ' <a href="#" class="run-fetch" data-service-id="' +
-                data.id + '" onclick="return gls.run_fetch_service(this)">' +
-                _('Run now') + '</a>';
-            html += ' <span class="fetch-status" id="fetch-status-' + data.id +
-                '" data-service-id="' + data.id + '" data-status="' +
-                ((data.fetch_status && data.fetch_status.status) || 'idle') + '">' +
-                fetch_status_label(data.fetch_status || {status: 'idle'}) + '</span>';
-        }
         html += '</li>';
         return html;
     }

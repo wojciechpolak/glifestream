@@ -304,6 +304,10 @@ class ServiceFetchState(models.Model):
     requested_at = models.DateTimeField(_('Requested at'), null=True, blank=True)
     started_at = models.DateTimeField(_('Started at'), null=True, blank=True)
     finished_at = models.DateTimeField(_('Finished at'), null=True, blank=True)
+    last_succeeded_at = models.DateTimeField(
+        _('Last succeeded at'), null=True, blank=True
+    )
+    last_failed_at = models.DateTimeField(_('Last failed at'), null=True, blank=True)
     last_result = models.CharField(_('Last result'), max_length=128, blank=True)
     last_error = models.TextField(_('Last error'), blank=True)
     triggered_by_user = models.ForeignKey(

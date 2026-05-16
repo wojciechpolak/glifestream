@@ -1,0 +1,164 @@
+{% extends "settings.html" %}
+{% load i18n %}
+
+{% block settings %}
+  <style>
+    #status-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.8rem;
+      font-size: 0.92rem;
+    }
+    #status-table th,
+    #status-table td {
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+      text-align: left;
+      vertical-align: top;
+    }
+    #status-table th {
+      font-weight: 700;
+    }
+    #status-table .service-name {
+      white-space: nowrap;
+    }
+    #status-table .action-cell {
+      position: relative;
+      white-space: nowrap;
+      width: 1%;
+      padding-right: 2rem;
+    }
+    #status-table .fetch-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 1.5rem;
+      padding: 0.08rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      line-height: 1.25;
+      background: rgba(127, 127, 127, 0.12);
+      color: inherit;
+      opacity: 0.84;
+    }
+    #status-table .fetch-status[data-status="queued"],
+    #status-table .fetch-status[data-status="running"] {
+      background: rgba(196, 132, 31, 0.16);
+    }
+    #status-table .fetch-status[data-status="failed"] {
+      background: rgba(180, 32, 32, 0.14);
+    }
+    #status-table .fetch-status[data-status="succeeded"] {
+      background: rgba(45, 140, 62, 0.14);
+    }
+    #status-table a.run-fetch {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.12rem 0.55rem;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      line-height: 1.3;
+      text-decoration: none;
+      opacity: 0.88;
+      white-space: nowrap;
+    }
+    #status-table a.run-fetch:hover,
+    #status-table a.run-fetch:focus-visible {
+      text-decoration: none;
+      opacity: 1;
+    }
+    #status-table a.run-fetch[aria-busy="true"] {
+      opacity: 0.56;
+      pointer-events: none;
+    }
+    #status-table .error-text {
+      color: #8c1d1d;
+      word-break: break-word;
+    }
+    #status-table .action-cell > #spinner {
+      position: absolute;
+      top: 50%;
+      right: 0.55rem;
+      margin-left: 0;
+      transform: translateY(-50%);
+    }
+  </style>
+
+  <p class="bold">{% trans "Service fetch status:" %}</p>
+
+  {% if services %}
+  <table id="status-table">
+    <thead>
+      <tr>
+        <th>{% trans "Service" %}</th>
+        <th>{% trans "Type" %}</th>
+        <th class="action-cell">{% trans "Action" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th>{% trans "Last successful import" %}</th>
+        <th>{% trans "Last completed attempt" %}</th>
+        <th>{% trans "Next scheduled fetch" %}</th>
+        <th>{% trans "Last error" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in services %}
+      <tr id="fetch-diagnostics-{{ s.id }}"
+          data-service-id="{{ s.id }}"
+          data-status="{{ s.fetch_state_snapshot.status }}"
+          data-requested-at="{{ s.fetch_state_snapshot.requested_at|default_if_none:'' }}"
+          data-started-at="{{ s.fetch_state_snapshot.started_at|default_if_none:'' }}"
+          data-finished-at="{{ s.fetch_state_snapshot.finished_at|default_if_none:'' }}"
+          data-last-succeeded-at="{{ s.fetch_state_snapshot.last_succeeded_at|default_if_none:'' }}"
+          data-last-failed-at="{{ s.fetch_state_snapshot.last_failed_at|default_if_none:'' }}"
+          data-next-fetch-at="{{ s.fetch_state_snapshot.next_fetch_at|default_if_none:'' }}"
+          data-last-result="{{ s.fetch_state_snapshot.last_result }}"
+          data-last-error="{{ s.fetch_state_snapshot.last_error }}">
+        <td class="service-name">{{ s.name }}</td>
+        <td>{{ s.api }}</td>
+        <td class="action-cell">
+          <a href="#" class="run-fetch" data-service-id="{{ s.id }}" onclick="return gls.run_fetch_service(this)">{% trans "Run now" %}</a>
+        </td>
+        <td>
+          <span class="fetch-status" id="fetch-status-{{ s.id }}" data-service-id="{{ s.id }}" data-status="{{ s.fetch_state_snapshot.status }}">
+            {{ s.fetch_state_snapshot.status }}
+          </span>
+        </td>
+        <td id="fetch-summary-last-succeeded-{{ s.id }}">
+          {% if s.fetch_state_snapshot.last_succeeded_at %}
+            {{ s.fetch_state_snapshot.last_succeeded_at }}
+          {% else %}
+            {% trans "Never" %}
+          {% endif %}
+        </td>
+        <td id="fetch-summary-finished-{{ s.id }}">
+          {% if s.fetch_state_snapshot.finished_at %}
+            {{ s.fetch_state_snapshot.finished_at }}
+          {% else %}
+            {% trans "No completed runs" %}
+          {% endif %}
+        </td>
+        <td id="fetch-summary-next-fetch-{{ s.id }}">
+          {% if s.fetch_state_snapshot.next_fetch_at %}
+            {{ s.fetch_state_snapshot.next_fetch_at }}
+          {% else %}
+            {% trans "Not scheduled" %}
+          {% endif %}
+        </td>
+        <td id="fetch-error-{{ s.id }}" class="error-text">
+          <span id="fetch-error-text-{{ s.id }}">
+            {% if s.fetch_state_snapshot.last_error %}
+              {{ s.fetch_state_snapshot.last_error }}
+            {% else %}
+              &mdash;
+            {% endif %}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>{% trans "No fetchable services are connected yet." %}</p>
+  {% endif %}
+{% endblock settings %}

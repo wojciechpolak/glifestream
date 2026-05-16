@@ -418,6 +418,7 @@ def test_settings_services_lists_and_websub(
     assert Service.objects.filter(name='Playwright Service Updated').exists()
     page.goto(f'{app_base_url}/settings/services')
     expect(page.locator('#edit-service')).to_contain_text('Playwright Service Updated')
+    expect(page.locator('#edit-service')).not_to_contain_text('Run now')
 
     page.goto(f'{app_base_url}/settings/lists')
     page.locator('#id_name').fill('Playwright List')
@@ -444,6 +445,7 @@ def test_settings_services_lists_and_websub(
     page.goto(f'{app_base_url}/settings/websub')
     expect(page.locator('#websub-form')).to_be_visible()
     expect(page.get_by_role('link', name='WebSub')).to_be_visible()
+    expect(page.get_by_role('link', name='Status')).to_be_visible()
 
     assert Service.objects.filter(name='Playwright Service Updated').exists()
 
@@ -470,15 +472,22 @@ def test_settings_async_create_fetches_feed_content(
     ):
         page.locator('#save').click()
 
-    page.goto(f'{app_base_url}/settings/services?refresh=async-created')
-    service_row = page.locator('#edit-service li', has_text='Playwright Async Feed')
+    page.goto(f'{app_base_url}/settings/status')
+    service_row = page.locator('#status-table tbody tr', has_text='Playwright Async Feed')
     expect(service_row).to_be_visible()
+    expect(page.locator('#status-table')).to_contain_text('Last successful import')
+    expect(page.locator('#status-table')).to_contain_text('Last completed attempt')
+    expect(page.locator('#status-table')).to_contain_text('Next scheduled fetch')
+    expect(service_row).to_contain_text('Run now')
     _wait_for(
         lambda: Entry.objects.filter(
             service__name='Playwright Async Feed', title='Public RSS Entry'
         ).exists(),
         tick=fetch_worker_runner.run_ready_jobs,
     )
+    page.wait_for_timeout(3500)
+    expect(service_row).to_contain_text('succeeded')
+    expect(service_row).not_to_contain_text('No completed runs')
     assert Service.objects.filter(
         name='Playwright Async Feed', public=True, home=True, active=True
     ).exists()
