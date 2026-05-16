@@ -22,7 +22,7 @@ set -eu
 
 mode="${1:-compare}"
 shift || true
-image="gls-vrt:1.58.0-noble"
+image="gls-vrt:1.59.0-noble"
 workdir="$(pwd)"
 uv_project_dir="$workdir/run/vrt-venv"
 uv_cache_dir="$workdir/run/vrt-uv-cache"

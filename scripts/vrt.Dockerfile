@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright/python:v1.58.0-noble
+FROM mcr.microsoft.com/playwright/python:v1.59.0-noble
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends build-essential \

@@ -111,7 +111,7 @@ class MockFeedServer:
     @property
     def base_url(self) -> str:
         host = cast(str, self.server.server_address[0])
-        port = cast(int, self.server.server_address[1])
+        port = self.server.server_address[1]
         return f'http://{host}:{port}'
 
     def publish_fixture(self, route: str, fixture_name: str) -> str:
@@ -166,7 +166,7 @@ class MockOAuth2Server:
     @property
     def base_url(self) -> str:
         host = cast(str, self.server.server_address[0])
-        port = cast(int, self.server.server_address[1])
+        port = self.server.server_address[1]
         return f'http://{host}:{port}'
 
     def set_home_timeline(
@@ -209,7 +209,7 @@ class MockAtProtoServer:
     @property
     def base_url(self) -> str:
         host = cast(str, self.server.server_address[0])
-        port = cast(int, self.server.server_address[1])
+        port = self.server.server_address[1]
         return f'http://{host}:{port}'
 
     def set_timeline(self, fixture_name_or_payload: str | list[dict[str, Any]]) -> None:

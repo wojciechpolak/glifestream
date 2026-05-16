@@ -41,6 +41,13 @@ def _open_entry_menu(article: Locator) -> None:
     article.locator('span.entry-controls-switch').click()
 
 
+def _stream_vrt_masks(page: Page) -> list[Locator]:
+    return [
+        page.locator('#calendar'),
+        page.locator('#sidebar-foot'),
+    ]
+
+
 def _wait_for(
     condition: Callable[[], bool],
     timeout: float = 10.0,
@@ -85,7 +92,7 @@ def test_initial_admin_login_requires_password_change(
         page,
         'main-stream.png',
         full_page=True,
-        mask=[page.locator('#calendar')],
+        mask=_stream_vrt_masks(page),
     )
 
 
@@ -138,7 +145,7 @@ def test_worker_ingests_mocked_feeds_and_updates_browser_state(
         page,
         'public-stream.png',
         full_page=True,
-        mask=[page.locator('#calendar')],
+        mask=_stream_vrt_masks(page),
     )
 
     ensure_admin_session()
