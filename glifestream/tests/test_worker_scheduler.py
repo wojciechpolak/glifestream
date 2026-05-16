@@ -165,7 +165,10 @@ def test_worker_daemon_sleep_log_does_not_repeat_socket_path(settings):
 
     message = daemon._describe_sleep(15.3, now=now)
 
-    assert message == 'sleeping for 15.3s until 2026-05-15 18:57:15 CEST'
+    expected_wake_at = timezone.localtime(
+        now + datetime.timedelta(seconds=15.3)
+    ).strftime('%Y-%m-%d %H:%M:%S %Z')
+    assert message == f'sleeping for 15.3s until {expected_wake_at}'
     assert daemon.fetch_worker.socket_path not in message
 
 
