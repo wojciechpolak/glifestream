@@ -131,7 +131,7 @@ def test_index_pagination(client, service):
 
     # Use a safe patching strategy to fix RuntimeWarning.
     # We patch fromtimestamp to return an AWARE UTC datetime.
-    with patch('glifestream.stream.views.datetime') as mock_datetime_module:
+    with patch('glifestream.stream.index_view.datetime') as mock_datetime_module:
         # Re-attach real functionality except for the parts we want to mock
         mock_datetime_module.date = datetime.date
         mock_datetime_module.timedelta = datetime.timedelta
