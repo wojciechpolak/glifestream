@@ -1,11 +1,15 @@
 from datetime import timedelta
+from typing import Any, cast
 import pytest
 from unittest.mock import patch
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.http import JsonResponse
+from django.test import RequestFactory
 from django.utils import timezone
 
 from glifestream.stream.models import Service, List, ServiceFetchState
+from glifestream.usettings import service_settings
 
 
 @pytest.fixture
@@ -210,3 +214,93 @@ def test_usettings_websub(logged_in_client):
 
     # Mocking subscribe process would be complex, but we can check if it renders
     assert 'WebSub' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_usettings_api_dispatches_through_registry(logged_in_client, monkeypatch):
+    called = {}
+
+    def fake_handler(request, user, cmd, id_service):
+        called['cmd'] = cmd
+        called['id_service'] = id_service
+        return JsonResponse({'ok': True})
+
+    monkeypatch.setitem(service_settings.SERVICE_API_HANDLERS, 'service', fake_handler)
+
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {'id': '17'},
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {'ok': True}
+    assert called == {'cmd': 'service', 'id_service': '17'}
+
+
+def test_validate_service_payload_preserves_missing_field_behavior():
+    request = RequestFactory().post(
+        '/settings/api/service',
+        {'timeline': 'user'},
+    )
+    payload = {
+        'api': 'mastodon',
+        'name': '',
+        'cls': '',
+        'url': '',
+        'user_id': '',
+        'fetch_interval_sec': '-5',
+        'display': 'content',
+        'public': False,
+        'home': False,
+        'active': False,
+        'id': None,
+    }
+
+    method, miss, fetch_interval = service_settings.validate_service_payload(
+        payload, request, 'post'
+    )
+
+    assert method == 'get'
+    assert miss == {
+        'name': True,
+        'fetch_interval_sec': True,
+        'user_id': True,
+    }
+    assert fetch_interval == -5
+
+
+@pytest.mark.django_db
+def test_handle_opml_import_file_normalizes_supported_feed_urls():
+    xml = b"""<?xml version="1.0" encoding="UTF-8"?>
+<opml version="2.0">
+  <body>
+    <outline text="Videos">
+      <outline type="rss" text="Channel Feed" xmlUrl="http://vimeo.com/channels/staffpicks/videos/rss" />
+    </outline>
+  </body>
+</opml>
+"""
+
+    service_settings.handle_opml_import_file(xml)
+
+    service = Service.objects.get(name='Channel Feed')
+    assert service.api == 'vimeo'
+    assert service.url == 'channel/staffpicks'
+    assert service.cls == 'videos'
+    assert service.display == 'both'
+
+
+@pytest.mark.django_db
+def test_get_fetchable_services_excludes_non_fetchable_and_decorates():
+    fetchable = Service.objects.create(name='Feed', api='webfeed', url='http://s1.com')
+    Service.objects.create(name='Notes', api='selfposts')
+    ServiceFetchState.objects.create(service=fetchable)
+
+    services = list(
+        Service.objects.select_related('fetch_state').all().order_by('name')
+    )
+    fetchable_services = service_settings.get_fetchable_services(services)
+
+    assert [service.name for service in fetchable_services] == ['Feed']
+    assert cast(Any, services[0]).fetch_state_snapshot['can_fetch'] is True
+    assert cast(Any, services[1]).fetch_state_snapshot['can_fetch'] is False

@@ -13,13 +13,14 @@
 #
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
-#  Compatibility facade for the split settings views.
 """
 
-from glifestream.usettings.list_settings import lists
-from glifestream.usettings.oauth_settings import oauth, oauth2
-from glifestream.usettings.service_settings import api, opml, services, status
-from glifestream.usettings.websub_settings import websub
+from django.forms import ModelForm
 
-__all__ = ['api', 'lists', 'oauth', 'oauth2', 'opml', 'services', 'status', 'websub']
+from glifestream.stream.models import List
+
+
+class ListForm(ModelForm):
+    class Meta:
+        model = List
+        exclude = ('user',)
