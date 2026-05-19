@@ -27,28 +27,104 @@
         return [id.substring(0, p), id.substr(p + 1)];
     }
 
+    function can_play_hls(video) {
+        return !!(
+            video.canPlayType('application/vnd.apple.mpegurl') ||
+            video.canPlayType('application/x-mpegURL')
+        );
+    }
+
+    function cleanup_video_player(wrapper) {
+        const cleanup = $(wrapper).data('videoCleanup');
+        if (typeof cleanup == 'function') {
+            cleanup();
+            $(wrapper).removeData('videoCleanup');
+        }
+    }
+
+    function render_atproto_video(wrapper) {
+        const playlist = $(wrapper).data('playlist');
+        if (!playlist) {
+            return null;
+        }
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.controls = true;
+        video.preload = 'metadata';
+        video.playsInline = true;
+
+        const poster = $(wrapper).data('poster');
+        if (poster) {
+            video.poster = poster;
+        }
+
+        const width = Number($(wrapper).data('width'));
+        const height = Number($(wrapper).data('height'));
+        let style = '';
+        if (width > 0 && height > 0) {
+            style = 'padding-bottom:' + ((height / width) * 100).toFixed(4) + '%';
+        }
+
+        if (can_play_hls(video)) {
+            video.src = playlist;
+            return {
+                node: video,
+                style: style,
+                onMount: function() {
+                    video.play().catch(function() {});
+                }
+            };
+        }
+
+        return null;
+    }
+
+    function render_video_embed(wrapper, type, id) {
+        const provider = video_embeds[type];
+        if (typeof provider == 'string') {
+            return {
+                html: provider.replace(/{ID}/g, id)
+            };
+        }
+        if (typeof provider == 'function') {
+            return provider(wrapper, id);
+        }
+        return null;
+    }
+
     function play_video() {
         let a = parse_id($(this).data('id') || this.id);
         let type = a[0];
         let id = a[1];
 
-        let embed = '';
-        if (type in video_embeds) {
-            embed = video_embeds[type].replace(/{ID}/g, id);
-        }
-        else {
+        let embed = render_video_embed(this, type, id);
+        if (!embed) {
             return true;
         }
 
         $('.playbutton', this).removeClass('playbutton').addClass('stopbutton');
-        $VC(this).after('<div class="player video ' +
-                        type + '">' + embed + '</div>');
+        const $player = $('<div class="player video ' + type + '"></div>');
+        if (embed.style) {
+            $player.attr('style', embed.style);
+        }
+        if (embed.html) {
+            $player.html(embed.html);
+        }
+        else if (embed.node) {
+            $player.append(embed.node);
+        }
+        $VC(this).after($player);
+        if (typeof embed.onMount == 'function') {
+            embed.onMount($player[0]);
+        }
         $('a', this).blur();
         scroll_to_element(this);
         return false;
     }
 
     function stop_video() {
+        cleanup_video_player(this);
         $('.player', $VC(this).parent()).remove();
         $('.stopbutton', this).removeClass('stopbutton').addClass('playbutton');
         $('a', this).blur();
@@ -59,23 +135,23 @@
         let $this = $(this);
         if (!$this.hasClass('video-inline')) {
             if ($('.playbutton', this).length) {
-                play_video.call(this);
+                return play_video.call(this);
             }
             else {
-                stop_video.call(this);
+                return stop_video.call(this);
             }
         }
         else {
             if (!$this.data('play')) {
                 $this.data('play', true);
-                play_video.call(this);
+                return play_video.call(this);
             }
             else {
-                stop_video.call(this);
                 $this.data('play', false);
+                return stop_video.call(this);
             }
         }
-        return false;
+        return true;
     }
 
     /* find VC block */
@@ -2298,6 +2374,7 @@
     let video_embeds = {
         'youtube': '<iframe width="560" height="349" src="https://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
         'vimeo': '<iframe width="560" height="315" src="https://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
-        'dailymotion': '<iframe width="560" height="315" src="https://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>'
+        'dailymotion': '<iframe width="560" height="315" src="https://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',
+        'atproto': render_atproto_video
     };
 })();

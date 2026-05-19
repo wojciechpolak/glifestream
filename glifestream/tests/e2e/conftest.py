@@ -447,6 +447,42 @@ class MockAtProtoHandler(BaseHTTPRequestHandler):
             self.wfile.write(MOCK_AVATAR_PNG)
             return
 
+        if parsed.path == '/video-thumb.png':
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(MOCK_AVATAR_PNG)))
+            self.end_headers()
+            self.wfile.write(MOCK_AVATAR_PNG)
+            return
+
+        if parsed.path == '/video-playlist.m3u8':
+            playlist = '\n'.join(
+                [
+                    '#EXTM3U',
+                    '#EXT-X-VERSION:3',
+                    '#EXT-X-TARGETDURATION:1',
+                    '#EXT-X-MEDIA-SEQUENCE:0',
+                    '#EXTINF:1.0,',
+                    f'{self.mock_server.base_url}/video-segment.ts',
+                    '#EXT-X-ENDLIST',
+                ]
+            ).encode('utf-8')
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/vnd.apple.mpegurl')
+            self.send_header('Content-Length', str(len(playlist)))
+            self.end_headers()
+            self.wfile.write(playlist)
+            return
+
+        if parsed.path == '/video-segment.ts':
+            segment = b'glifestream-mock-atproto-video-segment'
+            self.send_response(200)
+            self.send_header('Content-Type', 'video/mp2t')
+            self.send_header('Content-Length', str(len(segment)))
+            self.end_headers()
+            self.wfile.write(segment)
+            return
+
         self._send_json({'error': 'NotFound'}, status=404)
 
     def do_POST(self) -> None:

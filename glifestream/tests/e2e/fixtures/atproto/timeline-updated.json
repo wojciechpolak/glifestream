@@ -15,7 +15,37 @@
       "record": {
         "$type": "app.bsky.feed.post",
         "text": "Playwright Bluesky Entry Two",
-        "createdAt": "2026-04-02T11:00:00.000Z"
+        "createdAt": "2026-04-02T11:00:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.video",
+          "video": {
+            "$type": "blob",
+            "ref": {
+              "$link": "bafkreiplaywrightvideoblob000000000000000000000000000000"
+            },
+            "mimeType": "video/mp4",
+            "size": 1234567
+          },
+          "alt": "Playwright video thumbnail",
+          "aspectRatio": {
+            "$type": "app.bsky.embed.defs#aspectRatio",
+            "width": 1280,
+            "height": 720
+          }
+        }
+      },
+      "embed": {
+        "$type": "app.bsky.embed.video#view",
+        "cid": "bafkreiplaywrightvideoblob000000000000000000000000000000",
+        "playlist": "__MOCK_BASE_URL__/video-playlist.m3u8",
+        "thumbnail": "__MOCK_BASE_URL__/video-thumb.png",
+        "alt": null,
+        "aspectRatio": {
+          "$type": "app.bsky.embed.defs#aspectRatio",
+          "width": 1280,
+          "height": 720
+        },
+        "presentation": "default"
       },
       "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-two"
     }

@@ -378,8 +378,66 @@ def test_bluesky_atproto_full_flow_ingests_stream_updates(
     assert len(mock_atproto_server.timeline_requests) == 2
 
     page.goto(f'{app_base_url}/?refresh=atproto-updated')
+    page.evaluate(
+        """
+        () => {
+            const nativeCanPlayType = HTMLMediaElement.prototype.canPlayType;
+            HTMLMediaElement.prototype.canPlayType = function(type) {
+                if (
+                    type === 'application/vnd.apple.mpegurl' ||
+                    type === 'application/x-mpegURL'
+                ) {
+                    return 'probably';
+                }
+                return nativeCanPlayType.call(this, type);
+            };
+        }
+        """
+    )
     expect(page.get_by_text('Playwright Bluesky Entry Two')).to_be_visible()
     expect(page.get_by_text('Playwright Bluesky Entry One')).to_be_visible()
+    article = _entry_article(page, 'Playwright Bluesky Entry Two')
+    video_card = article.locator('div.play-video[data-id^="atproto-"]').first
+    expect(video_card.locator('img[src*="video-thumb.png"]')).to_be_visible()
+    assert video_card.get_attribute('data-playlist') == (
+        f'{mock_atproto_server.base_url}/video-playlist.m3u8'
+    )
+
+    video_card.click()
+    player = article.locator('div.player.video.atproto video').first
+    expect(player).to_be_visible()
+    expect(player).to_have_attribute('poster', re.compile(r'video-thumb\.png'))
+
+
+def test_video_launcher_keeps_youtube_iframe_behavior(
+    page: Page,
+    app_base_url: str,
+    ensure_admin_session,
+):
+    ensure_admin_session()
+
+    page.goto(app_base_url)
+    page.evaluate(
+        """
+        () => {
+            const article = document.querySelector('#stream article');
+            article.insertAdjacentHTML(
+                'beforeend',
+                '<div id="youtube-dQw4w9WgXcQ" class="play-video">' +
+                '<a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" rel="nofollow">' +
+                '<img src="/media/avatar.png" alt="YouTube thumbnail" />' +
+                '</a><div class="playbutton"></div></div>'
+            );
+        }
+        """
+    )
+
+    page.locator('#youtube-dQw4w9WgXcQ').click()
+    expect(
+        page.locator(
+            'div.player.video.youtube iframe[src*="youtube.com/embed/dQw4w9WgXcQ"]'
+        ).first
+    ).to_be_visible()
 
 
 def test_settings_services_lists_and_websub(

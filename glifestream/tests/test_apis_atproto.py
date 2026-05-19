@@ -1,9 +1,13 @@
 import pytest
+import json
 from unittest.mock import MagicMock, patch
 from types import SimpleNamespace
+from typing import cast
 from django.utils import timezone
 from glifestream.apis.atproto import AtProtoService, filter_content
+from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 from glifestream.stream.models import Entry
+from glifestream.stream import media
 
 
 def _make_facet(text, fragment, feature):
@@ -15,6 +19,36 @@ def _make_facet(text, fragment, feature):
         index=SimpleNamespace(byte_start=start, byte_end=end),
         features=[feature],
     )
+
+
+def _make_post(
+    cid: str,
+    text: str,
+    *,
+    created_at: str = '2025-01-01T12:00:00Z',
+    embed=None,
+    record_embed=None,
+):
+    return SimpleNamespace(
+        cid=cid,
+        uri=f'at://did:plc:123/app.bsky.feed.post/{cid}',
+        record=SimpleNamespace(
+            text=text,
+            facets=None,
+            created_at=created_at,
+            embed=record_embed,
+        ),
+        author=SimpleNamespace(
+            handle='user.bsky.social',
+            display_name='User',
+            avatar=None,
+        ),
+        embed=embed,
+    )
+
+
+def _make_feed_view_post(post, *, reason=None) -> FeedViewPost:
+    return cast(FeedViewPost, SimpleNamespace(post=post, reason=reason))
 
 
 @pytest.mark.django_db
@@ -46,6 +80,172 @@ def test_atproto_process_entries(service):
         assert entry.title == 'Hello Bluesky!'
         assert 'Hello Bluesky!' in entry.content
         assert entry.author_name == 'User'
+
+
+@pytest.mark.django_db
+def test_atproto_process_renders_native_video_embed_and_exports_mrss(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'native-video-cid',
+            'Native video',
+            embed=SimpleNamespace(
+                py_type='app.bsky.embed.video#view',
+                playlist='https://video.bsky.app/watch/example/playlist.m3u8',
+                thumbnail='https://video.bsky.app/watch/example/thumbnail.jpg',
+                alt=None,
+                aspect_ratio=None,
+            ),
+            record_embed=SimpleNamespace(
+                py_type='app.bsky.embed.video',
+                video=SimpleNamespace(ref='blob'),
+                alt='Trackside clip',
+                aspect_ratio=SimpleNamespace(width=3840, height=2160),
+            ),
+        )
+        mock_entry = _make_feed_view_post(mock_post)
+
+        api.process([mock_entry])
+
+        entry = Entry.objects.get(guid='native-video-cid')
+        assert 'class="play-video"' in entry.content
+        assert 'data-id="atproto-native-video-cid"' in entry.content
+        assert (
+            'data-playlist="https://video.bsky.app/watch/example/playlist.m3u8"'
+            in entry.content
+        )
+        assert (
+            'data-poster="https://video.bsky.app/watch/example/thumbnail.jpg"'
+            in entry.content
+        )
+        assert 'data-width="3840" data-height="2160"' in entry.content
+        assert (
+            '<a href="https://bsky.app/profile/user.bsky.social/post/native-video-cid"'
+            in entry.content
+        )
+        assert 'src="https://video.bsky.app/watch/example/thumbnail.jpg"' in entry.content
+        assert 'width="3840" height="2160"' not in entry.content
+        assert 'alt="Trackside clip"' in entry.content
+        assert '<div class="playbutton"></div>' in entry.content
+
+        assert entry.mblob is not None
+        mblob = json.loads(entry.mblob)
+        assert mblob['content'][0][0] == {
+            'url': 'https://video.bsky.app/watch/example/playlist.m3u8',
+            'medium': 'video',
+            'type': 'application/x-mpegURL',
+            'isdefault': 'true',
+        }
+
+        xml = media.mrss_gen_xml(entry)
+        assert 'application/x-mpegURL' in xml
+        assert 'isDefault="true"' in xml
+
+
+@pytest.mark.django_db
+def test_atproto_process_supports_record_with_media_video_embed(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'record-with-media-cid',
+            'Video with attached record',
+            embed=SimpleNamespace(
+                py_type='app.bsky.embed.recordWithMedia#view',
+                media=SimpleNamespace(
+                    py_type='app.bsky.embed.video#view',
+                    playlist='https://video.bsky.app/watch/example/nested.m3u8',
+                    thumbnail='https://video.bsky.app/watch/example/nested.jpg',
+                    alt='Nested video thumbnail',
+                    aspect_ratio=SimpleNamespace(width=1280, height=720),
+                )
+            ),
+        )
+        mock_entry = _make_feed_view_post(mock_post)
+
+        api.process([mock_entry])
+
+        entry = Entry.objects.get(guid='record-with-media-cid')
+        assert 'class="play-video"' in entry.content
+        assert 'data-id="atproto-record-with-media-cid"' in entry.content
+        assert 'data-playlist="https://video.bsky.app/watch/example/nested.m3u8"' in entry.content
+        assert 'data-width="1280" data-height="720"' in entry.content
+        assert 'src="https://video.bsky.app/watch/example/nested.jpg"' in entry.content
+        assert 'alt="Nested video thumbnail"' in entry.content
+        assert 'width="1280" height="720"' not in entry.content
+        assert entry.mblob is not None
+        assert 'https://video.bsky.app/watch/example/nested.m3u8' in entry.mblob
+
+
+@pytest.mark.django_db
+def test_atproto_process_native_video_embed_tolerates_missing_optional_fields(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'video-no-optional-cid',
+            'Video without optional metadata',
+            embed=SimpleNamespace(
+                py_type='app.bsky.embed.video#view',
+                playlist='https://video.bsky.app/watch/example/no-optional.m3u8',
+                thumbnail='https://video.bsky.app/watch/example/no-optional.jpg',
+            ),
+        )
+        mock_entry = _make_feed_view_post(mock_post)
+
+        api.process([mock_entry])
+
+        entry = Entry.objects.get(guid='video-no-optional-cid')
+        assert 'class="play-video"' in entry.content
+        assert 'data-id="atproto-video-no-optional-cid"' in entry.content
+        assert 'src="https://video.bsky.app/watch/example/no-optional.jpg"' in entry.content
+        assert 'alt="video thumbnail"' in entry.content
+        assert 'data-width=' not in entry.content
+        assert ' width=' not in entry.content
+        assert entry.mblob is not None
+
+
+@pytest.mark.django_db
+def test_atproto_process_image_embed_still_renders_thumbnails(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'image-embed-cid',
+            'Image embed',
+            embed=SimpleNamespace(
+                images=[
+                    SimpleNamespace(
+                        thumb='https://cdn.bsky.app/thumb.jpg',
+                        fullsize='https://cdn.bsky.app/full.jpg',
+                        aspect_ratio=SimpleNamespace(width=640, height=480),
+                    )
+                ]
+            ),
+        )
+        mock_entry = _make_feed_view_post(mock_post)
+
+        api.process([mock_entry])
+
+        entry = Entry.objects.get(guid='image-embed-cid')
+        assert 'src="https://cdn.bsky.app/thumb.jpg"' in entry.content
+        assert 'data-imgurl="https://cdn.bsky.app/full.jpg"' in entry.content
+        assert 'width="640" height="480"' in entry.content
+        assert 'class="play-video"' not in entry.content
+        assert entry.mblob is None
 
 
 @pytest.mark.django_db
