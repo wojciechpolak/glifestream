@@ -154,6 +154,36 @@ def test_usettings_api_json(logged_in_client):
 
 
 @pytest.mark.django_db
+def test_usettings_service_api_sets_need_import_only_for_new_fetchable_services(
+    logged_in_client,
+):
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'webfeed',
+            'name': 'Fetchable Feed',
+            'url': 'https://example.com/feed.xml',
+            'method': 'post',
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()['need_import'] is True
+
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'selfposts',
+            'name': 'Notes',
+            'method': 'post',
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()['need_import'] is False
+
+
+@pytest.mark.django_db
 def test_usettings_fetch_now_and_status(logged_in_client):
     service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
 

@@ -204,6 +204,7 @@ def persist_service_payload(
     try:
         basic_user = request.POST.get('basic_user', None)
         basic_pass = request.POST.get('basic_pass', None)
+        is_new_service = not srv.pk
 
         auth = request.POST.get('auth', 'none')
         if auth == 'basic' and basic_user and basic_pass:
@@ -213,7 +214,7 @@ def persist_service_payload(
         elif auth == 'none':
             srv.creds = ''
 
-        payload['need_import'] = not srv.pk
+        payload['need_import'] = is_new_service and is_service_fetchable(srv)
         srv.fetch_interval_sec = fetch_interval
         srv.save()
         sync_service_schedule(srv)
