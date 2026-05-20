@@ -20,6 +20,7 @@ from glifestream.settings_magic_sso import (
     validate_magic_sso_settings,
     validate_secret_value,
 )
+from glifestream.worker.config import DEFAULT_WORKER_MAINTENANCE_JOBS
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
 BASE_DIR = SITE_ROOT
@@ -44,23 +45,7 @@ def _project_path(value: str) -> str:
 
 
 def _default_worker_maintenance_jobs() -> list[dict[str, Any]]:
-    return [
-        {
-            'name': 'delete-inactive-old-entries',
-            'schedule': '5 9 * * 0',
-            'args': ['--only-inactive', '--delete-old=80'],
-        },
-        {
-            'name': 'delete-old-entries',
-            'schedule': '6 9 1 * *',
-            'args': ['--delete-old=365'],
-        },
-        {
-            'name': 'delete-orphan-thumbnails',
-            'schedule': '7 9 1 * *',
-            'args': ['--thumbs-delete-orphans'],
-        },
-    ]
+    return [dict(job) for job in DEFAULT_WORKER_MAINTENANCE_JOBS]
 
 
 def _load_worker_maintenance_jobs(

@@ -20,7 +20,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.core.management.base import BaseCommand
 
-from worker import WorkerDaemon
+from glifestream.worker.daemon import WorkerDaemon
 
 
 class Command(BaseCommand):
