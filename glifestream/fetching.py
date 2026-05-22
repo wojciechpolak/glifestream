@@ -160,8 +160,21 @@ def sync_service_schedule(service: Service, *, now: Any | None = None) -> Servic
     return service
 
 
+def recover_abandoned_fetch_states(*, now: Any | None = None) -> None:
+    now = now or timezone.now()
+    ServiceFetchState.objects.filter(status=ServiceFetchState.STATUS_RUNNING).update(
+        status=ServiceFetchState.STATUS_FAILED,
+        finished_at=now,
+        last_failed_at=now,
+        last_result='Fetch interrupted.',
+        last_error='Worker stopped before fetch completed.',
+        worker_token='',
+    )
+
+
 def initialize_missing_schedules(*, now: Any | None = None) -> None:
     now = now or timezone.now()
+    recover_abandoned_fetch_states(now=now)
     for service in Service.objects.filter(active=True):
         if not is_service_fetchable(service):
             continue
@@ -177,7 +190,13 @@ def initialize_missing_schedules(*, now: Any | None = None) -> None:
             now=now,
             reference_time=service.last_checked or now,
         )
-        if service.next_fetch_at != expected_next_fetch_at:
+        # Do not move an already-scheduled retry backwards. A fetch completion
+        # schedules from finished_at, which can legitimately be later than
+        # last_checked when the underlying API did not advance last_checked.
+        if service.next_fetch_at is None or (
+            expected_next_fetch_at is not None
+            and service.next_fetch_at < expected_next_fetch_at
+        ):
             service.next_fetch_at = expected_next_fetch_at
             service.save(update_fields=['next_fetch_at'])
 
@@ -513,9 +532,17 @@ def get_next_wait_timeout(*, now: Any | None = None) -> float | None:
     if ServiceFetchState.objects.filter(status=ServiceFetchState.STATUS_QUEUED).exists():
         return 0.0
 
+    blocked_service_ids = ServiceFetchState.objects.filter(
+        status__in=(
+            ServiceFetchState.STATUS_QUEUED,
+            ServiceFetchState.STATUS_RUNNING,
+        )
+    ).values_list('service_id', flat=True)
+
     next_due = (
         Service.objects.filter(active=True)
         .exclude(api='selfposts')
+        .exclude(id__in=blocked_service_ids)
         .filter(next_fetch_at__isnull=False)
         .order_by('next_fetch_at')
         .values_list('next_fetch_at', flat=True)

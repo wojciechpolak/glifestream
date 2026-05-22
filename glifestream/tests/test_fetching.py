@@ -13,6 +13,7 @@ from glifestream.fetching import (
     claim_runnable_jobs,
     enqueue_manual_fetch,
     get_effective_interval_sec,
+    get_next_wait_timeout,
     initialize_missing_schedules,
     ProcessedFetchJob,
     run_service_fetch,
@@ -75,6 +76,24 @@ def test_initialize_missing_schedules_recomputes_existing_cadence(settings, serv
     service.refresh_from_db()
 
     assert service.next_fetch_at == service.last_checked + timedelta(seconds=7200)
+
+
+@pytest.mark.django_db
+def test_initialize_missing_schedules_does_not_move_retry_backwards(
+    settings, service
+):
+    settings.FETCH_DEFAULT_INTERVAL_SEC = 7200
+    now = timezone.now()
+    service.api = 'atproto'
+    service.active = True
+    service.last_checked = now - timedelta(days=3)
+    service.next_fetch_at = now + timedelta(hours=2)
+    service.save()
+
+    initialize_missing_schedules(now=now)
+    service.refresh_from_db()
+
+    assert service.next_fetch_at == now + timedelta(hours=2)
 
 
 @pytest.mark.django_db
@@ -168,6 +187,58 @@ def test_claim_runnable_jobs_preserves_last_completed_summary(service):
     assert state.last_failed_at == now - timedelta(minutes=1)
     assert state.last_result == 'Fetch failed.'
     assert state.last_error == 'feed offline'
+
+
+@pytest.mark.django_db
+def test_claim_runnable_jobs_recovers_abandoned_running_service(service):
+    now = timezone.now()
+    service.api = 'webfeed'
+    service.active = True
+    service.fetch_interval_sec = 10
+    service.last_checked = now - timedelta(days=3)
+    service.next_fetch_at = now - timedelta(seconds=1)
+    service.save()
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_RUNNING,
+        started_at=now - timedelta(minutes=2),
+        worker_token='stale-worker-token',
+    )
+
+    claimed = claim_runnable_jobs('worker-token', now=now)
+
+    assert claimed == [(state.pk, service.pk)]
+    state.refresh_from_db()
+    assert state.status == ServiceFetchState.STATUS_RUNNING
+    assert state.worker_token == 'worker-token'
+    assert state.last_failed_at == now
+    assert state.last_result == 'Fetch interrupted.'
+
+
+@pytest.mark.django_db
+def test_get_next_wait_timeout_ignores_running_service(service):
+    now = timezone.now()
+    service.api = 'webfeed'
+    service.active = True
+    service.next_fetch_at = now - timedelta(seconds=1)
+    service.save()
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_RUNNING,
+        worker_token='stale-worker-token',
+    )
+    later_service = Service.objects.create(
+        api='webfeed',
+        name='Later service',
+        url='http://example.com/later-feed',
+        active=True,
+        next_fetch_at=now + timedelta(seconds=30),
+    )
+
+    timeout = get_next_wait_timeout(now=now)
+
+    assert later_service.pk is not None
+    assert timeout == 30.0
 
 
 @pytest.mark.django_db
