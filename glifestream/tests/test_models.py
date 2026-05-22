@@ -1,5 +1,5 @@
-import pytest
 import datetime
+import pytest
 from glifestream.stream.models import Media, WebSub, Entry
 
 UTC = datetime.timezone.utc
@@ -73,3 +73,75 @@ def test_media_logic(service, settings, tmp_path):
         assert m.pk is not None
         # str(m) returns "EntryTitle: Filename"
         assert 'Media Entry: test.jpg' == str(m)
+
+
+@pytest.mark.django_db
+def test_entry_save_normalizes_naive_datetimes_to_utc(service):
+    entry = Entry.objects.create(
+        service=service,
+        title='Naive Entry',
+        guid='naive-entry',
+        link='http://example.com/naive-entry',
+        date_published=datetime.datetime(2013, 6, 16, 4, 24, 19),
+        date_updated=datetime.datetime(2013, 6, 16, 4, 24, 19),
+    )
+
+    assert entry.date_published == datetime.datetime(
+        2013, 6, 16, 4, 24, 19, tzinfo=UTC
+    )
+    assert entry.date_updated == datetime.datetime(
+        2013, 6, 16, 4, 24, 19, tzinfo=UTC
+    )
+
+
+@pytest.mark.django_db
+def test_service_save_normalizes_naive_schedule_datetimes_to_utc(service):
+    service.last_checked = datetime.datetime(2013, 6, 16, 4, 24, 19)
+    service.next_fetch_at = datetime.datetime(2013, 6, 16, 6, 24, 19)
+    service.save()
+    service.refresh_from_db()
+
+    assert service.last_checked == datetime.datetime(
+        2013, 6, 16, 4, 24, 19, tzinfo=UTC
+    )
+    assert service.next_fetch_at == datetime.datetime(
+        2013, 6, 16, 6, 24, 19, tzinfo=UTC
+    )
+
+
+@pytest.mark.django_db
+def test_entry_save_normalizes_date_values_to_utc_midnight(service):
+    entry = Entry.objects.create(
+        service=service,
+        title='Date Entry',
+        guid='date-entry',
+        link='http://example.com/date-entry',
+        date_published=datetime.date(2007, 9, 17),
+        date_updated=datetime.date(2007, 9, 17),
+    )
+
+    assert entry.date_published == datetime.datetime(
+        2007, 9, 17, 0, 0, 0, tzinfo=UTC
+    )
+    assert entry.date_updated == datetime.datetime(
+        2007, 9, 17, 0, 0, 0, tzinfo=UTC
+    )
+
+
+@pytest.mark.django_db
+def test_entry_save_normalizes_datetime_strings_to_utc(service):
+    entry = Entry.objects.create(
+        service=service,
+        title='String Entry',
+        guid='string-entry',
+        link='http://example.com/string-entry',
+        date_published='2007-09-17 00:00:00',
+        date_updated='2007-09-17 00:00:00',
+    )
+
+    assert entry.date_published == datetime.datetime(
+        2007, 9, 17, 0, 0, 0, tzinfo=UTC
+    )
+    assert entry.date_updated == datetime.datetime(
+        2007, 9, 17, 0, 0, 0, tzinfo=UTC
+    )

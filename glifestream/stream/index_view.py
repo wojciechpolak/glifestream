@@ -19,7 +19,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import datetime
-import time
 from typing import Any, cast
 from urllib.parse import urlencode, urljoin
 
@@ -317,7 +316,9 @@ def apply_start_pagination(state: IndexRequestState, query: IndexQueryState) -> 
 
     qs = query.filters.copy()
     try:
-        dt = datetime.datetime.fromtimestamp(float(start))
+        dt = datetime.datetime.fromtimestamp(
+            float(start), tz=datetime.timezone.utc
+        )
     except (OverflowError, ValueError):
         raise Http404
 
@@ -336,7 +337,7 @@ def apply_start_pagination(state: IndexRequestState, query: IndexQueryState) -> 
     after: int | bool = False
     if len(older_entries):
         next_dt = older_entries[len(older_entries) - 1][state.entries_orderby]
-        after = int(time.mktime(next_dt.timetuple()))
+        after = int(next_dt.timestamp())
 
     query.page['title'] = '%s' % str(dt)[0:-3]
     query.page['robots'] = 'noindex'
@@ -407,7 +408,7 @@ def run_normal_query(
 
     if num_entries > state.entries_on_page:
         last_entry_dt = getattr(entries[num_entries - 1], state.entries_orderby)
-        start: int | bool = int(time.mktime(last_entry_dt.timetuple()))
+        start = int(last_entry_dt.timestamp())
     else:
         start = False
 

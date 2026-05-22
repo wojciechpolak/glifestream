@@ -1,4 +1,5 @@
 import datetime
+import warnings
 from unittest.mock import patch
 from typing import Any, cast
 
@@ -209,6 +210,32 @@ def test_apply_start_pagination_rejects_invalid_timestamp(request_factory):
 
     with pytest.raises(Http404):
         apply_start_pagination(state, query)
+
+
+@pytest.mark.django_db
+def test_apply_start_pagination_uses_aware_datetime_for_start_filter(
+    request_factory, service
+):
+    entry = Entry.objects.create(
+        service=service,
+        title='Aware start',
+        guid='aware-start',
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+
+    request = request_factory.get('/?start=%s' % int(entry.date_published.timestamp()))
+    request.user = AnonymousUser()
+    state = _build_state(request, {})
+    query = build_index_query_state(state)
+    apply_archive_filters(query)
+    apply_context_filters(state, query)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('error', RuntimeWarning)
+        after = apply_start_pagination(state, query)
+
+    assert after is False
+    assert query.filters['date_published__lte'] == entry.date_published
 
 
 @override_settings(SEARCH_ENABLE=True, SEARCH_ENGINE='db', ENTRIES_ON_PAGE=2)

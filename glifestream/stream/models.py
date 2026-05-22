@@ -18,15 +18,50 @@
 from __future__ import annotations
 from __future__ import unicode_literals
 
+import datetime
 from typing import Any
 
 from django.db import models
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
+from django.utils.dateparse import parse_date, parse_datetime
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from glifestream.apis import API_LIST
 from glifestream.utils.time import now
+
+
+def _normalize_dt(value: object) -> datetime.datetime | None:
+    if value is None:
+        return None
+
+    normalized: datetime.datetime
+    if isinstance(value, datetime.datetime):
+        normalized = value
+    elif isinstance(value, datetime.date):
+        normalized = datetime.datetime.combine(value, datetime.time.min)
+    elif isinstance(value, str):
+        parsed = parse_datetime(value)
+        if parsed is not None:
+            normalized = parsed
+        else:
+            parsed_date = parse_date(value)
+            if parsed_date is None:
+                raise ValueError('Unsupported datetime value: %r' % value)
+            normalized = datetime.datetime.combine(parsed_date, datetime.time.min)
+    else:
+        raise TypeError('Unsupported datetime value type: %s' % type(value).__name__)
+
+    if timezone.is_aware(normalized):
+        return normalized
+    return timezone.make_aware(normalized, datetime.timezone.utc)
+
+
+def _normalize_required_dt(value: datetime.datetime) -> datetime.datetime:
+    normalized = _normalize_dt(value)
+    assert normalized is not None
+    return normalized
 
 
 class Service(models.Model):
@@ -99,6 +134,9 @@ class Service(models.Model):
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.cls:
             self.cls = self.api
+        self.last_modified = _normalize_dt(self.last_modified)
+        self.last_checked = _normalize_dt(self.last_checked)
+        self.next_fetch_at = _normalize_dt(self.next_fetch_at)
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -173,6 +211,12 @@ class Entry(models.Model):
         verbose_name_plural = _('Entries')
         ordering = ('-date_published',)
         unique_together = (('service', 'guid'),)
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        self.date_published = _normalize_required_dt(self.date_published)
+        self.date_updated = _normalize_required_dt(self.date_updated)
+        self.date_inserted = _normalize_required_dt(self.date_inserted)
+        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return '%s: %s' % (self.service.name, self.title)
