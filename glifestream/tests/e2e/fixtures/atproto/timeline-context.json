@@ -1,0 +1,204 @@
+[
+  {
+    "$type": "app.bsky.feed.defs#feedViewPost",
+    "post": {
+      "$type": "app.bsky.feed.defs#postView",
+      "author": {
+        "$type": "app.bsky.actor.defs#profileViewBasic",
+        "did": "did:plc:playwrighttestaccount",
+        "handle": "playwright.test",
+        "displayName": "Playwright Bluesky",
+        "avatar": "__MOCK_BASE_URL__/avatar.png"
+      },
+      "cid": "bafyreiblueskyentryfive000000000000000000000000000000000005",
+      "indexedAt": "2026-04-02T13:00:00.000Z",
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Playwright Bluesky Reply",
+        "createdAt": "2026-04-02T13:00:00.000Z",
+        "reply": {
+          "$type": "app.bsky.feed.post#replyRef",
+          "parent": {
+            "$type": "com.atproto.repo.strongRef",
+            "uri": "at://did:plc:replyparent/app.bsky.feed.post/reply-parent",
+            "cid": "bafyreiparentreply0000000000000000000000000000000000000000"
+          },
+          "root": {
+            "$type": "com.atproto.repo.strongRef",
+            "uri": "at://did:plc:replyparent/app.bsky.feed.post/reply-parent",
+            "cid": "bafyreiparentreply0000000000000000000000000000000000000000"
+          }
+        }
+      },
+      "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-five"
+    }
+  },
+  {
+    "$type": "app.bsky.feed.defs#feedViewPost",
+    "post": {
+      "$type": "app.bsky.feed.defs#postView",
+      "author": {
+        "$type": "app.bsky.actor.defs#profileViewBasic",
+        "did": "did:plc:playwrighttestaccount",
+        "handle": "playwright.test",
+        "displayName": "Playwright Bluesky",
+        "avatar": "__MOCK_BASE_URL__/avatar.png"
+      },
+      "cid": "bafyreiblueskyentryfour000000000000000000000000000000000004",
+      "indexedAt": "2026-04-02T12:00:00.000Z",
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Playwright Bluesky Quote",
+        "createdAt": "2026-04-02T12:00:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.record",
+          "record": {
+            "$type": "com.atproto.repo.strongRef",
+            "uri": "at://did:plc:quotedplaywright/app.bsky.feed.post/quoted-entry",
+            "cid": "bafyreiquotedentry0000000000000000000000000000000000000000"
+          }
+        }
+      },
+      "embed": {
+        "$type": "app.bsky.embed.record#view",
+        "record": {
+          "$type": "app.bsky.embed.record#viewRecord",
+          "author": {
+            "$type": "app.bsky.actor.defs#profileViewBasic",
+            "did": "did:plc:quotedplaywright",
+            "handle": "quoted.playwright.test",
+            "displayName": "Quoted Playwright",
+            "avatar": "__MOCK_BASE_URL__/avatar.png"
+          },
+          "cid": "bafyreiquotedentry0000000000000000000000000000000000000000",
+          "indexedAt": "2026-04-02T11:30:00.000Z",
+          "uri": "at://did:plc:quotedplaywright/app.bsky.feed.post/quoted-entry",
+          "value": {
+            "$type": "app.bsky.feed.post",
+            "text": "Quoted Playwright Context",
+            "createdAt": "2026-04-02T11:30:00.000Z"
+          }
+        }
+      },
+      "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-four"
+    }
+  },
+  {
+    "$type": "app.bsky.feed.defs#feedViewPost",
+    "post": {
+      "$type": "app.bsky.feed.defs#postView",
+      "author": {
+        "$type": "app.bsky.actor.defs#profileViewBasic",
+        "did": "did:plc:playwrighttestaccount",
+        "handle": "playwright.test",
+        "displayName": "Playwright Bluesky",
+        "avatar": "__MOCK_BASE_URL__/avatar.png"
+      },
+      "cid": "bafyreiblueskyentrythree000000000000000000000000000000000003",
+      "indexedAt": "2026-04-02T11:30:00.000Z",
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Playwright Bluesky External",
+        "createdAt": "2026-04-02T11:30:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.external",
+          "external": {
+            "uri": "https://example.com/story",
+            "title": "Playwright Linked Story",
+            "description": "A compact external card from the mock timeline.",
+            "thumb": {
+              "$type": "blob",
+              "ref": {
+                "$link": "bafkreiexternalthumb000000000000000000000000000000000000"
+              },
+              "mimeType": "image/png",
+              "size": 68
+            }
+          }
+        }
+      },
+      "embed": {
+        "$type": "app.bsky.embed.external#view",
+        "external": {
+          "uri": "https://example.com/story",
+          "title": "Playwright Linked Story",
+          "description": "A compact external card from the mock timeline.",
+          "thumb": "__MOCK_BASE_URL__/external-thumb.png"
+        }
+      },
+      "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-three"
+    }
+  },
+  {
+    "$type": "app.bsky.feed.defs#feedViewPost",
+    "post": {
+      "$type": "app.bsky.feed.defs#postView",
+      "author": {
+        "$type": "app.bsky.actor.defs#profileViewBasic",
+        "did": "did:plc:playwrighttestaccount",
+        "handle": "playwright.test",
+        "displayName": "Playwright Bluesky",
+        "avatar": "__MOCK_BASE_URL__/avatar.png"
+      },
+      "cid": "bafyreiblueskyentrytwo000000000000000000000000000000000002",
+      "indexedAt": "2026-04-02T11:00:00.000Z",
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Playwright Bluesky Entry Two",
+        "createdAt": "2026-04-02T11:00:00.000Z",
+        "embed": {
+          "$type": "app.bsky.embed.video",
+          "video": {
+            "$type": "blob",
+            "ref": {
+              "$link": "bafkreiplaywrightvideoblob000000000000000000000000000000"
+            },
+            "mimeType": "video/mp4",
+            "size": 1234567
+          },
+          "alt": "Playwright video thumbnail",
+          "aspectRatio": {
+            "$type": "app.bsky.embed.defs#aspectRatio",
+            "width": 1280,
+            "height": 720
+          }
+        }
+      },
+      "embed": {
+        "$type": "app.bsky.embed.video#view",
+        "cid": "bafkreiplaywrightvideoblob000000000000000000000000000000",
+        "playlist": "__MOCK_BASE_URL__/video-playlist.m3u8",
+        "thumbnail": "__MOCK_BASE_URL__/video-thumb.png",
+        "alt": null,
+        "aspectRatio": {
+          "$type": "app.bsky.embed.defs#aspectRatio",
+          "width": 1280,
+          "height": 720
+        },
+        "presentation": "default"
+      },
+      "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-two"
+    }
+  },
+  {
+    "$type": "app.bsky.feed.defs#feedViewPost",
+    "post": {
+      "$type": "app.bsky.feed.defs#postView",
+      "author": {
+        "$type": "app.bsky.actor.defs#profileViewBasic",
+        "did": "did:plc:playwrighttestaccount",
+        "handle": "playwright.test",
+        "displayName": "Playwright Bluesky",
+        "avatar": "__MOCK_BASE_URL__/avatar.png"
+      },
+      "cid": "bafyreiblueskyentryone000000000000000000000000000000000001",
+      "indexedAt": "2026-04-02T10:00:00.000Z",
+      "record": {
+        "$type": "app.bsky.feed.post",
+        "text": "Playwright Bluesky Entry One",
+        "createdAt": "2026-04-02T10:00:00.000Z"
+      },
+      "uri": "at://did:plc:playwrighttestaccount/app.bsky.feed.post/entry-one"
+    }
+  }
+]

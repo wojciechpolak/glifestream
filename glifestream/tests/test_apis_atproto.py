@@ -51,6 +51,28 @@ def _make_feed_view_post(post, *, reason=None) -> FeedViewPost:
     return cast(FeedViewPost, SimpleNamespace(post=post, reason=reason))
 
 
+def _make_record_view(
+    uri: str,
+    text: str,
+    *,
+    handle: str = 'quoted-user.bsky.social',
+    display_name: str = 'Quoted User',
+    facets=None,
+):
+    return SimpleNamespace(
+        py_type='app.bsky.embed.record#viewRecord',
+        uri=uri,
+        author=SimpleNamespace(
+            handle=handle,
+            display_name=display_name,
+        ),
+        value=SimpleNamespace(
+            text=text,
+            facets=facets,
+        ),
+    )
+
+
 @pytest.mark.django_db
 def test_atproto_process_entries(service):
     service.api = 'atproto'
@@ -165,7 +187,14 @@ def test_atproto_process_supports_record_with_media_video_embed(service):
                     thumbnail='https://video.bsky.app/watch/example/nested.jpg',
                     alt='Nested video thumbnail',
                     aspect_ratio=SimpleNamespace(width=1280, height=720),
-                )
+                ),
+                record=SimpleNamespace(
+                    py_type='app.bsky.embed.record#view',
+                    record=_make_record_view(
+                        'at://did:plc:quoted/app.bsky.feed.post/quoted-rkey',
+                        'Attached quoted record',
+                    ),
+                ),
             ),
         )
         mock_entry = _make_feed_view_post(mock_post)
@@ -180,6 +209,9 @@ def test_atproto_process_supports_record_with_media_video_embed(service):
         assert 'src="https://video.bsky.app/watch/example/nested.jpg"' in entry.content
         assert 'alt="Nested video thumbnail"' in entry.content
         assert 'width="1280" height="720"' not in entry.content
+        assert 'Quoted post' in entry.content
+        assert 'Attached quoted record' in entry.content
+        assert 'quoted-user.bsky.social/post/quoted-rkey' in entry.content
         assert entry.mblob is not None
         assert 'https://video.bsky.app/watch/example/nested.m3u8' in entry.mblob
 
@@ -430,6 +462,166 @@ def test_atproto_process_external_embed_supports_youtube_shortlinks(
         entry = Entry.objects.get(guid='embed-cid')
         assert 'data-id="youtube-vid123"' in entry.content
         assert 'href="https://www.youtube.com/watch?v=vid123"' in entry.content
+
+
+@pytest.mark.django_db
+def test_atproto_process_renders_external_embed_card(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'external-card-cid',
+            'External card',
+            embed=SimpleNamespace(
+                external=SimpleNamespace(
+                    uri='https://example.com/story',
+                    title='Example Story',
+                    description='A linked article summary.',
+                    thumb='https://cdn.example.com/story.jpg',
+                )
+            ),
+        )
+
+        api.process([_make_feed_view_post(mock_post)])
+
+        entry = Entry.objects.get(guid='external-card-cid')
+        assert 'Example Story' in entry.content
+        assert 'A linked article summary.' in entry.content
+        assert 'href="https://example.com/story"' in entry.content
+        assert 'src="https://cdn.example.com/story.jpg"' in entry.content
+
+
+@pytest.mark.django_db
+def test_atproto_process_renders_quoted_record_card(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'quoted-record-cid',
+            'Yep!',
+            embed=SimpleNamespace(
+                py_type='app.bsky.embed.record#view',
+                record=_make_record_view(
+                    'at://did:plc:quoted/app.bsky.feed.post/quoted-rkey',
+                    'Quoted post body',
+                    handle='quoted-user.bsky.social',
+                    display_name='Quoted User',
+                ),
+            ),
+        )
+
+        api.process([_make_feed_view_post(mock_post)])
+
+        entry = Entry.objects.get(guid='quoted-record-cid')
+        assert 'Quoted post' in entry.content
+        assert 'Quoted User' in entry.content
+        assert 'Quoted post body' in entry.content
+        assert 'href="https://bsky.app/profile/quoted-user.bsky.social/post/quoted-rkey"' in entry.content
+        assert '>Quoted post body</a>' not in entry.content
+
+
+@pytest.mark.django_db
+def test_atproto_process_renders_placeholder_for_unavailable_quoted_record(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'quoted-missing-cid',
+            'Missing quote',
+            embed=SimpleNamespace(
+                py_type='app.bsky.embed.record#view',
+                record=SimpleNamespace(
+                    py_type='app.bsky.embed.record#viewNotFound',
+                    uri='at://did:plc:missing/app.bsky.feed.post/missing-rkey',
+                    not_found=True,
+                ),
+            ),
+        )
+
+        api.process([_make_feed_view_post(mock_post)])
+
+        entry = Entry.objects.get(guid='quoted-missing-cid')
+        assert 'Quoted post unavailable.' in entry.content
+        assert 'href="https://bsky.app/profile/did:plc:missing/post/missing-rkey"' in entry.content
+
+
+@pytest.mark.django_db
+def test_atproto_process_fetches_parent_reply_context(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        with patch.object(
+            api.client,
+            'get_posts',
+            return_value=SimpleNamespace(
+                posts=[
+                    SimpleNamespace(
+                        py_type='app.bsky.feed.defs#postView',
+                        uri='at://did:plc:parent/app.bsky.feed.post/parent-rkey',
+                        author=SimpleNamespace(
+                            handle='parent-user.bsky.social',
+                            display_name='Parent User',
+                        ),
+                        record=SimpleNamespace(text='Parent post body', facets=None),
+                    )
+                ]
+            ),
+        ) as mock_get_posts:
+            mock_post = _make_post('reply-cid', 'Reply body')
+            mock_post.record.reply = SimpleNamespace(
+                parent=SimpleNamespace(
+                    uri='at://did:plc:parent/app.bsky.feed.post/parent-rkey',
+                    cid='parent-cid',
+                )
+            )
+
+            api.process([_make_feed_view_post(mock_post)])
+
+            entry = Entry.objects.get(guid='reply-cid')
+            mock_get_posts.assert_called_once_with(
+                ['at://did:plc:parent/app.bsky.feed.post/parent-rkey']
+            )
+            assert 'Replying to' in entry.content
+            assert 'Parent User' in entry.content
+            assert 'Parent post body' in entry.content
+            assert entry.content.index('Replying to') < entry.content.index('Reply body')
+            assert '>Parent post body</a>' not in entry.content
+
+
+@pytest.mark.django_db
+def test_atproto_process_reply_hydration_failure_degrades_to_placeholder(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        with patch.object(api.client, 'get_posts', side_effect=Exception('boom')):
+            mock_post = _make_post('reply-missing-cid', 'Reply body')
+            mock_post.record.reply = SimpleNamespace(
+                parent=SimpleNamespace(
+                    uri='at://did:plc:parent/app.bsky.feed.post/parent-rkey',
+                    cid='parent-cid',
+                )
+            )
+
+            api.process([_make_feed_view_post(mock_post)])
+
+            entry = Entry.objects.get(guid='reply-missing-cid')
+            assert 'Replied-to post unavailable.' in entry.content
+            assert 'href="https://bsky.app/profile/did:plc:parent/post/parent-rkey"' in entry.content
 
 
 @pytest.mark.django_db

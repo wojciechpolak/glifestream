@@ -46,6 +46,7 @@ class AtProtoService(BaseService):
     def __init__(self, service: Service, verbose=0, force_overwrite=False):
         super().__init__(service, verbose, force_overwrite)
         self.client = Client()
+        self._parent_post_cache: dict[str, Any | None] = {}
         if not self.service.last_checked:
             self.count = None
 
@@ -130,7 +131,7 @@ class AtProtoService(BaseService):
             e.date_updated = t
             e.author_name = author.display_name or author.handle
 
-            e.content = render_post_text(record)
+            e.content = self._render_post_content(ent, post, record, e.link, guid)
             e.reblog = False
             e.reblog_by = ''
             e.reblog_uri = ''
@@ -142,22 +143,8 @@ class AtProtoService(BaseService):
 
             post_embed = post.embed
             record_embed = getattr(record, 'embed', None)
-            media_urls = collect_post_media_urls(record, post_embed)
             video_embed = _normalize_video_embed(post_embed, record_embed)
             e.mblob = _build_video_mblob(video_embed) if video_embed else None
-            if post_embed:
-                e.content += _render_image_thumbnails(
-                    _extract_embed_images(post_embed), self.service.public
-                )
-            if video_embed:
-                e.content += _render_video_thumbnail(
-                    video_embed, e.link, guid, self.service.public
-                )
-
-            for uri in media_urls:
-                video = expand.videolinks(uri)
-                if video != uri:
-                    e.content += '\n' + video
 
             try:
                 e.save()
@@ -165,15 +152,66 @@ class AtProtoService(BaseService):
             except Exception:
                 pass
 
+    def _render_post_content(
+        self, entry: FeedViewPost, post: Any, record: Any, link: str, guid: str
+    ) -> str:
+        post_embed = getattr(post, 'embed', None)
+        record_embed = getattr(record, 'embed', None)
+        video_embed = _normalize_video_embed(post_embed, record_embed)
+
+        reply_context = self._render_reply_context(entry, record)
+        content = render_post_text(record)
+        content += _render_external_embed_card(
+            _extract_external_embed(post_embed),
+            self.service.public,
+        )
+        content += _render_record_embed_card(_extract_record_embed(post_embed))
+        content += _render_image_thumbnails(
+            _extract_embed_images(post_embed), self.service.public
+        )
+        if video_embed:
+            content += _render_video_thumbnail(
+                video_embed, link, guid, self.service.public
+            )
+        for uri in collect_post_media_urls(record, post_embed):
+            video = expand.videolinks(uri)
+            if video != uri:
+                content += '\n' + video
+        return reply_context + content
+
+    def _render_reply_context(self, entry: FeedViewPost, record: Any) -> str:
+        parent_view = _extract_reply_parent_view(entry)
+        if parent_view:
+            return _render_reply_reference(parent_view)
+
+        reply_ref = getattr(record, 'reply', None)
+        parent_ref = getattr(reply_ref, 'parent', None)
+        parent_uri = getattr(parent_ref, 'uri', None)
+        if not isinstance(parent_uri, str) or not parent_uri:
+            return ''
+
+        parent_post = self._get_parent_post(parent_uri)
+        if parent_post:
+            return _render_reply_reference(parent_post)
+        return _render_unavailable_record_card(
+            parent_uri,
+            _('Replying to'),
+            _('Replied-to post unavailable.'),
+        )
+
+    def _get_parent_post(self, parent_uri: str) -> Any | None:
+        if parent_uri not in self._parent_post_cache:
+            try:
+                response = self.client.get_posts([parent_uri])
+                posts = cast(list[Any], getattr(response, 'posts', []) or [])
+                self._parent_post_cache[parent_uri] = posts[0] if posts else None
+            except Exception:
+                self._parent_post_cache[parent_uri] = None
+        return self._parent_post_cache[parent_uri]
+
     def convert_uri_to_web_link(self, profile: str, uri: str) -> str:
         # Example URI: "at://did:plc:abcdef/app.bsky.feed.post/123456"
-        try:
-            rkey = uri.split('/')[-1]
-            return f'https://bsky.app/profile/{profile}/post/{rkey}'
-        except IndexError:
-            raise ValueError(
-                'The provided URI does not appear to be in the expected format.'
-            )
+        return _convert_at_uri_to_web_link(uri, profile)
 
 
 def filter_title(entry: Entry) -> str:
@@ -312,6 +350,33 @@ def _extract_external_embed(embed: Any) -> Any:
     return None
 
 
+def _extract_record_embed(embed: Any) -> Any:
+    if not embed:
+        return None
+    record = getattr(embed, 'record', None)
+    if record:
+        nested_record = getattr(record, 'record', None)
+        if nested_record:
+            return nested_record
+        return record
+    return None
+
+
+def _extract_reply_parent_view(entry: FeedViewPost) -> Any:
+    reply = getattr(entry, 'reply', None)
+    if not reply:
+        return None
+    parent = getattr(reply, 'parent', None)
+    py_type = getattr(parent, 'py_type', None)
+    if isinstance(py_type, str) and py_type in {
+        'app.bsky.feed.defs#postView',
+        'app.bsky.feed.defs#notFoundPost',
+        'app.bsky.feed.defs#blockedPost',
+    }:
+        return parent
+    return None
+
+
 def _extract_embed_images(embed: Any) -> list[Any]:
     if not embed:
         return []
@@ -390,6 +455,139 @@ def _aspect_ratio_attrs(aspect_ratio: Any) -> str:
     if isinstance(width, int) and isinstance(height, int):
         return ' width="%d" height="%d"' % (width, height)
     return ''
+
+
+def _convert_at_uri_to_web_link(uri: str, profile: str | None = None) -> str:
+    parts = uri.split('/')
+    if len(parts) < 5 or not parts[0].startswith('at:'):
+        raise ValueError('The provided URI does not appear to be in the expected format.')
+
+    actor = profile or parts[2]
+    rkey = parts[-1]
+    return f'https://bsky.app/profile/{actor}/post/{rkey}'
+
+
+def _record_author_label(author: Any) -> str:
+    return cast(str, getattr(author, 'display_name', None) or getattr(author, 'handle', ''))
+
+
+def _record_author_path(author: Any, fallback_uri: str) -> str:
+    handle = getattr(author, 'handle', None)
+    if isinstance(handle, str) and handle:
+        return _convert_at_uri_to_web_link(fallback_uri, handle)
+    return _convert_at_uri_to_web_link(fallback_uri)
+
+
+def _render_external_embed_card(external: Any, is_public: bool) -> str:
+    if not external:
+        return ''
+
+    uri = getattr(external, 'uri', None)
+    title = getattr(external, 'title', None)
+    description = getattr(external, 'description', None)
+    thumb = getattr(external, 'thumb', None)
+    if not isinstance(uri, str) or not uri:
+        return ''
+
+    thumbnail_markup = ''
+    if isinstance(thumb, str) and thumb:
+        image_url = media.save_image(thumb) if is_public else thumb
+        thumbnail_markup = (
+            '<p class="thumbnails"><a href="%s" rel="nofollow">'
+            '<img src="%s" alt="%s" /></a></p>'
+            % (escape(uri), escape(image_url), escape(cast(str, title or _('Link preview'))))
+        )
+
+    summary_markup = ''
+    if isinstance(description, str) and description:
+        summary_markup = '<p>%s</p>' % _replace_newlines(escape(description))
+
+    link_label = cast(str, title or uri)
+    return (
+        ' <blockquote class="atproto-card atproto-external">'
+        '<p><a href="%s" rel="nofollow">%s</a></p>%s%s</blockquote>'
+        % (escape(uri), escape(link_label), summary_markup, thumbnail_markup)
+    )
+
+
+def _render_record_embed_card(record_embed: Any, *, label: str | None = None) -> str:
+    if not record_embed:
+        return ''
+
+    py_type = getattr(record_embed, 'py_type', None)
+    if py_type == 'app.bsky.embed.record#viewRecord':
+        return _render_post_reference(record_embed, label=label or _('Quoted post'))
+
+    uri = getattr(record_embed, 'uri', None)
+    if isinstance(uri, str) and uri:
+        return _render_unavailable_record_card(
+            uri,
+            label or _('Quoted post'),
+            _('Quoted post unavailable.'),
+        )
+    return ''
+
+
+def _render_reply_reference(parent: Any) -> str:
+    py_type = getattr(parent, 'py_type', None)
+    if py_type == 'app.bsky.feed.defs#postView':
+        return _render_post_reference(parent, label=_('Replying to'))
+
+    uri = getattr(parent, 'uri', None)
+    if isinstance(uri, str) and uri:
+        return _render_unavailable_record_card(
+            uri,
+            _('Replying to'),
+            _('Replied-to post unavailable.'),
+        )
+    return ''
+
+
+def _render_post_reference(post_view: Any, *, label: str) -> str:
+    author = getattr(post_view, 'author', None)
+    uri = getattr(post_view, 'uri', None)
+    if not author or not isinstance(uri, str) or not uri:
+        return ''
+
+    author_label = _record_author_label(author)
+    author_link = _record_author_path(author, uri)
+    value = getattr(post_view, 'value', None) or getattr(post_view, 'record', None)
+    post_text = _normalize_embedded_record_text(value)
+    if not post_text:
+        post_text = escape(_('No text content.'))
+
+    return (
+        ' <blockquote class="atproto-card atproto-reference">'
+        '<p>%s <a href="%s" rel="nofollow">%s</a></p>'
+        '<p>%s</p>'
+        '</blockquote>'
+        % (
+            escape(label),
+            escape(author_link),
+            escape(author_label or uri),
+            post_text,
+        )
+    )
+
+
+def _render_unavailable_record_card(uri: str, label: str, message: str) -> str:
+    return (
+        ' <blockquote class="atproto-card atproto-reference unavailable">'
+        '<p>%s</p><p><a href="%s" rel="nofollow">%s</a></p></blockquote>'
+        % (escape(label), escape(_convert_at_uri_to_web_link(uri)), escape(message))
+    )
+
+
+def _normalize_embedded_record_text(record: Any) -> str:
+    if not record:
+        return ''
+    text = cast(str, getattr(record, 'text', '') or '')
+    if not text:
+        return ''
+    facets = cast(list[Any], getattr(record, 'facets', None) or [])
+    if facets:
+        return _render_facet_text(text, facets)
+    return _render_text_fallback(text)
 
 
 def _render_image_thumbnails(images: list[Any], is_public: bool) -> str:

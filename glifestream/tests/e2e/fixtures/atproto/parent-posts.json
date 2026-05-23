@@ -1,0 +1,20 @@
+{
+  "at://did:plc:replyparent/app.bsky.feed.post/reply-parent": {
+    "$type": "app.bsky.feed.defs#postView",
+    "author": {
+      "$type": "app.bsky.actor.defs#profileViewBasic",
+      "did": "did:plc:replyparent",
+      "handle": "reply-parent.test",
+      "displayName": "Reply Parent",
+      "avatar": "__MOCK_BASE_URL__/avatar.png"
+    },
+    "cid": "bafyreiparentreply0000000000000000000000000000000000000000",
+    "indexedAt": "2026-04-02T12:45:00.000Z",
+    "record": {
+      "$type": "app.bsky.feed.post",
+      "text": "Parent reply context from getPosts",
+      "createdAt": "2026-04-02T12:45:00.000Z"
+    },
+    "uri": "at://did:plc:replyparent/app.bsky.feed.post/reply-parent"
+  }
+}

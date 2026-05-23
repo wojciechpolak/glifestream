@@ -204,7 +204,9 @@ class MockAtProtoServer:
         self.session_requests: list[dict[str, Any]] = []
         self.profile_requests: list[dict[str, Any]] = []
         self.timeline_requests: list[dict[str, Any]] = []
+        self.post_requests: list[dict[str, Any]] = []
         self._timeline: list[dict[str, Any]] = []
+        self._parent_posts: dict[str, dict[str, Any]] = {}
 
     @property
     def base_url(self) -> str:
@@ -231,6 +233,30 @@ class MockAtProtoServer:
             list[dict[str, Any]],
             json.loads(json.dumps(self._timeline)),
         )
+
+    def set_parent_posts(
+        self, fixture_name_or_payload: str | dict[str, dict[str, Any]]
+    ) -> None:
+        if isinstance(fixture_name_or_payload, str):
+            payload = json.loads(
+                (ATPROTO_FIXTURES_DIR / fixture_name_or_payload).read_text(
+                    encoding='utf-8'
+                )
+            )
+        else:
+            payload = fixture_name_or_payload
+        self._parent_posts = cast(
+            dict[str, dict[str, Any]],
+            _with_mock_base_url(payload, self.base_url),
+        )
+
+    def get_posts(self, uris: list[str]) -> list[dict[str, Any]]:
+        posts: list[dict[str, Any]] = []
+        for uri in uris:
+            post = self._parent_posts.get(uri)
+            if post:
+                posts.append(cast(dict[str, Any], json.loads(json.dumps(post))))
+        return posts
 
     def stop(self) -> None:
         self.server.shutdown()
@@ -439,6 +465,22 @@ class MockAtProtoHandler(BaseHTTPRequestHandler):
             self._send_json({'feed': self.mock_server.get_timeline()})
             return
 
+        if parsed.path == '/xrpc/app.bsky.feed.getPosts':
+            self.mock_server.post_requests.append(
+                {
+                    'path': parsed.path,
+                    'query': query,
+                    'headers': self._headers_dict(),
+                }
+            )
+            if self.headers.get('Authorization') != f'Bearer {MOCK_ATPROTO_ACCESS_JWT}':
+                self._send_json(
+                    {'error': 'Unauthorized', 'message': 'Bad token'}, status=401
+                )
+                return
+            self._send_json({'posts': self.mock_server.get_posts(query.get('uris', []))})
+            return
+
         if parsed.path == '/avatar.png':
             self.send_response(200)
             self.send_header('Content-Type', 'image/png')
@@ -448,6 +490,14 @@ class MockAtProtoHandler(BaseHTTPRequestHandler):
             return
 
         if parsed.path == '/video-thumb.png':
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(MOCK_AVATAR_PNG)))
+            self.end_headers()
+            self.wfile.write(MOCK_AVATAR_PNG)
+            return
+
+        if parsed.path == '/external-thumb.png':
             self.send_response(200)
             self.send_header('Content-Type', 'image/png')
             self.send_header('Content-Length', str(len(MOCK_AVATAR_PNG)))
@@ -897,6 +947,7 @@ def mock_atproto_server() -> Generator[MockAtProtoServer, None, None]:
     atproto_server = MockAtProtoServer(server=server, thread=thread)
     setattr(server, 'mock_server', atproto_server)
     atproto_server.set_timeline('timeline-initial.json')
+    atproto_server.set_parent_posts({})
     thread.start()
 
     yield atproto_server

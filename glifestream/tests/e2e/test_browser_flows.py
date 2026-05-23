@@ -331,6 +331,7 @@ def test_bluesky_atproto_full_flow_ingests_stream_updates(
     mock_atproto_server.session_requests.clear()
     mock_atproto_server.profile_requests.clear()
     mock_atproto_server.timeline_requests.clear()
+    mock_atproto_server.post_requests.clear()
     run_worker('--api=atproto', '--force-check')
 
     assert len(mock_atproto_server.session_requests) == 1
@@ -407,6 +408,37 @@ def test_bluesky_atproto_full_flow_ingests_stream_updates(
     player = article.locator('div.player.video.atproto video').first
     expect(player).to_be_visible()
     expect(player).to_have_attribute('poster', re.compile(r'video-thumb\.png'))
+
+    mock_atproto_server.set_parent_posts('parent-posts.json')
+    mock_atproto_server.set_timeline('timeline-context.json')
+    run_worker('--api=atproto', '--force-check')
+
+    assert Entry.objects.filter(service=service).count() == 5
+    assert len(mock_atproto_server.session_requests) == 3
+    assert len(mock_atproto_server.timeline_requests) == 3
+    assert len(mock_atproto_server.post_requests) == 1
+
+    page.goto(f'{app_base_url}/?refresh=atproto-context')
+    expect(page.get_by_text('Playwright Bluesky External')).to_be_visible()
+    expect(page.get_by_text('Playwright Bluesky Quote')).to_be_visible()
+    expect(page.get_by_text('Playwright Bluesky Reply')).to_be_visible()
+
+    external_article = _entry_article(page, 'Playwright Bluesky External')
+    expect(external_article.get_by_text('Playwright Linked Story')).to_be_visible()
+    expect(
+        external_article.get_by_text('A compact external card from the mock timeline.')
+    ).to_be_visible()
+    expect(external_article.locator('img[src*="external-thumb.png"]')).to_be_visible()
+
+    quote_article = _entry_article(page, 'Playwright Bluesky Quote')
+    expect(
+        quote_article.get_by_role('link', name='Quoted Playwright', exact=True)
+    ).to_be_visible()
+    expect(quote_article.get_by_text('Quoted Playwright Context', exact=True)).to_be_visible()
+
+    reply_article = _entry_article(page, 'Playwright Bluesky Reply')
+    expect(reply_article.get_by_text('Reply Parent')).to_be_visible()
+    expect(reply_article.get_by_text('Parent reply context from getPosts')).to_be_visible()
 
 
 def test_video_launcher_keeps_youtube_iframe_behavior(
