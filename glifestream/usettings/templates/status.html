@@ -40,6 +40,11 @@
       color: inherit;
       opacity: 0.84;
     }
+    #status-table .result-text {
+      display: inline-block;
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
     #status-table .fetch-status[data-status="queued"],
     #status-table .fetch-status[data-status="running"] {
       background: rgba(196, 132, 31, 0.16);
@@ -120,9 +125,18 @@
           <a href="#" class="run-fetch" data-service-id="{{ s.id }}" onclick="return gls.run_fetch_service(this)">{% trans "Run now" %}</a>
         </td>
         <td>
-          <span class="fetch-status" id="fetch-status-{{ s.id }}" data-service-id="{{ s.id }}" data-status="{{ s.fetch_state_snapshot.status }}">
-            {{ s.fetch_state_snapshot.status }}
-          </span>
+          <div class="status-copy">
+            <span class="fetch-status" id="fetch-status-{{ s.id }}" data-service-id="{{ s.id }}" data-status="{{ s.fetch_state_snapshot.status }}">
+              {{ s.fetch_state_snapshot.status }}
+            </span>
+            <span class="result-text" id="fetch-result-{{ s.id }}">
+              {% if s.fetch_state_snapshot.last_result %}
+                {{ s.fetch_state_snapshot.last_result }}
+              {% else %}
+                &mdash;
+              {% endif %}
+            </span>
+          </div>
         </td>
         <td id="fetch-summary-last-succeeded-{{ s.id }}">
           {% if s.fetch_state_snapshot.last_succeeded_at %}

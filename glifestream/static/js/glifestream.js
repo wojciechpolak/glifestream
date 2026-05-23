@@ -1624,6 +1624,7 @@
             return;
         }
         store_fetch_diagnostics_state(state);
+        $('#fetch-result-' + state.service_id).text(state.last_result || '\u2014');
         $('#fetch-summary-last-succeeded-' + state.service_id).text(
             format_fetch_timestamp(state.last_succeeded_at, _('Never'))
         );
@@ -1798,6 +1799,7 @@
                 update_fetch_status({
                     service_id: Number(serviceId),
                     status: 'failed',
+                    last_result: message,
                     last_error: message
                 });
             },

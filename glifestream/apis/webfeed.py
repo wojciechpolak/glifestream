@@ -36,41 +36,34 @@ class WebfeedService(BaseService):
 
     def run(self) -> None:
         for url in self.get_urls():
-            try:
-                self.fetch(url)
-            except Exception:
-                pass
+            self.fetch(url)
 
     def fetch(self, url: str) -> None:
-        self.fp_error = False
         if not self.payload:
-            try:
-                hs = httpclient.gen_auth(self.service)
-                r = httpclient.get(url, auth=hs)
-                alturl = httpclient.get_alturl_if_html(r)
-                if alturl:
-                    r = httpclient.get(alturl, auth=hs)
-                self.fp = feedparser.parse(r.text)
-                self.fp.etag = r.headers.get('etag')
-                self.fp.modified = r.headers.get('last-modified')
-            except (IOError, httpclient.HTTPError) as e:
-                self.fp_error = True
-                if self.verbose:
-                    error = getattr(e, 'message', '')
-                    print(
-                        '%s (%d) HTTPError: %s'
-                        % (self.service.api, self.service.pk, error)
-                    )
-                return
+            hs = httpclient.gen_auth(self.service)
+            r = httpclient.get(url, auth=hs)
+            alturl = httpclient.get_alturl_if_html(r)
+            if alturl:
+                r = httpclient.get(alturl, auth=hs)
+            self.fp = feedparser.parse(r.text)
+            self.fp.etag = r.headers.get('etag')
+            self.fp.modified = r.headers.get('last-modified')
         else:
             self.fp = feedparser.parse(self.payload)
 
+        self.fp_error = False
         if hasattr(self.fp, 'bozo') and self.fp.bozo:
             self.fp_error = True
             if isinstance(self.fp.bozo_exception, feedparser.CharacterEncodingOverride):
                 self.fp_error = False
-            if self.verbose:
-                print('%s (%d) Bozo: %s' % (self.service.api, self.service.pk, self.fp))
+            else:
+                raise httpclient.build_fetch_error(
+                    category='parse_error',
+                    detail='Feed parse error for %s: %s'
+                    % (url, self.fp.bozo_exception),
+                    retryable=False,
+                    url=url,
+                )
 
         if not self.fp_error:
             self.service.etag = self.fp.get('etag', '')

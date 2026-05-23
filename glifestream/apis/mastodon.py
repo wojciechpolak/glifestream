@@ -15,8 +15,6 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import sys
-import traceback
 import datetime
 import re
 from typing import cast
@@ -72,44 +70,24 @@ class MastodonService(BaseService):
 
     def run(self) -> None:
         for url in self.get_urls():
-            try:
-                if not self.service.user_id:
-                    self.fetch_oauth2(self.get_base_url() + url)
-                else:
-                    self.fetch(self.get_base_url() + url)
-            except Exception as e:
-                if self.verbose:
-                    print(
-                        '%s (%d) Exception: %s' % (self.service.api, self.service.pk, e)
-                    )
-                    traceback.print_exc(file=sys.stdout)
+            if not self.service.user_id:
+                self.fetch_oauth2(self.get_base_url() + url)
+            else:
+                self.fetch(self.get_base_url() + url)
 
     def fetch(self, url) -> None:
-        try:
-            r = httpclient.get(url)
-            self.process(r.json())
-        except Exception as e:
-            if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
-                traceback.print_exc(file=sys.stdout)
+        r = httpclient.get(url)
+        self.service.last_checked = timezone.now()
+        self.service.save()
+        self.process(httpclient.require_json(r))
 
     def fetch_oauth2(self, url) -> None:
-        try:
-            oauth = self._get_oauth_client()
-            r = oauth.consumer.get(url)
-            if r.status_code == 200:
-                self.json = r.json()
-                self.service.last_checked = timezone.now()
-                self.service.save()
-                self.process(self.json)
-            elif self.verbose:
-                print(
-                    '%s (%d) HTTP: %s' % (self.service.api, self.service.pk, r.reason)
-                )
-        except Exception as e:
-            if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
-                traceback.print_exc(file=sys.stdout)
+        oauth = self._get_oauth_client()
+        r = httpclient.read(url, oauth.consumer.get)
+        self.json = httpclient.require_json(r)
+        self.service.last_checked = timezone.now()
+        self.service.save()
+        self.process(self.json)
 
     def process(self, entries) -> None:
         for ent in entries:
@@ -225,13 +203,10 @@ class MastodonService(BaseService):
             url = self.get_base_url() + '/api/v1/statuses/%s' % status_id
             try:
                 if not self.service.user_id:
-                    response = self._get_oauth_client().consumer.get(url)
+                    response = httpclient.read(url, self._get_oauth_client().consumer.get)
                 else:
                     response = httpclient.get(url)
-                if response.status_code == 200:
-                    self._status_cache[status_id] = cast(dict, response.json())
-                else:
-                    self._status_cache[status_id] = None
+                self._status_cache[status_id] = cast(dict, httpclient.require_json(response))
             except Exception:
                 self._status_cache[status_id] = None
         return self._status_cache[status_id]

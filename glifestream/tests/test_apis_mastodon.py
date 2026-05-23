@@ -1,7 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
+
 from glifestream.apis.mastodon import MastodonService
 from glifestream.stream.models import Entry
+from glifestream.utils import httpclient
 
 
 @pytest.fixture
@@ -124,6 +126,28 @@ def test_mastodon_oauth2(service, mastodon_json):
         assert Entry.objects.filter(guid='https://mastodon.social/@user/1').exists()
         service.refresh_from_db()
         assert service.last_checked is not None
+
+
+@pytest.mark.django_db
+def test_mastodon_oauth2_fetch_error_propagates(service):
+    service.user_id = ''
+    service.save()
+
+    with patch('glifestream.apis.mastodon.gls_oauth2.OAuth2Client') as mock_oauth:
+        mock_client = MagicMock()
+        mock_client.consumer.get.side_effect = httpclient.build_fetch_error(
+            category='timeout',
+            detail='Request to https://mastodon.social/api/v1/timelines/home?limit=40 timed out.',
+            retryable=True,
+            url='https://mastodon.social/api/v1/timelines/home?limit=40',
+        )
+        mock_oauth.return_value = mock_client
+
+        api = MastodonService(service)
+        with pytest.raises(httpclient.FetchError) as excinfo:
+            api.run()
+
+    assert excinfo.value.category == 'timeout'
 
 
 @pytest.mark.django_db

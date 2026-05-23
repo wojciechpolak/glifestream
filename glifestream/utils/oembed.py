@@ -32,8 +32,7 @@ def discover(url, provider, maxwidth=None, maxheight=None):
         q += '&maxheight=%d' % maxheight
     try:
         r = httpclient.get(pro + q, timeout=15)
-        if r.status_code == 200:
-            return r.json()
+        return httpclient.require_json(r)
     except Exception:
         pass
     return None

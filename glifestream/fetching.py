@@ -37,6 +37,7 @@ from django.utils import timezone
 from glifestream.apis.factory import ServiceFactory
 from glifestream.stream import websub
 from glifestream.stream.models import Entry, Service, ServiceFetchState
+from glifestream.utils import httpclient
 
 logger = logging.getLogger(__name__)
 
@@ -354,16 +355,24 @@ def _update_state_failure(
     if state_id is None:
         return
 
+    last_result, last_error = _describe_fetch_failure(error)
     ServiceFetchState.objects.filter(
         id=state_id, worker_token=worker_token
     ).update(
         status=ServiceFetchState.STATUS_FAILED,
         finished_at=finished_at,
         last_failed_at=finished_at,
-        last_result='Fetch failed.',
-        last_error=str(error),
+        last_result=last_result,
+        last_error=last_error,
         worker_token='',
     )
+
+
+def _describe_fetch_failure(error: Exception) -> tuple[str, str]:
+    if isinstance(error, httpclient.FetchError):
+        return error.user_message, error.detail
+    detail = str(error) or 'Unexpected fetch error.'
+    return 'Unexpected fetch error.', detail
 
 
 def run_service_fetch(

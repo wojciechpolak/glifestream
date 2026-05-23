@@ -15,9 +15,7 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import sys
 import datetime
-import traceback
 from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
@@ -56,21 +54,11 @@ class VimeoService(BaseService):
             self.fetch('/api/v2/%s/videos.json' % self.service.url)
 
     def fetch(self, url: str) -> None:
-        try:
-            r = httpclient.get('https://vimeo.com' + url)
-            if r.status_code == 200:
-                self.json = r.json()
-                self.service.last_checked = now()
-                self.service.save()
-                self.process()
-            elif self.verbose:
-                print(
-                    '%s (%d) HTTP: %s' % (self.service.api, self.service.pk, r.reason)
-                )
-        except Exception as e:
-            if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
-                traceback.print_exc(file=sys.stdout)
+        r = httpclient.get('https://vimeo.com' + url)
+        self.json = httpclient.require_json(r)
+        self.service.last_checked = now()
+        self.service.save()
+        self.process()
 
     def process_likes(self) -> None:
         """Process what user did like."""
@@ -195,12 +183,11 @@ class VimeoService(BaseService):
 def get_thumbnail_url(id_video: str) -> str | None:
     try:
         r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id_video)
-        if r.status_code == 200:
-            jsn = r.json()
-            if 'thumbnail_large' in jsn[0]:
-                return cast(str | None, jsn[0]['thumbnail_large'])
-            elif 'thumbnail_medium' in jsn[0]:
-                return cast(str | None, jsn[0]['thumbnail_medium'])
+        jsn = httpclient.require_json(r)
+        if 'thumbnail_large' in jsn[0]:
+            return cast(str | None, jsn[0]['thumbnail_large'])
+        elif 'thumbnail_medium' in jsn[0]:
+            return cast(str | None, jsn[0]['thumbnail_medium'])
     except Exception:
         pass
     return None

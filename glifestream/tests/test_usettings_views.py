@@ -67,6 +67,7 @@ def test_usettings_status_list(logged_in_client):
         finished_at=timezone.now(),
         last_succeeded_at=succeeded_at,
         last_failed_at=timezone.now(),
+        last_result='Remote request timed out.',
         last_error='feed timeout',
     )
     response = logged_in_client.get(reverse('usettings-status'))
@@ -78,6 +79,7 @@ def test_usettings_status_list(logged_in_client):
     assert 'Last completed attempt' in body
     assert 'Next scheduled fetch' in body
     assert 'feed timeout' in body
+    assert 'Remote request timed out.' in body
     assert 'data-last-failed-at=' in body
     assert 'Run now' in body
     assert 'fetch-status-' in body
@@ -220,7 +222,7 @@ def test_usettings_fetch_status_exposes_failure_state(logged_in_client):
         finished_at=failed_at,
         last_succeeded_at=succeeded_at,
         last_failed_at=failed_at,
-        last_result='Fetch failed.',
+        last_result='Remote service returned a temporary server error.',
         last_error='remote 500',
     )
 

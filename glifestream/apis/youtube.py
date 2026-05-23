@@ -15,8 +15,6 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import sys
-import traceback
 import datetime
 from django.utils.translation import gettext as _
 
@@ -59,27 +57,14 @@ class YoutubeService(BaseService):
 
     def run(self) -> None:
         for url in self.get_urls():
-            try:
-                self.fetch(url)
-            except Exception:
-                pass
+            self.fetch(url)
 
     def fetch(self, url: str) -> None:
-        try:
-            r = httpclient.get(url)
-            if r.status_code == 200:
-                self.json = r.json()
-                self.service.last_checked = now()
-                self.service.save()
-                self.process(url)
-            elif self.verbose:
-                print(
-                    '%s (%d) HTTP: %s' % (self.service.api, self.service.pk, r.reason)
-                )
-        except Exception as e:
-            if self.verbose:
-                print('%s (%d) Exception: %s' % (self.service.api, self.service.pk, e))
-                traceback.print_exc(file=sys.stdout)
+        r = httpclient.get(url)
+        self.json = httpclient.require_json(r)
+        self.service.last_checked = now()
+        self.service.save()
+        self.process(url)
 
     def process(self, url: str) -> None:
         for ent in self.json.get('items', ()):

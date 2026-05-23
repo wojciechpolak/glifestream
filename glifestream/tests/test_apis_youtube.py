@@ -1,7 +1,9 @@
 import pytest
 from unittest.mock import patch, MagicMock
+
 from glifestream.apis.youtube import YoutubeService
 from glifestream.stream.models import Entry
+from glifestream.utils import httpclient
 
 
 @pytest.fixture
@@ -101,12 +103,17 @@ def test_youtube_http_error(service):
     service.save()
 
     with patch('glifestream.apis.youtube.httpclient.get') as mock_get:
-        mock_response = MagicMock()
-        mock_response.status_code = 403
-        mock_response.reason = 'Forbidden'
-        mock_get.return_value = mock_response
+        mock_get.side_effect = httpclient.build_fetch_error(
+            category='auth',
+            detail='HTTP 403 Forbidden from https://www.googleapis.com/youtube/v3/playlistItems',
+            retryable=False,
+            status_code=403,
+            url='https://www.googleapis.com/youtube/v3/playlistItems',
+        )
 
         api = YoutubeService(service, verbose=1)
-        api.run()
+        with pytest.raises(httpclient.FetchError) as excinfo:
+            api.run()
 
-        assert Entry.objects.count() == 0
+    assert excinfo.value.category == 'auth'
+    assert Entry.objects.count() == 0

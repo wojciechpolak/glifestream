@@ -1,8 +1,10 @@
 import pytest
 import datetime
 from unittest.mock import patch, MagicMock
+
 from glifestream.apis.webfeed import WebfeedService
 from glifestream.stream.models import Entry
+from glifestream.utils import httpclient
 
 UTC = datetime.timezone.utc
 
@@ -111,10 +113,32 @@ def test_webfeed_bozo(service):
     with patch('glifestream.apis.webfeed.feedparser.parse', return_value=mock_feed):
         api = WebfeedService(service)
         api.payload = 'bad xml'
+        with pytest.raises(httpclient.FetchError) as excinfo:
+            api.run()
+
+    assert excinfo.value.category == 'parse_error'
+    assert Entry.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_webfeed_fetch_http_error_propagates(service):
+    service.api = 'webfeed'
+    service.save()
+    api = WebfeedService(service)
+
+    with patch(
+        'glifestream.apis.webfeed.httpclient.get',
+        side_effect=httpclient.build_fetch_error(
+            category='remote_5xx',
+            detail='HTTP 503 Service Unavailable from http://example.com/feed',
+            retryable=True,
+            status_code=503,
+            url='http://example.com/feed',
+        ),
+    ), pytest.raises(httpclient.FetchError) as excinfo:
         api.run()
 
-        # Should not process if bozo is True (and not encoding override)
-        assert Entry.objects.count() == 0
+    assert excinfo.value.category == 'remote_5xx'
 
 
 @pytest.mark.django_db

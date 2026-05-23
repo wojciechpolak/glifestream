@@ -21,6 +21,7 @@ from glifestream.fetching import (
     sync_service_schedule,
 )
 from glifestream.stream.models import Service, ServiceFetchState
+from glifestream.utils import httpclient
 
 
 @pytest.mark.django_db
@@ -414,5 +415,33 @@ def test_run_service_fetch_failure_preserves_last_success(service):
     assert state.finished_at is not None
     assert state.last_failed_at == state.finished_at
     assert state.last_succeeded_at == previous_success
-    assert state.last_result == 'Fetch failed.'
+    assert state.last_result == 'Unexpected fetch error.'
     assert state.last_error == 'boom'
+
+
+@pytest.mark.django_db
+def test_run_service_fetch_records_classified_fetch_failure(service):
+    service.api = 'webfeed'
+    service.save()
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_RUNNING,
+        worker_token='worker-token',
+    )
+    fetch_error = httpclient.build_fetch_error(
+        category='timeout',
+        detail='Request to http://example.com/feed timed out.',
+        retryable=True,
+        url='http://example.com/feed',
+    )
+
+    with patch(
+        'glifestream.fetching.ServiceFactory.create_service',
+        return_value=Mock(run=Mock(side_effect=fetch_error)),
+    ), pytest.raises(httpclient.FetchError):
+        run_service_fetch(service, state_id=state.pk, worker_token='worker-token')
+
+    state.refresh_from_db()
+    assert state.status == ServiceFetchState.STATUS_FAILED
+    assert state.last_result == 'Remote request timed out.'
+    assert state.last_error == 'Request to http://example.com/feed timed out.'
