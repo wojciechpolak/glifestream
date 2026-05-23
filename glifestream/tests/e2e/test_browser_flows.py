@@ -186,6 +186,200 @@ def test_worker_ingests_mocked_feeds_and_updates_browser_state(
     expect(page.get_by_text('Public RSS Entry Two')).to_be_visible()
 
 
+def test_mobile_sidebar_expands_and_scrolls_to_footer(
+    page: Page,
+    app_base_url: str,
+    login_as_initial_admin,
+    finish_forced_password_change,
+):
+    login_as_initial_admin()
+    finish_forced_password_change()
+
+    page.set_viewport_size({'width': 390, 'height': 680})
+    page.goto(f'{app_base_url}/')
+
+    sidebar = page.locator('#sidebar')
+    sidebar_footer = page.locator('#sidebar-foot')
+
+    page.locator('#sidebar-toggle').click()
+    expect(sidebar).to_have_class(re.compile(r'\bexpanded\b'))
+
+    sidebar_state = sidebar.evaluate(
+        """(node) => {
+            const style = window.getComputedStyle(node);
+            const maxScrollTop = node.scrollHeight - node.clientHeight;
+            return {
+                clientHeight: node.clientHeight,
+                maxHeight: style.maxHeight,
+                overflowY: style.overflowY,
+                scrollHeight: node.scrollHeight,
+                touchAction: style.touchAction,
+            };
+        }"""
+    )
+    assert sidebar_state['overflowY'] == 'auto'
+    assert sidebar_state['touchAction'] != 'none'
+    assert sidebar_state['scrollHeight'] > sidebar_state['clientHeight']
+    assert sidebar_state['maxHeight'] != 'none'
+
+    initial_footer_position = sidebar_footer.evaluate(
+        """(node) => {
+            const rect = node.getBoundingClientRect();
+            return { top: rect.top, bottom: rect.bottom };
+        }"""
+    )
+    assert initial_footer_position['bottom'] > sidebar_state['clientHeight']
+
+    scrolled_state = sidebar.evaluate(
+        """(node) => {
+            node.scrollTop = node.scrollHeight;
+            const footer = node.querySelector('#sidebar-foot');
+            const footerRect = footer.getBoundingClientRect();
+            const sidebarRect = node.getBoundingClientRect();
+            return {
+                footerBottom: footerRect.bottom,
+                footerTop: footerRect.top,
+                maxScrollTop: node.scrollHeight - node.clientHeight,
+                scrollTop: node.scrollTop,
+                sidebarBottom: sidebarRect.bottom,
+                sidebarTop: sidebarRect.top,
+            };
+        }"""
+    )
+    assert scrolled_state['maxScrollTop'] > 0
+    assert scrolled_state['scrollTop'] > 0
+    assert scrolled_state['footerTop'] >= scrolled_state['sidebarTop']
+    assert scrolled_state['footerBottom'] <= scrolled_state['sidebarBottom']
+
+
+def test_mobile_pull_to_refresh_reloads_page(
+    page: Page,
+    app_base_url: str,
+    login_as_initial_admin,
+    finish_forced_password_change,
+):
+    login_as_initial_admin()
+    finish_forced_password_change()
+
+    page.set_viewport_size({'width': 390, 'height': 680})
+    page.goto(f'{app_base_url}/')
+
+    page.evaluate(
+        """
+        () => {
+            window.__glsReloadCount = 0;
+            window.__glsReloadHandler = function() {
+                window.__glsReloadCount += 1;
+            };
+        }
+        """
+    )
+
+    short_pull = page.evaluate(
+        """
+        () => {
+            const target = document.getElementById('stream');
+            const indicator = document.getElementById('pull-to-refresh');
+
+            const dispatchTouch = (type, y, x = 140) => {
+                const event = new Event(type, {bubbles: true, cancelable: true});
+                const touches = (
+                    type === 'touchend' || type === 'touchcancel'
+                ) ? [] : [{clientX: x, clientY: y}];
+                Object.defineProperty(event, 'touches', {
+                    configurable: true,
+                    value: touches
+                });
+                Object.defineProperty(event, 'changedTouches', {
+                    configurable: true,
+                    value: [{clientX: x, clientY: y}]
+                });
+                target.dispatchEvent(event);
+            };
+
+            dispatchTouch('touchstart', 120);
+            dispatchTouch('touchmove', 180);
+            const textDuringPull = indicator.textContent.trim();
+            dispatchTouch('touchend', 180);
+
+            return {
+                indicatorText: textDuringPull,
+                reloads: window.__glsReloadCount
+            };
+        }
+        """
+    )
+    assert short_pull['indicatorText'] == 'Pull to refresh'
+    assert short_pull['reloads'] == 0
+
+    full_pull = page.evaluate(
+        """
+        () => {
+            const target = document.getElementById('stream');
+            const indicator = document.getElementById('pull-to-refresh');
+
+            const dispatchTouch = (type, y, x = 140) => {
+                const event = new Event(type, {bubbles: true, cancelable: true});
+                const touches = (
+                    type === 'touchend' || type === 'touchcancel'
+                ) ? [] : [{clientX: x, clientY: y}];
+                Object.defineProperty(event, 'touches', {
+                    configurable: true,
+                    value: touches
+                });
+                Object.defineProperty(event, 'changedTouches', {
+                    configurable: true,
+                    value: [{clientX: x, clientY: y}]
+                });
+                target.dispatchEvent(event);
+            };
+
+            dispatchTouch('touchstart', 120);
+            dispatchTouch('touchmove', 310);
+
+            return {
+                bodyClasses: document.body.className,
+                indicatorText: indicator.textContent.trim()
+            };
+        }
+        """
+    )
+    assert 'pull-refresh-armed' in full_pull['bodyClasses']
+    assert full_pull['indicatorText'] == 'Release to refresh'
+
+    page.evaluate(
+        """
+        () => {
+            const target = document.getElementById('stream');
+            const event = new Event('touchend', {bubbles: true, cancelable: true});
+            Object.defineProperty(event, 'touches', {
+                configurable: true,
+                value: []
+            });
+            Object.defineProperty(event, 'changedTouches', {
+                configurable: true,
+                value: [{clientX: 140, clientY: 310}]
+            });
+            target.dispatchEvent(event);
+        }
+        """
+    )
+    page.wait_for_function('window.__glsReloadCount === 1')
+
+    completed = page.evaluate(
+        """
+        () => ({
+            bodyClasses: document.body.className,
+            indicatorText: document.getElementById('pull-to-refresh').textContent.trim(),
+            reloads: window.__glsReloadCount
+        })
+        """
+    )
+    assert 'pull-refresh-refreshing' in completed['bodyClasses']
+    assert completed['indicatorText'] == 'Refreshing...'
+    assert completed['reloads'] == 1
+
+
 def test_mastodon_oauth2_full_flow_ingests_stream_updates(
     page: Page,
     app_base_url: str,

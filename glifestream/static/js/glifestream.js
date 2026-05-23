@@ -461,7 +461,7 @@
         let val = read_cookie(cookie_name);
         val = (!+val) ? '1' : '0';
         write_cookie(cookie_name, val, 365, baseurl);
-        window.location.reload();
+        reload_page();
         return false;
     }
 
@@ -483,7 +483,7 @@
         cs = settings.themes[idx];
         write_cookie(cookie_name, cs, 365, baseurl);
         jump_to_top();
-        window.location.reload();
+        reload_page();
         return false;
     }
 
@@ -943,6 +943,14 @@
         $('html, body').animate({scrollTop: 0}, 'fast');
     }
 
+    function reload_page() {
+        if (typeof window.__glsReloadHandler === 'function') {
+            window.__glsReloadHandler();
+            return;
+        }
+        window.location.reload();
+    }
+
     function jump_to_top() {
         if (document.body && document.body.scrollTop) {
             document.body.scrollTop = 0;
@@ -950,6 +958,162 @@
         else if (document.documentElement && document.documentElement.scrollTop) {
             document.documentElement.scrollTop = 0;
         }
+    }
+
+    function init_pull_to_refresh() {
+        if (
+            !window.matchMedia ||
+            !window.matchMedia('(max-width: 640px)').matches ||
+            !document.getElementById('stream')
+        ) {
+            return;
+        }
+
+        const threshold = 72;
+        const maxOffset = 84;
+        const indicator = document.createElement('div');
+        indicator.id = 'pull-to-refresh';
+        indicator.textContent = _('Pull to refresh');
+        document.body.appendChild(indicator);
+
+        const state = {
+            active: false,
+            armed: false,
+            refreshing: false,
+            startX: 0,
+            startY: 0
+        };
+
+        function is_at_top() {
+            const bodyScrollTop = document.body ? document.body.scrollTop : 0;
+            const docScrollTop = document.documentElement ?
+                document.documentElement.scrollTop :
+                0;
+            return window.scrollY <= 0 && bodyScrollTop <= 0 && docScrollTop <= 0;
+        }
+
+        function is_sidebar_expanded() {
+            return $('#sidebar').hasClass('expanded');
+        }
+
+        function should_ignore_target(target) {
+            return !!(
+                target &&
+                target.closest &&
+                target.closest(
+                    '#sidebar.expanded, input, textarea, select, button, [contenteditable="true"]'
+                )
+            );
+        }
+
+        function set_pull_offset(offset) {
+            document.body.style.setProperty(
+                '--pull-refresh-offset',
+                Math.min(maxOffset, offset * 0.45) + 'px'
+            );
+        }
+
+        function reset_pull_state() {
+            if (state.refreshing) {
+                return;
+            }
+            state.active = false;
+            state.armed = false;
+            document.body.classList.remove(
+                'pull-refresh-active',
+                'pull-refresh-armed',
+                'pull-refresh-refreshing'
+            );
+            indicator.textContent = _('Pull to refresh');
+            set_pull_offset(0);
+        }
+
+        document.addEventListener('touchstart', function(event) {
+            if (
+                state.refreshing ||
+                event.touches.length !== 1 ||
+                !is_at_top() ||
+                is_sidebar_expanded() ||
+                should_ignore_target(event.target)
+            ) {
+                state.active = false;
+                return;
+            }
+
+            state.active = true;
+            state.armed = false;
+            state.startX = event.touches[0].clientX;
+            state.startY = event.touches[0].clientY;
+            document.body.classList.remove(
+                'pull-refresh-active',
+                'pull-refresh-armed',
+                'pull-refresh-refreshing'
+            );
+            indicator.textContent = _('Pull to refresh');
+            set_pull_offset(0);
+        }, {passive: true});
+
+        document.addEventListener('touchmove', function(event) {
+            if (state.refreshing || !state.active || event.touches.length !== 1) {
+                return;
+            }
+
+            const deltaY = event.touches[0].clientY - state.startY;
+            const deltaX = Math.abs(event.touches[0].clientX - state.startX);
+            if (
+                deltaY <= 0 ||
+                deltaX > 48 ||
+                !is_at_top() ||
+                is_sidebar_expanded()
+            ) {
+                reset_pull_state();
+                return;
+            }
+
+            if (event.cancelable) {
+                event.preventDefault();
+            }
+
+            state.armed = deltaY >= threshold;
+            indicator.textContent = state.armed ?
+                _('Release to refresh') :
+                _('Pull to refresh');
+            document.body.classList.add('pull-refresh-active');
+            document.body.classList.toggle('pull-refresh-armed', state.armed);
+            set_pull_offset(deltaY);
+        }, {passive: false});
+
+        document.addEventListener('touchend', function() {
+            if (!state.active) {
+                return;
+            }
+
+            state.active = false;
+            if (!state.armed || state.refreshing) {
+                reset_pull_state();
+                return;
+            }
+
+            state.refreshing = true;
+            state.armed = false;
+            indicator.textContent = _('Refreshing...');
+            document.body.classList.remove('pull-refresh-armed');
+            document.body.classList.add(
+                'pull-refresh-active',
+                'pull-refresh-refreshing'
+            );
+            set_pull_offset(0);
+            jump_to_top();
+            window.setTimeout(function() {
+                reload_page();
+            }, 40);
+        }, {passive: true});
+
+        document.addEventListener('touchcancel', function() {
+            if (!state.refreshing) {
+                reset_pull_state();
+            }
+        }, {passive: true});
     }
 
     function gen_archive_calendar(year) {
@@ -1230,6 +1394,8 @@
             scroll_to_top();
             return false;
         });
+
+        init_pull_to_refresh();
 
         const parsedUrl = new URL(window.location);
         if (parsedUrl.pathname.endsWith('/share')) {

@@ -2448,6 +2448,10 @@ img.noborder {
   line-height: 48px;
 }
 
+#pull-to-refresh {
+  display: none;
+}
+
 .fleft {
   float: left;
 }
@@ -3068,10 +3072,13 @@ img.noborder {
     }
 
     &.expanded {
-      height: var(--sidebar-m-height);
+      height: calc(100vh - env(safe-area-inset-top) - 12px);
+      max-height: var(--sidebar-m-height);
       overflow-y: auto;
+      overflow-x: hidden;
       opacity: 1;
-      touch-action: none;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
       z-index: 6;
 
       > section,
@@ -3079,6 +3086,12 @@ img.noborder {
       > footer {
         display: block;
       }
+    }
+  }
+
+  @supports (height: 100dvh) {
+    #sidebar.expanded {
+      height: calc(100dvh - env(safe-area-inset-top) - 12px);
     }
   }
 
@@ -3117,6 +3130,54 @@ img.noborder {
 
   .scroll-to-top i {
     line-height: 46px;
+  }
+
+  #pull-to-refresh {
+    display: block;
+    position: fixed;
+    top: 74px;
+    left: 50%;
+    min-width: 148px;
+    padding: 8px 14px;
+    border: 1px solid var(--border-sidebar);
+    border-radius: var(--radius-pill);
+    background: var(--surface-panel-strong);
+    color: var(--text-soft);
+    font-family: var(--font-ui);
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -16px);
+    transition:
+      opacity 0.18s ease-out,
+      transform 0.18s ease-out,
+      background-color 0.18s ease-out,
+      color 0.18s ease-out,
+      border-color 0.18s ease-out;
+    box-shadow: var(--shadow-control);
+    z-index: 6;
+  }
+
+  body.pull-refresh-active #pull-to-refresh {
+    opacity: 1;
+    transform: translate(
+      -50%,
+      calc(-16px + var(--pull-refresh-offset, 0px))
+    );
+  }
+
+  body.pull-refresh-armed #pull-to-refresh,
+  body.pull-refresh-refreshing #pull-to-refresh {
+    color: var(--button-text);
+    background: var(--button-bg);
+    border-color: var(--button-bg);
+  }
+
+  body.pull-refresh-refreshing #pull-to-refresh {
+    transform: translate(-50%, 0);
   }
 
   #settings {
