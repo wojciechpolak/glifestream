@@ -319,47 +319,6 @@ Before calling the deployment ready, verify:
 - `worker.py --daemon` is running under supervision
 - your upgrade procedure includes migrations, static collection, and controlled restarts
 
-
-The Search Functionality via Sphinx
-===================================
-
-To use Sphinx-backed search, add a source and index configuration similar to the
-following to your Sphinx installation. Replace the `DATABASE_*` values with the
-actual values from your deployment:
-
-```text
-source glifestream
-{
-   type         = mysql
-   sql_host     = DATABASE_HOST
-   sql_user     = DATABASE_USER
-   sql_pass     = DATABASE_PASSWORD
-   sql_db       = DATABASE_NAME
-   sql_port     = 3306
-
-   sql_query    = \
-        SELECT stream_entry.id, stream_entry.title, stream_entry.content, \
-        UNIX_TIMESTAMP(stream_entry.date_published) AS date_published, \
-        stream_entry.friends_only, stream_service.public FROM stream_entry \
-        INNER JOIN stream_service ON stream_entry.service_id=stream_service.id \
-        WHERE stream_entry.active=1 AND stream_entry.draft=0
-
-   sql_attr_timestamp = date_published
-   sql_attr_bool      = public
-   sql_attr_bool      = friends_only
-}
-
-index glifestream
-{
-   source       = glifestream
-   path         = /var/lib/sphinx/glifestream
-   docinfo      = extern
-   charset_type = utf-8
-   html_strip   = 1
-}
-```
-
-
 Receive Postings via E-mail
 ===========================
 

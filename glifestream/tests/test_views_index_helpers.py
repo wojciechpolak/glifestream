@@ -238,7 +238,7 @@ def test_apply_start_pagination_uses_aware_datetime_for_start_filter(
     assert query.filters['date_published__lte'] == entry.date_published
 
 
-@override_settings(SEARCH_ENABLE=True, SEARCH_ENGINE='db', ENTRIES_ON_PAGE=2)
+@override_settings(SEARCH_ENABLE=True, ENTRIES_ON_PAGE=2)
 @pytest.mark.django_db
 def test_run_index_query_search_sets_prev_next_and_filters_friends_only(
     request_factory, service
@@ -278,6 +278,36 @@ def test_run_index_query_search_sets_prev_next_and_filters_friends_only(
     assert result.extra_page['prevpage'] == 1
     assert result.extra_page['nextpage'] == 3
     assert 'Friends Only' not in titles
+
+
+@override_settings(SEARCH_ENABLE=True, ENTRIES_ON_PAGE=10)
+@pytest.mark.django_db
+def test_run_index_query_search_matches_title_without_search_engine_setting(
+    request_factory, service
+):
+    service.public = True
+    service.save(update_fields=['public'])
+    Entry.objects.create(
+        service=service,
+        title='Python Headlines',
+        guid='search-title',
+        content='This body does not include the keyword.',
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+
+    request = request_factory.get('/?s=python')
+    request.user = AnonymousUser()
+
+    state = _build_state(request, {})
+    assert not hasattr(state, 'search_engine')
+    query = build_index_query_state(state)
+    apply_archive_filters(query)
+    apply_context_filters(state, query)
+    apply_query_string_filters(state, query)
+
+    result = run_index_query(state, query)
+
+    assert [entry.title for entry in result.entries] == ['Python Headlines']
 
 
 @override_settings(MAGICSSO_ENABLED=True)

@@ -24,7 +24,7 @@ from urllib.parse import urlencode, urljoin
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.db import connections
+from django.db.models import Q
 from django.http import (
     Http404,
     HttpRequest,
@@ -62,7 +62,6 @@ class IndexRequestState:
     entries_on_page: int
     entries_orderby: str
     search_enable: bool
-    search_engine: str
 
 
 @dataclass
@@ -141,7 +140,6 @@ def build_index_request_state(
         entries_on_page=settings.ENTRIES_ON_PAGE,
         entries_orderby='date_published',
         search_enable=getattr(settings, 'SEARCH_ENABLE', False),
-        search_engine=getattr(settings, 'SEARCH_ENGINE', 'sphinx'),
     )
 
 
@@ -377,24 +375,21 @@ def run_search_query(
 def build_search_queryset(
     state: IndexRequestState, query: IndexQueryState, search_filters: dict[str, Any]
 ) -> Any:
-    if state.search_engine == 'sphinx':
-        select = "SELECT * FROM %s WHERE MATCH('%s')"
-        if query.page['public']:
-            select += ' AND public=1'
-        if 'friends_only' in search_filters and search_filters['friends_only'] is False:
-            select += ' AND friends_only=0'
-        select += ' LIMIT 1000'
-
-        cursor = connections['sphinx'].cursor()
-        cursor.execute(select % (settings.SPHINX_INDEX_NAME, query.search_query))
-        results = dictfetchall(cursor)
-        uids = [entry['id'] for entry in results]
-        return query.entries.filter(id__in=uids).select_related()
-
     if query.page['public']:
         search_filters['service__public'] = True
-    search_filters['content__icontains'] = query.search_query
-    return query.entries.filter(**search_filters).select_related()
+
+    return search_entries(
+        query.entries,
+        query.search_query,
+        search_filters,
+    ).select_related()
+
+
+def search_entries(base_queryset: Any, term: str, filters: dict[str, Any]) -> Any:
+    return base_queryset.filter(
+        Q(title__icontains=term) | Q(content__icontains=term),
+        **filters,
+    )
 
 
 def run_normal_query(
@@ -642,7 +637,3 @@ def get_preferred_language(request: HttpRequest) -> str:
         accepted[index] = lang.split(';')[0]
     return cast(str, accepted[0])
 
-
-def dictfetchall(cursor: Any) -> list[dict[str, Any]]:
-    desc = cursor.description
-    return [dict(list(zip([col[0] for col in desc], row))) for row in cursor.fetchall()]

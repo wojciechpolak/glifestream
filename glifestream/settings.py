@@ -380,10 +380,6 @@ MAPS_ENGINE = get_env(ENV, 'MAPS_ENGINE', default='osm') or 'osm'
 
 # Search functionality
 SEARCH_ENABLE = get_bool(ENV, 'SEARCH_ENABLE', default=True)
-SEARCH_ENGINE = get_env(ENV, 'SEARCH_ENGINE', default='db') or 'db'
-SPHINX_INDEX_NAME = (
-    get_env(ENV, 'SPHINX_INDEX_NAME', default='glifestream') or 'glifestream'
-)
 
 WEBSUB_HUBS = tuple(
     get_list(

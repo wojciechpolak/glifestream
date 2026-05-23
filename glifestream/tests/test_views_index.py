@@ -215,8 +215,6 @@ def test_index_invalid_params(client, service):
 
 @pytest.mark.django_db
 def test_index_no_results(client, service):
-    # s is for search, which might require sphinx.
-    # But if SEARCH_ENGINE is internal, it might use basic query.
     url = reverse('index') + '?author=nonexistent'
     response = client.get(url)
     assert response.status_code == 200
