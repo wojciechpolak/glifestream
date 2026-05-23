@@ -1,0 +1,12 @@
+{
+  "3003": {
+    "id": "3003",
+    "url": "https://example.social/@parent/3003",
+    "content": "<p>Parent reply context from Mastodon</p>",
+    "account": {
+      "display_name": "Reply Parent",
+      "acct": "parent",
+      "url": "https://example.social/@parent"
+    }
+  }
+}

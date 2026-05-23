@@ -160,8 +160,10 @@ class MockOAuth2Server:
         self.thread = thread
         self.token_requests: list[dict[str, Any]] = []
         self.api_requests: list[dict[str, Any]] = []
+        self.status_requests: list[dict[str, Any]] = []
         self.authorization_requests: list[dict[str, Any]] = []
         self._home_timeline: list[dict[str, Any]] = []
+        self._statuses: dict[str, dict[str, Any]] = {}
 
     @property
     def base_url(self) -> str:
@@ -190,6 +192,28 @@ class MockOAuth2Server:
             list[dict[str, Any]],
             json.loads(json.dumps(self._home_timeline)),
         )
+
+    def set_statuses(
+        self, fixture_name_or_payload: str | dict[str, dict[str, Any]]
+    ) -> None:
+        if isinstance(fixture_name_or_payload, str):
+            payload = json.loads(
+                (MASTODON_FIXTURES_DIR / fixture_name_or_payload).read_text(
+                    encoding='utf-8'
+                )
+            )
+        else:
+            payload = fixture_name_or_payload
+        self._statuses = cast(
+            dict[str, dict[str, Any]],
+            _with_mock_base_url(payload, self.base_url),
+        )
+
+    def get_status(self, status_id: str) -> dict[str, Any] | None:
+        status = self._statuses.get(status_id)
+        if not status:
+            return None
+        return cast(dict[str, Any], json.loads(json.dumps(status)))
 
     def stop(self) -> None:
         self.server.shutdown()
@@ -362,7 +386,34 @@ class MockOAuth2Handler(BaseHTTPRequestHandler):
             self._send_json(self.mock_server.get_home_timeline())
             return
 
+        if parsed.path.startswith('/api/v1/statuses/'):
+            self.mock_server.status_requests.append(
+                {
+                    'path': parsed.path,
+                    'query': query,
+                    'headers': self._headers_dict(),
+                }
+            )
+            if self.headers.get('Authorization') != f'Bearer {MOCK_OAUTH2_TOKEN}':
+                self._send_json({'error': 'unauthorized'}, status=401)
+                return
+            status_id = parsed.path.rsplit('/', 1)[-1]
+            status = self.mock_server.get_status(status_id)
+            if status is None:
+                self._send_json({'error': 'not_found'}, status=404)
+                return
+            self._send_json(status)
+            return
+
         if parsed.path == '/media/avatar.png':
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(MOCK_AVATAR_PNG)))
+            self.end_headers()
+            self.wfile.write(MOCK_AVATAR_PNG)
+            return
+
+        if parsed.path == '/media/card.png':
             self.send_response(200)
             self.send_header('Content-Type', 'image/png')
             self.send_header('Content-Length', str(len(MOCK_AVATAR_PNG)))
@@ -933,6 +984,7 @@ def mock_oauth2_server() -> Generator[MockOAuth2Server, None, None]:
     oauth2_server = MockOAuth2Server(server=server, thread=thread)
     setattr(server, 'mock_server', oauth2_server)
     oauth2_server.set_home_timeline('home-initial.json')
+    oauth2_server.set_statuses({})
     thread.start()
 
     yield oauth2_server

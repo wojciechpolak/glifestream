@@ -248,6 +248,7 @@ def test_mastodon_oauth2_full_flow_ingests_stream_updates(
     assert len(mock_oauth2_server.token_requests) == 1
 
     mock_oauth2_server.api_requests.clear()
+    mock_oauth2_server.status_requests.clear()
     run_worker('--api=mastodon', '--force-check')
 
     assert (
@@ -286,6 +287,43 @@ def test_mastodon_oauth2_full_flow_ingests_stream_updates(
     page.goto(f'{app_base_url}/?refresh=oauth2-updated')
     expect(page.get_by_text('Playwright Mastodon Entry Two')).to_be_visible()
     expect(page.get_by_text('Playwright Mastodon Entry One')).to_be_visible()
+
+    mock_oauth2_server.set_statuses('statuses.json')
+    mock_oauth2_server.set_home_timeline('home-context.json')
+    run_worker('--api=mastodon', '--force-check')
+
+    assert Entry.objects.filter(service=service).count() == 5
+    assert len(mock_oauth2_server.api_requests) == 3
+    assert len(mock_oauth2_server.status_requests) == 1
+
+    page.goto(f'{app_base_url}/?refresh=oauth2-context')
+    expect(page.get_by_text('Playwright Mastodon Card')).to_be_visible()
+    expect(page.get_by_text('Playwright Mastodon Quote')).to_be_visible()
+    expect(page.get_by_text('Playwright Mastodon Reply')).to_be_visible()
+
+    card_article = _entry_article(page, 'Playwright Mastodon Card')
+    expect(card_article.get_by_text('Playwright Mastodon Story')).to_be_visible()
+    expect(
+        card_article.get_by_text(
+            'A compact preview card from the Mastodon timeline.'
+        )
+    ).to_be_visible()
+    expect(card_article.locator('img[src*="card.png"]')).to_be_visible()
+
+    quote_article = _entry_article(page, 'Playwright Mastodon Quote')
+    expect(
+        quote_article.get_by_role('link', name='Quoted Mastodon', exact=True)
+    ).to_be_visible()
+    expect(
+        quote_article.get_by_text('Quoted Mastodon Context', exact=True)
+    ).to_be_visible()
+    expect(quote_article.locator('.quote-inline')).to_have_count(0)
+
+    reply_article = _entry_article(page, 'Playwright Mastodon Reply')
+    expect(reply_article.get_by_text('Reply Parent')).to_be_visible()
+    expect(
+        reply_article.get_by_text('Parent reply context from Mastodon')
+    ).to_be_visible()
 
 
 def test_bluesky_atproto_full_flow_ingests_stream_updates(

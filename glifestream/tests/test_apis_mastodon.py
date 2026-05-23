@@ -124,3 +124,162 @@ def test_mastodon_oauth2(service, mastodon_json):
         assert Entry.objects.filter(guid='https://mastodon.social/@user/1').exists()
         service.refresh_from_db()
         assert service.last_checked is not None
+
+
+@pytest.mark.django_db
+def test_mastodon_renders_preview_card(service, mastodon_json):
+    service.user_id = '123'
+    service.save()
+
+    card_data = mastodon_json[0].copy()
+    card_data['card'] = {
+        'url': 'https://example.com/story',
+        'title': 'Example Story',
+        'description': 'Preview card description',
+        'image': 'https://example.com/story.png',
+    }
+
+    with patch('glifestream.apis.mastodon.httpclient.get') as mock_get:
+        mock_response = MagicMock()
+        mock_response.json.return_value = [card_data]
+        mock_get.return_value = mock_response
+
+        api = MastodonService(service)
+        api.run()
+
+        e = Entry.objects.get(guid='https://mastodon.social/@user/1')
+        assert 'Example Story' in e.content
+        assert 'Preview card description' in e.content
+        assert 'href="https://example.com/story"' in e.content
+        assert 'src="https://example.com/story.png"' in e.content
+
+
+@pytest.mark.django_db
+def test_mastodon_renders_inline_quoted_status(service, mastodon_json):
+    service.user_id = '123'
+    service.save()
+
+    quote_data = mastodon_json[0].copy()
+    quote_data['quote'] = {
+        'state': 'accepted',
+        'quoted_status': {
+            'id': '2002',
+            'url': 'https://mastodon.social/@quoted/2002',
+            'content': '<p>Quoted body</p>',
+            'account': {
+                'display_name': 'Quoted User',
+                'acct': 'quoted',
+                'url': 'https://mastodon.social/@quoted',
+            },
+        },
+    }
+    quote_data['content'] = (
+        '<p class="quote-inline">RE: <a href="https://mastodon.social/@quoted/2002">quoted</a></p>'
+        '<p>Hello #world</p>'
+    )
+
+    with patch('glifestream.apis.mastodon.httpclient.get') as mock_get:
+        mock_response = MagicMock()
+        mock_response.json.return_value = [quote_data]
+        mock_get.return_value = mock_response
+
+        api = MastodonService(service)
+        api.run()
+
+        e = Entry.objects.get(guid='https://mastodon.social/@user/1')
+        assert 'Quoted User' in e.content
+        assert '<p>Quoted body</p>' in e.content
+        assert 'quote-inline' not in e.content
+
+
+@pytest.mark.django_db
+def test_mastodon_hydrates_shallow_quoted_status(service, mastodon_json):
+    service.user_id = '123'
+    service.save()
+
+    quote_data = mastodon_json[0].copy()
+    quote_data['quote'] = {
+        'state': 'accepted',
+        'quoted_status_id': '2002',
+    }
+
+    list_response = MagicMock()
+    list_response.json.return_value = [quote_data]
+    status_response = MagicMock()
+    status_response.status_code = 200
+    status_response.json.return_value = {
+        'id': '2002',
+        'url': 'https://mastodon.social/@quoted/2002',
+        'content': '<p>Hydrated quote body</p>',
+        'account': {
+            'display_name': 'Hydrated Quote',
+            'acct': 'quoted',
+            'url': 'https://mastodon.social/@quoted',
+        },
+    }
+
+    with patch('glifestream.apis.mastodon.httpclient.get', side_effect=[list_response, status_response]) as mock_get:
+        api = MastodonService(service)
+        api.run()
+
+        e = Entry.objects.get(guid='https://mastodon.social/@user/1')
+        assert 'Hydrated Quote' in e.content
+        assert 'Hydrated quote body' in e.content
+        assert mock_get.call_count == 2
+
+
+@pytest.mark.django_db
+def test_mastodon_renders_quote_placeholder_for_non_displayable_state(service, mastodon_json):
+    service.user_id = '123'
+    service.save()
+
+    quote_data = mastodon_json[0].copy()
+    quote_data['quote'] = {
+        'state': 'pending',
+        'quoted_status_id': '2002',
+    }
+
+    with patch('glifestream.apis.mastodon.httpclient.get') as mock_get:
+        mock_response = MagicMock()
+        mock_response.json.return_value = [quote_data]
+        mock_get.return_value = mock_response
+
+        api = MastodonService(service)
+        api.run()
+
+        e = Entry.objects.get(guid='https://mastodon.social/@user/1')
+        assert 'Quoted post pending approval.' in e.content
+
+
+@pytest.mark.django_db
+def test_mastodon_hydrates_reply_parent(service, mastodon_json):
+    service.user_id = '123'
+    service.save()
+
+    reply_data = mastodon_json[0].copy()
+    reply_data['in_reply_to_id'] = '3003'
+
+    list_response = MagicMock()
+    list_response.json.return_value = [reply_data]
+    status_response = MagicMock()
+    status_response.status_code = 200
+    status_response.json.return_value = {
+        'id': '3003',
+        'url': 'https://mastodon.social/@parent/3003',
+        'content': '<p>Parent reply body</p>',
+        'account': {
+            'display_name': 'Reply Parent',
+            'acct': 'parent',
+            'url': 'https://mastodon.social/@parent',
+        },
+    }
+
+    with patch('glifestream.apis.mastodon.httpclient.get', side_effect=[list_response, status_response]):
+        api = MastodonService(service)
+        api.run()
+
+        e = Entry.objects.get(guid='https://mastodon.social/@user/1')
+        assert 'Replying to' in e.content
+        assert 'Reply Parent' in e.content
+        assert 'Parent reply body' in e.content
+        assert e.content.index('Replying to') < e.content.index('Hello')
