@@ -445,3 +445,34 @@ def test_run_service_fetch_records_classified_fetch_failure(service):
     assert state.status == ServiceFetchState.STATUS_FAILED
     assert state.last_result == 'Remote request timed out.'
     assert state.last_error == 'Request to http://example.com/feed timed out.'
+
+
+@pytest.mark.django_db
+def test_run_service_fetch_records_invalid_response_failure(service):
+    service.api = 'webfeed'
+    service.save()
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_RUNNING,
+        worker_token='worker-token',
+    )
+    fetch_error = httpclient.build_fetch_error(
+        category='invalid_response',
+        detail='Feed response from http://example.com/feed used unsupported content type image/png.',
+        retryable=False,
+        url='http://example.com/feed',
+    )
+
+    with patch(
+        'glifestream.fetching.ServiceFactory.create_service',
+        return_value=Mock(run=Mock(side_effect=fetch_error)),
+    ), pytest.raises(httpclient.FetchError):
+        run_service_fetch(service, state_id=state.pk, worker_token='worker-token')
+
+    state.refresh_from_db()
+    assert state.status == ServiceFetchState.STATUS_FAILED
+    assert (
+        state.last_result
+        == 'Remote service returned an invalid or unsupported response.'
+    )
+    assert 'unsupported content type image/png' in state.last_error

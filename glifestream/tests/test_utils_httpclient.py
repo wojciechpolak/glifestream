@@ -13,12 +13,16 @@ def _make_response(
     url: str = 'http://example.com/feed',
     reason: str = '',
     headers: dict[str, str] | None = None,
+    body_chunks: list[bytes] | None = None,
 ) -> MagicMock:
     response = MagicMock(spec=Response)
     response.status_code = status_code
     response.url = url
     response.reason = reason
     response.headers = headers or {}
+    response.encoding = 'utf-8'
+    response.iter_content.return_value = body_chunks or []
+    response.close.return_value = None
     return response
 
 
@@ -164,6 +168,128 @@ def test_require_json_wraps_invalid_response():
 
     assert excinfo.value.category == 'invalid_response'
     assert 'bad json' in excinfo.value.detail
+
+
+@patch('requests.get')
+def test_get_feed_rejects_content_length_over_limit(mock_get):
+    mock_get.return_value = _make_response(
+        200,
+        headers={
+            'content-type': 'application/rss+xml',
+            'content-length': '32',
+        },
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get_feed('example.com', max_bytes=10)
+
+    assert excinfo.value.category == 'invalid_response'
+    assert 'Content-Length=32' in excinfo.value.detail
+
+
+@patch('requests.get')
+def test_get_feed_rejects_streamed_body_over_limit(mock_get):
+    mock_get.return_value = _make_response(
+        200,
+        headers={'content-type': 'application/rss+xml'},
+        body_chunks=[b'123456', b'78901'],
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get_feed('example.com', max_bytes=10)
+
+    assert excinfo.value.category == 'invalid_response'
+    assert 'exceeds 10 bytes while streaming' in excinfo.value.detail
+
+
+@patch('requests.get')
+def test_get_feed_rejects_html_without_alternate_feed(mock_get):
+    mock_get.return_value = _make_response(
+        200,
+        headers={'content-type': 'text/html'},
+        body_chunks=[b'<html><head></head><body>no feed</body></html>'],
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get_feed('example.com', html_sniff_bytes=64)
+
+    assert excinfo.value.category == 'invalid_response'
+    assert 'did not expose an alternate feed link' in excinfo.value.detail
+
+
+@patch('requests.get')
+def test_get_feed_follows_html_autodiscovery_with_bounded_sniff(mock_get):
+    html = (
+        b'<html><head><link rel="alternate" type="application/rss+xml" '
+        b'href="/rss.xml"></head><body></body></html>'
+    )
+    mock_get.side_effect = [
+        _make_response(
+            200,
+            url='http://example.com',
+            headers={'content-type': 'text/html'},
+            body_chunks=[html],
+        ),
+        _make_response(
+            200,
+            url='http://example.com/rss.xml',
+            headers={'content-type': 'application/rss+xml'},
+            body_chunks=[b'<rss></rss>'],
+        ),
+    ]
+
+    fetched = httpclient.get_feed('example.com', html_sniff_bytes=32 * 1024)
+
+    assert fetched.body == b'<rss></rss>'
+    assert fetched.response.url == 'http://example.com/rss.xml'
+    assert mock_get.call_count == 2
+
+
+@patch('requests.get')
+def test_get_feed_rejects_unsupported_feed_content_type(mock_get):
+    mock_get.return_value = _make_response(
+        200,
+        headers={'content-type': 'image/png'},
+        body_chunks=[b'png'],
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get_feed('example.com')
+
+    assert excinfo.value.category == 'invalid_response'
+    assert 'unsupported content type image/png' in excinfo.value.detail
+
+
+@patch('requests.get')
+def test_retrieve_rejects_streamed_media_over_limit(mock_get, tmp_path):
+    mock_get.return_value = _make_response(
+        200,
+        url='http://example.com/image.png',
+        headers={'content-type': 'image/png'},
+        body_chunks=[b'123456', b'78901'],
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.retrieve('example.com/image.png', str(tmp_path / 'image.bin'), max_bytes=10)
+
+    assert excinfo.value.category == 'invalid_response'
+    assert 'Media download from http://example.com/image.png exceeds 10 bytes' in (
+        excinfo.value.detail
+    )
+
+
+def test_validate_media_response_rejects_explicit_non_image_type():
+    response = _make_response(
+        200,
+        url='http://example.com/image.bin',
+        headers={'content-type': 'application/pdf'},
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.validate_media_response(response)
+
+    assert excinfo.value.category == 'invalid_response'
+    assert 'application/pdf' in excinfo.value.detail
 
 
 def test_gen_auth():

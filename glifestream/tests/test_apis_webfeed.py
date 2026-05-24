@@ -61,11 +61,12 @@ def test_webfeed_fetch_basic(service, mock_feed):
                 mock_media.save_image.return_value = ''
 
                 mock_response = MagicMock()
-                mock_response.text = 'empty'
                 mock_response.headers = {'etag': 'etag-123'}
-                mock_http.get.return_value = mock_response
+                mock_http.get_feed.return_value = httpclient.BodyResponse(
+                    response=mock_response,
+                    body=b'empty',
+                )
                 mock_http.gen_auth.return_value = {}
-                mock_http.get_alturl_if_html.return_value = None
 
                 api = WebfeedService(service)
                 api.run()
@@ -127,7 +128,7 @@ def test_webfeed_fetch_http_error_propagates(service):
     api = WebfeedService(service)
 
     with patch(
-        'glifestream.apis.webfeed.httpclient.get',
+        'glifestream.apis.webfeed.httpclient.get_feed',
         side_effect=httpclient.build_fetch_error(
             category='remote_5xx',
             detail='HTTP 503 Service Unavailable from http://example.com/feed',
@@ -139,6 +140,46 @@ def test_webfeed_fetch_http_error_propagates(service):
         api.run()
 
     assert excinfo.value.category == 'remote_5xx'
+
+
+@pytest.mark.django_db
+def test_webfeed_fetch_rejects_oversized_feed(service):
+    service.api = 'webfeed'
+    service.save()
+    api = WebfeedService(service)
+
+    with patch(
+        'glifestream.apis.webfeed.httpclient.get_feed',
+        side_effect=httpclient.build_fetch_error(
+            category='invalid_response',
+            detail='Feed response from http://example.com/feed exceeds 10 bytes while streaming.',
+            retryable=False,
+            url='http://example.com/feed',
+        ),
+    ), pytest.raises(httpclient.FetchError) as excinfo:
+        api.run()
+
+    assert excinfo.value.category == 'invalid_response'
+
+
+@pytest.mark.django_db
+def test_webfeed_fetch_rejects_html_without_alternate_feed(service):
+    service.api = 'webfeed'
+    service.save()
+    api = WebfeedService(service)
+
+    with patch(
+        'glifestream.apis.webfeed.httpclient.get_feed',
+        side_effect=httpclient.build_fetch_error(
+            category='invalid_response',
+            detail='HTML feed discovery response from http://example.com/feed did not expose an alternate feed link.',
+            retryable=False,
+            url='http://example.com/feed',
+        ),
+    ), pytest.raises(httpclient.FetchError) as excinfo:
+        api.run()
+
+    assert excinfo.value.category == 'invalid_response'
 
 
 @pytest.mark.django_db

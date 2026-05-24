@@ -117,20 +117,38 @@ def save_image(
         moved = False
         try:
             resp = httpclient.retrieve(url, tmp)
-            if 'image/' not in resp.headers.get('content-type', ''):
-                if not force and Image:
-                    try:
-                        Image.open(tmp)
-                    except Exception:
-                        os.remove(tmp)
-                        return url
+            httpclient.validate_media_response(resp)
+            if Image:
+                try:
+                    with Image.open(tmp) as image:
+                        image.verify()
+                except Exception as exc:
+                    raise httpclient.build_fetch_error(
+                        category='invalid_response',
+                        detail='Media download from %s could not be validated as an image: %s'
+                        % (url, exc),
+                        retryable=False,
+                        status_code=resp.status_code,
+                        url=resp.url,
+                    ) from exc
+            elif force:
+                logger.warning('Pillow unavailable while validating remote media: %s', url)
+
             if downscale:
                 downscale_image(tmp, size=size, iformat=thumb['format'])
             shutil.move(tmp, thumb['local'])
             apply_media_permissions(thumb['local'])
             moved = True
         except Exception as exc:
-            logger.error(exc)
+            if isinstance(exc, httpclient.FetchError):
+                logger.warning(
+                    'Rejected remote media %s: %s (%s)',
+                    url,
+                    exc.category,
+                    exc.detail,
+                )
+            else:
+                logger.error(exc)
             if not stale:
                 return url
         finally:

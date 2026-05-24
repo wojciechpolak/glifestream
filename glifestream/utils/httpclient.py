@@ -18,6 +18,7 @@
 import os
 import re
 import time
+from dataclasses import dataclass
 from typing import Any, Callable, cast
 
 import requests
@@ -34,6 +35,19 @@ HEADERS = {
 READ_RETRY_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 READ_RETRY_BACKOFF_SEC = (1, 2)
 MAX_RETRY_AFTER_SEC = 30
+AMBIGUOUS_MEDIA_CONTENT_TYPES = {
+    '',
+    'application/octet-stream',
+    'binary/octet-stream',
+}
+HTML_CONTENT_TYPES = {'text/html', 'application/xhtml+xml'}
+KNOWN_FEED_CONTENT_TYPES = {
+    'application/rss+xml',
+    'application/atom+xml',
+    'application/rdf+xml',
+    'application/xml',
+    'text/xml',
+}
 
 
 class HTTPError(requests.exceptions.RequestException):
@@ -63,6 +77,12 @@ class FetchError(HTTPError):
         return self.detail
 
 
+@dataclass(slots=True, frozen=True)
+class BodyResponse:
+    response: Response
+    body: bytes
+
+
 def _normalize_url(url: str) -> str:
     if not url.startswith('http'):
         return 'http://' + url
@@ -85,7 +105,7 @@ def _get_category_user_message(category: str) -> str:
         'remote_4xx': 'Remote service rejected the request.',
         'remote_5xx': 'Remote service returned a temporary server error.',
         'auth': 'Stored credentials were rejected by the remote service.',
-        'invalid_response': 'Remote service returned an invalid response.',
+        'invalid_response': 'Remote service returned an invalid or unsupported response.',
         'parse_error': 'Remote response could not be parsed.',
         'unexpected': 'Unexpected fetch error.',
     }
@@ -177,6 +197,85 @@ def _get_retry_after_sec(response: Response) -> int | None:
     return max(0, min(seconds, MAX_RETRY_AFTER_SEC))
 
 
+def _normalize_content_type(content_type: str) -> str:
+    value = content_type.strip().lower()
+    if ';' in value:
+        value = value.split(';', 1)[0]
+    return value
+
+
+def _is_allowed_feed_content_type(content_type: str) -> bool:
+    if not content_type:
+        return True
+    if content_type in KNOWN_FEED_CONTENT_TYPES:
+        return True
+    if content_type.endswith('+xml'):
+        return True
+    if content_type.startswith('text/') and content_type not in HTML_CONTENT_TYPES:
+        return True
+    return False
+
+
+def _validate_content_length(
+    response: Response,
+    *,
+    max_bytes: int,
+    label: str,
+) -> None:
+    header = response.headers.get('content-length', '').strip()
+    if not header:
+        return
+    try:
+        content_length = int(header)
+    except ValueError:
+        return
+    if content_length > max_bytes:
+        raise build_fetch_error(
+            category='invalid_response',
+            detail='%s from %s exceeds %d bytes (Content-Length=%d).'
+            % (label, response.url, max_bytes, content_length),
+            retryable=False,
+            status_code=response.status_code,
+            url=response.url,
+        )
+
+
+def _read_limited_body(
+    response: Response,
+    *,
+    max_bytes: int,
+    label: str,
+) -> bytes:
+    _validate_content_length(response, max_bytes=max_bytes, label=label)
+    total = 0
+    chunks: list[bytes] = []
+    try:
+        for chunk in response.iter_content(4096):
+            if not chunk:
+                continue
+            total += len(chunk)
+            if total > max_bytes:
+                raise build_fetch_error(
+                    category='invalid_response',
+                    detail='%s from %s exceeds %d bytes while streaming.'
+                    % (label, response.url, max_bytes),
+                    retryable=False,
+                    status_code=response.status_code,
+                    url=response.url,
+                )
+            chunks.append(chunk)
+    finally:
+        close = getattr(response, 'close', None)
+        if callable(close):
+            close()
+    return b''.join(chunks)
+
+
+def _decode_response_text(response: Response, body: bytes) -> str:
+    encoding = response.encoding or 'utf-8'
+    return body.decode(encoding, errors='replace')
+
+
 def _request_read(
     url: str,
     request_func: Callable[..., Response],
@@ -227,6 +326,78 @@ def read(url: str, request_func: Callable[..., Response], **kwargs: Any) -> Resp
     return _request_read(url, request_func, **kwargs)
 
 
+def get_feed(
+    url: str,
+    *,
+    auth=None,
+    timeout=45,
+    max_bytes: int | None = None,
+    html_sniff_bytes: int | None = None,
+) -> BodyResponse:
+    if max_bytes is None:
+        max_bytes = int(
+            getattr(settings, 'FETCH_FEED_MAX_BYTES', 5 * 1024 * 1024)
+        )
+    if html_sniff_bytes is None:
+        html_sniff_bytes = int(
+            getattr(
+                settings,
+                'FETCH_FEED_HTML_SNIFF_BYTES',
+                64 * 1024,
+            )
+        )
+    response = _request_read(
+        url,
+        requests.get,
+        headers=HEADERS,
+        auth=auth,
+        timeout=timeout,
+        stream=True,
+    )
+    content_type = _normalize_content_type(response.headers.get('content-type', ''))
+    if content_type in HTML_CONTENT_TYPES:
+        body = _read_limited_body(
+            response,
+            max_bytes=min(max_bytes, html_sniff_bytes),
+            label='HTML feed discovery response',
+        )
+        alturl = get_alturl_if_html(
+            response,
+            html_text=_decode_response_text(response, body),
+        )
+        if alturl is None:
+            raise build_fetch_error(
+                category='invalid_response',
+                detail='HTML feed discovery response from %s did not expose an alternate feed link.'
+                % response.url,
+                retryable=False,
+                status_code=response.status_code,
+                url=response.url,
+            )
+        response = _request_read(
+            alturl,
+            requests.get,
+            headers=HEADERS,
+            auth=auth,
+            timeout=timeout,
+            stream=True,
+        )
+        content_type = _normalize_content_type(response.headers.get('content-type', ''))
+
+    if not _is_allowed_feed_content_type(content_type):
+        raise build_fetch_error(
+            category='invalid_response',
+            detail='Feed response from %s used unsupported content type %s.'
+            % (response.url, content_type),
+            retryable=False,
+            status_code=response.status_code,
+            url=response.url,
+        )
+
+    body = _read_limited_body(response, max_bytes=max_bytes, label='Feed response')
+    return BodyResponse(response=response, body=body)
+
+
 def require_json(response: Response) -> Any:
     try:
         return response.json()
@@ -265,29 +436,67 @@ def post(url: str, data=None, auth=None, timeout=45) -> Response:
         raise _classify_request_exception(e, url) from e
 
 
-def retrieve(url: str, filename: str, timeout=15) -> Response:
-    url = _normalize_url(url)
-    try:
-        r = requests.get(url, headers=HEADERS, stream=True, timeout=timeout)
-    except requests.exceptions.RequestException as exc:
-        raise _classify_request_exception(exc, url) from exc
+def validate_media_response(response: Response) -> str:
+    content_type = _normalize_content_type(response.headers.get('content-type', ''))
+    if content_type and content_type not in AMBIGUOUS_MEDIA_CONTENT_TYPES:
+        if not content_type.startswith('image/'):
+            raise build_fetch_error(
+                category='invalid_response',
+                detail='Media download from %s used unsupported content type %s.'
+                % (response.url, content_type),
+                retryable=False,
+                status_code=response.status_code,
+                url=response.url,
+            )
+    return content_type
+
+
+def retrieve(url: str, filename: str, timeout=15, max_bytes: int | None = None) -> Response:
+    if max_bytes is None:
+        max_bytes = int(
+            getattr(settings, 'FETCH_MEDIA_MAX_BYTES', 10 * 1024 * 1024)
+        )
+    r = _request_read(
+        url,
+        requests.get,
+        headers=HEADERS,
+        timeout=timeout,
+        stream=True,
+    )
+    _validate_content_length(r, max_bytes=max_bytes, label='Media download')
     with open(filename, 'wb') as fp:
-        for chunk in r.iter_content(4096):
-            fp.write(chunk)
-            fp.flush()
-            os.fsync(fp.fileno())
+        total = 0
+        try:
+            for chunk in r.iter_content(4096):
+                if not chunk:
+                    continue
+                total += len(chunk)
+                if total > max_bytes:
+                    raise build_fetch_error(
+                        category='invalid_response',
+                        detail='Media download from %s exceeds %d bytes while streaming.'
+                        % (r.url, max_bytes),
+                        retryable=False,
+                        status_code=r.status_code,
+                        url=r.url,
+                    )
+                fp.write(chunk)
+                fp.flush()
+                os.fsync(fp.fileno())
+        finally:
+            close = getattr(r, 'close', None)
+            if callable(close):
+                close()
     return r
 
 
-def get_alturl_if_html(r: Response) -> str | None:
+def get_alturl_if_html(r: Response, html_text: str | None = None) -> str | None:
     """Return alternate URL (using feed autodiscovery mechanism)
     if urlopen's Content-Type response is HTML."""
 
-    ct = r.headers.get('content-type', '')
-    if ';' in ct:
-        ct = ct.split(';', 1)[0]
-    if ct in ('text/html', 'application/xhtml+xml'):
-        shortdata = r.text[:2048]
+    ct = _normalize_content_type(r.headers.get('content-type', ''))
+    if ct in HTML_CONTENT_TYPES:
+        shortdata = html_text if html_text is not None else r.text[:2048]
         for link in re.findall(r'<link(.*?)>', shortdata):
             if 'alternate' in link:
                 rx = re.search('type=[\'"](.*?)[\'"]', link)

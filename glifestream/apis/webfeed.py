@@ -41,11 +41,9 @@ class WebfeedService(BaseService):
     def fetch(self, url: str) -> None:
         if not self.payload:
             hs = httpclient.gen_auth(self.service)
-            r = httpclient.get(url, auth=hs)
-            alturl = httpclient.get_alturl_if_html(r)
-            if alturl:
-                r = httpclient.get(alturl, auth=hs)
-            self.fp = feedparser.parse(r.text)
+            fetched = httpclient.get_feed(url, auth=hs)
+            r = fetched.response
+            self.fp = feedparser.parse(fetched.body)
             self.fp.etag = r.headers.get('etag')
             self.fp.modified = r.headers.get('last-modified')
         else:
