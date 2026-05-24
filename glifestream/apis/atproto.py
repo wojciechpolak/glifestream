@@ -15,13 +15,13 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from __future__ import annotations
+
 import sys
 import traceback
 import datetime
 import re
-from typing import Any, Optional, cast
-from atproto import Client
-from atproto_client.models.app.bsky.feed.defs import FeedViewPost
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 from django.utils import timezone
 from django.utils.html import escape, strip_tags
@@ -37,6 +37,21 @@ from glifestream.utils import httpclient
 
 URL_RE = re.compile(r'https?://\S+')
 
+if TYPE_CHECKING:
+    from atproto_client.models.app.bsky.feed.defs import FeedViewPost
+
+
+Client: Any = None
+
+
+def _get_client_class() -> Any:
+    global Client
+    if Client is None:
+        from atproto import Client as ImportedClient
+
+        Client = ImportedClient
+    return Client
+
 
 class AtProtoService(BaseService):
     name = 'The AT Protocol API v1.0'
@@ -45,7 +60,7 @@ class AtProtoService(BaseService):
 
     def __init__(self, service: Service, verbose=0, force_overwrite=False):
         super().__init__(service, verbose, force_overwrite)
-        self.client = Client()
+        self.client = _get_client_class()()
         self._parent_post_cache: dict[str, Any | None] = {}
         if not self.service.last_checked:
             self.count = None
@@ -68,7 +83,7 @@ class AtProtoService(BaseService):
             self.service.last_checked = timezone.now()
             self.service.save()
             if self.service.user_id:
-                me = cast(Any, self.client.me)
+                me = self.client.me
                 data = self.client.get_author_feed(
                     me.did, filter='posts_no_replies', limit=self.count
                 )
