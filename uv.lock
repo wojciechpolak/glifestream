@@ -464,7 +464,6 @@ dependencies = [
     { name = "pillow" },
     { name = "pymemcache" },
     { name = "requests-oauthlib" },
-    { name = "workerpool" },
 ]
 
 [package.dev-dependencies]
@@ -502,7 +501,6 @@ requires-dist = [
     { name = "pillow", specifier = ">=12,<13" },
     { name = "pymemcache", specifier = ">=4.0.0,<5" },
     { name = "requests-oauthlib", specifier = "==2.0.0" },
-    { name = "workerpool", specifier = ">=0.9,<0.10" },
 ]
 
 [package.metadata.requires-dev]
@@ -1220,15 +1218,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/9e/bd/3704a8c3e0942d711c1299ebf7b9091930adae6675d7c8f476a7ce48653c/sgmllib3k-1.0.0.tar.gz", hash = "sha256:7868fb1c8bfa764c1ac563d3cf369c381d1325d36124933a726f29fcdaa812e9", size = 5750, upload-time = "2010-08-24T14:33:52.445Z" }
 
 [[package]]
-name = "six"
-version = "1.17.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
-]
-
-[[package]]
 name = "soupsieve"
 version = "2.8.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1455,12 +1444,3 @@ sdist = { url = "https://files.pythonhosted.org/packages/39/62/75f18a0f03b4219c4
 wheels = [
     { url = "https://files.pythonhosted.org/packages/87/1b/9e33c09813d65e248f7f773119148a612516a4bea93e9c6f545f78455b7c/wheel-0.47.0-py3-none-any.whl", hash = "sha256:212281cab4dff978f6cedd499cd893e1f620791ca6ff7107cf270781e587eced", size = 32218, upload-time = "2026-04-22T15:51:26.296Z" },
 ]
-
-[[package]]
-name = "workerpool"
-version = "0.9.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "six" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/72/8f/bdd065135fc6b51624c1e1f4854c141100faf2ba95c78c288453b85d6dac/workerpool-0.9.4.tar.gz", hash = "sha256:ab455db0de007723cee44c86d37c2575747f158768289bf02e2791f3b1e006fd", size = 5409, upload-time = "2015-07-27T20:31:48.264Z" }

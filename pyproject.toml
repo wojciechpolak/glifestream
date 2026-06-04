@@ -14,7 +14,6 @@ dependencies = [
     "pillow>=12,<13",
     "requests-oauthlib==2.0.0",
     "gunicorn>=25,<26",
-    "workerpool>=0.9,<0.10",
     "pymemcache>=4.0.0,<5",
     "atproto==0.0.65",
     "magic-link-sso-django",
@@ -55,7 +54,7 @@ plugins = ["mypy_django_plugin.main"]
 exclude = '(?x)^(run-.*|run/vrt-uv-cache/|run/vrt-venv/|run/vrt-home/)'
 
 [[tool.mypy.overrides]]
-module = ["workerpool", "feedparser", "atproto", "atproto_client.models.app.bsky.feed.defs"]
+module = ["feedparser", "atproto", "atproto_client.models.app.bsky.feed.defs"]
 ignore_missing_imports = true
 
 [tool.django-stubs]
