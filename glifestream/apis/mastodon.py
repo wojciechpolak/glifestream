@@ -18,6 +18,7 @@
 import datetime
 import re
 from typing import cast
+
 from django.utils import timezone
 from django.utils.html import escape, strip_tags
 from django.utils.translation import gettext as _
@@ -137,6 +138,7 @@ class MastodonService(BaseService):
             e.author_name = entry['account']['display_name']
 
             e.content = self._render_entry_content(entry)
+            e.mblob = _build_video_mblob(entry)
             e.reblog = False
             e.reblog_by = ''
             e.reblog_uri = ''
@@ -309,23 +311,117 @@ def _render_media_attachments(entry: dict, is_public: bool) -> str:
     if not attachments:
         return ''
 
-    content = ' <p class="thumbnails">'
+    content = ''
+    image_attachments: list[str] = []
     for attachment in attachments:
-        if attachment.get('type') != 'image':
+        attachment_type = attachment.get('type')
+        if attachment_type == 'image':
+            image_markup = _render_image_attachment(attachment, is_public)
+            if image_markup:
+                image_attachments.append(image_markup)
             continue
-        image_url = cast(str, attachment['preview_url'])
-        large_url = cast(str, attachment['url'])
-        link = cast(str, attachment.get('remote_url') or attachment['url'])
-        if is_public:
-            image_url = media.save_image(image_url)
-        if 'meta' in attachment and 'small' in attachment['meta']:
-            sizes = attachment['meta']['small']
-            iwh = ' width="%d" height="%d"' % (sizes['width'], sizes['height'])
-        else:
-            iwh = ''
-        content += (
-            '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> '
-            % (link, large_url, image_url, iwh)
-        )
-    content += '</p>'
+        if attachment_type in ('gifv', 'video'):
+            if image_attachments:
+                content += ' <p class="thumbnails">%s</p>' % ''.join(image_attachments)
+                image_attachments = []
+            content += _render_video_attachment(attachment, is_public)
+
+    if image_attachments:
+        content += ' <p class="thumbnails">%s</p>' % ''.join(image_attachments)
     return content
+
+
+def _render_image_attachment(attachment: dict, is_public: bool) -> str:
+    image_url = cast(str, attachment['preview_url'])
+    large_url = cast(str, attachment['url'])
+    link = cast(str, attachment.get('remote_url') or attachment['url'])
+    if is_public:
+        image_url = media.save_image(image_url)
+    sizes = _attachment_meta_sizes(attachment, 'small')
+    if sizes:
+        iwh = ' width="%d" height="%d"' % (sizes['width'], sizes['height'])
+    else:
+        iwh = ''
+    return (
+        '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> '
+        % (link, large_url, image_url, iwh)
+    )
+
+
+def _render_video_attachment(attachment: dict, is_public: bool) -> str:
+    source_url = cast(str | None, attachment.get('url'))
+    if not source_url:
+        return ''
+
+    poster_url = cast(str | None, attachment.get('preview_url'))
+    if is_public and poster_url:
+        poster_url = media.save_image(poster_url)
+
+    alt = cast(str, attachment.get('description') or 'video attachment')
+    data_attrs = ' data-id="mastodon-%s" data-src="%s"' % (
+        escape(cast(str, attachment.get('id') or source_url)),
+        escape(source_url),
+    )
+    if poster_url:
+        data_attrs += ' data-poster="%s"' % escape(poster_url)
+    if attachment.get('type') == 'gifv':
+        data_attrs += ' data-media-type="gifv"'
+
+    sizes = _attachment_meta_sizes(attachment, 'original')
+    if sizes:
+        data_attrs += ' data-width="%d" data-height="%d"' % (
+            sizes['width'],
+            sizes['height'],
+        )
+
+    if poster_url:
+        thumb_markup = '<img src="%s" alt="%s" />' % (escape(poster_url), escape(alt))
+    else:
+        thumb_markup = escape(alt)
+
+    return (
+        ' <div%s class="play-video"><a href="%s" rel="nofollow">%s</a><div class="playbutton"></div></div>'
+        % (data_attrs, escape(source_url), thumb_markup)
+    )
+
+
+def _build_video_mblob(entry: dict) -> str | None:
+    attachments = cast(list[dict], entry.get('media_attachments') or [])
+    mblob = media.mrss_init()
+    video_index = 0
+
+    for attachment in attachments:
+        if attachment.get('type') not in ('gifv', 'video'):
+            continue
+        source_url = attachment.get('url')
+        if not isinstance(source_url, str) or not source_url:
+            continue
+
+        media_content = {
+            'url': source_url,
+            'medium': 'video',
+            'type': 'video/mp4',
+        }
+        if video_index == 0:
+            media_content['isdefault'] = 'true'
+        mblob['content'].append([media_content])
+        video_index += 1
+
+    return media.mrss_gen_json(mblob)
+
+
+def _attachment_meta_sizes(attachment: dict, key: str) -> dict[str, int] | None:
+    meta = attachment.get('meta')
+    if not isinstance(meta, dict):
+        return None
+
+    sizes = meta.get(key)
+    if not isinstance(sizes, dict):
+        return None
+
+    width = sizes.get('width')
+    height = sizes.get('height')
+    if not isinstance(width, int) or not isinstance(height, int):
+        return None
+
+    return {'width': width, 'height': height}

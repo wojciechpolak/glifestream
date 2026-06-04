@@ -1,3 +1,4 @@
+import json
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -104,6 +105,56 @@ def test_mastodon_media(service, mastodon_json):
         e = Entry.objects.get(guid='https://mastodon.social/@user/1')
         assert 'thumbnails' in e.content
         assert 'http://remote.com/img.png' in e.content
+
+
+@pytest.mark.django_db
+def test_mastodon_video_attachment_renders_player_and_exports_mrss(
+    service, mastodon_json
+):
+    service.user_id = '123'
+    service.save()
+
+    media_data = mastodon_json[0].copy()
+    media_data['media_attachments'] = [
+        {
+            'id': 'video-1',
+            'type': 'gifv',
+            'preview_url': 'https://files.example.com/video-thumb.png',
+            'url': 'https://files.example.com/video.mp4',
+            'description': 'Shader breakpoints',
+            'meta': {'original': {'width': 1280, 'height': 976}},
+        }
+    ]
+
+    with patch('glifestream.apis.mastodon.httpclient.get') as mock_get:
+        mock_response = MagicMock()
+        mock_response.json.return_value = [media_data]
+        mock_get.return_value = mock_response
+
+        with patch(
+            'glifestream.apis.mastodon.media.save_image',
+            side_effect=lambda url, **kwargs: url,
+        ):
+            api = MastodonService(service)
+            api.run()
+
+        e = Entry.objects.get(guid='https://mastodon.social/@user/1')
+        assert 'class="play-video"' in e.content
+        assert 'data-id="mastodon-video-1"' in e.content
+        assert 'data-src="https://files.example.com/video.mp4"' in e.content
+        assert 'data-poster="https://files.example.com/video-thumb.png"' in e.content
+        assert 'data-media-type="gifv"' in e.content
+        assert 'data-width="1280" data-height="976"' in e.content
+        assert 'alt="Shader breakpoints"' in e.content
+        assert e.mblob is not None
+
+        mblob = json.loads(e.mblob)
+        assert mblob['content'][0][0] == {
+            'url': 'https://files.example.com/video.mp4',
+            'medium': 'video',
+            'type': 'video/mp4',
+            'isdefault': 'true',
+        }
 
 
 @pytest.mark.django_db

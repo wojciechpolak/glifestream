@@ -80,6 +80,45 @@
         return null;
     }
 
+    function render_mastodon_video(wrapper) {
+        const src = $(wrapper).data('src');
+        if (!src) {
+            return null;
+        }
+
+        const video = document.createElement('video');
+        video.autoplay = true;
+        video.controls = true;
+        video.preload = 'metadata';
+        video.playsInline = true;
+        video.src = src;
+
+        const poster = $(wrapper).data('poster');
+        if (poster) {
+            video.poster = poster;
+        }
+
+        if ($(wrapper).data('mediaType') === 'gifv') {
+            video.loop = true;
+            video.muted = true;
+        }
+
+        const width = Number($(wrapper).data('width'));
+        const height = Number($(wrapper).data('height'));
+        let style = '';
+        if (width > 0 && height > 0) {
+            style = 'padding-bottom:' + ((height / width) * 100).toFixed(4) + '%';
+        }
+
+        return {
+            node: video,
+            style: style,
+            onMount: function() {
+                video.play().catch(function() {});
+            }
+        };
+    }
+
     function render_video_embed(wrapper, type, id) {
         const provider = video_embeds[type];
         if (typeof provider == 'string') {
@@ -2543,6 +2582,7 @@
         'youtube': '<iframe width="560" height="349" src="https://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
         'vimeo': '<iframe width="560" height="315" src="https://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
         'dailymotion': '<iframe width="560" height="315" src="https://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',
-        'atproto': render_atproto_video
+        'atproto': render_atproto_video,
+        'mastodon': render_mastodon_video
     };
 })();
