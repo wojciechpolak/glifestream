@@ -23,7 +23,7 @@ dependencies = [
 dev = [
     "django-stubs[compatible-mypy]==6.0.2",
     "mypy>=1,<2",
-    "playwright>=1.55,<2",
+    "playwright>=1.55,<1.60",
     "pytest>=9,<10",
     "pytest-cov>=6,<7",
     "pytest-django>=4,<5",
