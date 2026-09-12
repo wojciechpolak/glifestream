@@ -25,7 +25,7 @@ from glifestream.stream.models import Service
 try:
     from requests_oauthlib import OAuth1Session
 except ImportError:
-    OAuth1Session = None  # type: ignore
+    OAuth1Session = None  # type: ignore[assignment,misc]
 
 AGENT = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
 

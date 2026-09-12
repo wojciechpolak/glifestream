@@ -34,7 +34,7 @@ from glifestream.filters import expand, truncate
 try:
     import markdown
 except ImportError:
-    markdown = None  # type: ignore
+    markdown = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 

@@ -446,7 +446,7 @@ def _normalize_video_embed(post_embed: Any, record_embed: Any) -> dict[str, Any]
     if not post_video and not record_video:
         return None
 
-    video = {
+    video: dict[str, Any] = {
         'playlist': None,
         'thumbnail': None,
         'aspect_ratio': None,
@@ -459,7 +459,9 @@ def _normalize_video_embed(post_embed: Any, record_embed: Any) -> dict[str, Any]
             if video[key] is None and source.get(key) is not None:
                 video[key] = source[key]
 
-    if video['playlist'] or video['thumbnail']:
+    # The loop above fills these in through a dynamic key, which ty does not
+    # track, so it still believes both values are None here.
+    if video['playlist'] or video['thumbnail']:  # ty: ignore[redundant-condition]
         return video
     return None
 

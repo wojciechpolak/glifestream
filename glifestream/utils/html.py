@@ -24,7 +24,7 @@ from django.utils.safestring import mark_safe, SafeData
 try:
     from bs4 import BeautifulSoup
 except ImportError:
-    BeautifulSoup = None  # type: ignore
+    BeautifulSoup = None  # type: ignore[assignment,misc]
 
 
 def strip_script(s: str) -> str:

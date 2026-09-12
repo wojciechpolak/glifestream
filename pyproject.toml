@@ -1,6 +1,6 @@
 [project]
 name = "glifestream"
-version = "0.1.0"
+version = "1.5.0"
 description = "A free lifestream platform and social activity reader"
 authors = [{ name = "WAP" }]
 requires-python = ">=3.12,<4"
@@ -59,6 +59,11 @@ ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "glifestream.settings"
+
+[tool.ruff.lint]
+# Pinned explicitly: ruff 0.16 expanded its implicit default `select` from this
+# set to ~415 rules. Keep the set the codebase is actually written against.
+select = ["E4", "E7", "E9", "F"]
 
 [tool.ruff.format]
 quote-style = "single"

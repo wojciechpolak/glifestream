@@ -382,7 +382,7 @@ def build_search_queryset(
         query.entries,
         query.search_query,
         search_filters,
-    ).select_related()
+    ).select_related('service')
 
 
 def search_entries(base_queryset: Any, term: str, filters: dict[str, Any]) -> Any:
@@ -395,7 +395,9 @@ def search_entries(base_queryset: Any, term: str, filters: dict[str, Any]) -> An
 def run_normal_query(
     state: IndexRequestState, query: IndexQueryState, after: int | bool
 ) -> IndexResult:
-    entries = query.entries.filter(**query.filters)[0 : state.entries_on_page + 1].select_related()
+    entries = query.entries.filter(**query.filters)[
+        0 : state.entries_on_page + 1
+    ].select_related('service')
     num_entries = len(entries)
 
     if 'exactentry' in query.page and num_entries:

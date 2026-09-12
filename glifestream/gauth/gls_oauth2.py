@@ -26,7 +26,7 @@ try:
     from oauthlib.oauth2 import BackendApplicationClient  # noqa: F401
     from requests_oauthlib import OAuth2Session
 except ImportError:
-    OAuth2Session = None  # type: ignore
+    OAuth2Session = None  # type: ignore[assignment,misc]
 
 AGENT = 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
 

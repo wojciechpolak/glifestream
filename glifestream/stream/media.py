@@ -38,7 +38,7 @@ except ImportError:
     try:
         import Image  # type: ignore
     except ImportError:
-        Image = None  # type: ignore
+        Image = None  # type: ignore[assignment]
 
 logger = logging.getLogger(__name__)
 
