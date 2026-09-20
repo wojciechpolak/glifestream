@@ -20,6 +20,12 @@ import io
 import pytest
 from django.contrib.auth.models import User
 from glifestream.stream.models import Service
+from glifestream.testsupport.coverage_report import (
+    COVERAGE_HTML_DIR,
+    COVERAGE_LCOV,
+    coverage_enabled,
+    describe_narrowed_run,
+)
 
 
 @pytest.fixture
@@ -36,13 +42,6 @@ def service(db):
     return s
 
 
-def _coverage_enabled(config: pytest.Config) -> bool:
-    return not bool(getattr(config.option, 'no_cov', False)) and bool(
-        getattr(config.option, 'cov_source', None)
-        or getattr(config.option, 'cov_report', None)
-    )
-
-
 @pytest.hookimpl(trylast=True)
 def pytest_terminal_summary(
     terminalreporter: pytest.TerminalReporter,
@@ -50,7 +49,7 @@ def pytest_terminal_summary(
     config: pytest.Config,
 ) -> None:
     del exitstatus
-    if not _coverage_enabled(config):
+    if not coverage_enabled(config):
         return
 
     try:
@@ -59,13 +58,20 @@ def pytest_terminal_summary(
     except ImportError:
         return
 
+    narrowed = describe_narrowed_run(config)
     coverage = Coverage(config_file=True)
     try:
         coverage.load()
-        coverage.html_report(directory='htmlcov')
-        coverage.lcov_report(outfile='coverage.lcov')
+        if not narrowed:
+            coverage.html_report(directory=COVERAGE_HTML_DIR)
+            coverage.lcov_report(outfile=COVERAGE_LCOV)
         total = coverage.report(file=io.StringIO())
     except CoverageException:
         return
 
     terminalreporter.write_line(f'total coverage: {total:.2f}%')
+    if narrowed:
+        terminalreporter.write_line(
+            'coverage.lcov and htmlcov/ kept from the last full run '
+            '(%s ran a subset)' % narrowed
+        )
