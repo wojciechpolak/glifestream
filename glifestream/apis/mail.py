@@ -28,6 +28,88 @@ from glifestream.apis import selfposts
 from glifestream.stream.models import Service
 
 
+ATTACHMENT_PREFIXES = ('image/', 'audio/', 'video/', 'application/')
+
+
+def _sender_is_allowed(msg: Any) -> bool:
+    """EMAIL2POST_CHECK maps a header name to a substring it must contain."""
+    check = getattr(settings, 'EMAIL2POST_CHECK', {})
+    for lhs in check:
+        value = str(make_header(decode_header(msg.get(lhs, ''))))
+        if check[lhs] not in value:
+            return False
+    return True
+
+
+def _is_attachment(part: Any) -> bool:
+    content_type = part.get_content_type()
+    if content_type == 'text/plain':
+        return part.get_filename(None) is not None
+    return bool(content_type.startswith(ATTACHMENT_PREFIXES))
+
+
+def _save_attachment(part: Any) -> TemporaryUploadedFile:
+    payload = part.get_payload(decode=True)
+    os.umask(0)
+    tmp = TemporaryUploadedFile(
+        name=part.get_filename('attachment'),
+        content_type=part.get_content_type(),
+        size=len(payload),
+        charset=None,
+    )
+    tmp.write(payload)
+    tmp.seek(0)
+    os.chmod(cast(Any, tmp.file).name, 0o644)
+    return tmp
+
+
+def _extract_parts(msg: Any) -> tuple[Any, list[TemporaryUploadedFile]]:
+    """The body text and every attachment worth keeping."""
+    if not msg.is_multipart():
+        return msg.get_payload(decode=True), []
+
+    content: Any = None
+    files: list[TemporaryUploadedFile] = []
+    for part in msg.walk():
+        if _is_attachment(part):
+            files.append(_save_attachment(part))
+        elif part.get_content_type() == 'text/plain':
+            content = part.get_payload(decode=True)
+    return content, files
+
+
+def _parse_subject(subject: str | None) -> dict[str, Any]:
+    """Pull the title plus any @class, !draft and !friends-only markers."""
+    args: dict[str, Any] = {}
+    if not subject:
+        return args
+
+    title = str(make_header(decode_header(subject)))
+
+    # Mail subject may contain @foo, a selfposts' class name for which
+    # this message is post to.
+    m = re.search(r'(\A|\s)@(\w[\w\-]+)', title)
+    if m:
+        cls = m.groups()[1]
+        title = re.sub(r'(\A|\s)@(\w[\w\-]+)', '', title)
+        services = Service.objects.filter(cls=cls, api='selfposts').values('id')
+        if len(services):
+            args['sid'] = services[0]['id']
+
+    # Mail subject may contain "!draft" literal.
+    if '!draft' in title:
+        title = title.replace('!draft', '').strip()
+        args['draft'] = True
+
+    # Mail subject may contain "!friends-only" literal.
+    if '!friends-only' in title:
+        title = title.replace('!friends-only', '').strip()
+        args['friends_only'] = True
+
+    args['title'] = title
+    return args
+
+
 class MailService:
     name = 'Email API'
 
@@ -45,76 +127,16 @@ class MailService:
 
     def share(self, msgfile: IO[Any] | Any) -> int:
         msg = email.message_from_file(msgfile)
-        args: dict[str, Any] = {}
-        files = []
+        if not _sender_is_allowed(msg):
+            return 77  # EX_NOPERM
 
-        check = getattr(settings, 'EMAIL2POST_CHECK', {})
-        for lhs in check:
-            v = str(make_header(decode_header(msg.get(lhs, ''))))
-            if check[lhs] not in v:
-                return 77  # EX_NOPERM
+        content, files = _extract_parts(msg)
 
-        if msg.is_multipart():
-            for part in msg.walk():
-                attach = False
-                t = part.get_content_type()
+        args: dict[str, Any] = _parse_subject(msg.get('Subject', None))
+        if content is not None:
+            args['content'] = content
 
-                if t == 'text/plain':
-                    if part.get_filename(None):
-                        attach = True
-                    else:
-                        args['content'] = cast(Any, part.get_payload(decode=True))
-
-                if (
-                    attach
-                    or t.startswith('image/')
-                    or t.startswith('audio/')
-                    or t.startswith('video/')
-                    or t.startswith('application/')
-                ):
-                    payload = part.get_payload(decode=True)
-                    os.umask(0)
-                    tmp = TemporaryUploadedFile(
-                        name=part.get_filename('attachment'),
-                        content_type=t,
-                        size=len(payload),
-                        charset=None,
-                    )
-                    tmp.write(payload)
-                    tmp.seek(0)
-                    os.chmod(cast(Any, tmp.file).name, 0o644)
-                    files.append(tmp)
-        else:
-            args['content'] = cast(Any, msg.get_payload(decode=True))
-
-        subject = msg.get('Subject', None)
-        if subject:
-            hdr = make_header(decode_header(subject))
-            args['title'] = str(hdr)
-
-        # Mail subject may contain @foo, a selfposts' class name for which
-        # this message is post to.
-        m = re.search(r'(\A|\s)@(\w[\w\-]+)', args['title'])
-        if m:
-            cls = m.groups()[1]
-            args['title'] = re.sub(r'(\A|\s)@(\w[\w\-]+)', '', args['title'])
-            s = Service.objects.filter(cls=cls, api='selfposts').values('id')
-            if len(s):
-                args['id'] = s[0]['id']
-
-        # Mail subject may contain "!draft" literal.
-        if '!draft' in cast(str, args['title']):
-            args['title'] = cast(str, args['title']).replace('!draft', '').strip()
-            args['draft'] = True
-
-        # Mail subject may contain "!friends-only" literal.
-        if '!friends-only' in cast(str, args['title']):
-            args['title'] = (
-                cast(str, args['title']).replace('!friends-only', '').strip()
-            )
-            args['friends_only'] = True
-
-        if len(files) > 0:
+        if files:
             args['files'] = MultiValueDict()
             args['files'].setlist('docs', files)
 

@@ -45,6 +45,116 @@ def _parse_form_bool(value: Any) -> bool:
     return bool(value)
 
 
+# Extension tables for uploaded files. Anything unlisted keeps the fallbacks
+# below: pictures get no media type, other files are plain documents.
+_UPLOAD_IMAGE_TYPES: dict[str, str] = {
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.webp': 'image/webp',
+    '.avif': 'image/avif',
+    '.heif': 'image/heif',
+}
+
+_UPLOAD_MEDIA_TYPES: dict[str, tuple[str, str]] = {
+    '.mp3': ('audio', 'audio/mpeg'),
+    '.ogg': ('audio', 'audio/ogg'),
+    '.mp4': ('video', 'video/mp4'),
+    '.webm': ('video', 'video/webm'),
+    '.avi': ('video', 'video/avi'),
+    '.pdf': ('document', 'application/pdf'),
+}
+
+
+def _lookup_by_extension(name: str, table: dict[str, Any]) -> Any:
+    lowered = name.lower()
+    for extension, value in table.items():
+        if lowered.endswith(extension):
+            return value
+    return None
+
+
+def _render_body(content: str, editor_syntax: str) -> str:
+    """Turn the editor's raw input into the entry's HTML."""
+    if editor_syntax == 'markdown' and markdown:
+        return expand.run_all(markdown.markdown(content))
+    return urlizetrunc(expand.run_all(content.replace('\n', '<br/>')), 45)
+
+
+def _render_remote_thumbs(images: list[str], link: str) -> str:
+    """Thumbnails for images shared by URL rather than uploaded."""
+    thumbs = '\n<p class="thumbnails">\n'
+    for img in images:
+        saved = media.save_image(img, force=True, downscale=True)
+        thumbs += (
+            """  <a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a>\n"""
+            % (link, saved)
+        )
+    return thumbs + '</p>\n'
+
+
+def _store_uploads(
+    entry: Entry, files: MultiValueDict
+) -> tuple[list[tuple[Media, UploadedFile]], list[tuple[Media, UploadedFile]]]:
+    """Save every uploaded file, split into pictures and everything else."""
+    pictures: list[tuple[Media, UploadedFile]] = []
+    docs: list[tuple[Media, UploadedFile]] = []
+    for f in files.getlist('docs'):
+        md = Media(entry=entry)
+        md.file.save(f.name, f)
+        md.save()
+        if f.content_type.startswith('image/'):
+            pictures.append((md, f))
+        else:
+            docs.append((md, f))
+    return pictures, docs
+
+
+def _render_uploaded_pictures(
+    pictures: list[tuple[Media, UploadedFile]], mblob: dict[str, Any]
+) -> str:
+    thumbs = '\n<p class="thumbnails">\n'
+    for md, upload in pictures:
+        thumb, orig = media.downsave_uploaded_image(md.file)
+        thumbs += '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n' % (
+            orig,
+            thumb,
+        )
+        mrss: dict[str, Any] = {
+            'url': orig,
+            'medium': 'image',
+            'fileSize': upload.size,
+        }
+        media_type = _lookup_by_extension(orig, _UPLOAD_IMAGE_TYPES)
+        if media_type:
+            mrss['type'] = media_type
+        mblob['content'].append([mrss])
+    return thumbs + '</p>\n'
+
+
+def _render_uploaded_docs(
+    docs: list[tuple[Media, UploadedFile]], mblob: dict[str, Any]
+) -> str:
+    doc = '\n<ul class="files">\n'
+    for md, upload in docs:
+        file_name = md.file.name
+        if not file_name:
+            continue
+        target = '[GLS-UPLOAD]/%s' % file_name.replace('upload/', '')
+        doc += '  <li><a href="%s">%s</a> ' % (target, upload.name)
+        doc += '<span class="size">%s</span></li>\n' % bytes_to_human(upload.size)
+
+        mrss: dict[str, Any] = {'url': target, 'fileSize': upload.size}
+        medium, media_type = _lookup_by_extension(target, _UPLOAD_MEDIA_TYPES) or (
+            'document',
+            None,
+        )
+        mrss['medium'] = medium
+        if media_type:
+            mrss['type'] = media_type
+        mblob['content'].append([mrss])
+    return doc + '</ul>\n'
+
+
 class SelfpostsService(BaseService):
     name = 'Selfposts API'
 
@@ -88,27 +198,14 @@ class SelfpostsService(BaseService):
             e.author_name = user.first_name + ' ' + user.last_name
 
         # html, markdown
-        editor_syntax = getattr(settings, 'EDITOR_SYNTAX', 'markdown')
-
-        if editor_syntax == 'markdown' and markdown:
-            e.content = expand.run_all(markdown.markdown(content))
-        else:
-            e.content = expand.run_all(content.replace('\n', '<br/>'))
-            e.content = urlizetrunc(e.content, 45)
-
+        e.content = _render_body(
+            content, getattr(settings, 'EDITOR_SYNTAX', 'markdown')
+        )
         e.content = strip_script(e.content)
         e.content = expand.imgloc(e.content)
 
         if images:
-            thumbs = '\n<p class="thumbnails">\n'
-            for img in images:
-                img = media.save_image(img, force=True, downscale=True)
-                thumbs += (
-                    """  <a href="%s" rel="nofollow"><img src="%s" alt="thumbnail" /></a>\n"""
-                    % (e.link, img)
-                )
-            thumbs += '</p>\n'
-            e.content += thumbs
+            e.content += _render_remote_thumbs(images, e.link)
 
         if title:
             e.title = title
@@ -123,83 +220,14 @@ class SelfpostsService(BaseService):
         try:
             e.save()
 
-            pictures: list[tuple[Media, UploadedFile]] = []
-            docs: list[tuple[Media, UploadedFile]] = []
-
-            for f in files.getlist('docs'):
-                md = Media(entry=e)
-                md.file.save(f.name, f)
-                md.save()
-                if f.content_type.startswith('image/'):
-                    pictures.append((md, f))
-                else:
-                    docs.append((md, f))
-
-            if len(pictures) > 0:
-                thumbs = '\n<p class="thumbnails">\n'
-                for o in pictures:
-                    thumb, orig = media.downsave_uploaded_image(o[0].file)
-                    thumbs += (
-                        '  <a href="%s"><img src="%s" alt="thumbnail" /></a>\n'
-                        % (
-                            orig,
-                            thumb,
-                        )
-                    )
-                    mrss = {'url': orig, 'medium': 'image', 'fileSize': o[1].size}
-                    if orig.lower().endswith('.jpg') or orig.lower().endswith('.jpeg'):
-                        mrss['type'] = 'image/jpeg'
-                    elif orig.lower().endswith('.webp'):
-                        mrss['type'] = 'image/webp'
-                    elif orig.lower().endswith('.avif'):
-                        mrss['type'] = 'image/avif'
-                    elif orig.lower().endswith('.heif'):
-                        mrss['type'] = 'image/heif'
-                    mblob['content'].append([mrss])
-                thumbs += '</p>\n'
-                e.content += thumbs
-
-            if len(docs) > 0:
-                doc = '\n<ul class="files">\n'
-                for o in docs:
-                    file_name = o[0].file.name
-                    if not file_name:
-                        continue
-                    target = '[GLS-UPLOAD]/%s' % file_name.replace('upload/', '')
-                    doc += '  <li><a href="%s">%s</a> ' % (target, o[1].name)
-                    doc += '<span class="size">%s</span></li>\n' % bytes_to_human(
-                        o[1].size
-                    )
-
-                    mrss = {'url': target, 'fileSize': o[1].size}
-                    target = target.lower()
-                    if target.endswith('.mp3'):
-                        mrss['medium'] = 'audio'
-                        mrss['type'] = 'audio/mpeg'
-                    elif target.endswith('.ogg'):
-                        mrss['medium'] = 'audio'
-                        mrss['type'] = 'audio/ogg'
-                    elif target.endswith('.mp4'):
-                        mrss['medium'] = 'video'
-                        mrss['type'] = 'video/mp4'
-                    elif target.endswith('.webm'):
-                        mrss['medium'] = 'video'
-                        mrss['type'] = 'video/webm'
-                    elif target.endswith('.avi'):
-                        mrss['medium'] = 'video'
-                        mrss['type'] = 'video/avi'
-                    elif target.endswith('.pdf'):
-                        mrss['medium'] = 'document'
-                        mrss['type'] = 'application/pdf'
-                    else:
-                        mrss['medium'] = 'document'
-                    mblob['content'].append([mrss])
-
-                doc += '</ul>\n'
-                e.content += doc
+            pictures, docs = _store_uploads(e, files)
+            if pictures:
+                e.content += _render_uploaded_pictures(pictures, mblob)
+            if docs:
+                e.content += _render_uploaded_docs(docs, mblob)
 
             e.mblob = media.mrss_gen_json(mblob)
-            if len(pictures) > 0 or len(docs) > 0:
+            if pictures or docs:
                 e.save()
 
             media.extract_and_register(e)

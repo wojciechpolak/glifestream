@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 import os
 
 from django.contrib.auth.decorators import login_required
@@ -45,6 +45,69 @@ def _build_oauth_page(request: HttpRequest, title: str) -> dict[str, Any]:
     return build_settings_page(request, title=title, menu=None)
 
 
+OAUTH1_APIS_HELP = {
+    'twitter': 'https://developer.twitter.com/en/docs/authentication/overview',
+}
+
+OAUTH1_DEFAULT_HELP = 'http://oauth.net/documentation/getting-started/'
+
+
+def _collect_custom_urls(
+    request: HttpRequest, c: Any, page: dict[str, Any]
+) -> dict[str, Any]:
+    """Phase 0 for a provider whose endpoints the operator has to supply."""
+    v: dict[str, Any] = {}
+    if c.db.phase == 0 and (
+        not c.request_token_url or not c.authorize_url or not c.access_token_url
+    ):
+        v['request_token_url'] = request.POST.get('request_token_url', '')
+        v['authorize_url'] = request.POST.get('authorize_url', '')
+        v['access_token_url'] = request.POST.get('access_token_url', '')
+        page['need_custom_urls'] = True
+    return v
+
+
+def _handle_oauth_post(
+    request: HttpRequest, c: Any, page: dict[str, Any], v: dict[str, Any]
+) -> HttpResponse | None:
+    if 'reset' in request.POST:
+        c.reset()
+        c.save()
+        return None
+
+    if c.db.phase == 0:
+        if not c.request_token_url:
+            c.set_urls(
+                v['request_token_url'], v['authorize_url'], v['access_token_url']
+            )
+        try:
+            c.get_request_token()
+        except Exception as e:
+            page['msg'] = e
+        c.save()
+    if c.db.phase == 1:
+        return HttpResponseRedirect(c.get_authorize_url())
+    return None
+
+
+def _handle_oauth_get(
+    request: HttpRequest, c: Any, page: dict[str, Any], id_service: Any
+) -> HttpResponse | None:
+    if c.db.phase == 1 and request.GET.get('oauth_token', '') == c.db.token:
+        c.consumer.parse_authorization_response(request.get_full_path())
+        c.verifier = request.GET.get('oauth_verifier', None)
+        c.db.phase = 2
+
+    if c.db.phase == 2:
+        try:
+            c.get_access_token()
+            c.save()
+            return HttpResponseRedirect(reverse('usettings-oauth', args=[id_service]))
+        except Exception as e:
+            page['msg'] = e
+    return None
+
+
 @login_required
 @never_cache
 def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
@@ -53,10 +116,6 @@ def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
         return user
 
     page = _build_oauth_page(request, _('OAuth - Settings'))
-    apis_help = {
-        'twitter': 'https://developer.twitter.com/en/docs/authentication/overview',
-    }
-    v: dict[str, Any] = {}
     id_service = args['id']
 
     callback_url = request.build_absolute_uri(
@@ -72,49 +131,16 @@ def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
         callback_url=callback_url,
     )
 
-    if c.db.phase == 0 and (
-        not c.request_token_url or not c.authorize_url or not c.access_token_url
-    ):
-        v['request_token_url'] = request.POST.get('request_token_url', '')
-        v['authorize_url'] = request.POST.get('authorize_url', '')
-        v['access_token_url'] = request.POST.get('access_token_url', '')
-        page['need_custom_urls'] = True
+    v = _collect_custom_urls(request, c, page)
 
-    if 'reset' in request.POST:
-        c.reset()
-        c.save()
-    elif request.method == 'POST':
-        if c.db.phase == 0:
-            if not c.request_token_url:
-                c.set_urls(
-                    v['request_token_url'], v['authorize_url'], v['access_token_url']
-                )
-            try:
-                c.get_request_token()
-            except Exception as e:
-                page['msg'] = e
-            c.save()
-        if c.db.phase == 1:
-            return HttpResponseRedirect(c.get_authorize_url())
-
-    if request.method == 'GET':
-        if c.db.phase == 1:
-            if request.GET.get('oauth_token', '') == c.db.token:
-                c.consumer.parse_authorization_response(request.get_full_path())
-                cast(Any, c).verifier = request.GET.get('oauth_verifier', None)
-                c.db.phase = 2
-
-        if c.db.phase == 2:
-            try:
-                c.get_access_token()
-                c.save()
-                return HttpResponseRedirect(reverse('usettings-oauth', args=[id_service]))
-            except Exception as e:
-                page['msg'] = e
-
-    api_help = apis_help.get(
-        service.api, 'http://oauth.net/documentation/getting-started/'
-    )
+    if request.method == 'POST':
+        response = _handle_oauth_post(request, c, page, v)
+        if response is not None:
+            return response
+    elif request.method == 'GET':
+        response = _handle_oauth_get(request, c, page, id_service)
+        if response is not None:
+            return response
 
     return render(
         request,
@@ -123,7 +149,7 @@ def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
             'page': page,
             'is_secure': request.is_secure(),
             'title': str(service),
-            'api_help': api_help,
+            'api_help': OAUTH1_APIS_HELP.get(service.api, OAUTH1_DEFAULT_HELP),
             'callback_url': callback_url,
             'phase': c.db.phase,
             'v': v,

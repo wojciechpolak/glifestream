@@ -16,15 +16,12 @@
 """
 
 from __future__ import annotations
-from typing import Any, cast
+from typing import Any
 from django.conf import settings
 from django.urls import reverse
-from django.contrib.auth.models import User
 from django.http import (
     HttpRequest,
     HttpResponse,
-    HttpResponseForbidden,
-    HttpResponseRedirect,
     HttpResponseNotFound,
     Http404,
     JsonResponse,
@@ -32,20 +29,10 @@ from django.http import (
 from django.shortcuts import render
 from django.views.decorators.cache import never_cache
 
-from glifestream.stream.templatetags.gls_filters import (
-    gls_content,
-    fix_ampersands,
-)
-from glifestream.stream.models import Service, Entry, Favorite
 from glifestream.stream.typing import Page
-from glifestream.stream.index_view import (
-    build_friends_login_url as _build_friends_login_url,
-    render_index,
-)
-from glifestream.stream import media, websub
-from glifestream.gauth.request_auth import get_request_auth_state
+from glifestream.stream.index_view import render_index
+from glifestream.stream import api_view, websub
 from glifestream.utils import common
-from glifestream.apis import selfposts
 
 
 def index(request: HttpRequest, **args: Any) -> HttpResponse:
@@ -111,147 +98,4 @@ def webmanifest(request: HttpRequest) -> JsonResponse:
 
 
 def api(request: HttpRequest, **args: Any) -> HttpResponse:
-    user = cast(User, request.user)
-    auth_state = get_request_auth_state(request)
-    cmd = args.get('cmd', '')
-    entry: Any = request.POST.get('entry', None)
-    entry_id: int | None = int(cast(str, entry)) if entry else None
-
-    authed = auth_state.authed
-    friend = auth_state.friend
-    if not authed and cmd != 'getcontent':
-        return HttpResponseForbidden()
-
-    if cmd == 'hide' and entry_id is not None:
-        Entry.objects.filter(pk=entry_id).update(active=False)
-
-    elif cmd == 'unhide' and entry_id is not None:
-        Entry.objects.filter(pk=entry_id).update(active=True)
-
-    elif cmd == 'gsc':  # get selfposts classes
-        _srvs = (
-            Service.objects.filter(api='selfposts').order_by('cls').values('id', 'cls')
-        )
-        srvs: Any = {}
-        for item in _srvs:
-            if item['cls'] not in srvs:
-                srvs[item['cls']] = item
-        srvs = list(srvs.values())
-
-        d = []
-        for s in srvs:
-            d.append({'id': s['id'], 'cls': s['cls']})
-        return JsonResponse(d, safe=False)
-
-    elif cmd == 'share':
-        images = []
-        for i in range(0, 5):
-            img = request.POST.get('image' + str(i), None)
-            if img:
-                images.append(img)
-        source = request.POST.get('from', '')
-        entry = selfposts.SelfpostsService(Service()).share(
-            {
-                'content': request.POST.get('content', ''),
-                'sid': request.POST.get('sid', None),
-                'draft': request.POST.get('draft', False),
-                'friends_only': request.POST.get('friends_only', False),
-                'link': request.POST.get('link', None),
-                'images': images,
-                'files': request.FILES,
-                'source': source,
-                'user': request.user,
-            }
-        )
-        if entry:
-            if not entry.draft:
-                websub.publish()
-            entry.friends_only = False
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return render(
-                    request, 'stream-pure.html', {'entries': (entry,), 'authed': authed}
-                )
-            else:
-                return HttpResponseRedirect(settings.BASE_URL + '/')
-
-    elif cmd == 'reshare' and entry_id is not None:
-        try:
-            entry = Entry.objects.get(pk=entry_id)
-            if entry:
-                entry = selfposts.SelfpostsService(Service()).reshare(
-                    entry,
-                    {'as_me': request.POST.get('as_me', False), 'user': user},
-                )
-                if entry:
-                    websub.publish()
-                    return render(
-                        request,
-                        'stream-pure.html',
-                        {'entries': (entry,), 'authed': authed},
-                    )
-        except Entry.DoesNotExist:
-            pass
-
-    elif cmd == 'favorite' and entry_id is not None:
-        try:
-            entry = Entry.objects.get(pk=entry_id)
-            if entry:
-                try:
-                    Favorite.objects.get(user=user, entry=entry)
-                except Favorite.DoesNotExist:
-                    fav = Favorite(user=user, entry=entry)
-                    fav.save()
-                    media.transform_to_local(entry)
-                    media.extract_and_register(entry)
-                    entry.save()
-        except Entry.DoesNotExist:
-            pass
-
-    elif cmd == 'unfavorite' and entry_id is not None:
-        try:
-            entry = Entry.objects.get(pk=entry_id)
-            if entry:
-                Favorite.objects.get(user=user, entry=entry).delete()
-        except Entry.DoesNotExist:
-            pass
-
-    elif cmd == 'getcontent' and entry_id is not None:
-        try:
-            if authed:
-                entry = Entry.objects.get(pk=entry_id)
-            else:
-                filters: dict[str, Any] = {
-                    'pk': entry_id,
-                    'active': True,
-                    'draft': False,
-                    'service__public': True,
-                }
-                entry = Entry.objects.get(**filters)
-            if entry:
-                if request.POST.get('raw', False) and authed:
-                    return HttpResponse(entry.content)
-
-                cast(Any, entry).friends_login_url = _build_friends_login_url(
-                    request.build_absolute_uri(reverse('entry', args=[entry.pk]))
-                )
-                if authed or friend:
-                    entry.friends_only = False
-                content = fix_ampersands(gls_content('', entry))
-                return HttpResponse(content)
-        except Entry.DoesNotExist:
-            pass
-
-    elif cmd == 'putcontent' and entry_id is not None:
-        try:
-            if authed:
-                content = request.POST.get('content', '')
-                if content:
-                    Entry.objects.filter(pk=entry_id).update(content=content)
-                entry = Entry.objects.get(pk=entry_id)
-                if entry:
-                    content = fix_ampersands(gls_content('', entry))
-                    return HttpResponse(content)
-        except Entry.DoesNotExist:
-            pass
-
-    return HttpResponse()
+    return api_view.dispatch(request, **args)

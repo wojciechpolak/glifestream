@@ -23,7 +23,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Sequence
+from typing import Any, Callable, Sequence
 
 from django.conf import settings
 from django.db import connections
@@ -101,10 +101,17 @@ def _print_usage(prog_name: str) -> None:
 
 
 def _preprocess_cli_args(args: Sequence[str]) -> list[str]:
+    """Normalize the verbosity spellings getopt cannot express itself.
+
+    getopt has no optional-argument long option, so the option table carries
+    only `verbose=` and bare `--verbose` is rewritten to `-v`, which stacks.
+    """
     normalized: list[str] = []
     for arg in args:
         if re.fullmatch(r'-v\d+', arg):
             normalized.append('--verbose=%s' % arg[2:])
+        elif arg == '--verbose':
+            normalized.append('-v')
         else:
             normalized.append(arg)
     return normalized
@@ -122,143 +129,177 @@ def _normalize_fetch_filters(fs: dict[str, Any]) -> dict[str, Any]:
         normalized['id__in'] = [int(item) for item in str(normalized['id']).split(',')]
         del normalized['id']
     if 'api' in normalized and ',' in str(normalized['api']):
-        normalized['api__in'] = [item.strip() for item in str(normalized['api']).split(',')]
+        normalized['api__in'] = [
+            item.strip() for item in str(normalized['api']).split(',')
+        ]
         del normalized['api']
     return normalized
 
 
-def parse_legacy_command(argv: Sequence[str]) -> WorkerCommand:
-    verbose = 0
-    lifecycle_logs = True
-    list_services = False
-    force_check = False
-    force_overwrite = False
+@dataclass
+class _ParsedOptions:
+    """Everything the option loop can set, before it becomes a WorkerCommand."""
+
+    filters: dict[str, Any] = field(default_factory=dict)
+    verbose: int = 0
+    lifecycle_logs: bool = True
+    list_services: bool = False
+    force_check: bool = False
+    force_overwrite: bool = False
     list_old: int | None = None
     delete_old: int | None = None
-    only_inactive = False
+    only_inactive: bool = False
     thumbs: str | None = None
     websub_cmd: str | None = None
-    daemon = False
-    email_to_post = False
-    init_files = False
-    daemon_workers = int(
-        getattr(
-            settings,
-            'WORKER_POOL_SIZE',
-            DEFAULT_WORKER_POOL_SIZE,
-        )
-    )
-    filters: dict[str, Any] = {}
+    daemon: bool = False
+    email_to_post: bool = False
+    init_files: bool = False
+    daemon_workers: int = 0
 
+
+# Option tables, in the same dict-dispatch style as execute_command below.
+_FILTER_OPTIONS: dict[str, str] = {
+    '-a': 'api',
+    '--api': 'api',
+    '-i': 'id',
+    '--id': 'id',
+}
+
+_FLAG_OPTIONS: dict[str, str] = {
+    '-l': 'list_services',
+    '--list': 'list_services',
+    '-f': 'force_check',
+    '--force-check': 'force_check',
+    '--daemon': 'daemon',
+    '--force-overwrite': 'force_overwrite',
+    '--only-inactive': 'only_inactive',
+    '--email2post': 'email_to_post',
+    '--init-files-dirs': 'init_files',
+}
+
+_CONST_OPTIONS: dict[str, tuple[str, Any]] = {
+    '--silent': ('lifecycle_logs', False),
+    '--thumbs-list-orphans': ('thumbs', 'list-orphans'),
+    '--thumbs-delete-orphans': ('thumbs', 'delete-orphans'),
+}
+
+_VALUE_OPTIONS: dict[str, tuple[str, Callable[[str], Any]]] = {
+    '--workers': ('daemon_workers', int),
+    '--list-old': ('list_old', int),
+    '--delete-old': ('delete_old', int),
+    '--websub': ('websub_cmd', str),
+}
+
+_LONG_OPTIONS = (
+    'id=',
+    'api=',
+    'list',
+    'verbose=',
+    'silent',
+    'force-check',
+    'daemon',
+    'workers=',
+    'force-overwrite',
+    'delete-old=',
+    'list-old=',
+    'only-inactive',
+    'thumbs-list-orphans',
+    'thumbs-delete-orphans',
+    'websub=',
+    'email2post',
+    'init-files-dirs',
+)
+
+
+def _default_daemon_workers() -> int:
+    return int(getattr(settings, 'WORKER_POOL_SIZE', DEFAULT_WORKER_POOL_SIZE))
+
+
+def _parse_options(opts: Sequence[tuple[str, str]]) -> _ParsedOptions:
+    parsed = _ParsedOptions(daemon_workers=_default_daemon_workers())
+    for option, arg in opts:
+        if option in _FILTER_OPTIONS:
+            parsed.filters[_FILTER_OPTIONS[option]] = arg
+        elif option in _FLAG_OPTIONS:
+            setattr(parsed, _FLAG_OPTIONS[option], True)
+        elif option in _CONST_OPTIONS:
+            attribute, value = _CONST_OPTIONS[option]
+            setattr(parsed, attribute, value)
+        elif option in _VALUE_OPTIONS:
+            attribute, convert = _VALUE_OPTIONS[option]
+            setattr(parsed, attribute, convert(arg))
+        elif option in ('-v', '--verbose'):
+            # Bare -v stacks; --verbose=N assigns and decides lifecycle logs.
+            if arg:
+                parsed.verbose = int(arg)
+                parsed.lifecycle_logs = parsed.verbose > 0
+            else:
+                parsed.verbose += 1
+    return parsed
+
+
+def _select_command_kind(
+    parsed: _ParsedOptions, cleanup_command: MaintenanceCommand | None
+) -> WorkerCommandKind:
+    if parsed.email_to_post:
+        return WorkerCommandKind.EMAIL2POST
+    if parsed.init_files:
+        return WorkerCommandKind.INIT_FILES
+    if parsed.list_services:
+        return WorkerCommandKind.LIST_SERVICES
+    if parsed.daemon:
+        return WorkerCommandKind.DAEMON
+    if parsed.websub_cmd:
+        return WorkerCommandKind.WEBSUB
+    if cleanup_command is not None:
+        return WorkerCommandKind.CLEANUP
+    return WorkerCommandKind.FETCH
+
+
+def parse_legacy_command(argv: Sequence[str]) -> WorkerCommand:
     try:
         opts, args = getopt.getopt(
-            _preprocess_cli_args(argv),
-            'i:a:lvf',
-            [
-                'id=',
-                'api=',
-                'list',
-                'verbose',
-                'verbose=',
-                'silent',
-                'force-check',
-                'daemon',
-                'workers=',
-                'force-overwrite',
-                'delete-old=',
-                'list-old=',
-                'only-inactive',
-                'thumbs-list-orphans',
-                'thumbs-delete-orphans',
-                'websub=',
-                'email2post',
-                'init-files-dirs',
-            ],
+            _preprocess_cli_args(argv), 'i:a:lvf', list(_LONG_OPTIONS)
         )
     except getopt.GetoptError:
         return WorkerCommand(kind=WorkerCommandKind.USAGE, usage_exit_code=0)
 
-    for option, arg in opts:
-        if option in ('-a', '--api'):
-            filters['api'] = arg
-        elif option in ('-i', '--id'):
-            filters['id'] = arg
-        elif option in ('-l', '--list'):
-            list_services = True
-        elif option in ('-v', '--verbose'):
-            if arg:
-                verbose = int(arg)
-                lifecycle_logs = verbose > 0
-            else:
-                verbose += 1
-        elif option == '--silent':
-            lifecycle_logs = False
-        elif option in ('-f', '--force-check'):
-            force_check = True
-        elif option == '--daemon':
-            daemon = True
-        elif option == '--workers':
-            daemon_workers = int(arg)
-        elif option == '--force-overwrite':
-            force_overwrite = True
-        elif option == '--list-old':
-            list_old = int(arg)
-        elif option == '--delete-old':
-            delete_old = int(arg)
-        elif option == '--only-inactive':
-            only_inactive = True
-        elif option == '--thumbs-list-orphans':
-            thumbs = 'list-orphans'
-        elif option == '--thumbs-delete-orphans':
-            thumbs = 'delete-orphans'
-        elif option == '--websub':
-            websub_cmd = arg
-        elif option == '--email2post':
-            email_to_post = True
-        elif option == '--init-files-dirs':
-            init_files = True
+    parsed = _parse_options(opts)
 
     if args:
         return WorkerCommand(kind=WorkerCommandKind.USAGE, usage_exit_code=1)
 
     cleanup_command: MaintenanceCommand | None = None
-    if list_old is not None or delete_old is not None or thumbs is not None:
+    if (
+        parsed.list_old is not None
+        or parsed.delete_old is not None
+        or parsed.thumbs is not None
+    ):
         cleanup_command = build_maintenance_command(
-            filters=filters,
-            list_old_days=list_old,
-            delete_old_days=delete_old,
-            only_inactive=only_inactive,
-            thumbs=thumbs,
+            filters=parsed.filters,
+            list_old_days=parsed.list_old,
+            delete_old_days=parsed.delete_old,
+            only_inactive=parsed.only_inactive,
+            thumbs=parsed.thumbs,
         )
 
-    if email_to_post:
-        kind = WorkerCommandKind.EMAIL2POST
-    elif init_files:
-        kind = WorkerCommandKind.INIT_FILES
-    elif list_services:
-        kind = WorkerCommandKind.LIST_SERVICES
-    elif daemon:
-        kind = WorkerCommandKind.DAEMON
-    elif websub_cmd:
-        kind = WorkerCommandKind.WEBSUB
-    elif cleanup_command is not None:
-        kind = WorkerCommandKind.CLEANUP
-    else:
-        kind = WorkerCommandKind.FETCH
-        if not force_check or 'id' not in filters:
+    kind = _select_command_kind(parsed, cleanup_command)
+    filters = parsed.filters
+    if kind == WorkerCommandKind.FETCH:
+        if not parsed.force_check or 'id' not in filters:
             filters['active'] = True
         filters = _normalize_fetch_filters(filters)
 
     return WorkerCommand(
         kind=kind,
         filters=filters,
-        verbose=verbose,
-        lifecycle_logs=lifecycle_logs,
-        daemon_workers=daemon_workers,
-        force_check=force_check,
-        force_overwrite=force_overwrite,
+        verbose=parsed.verbose,
+        lifecycle_logs=parsed.lifecycle_logs,
+        daemon_workers=parsed.daemon_workers,
+        force_check=parsed.force_check,
+        force_overwrite=parsed.force_overwrite,
         cleanup_command=cleanup_command,
-        websub_action=websub_cmd,
+        websub_action=parsed.websub_cmd,
     )
 
 
@@ -278,7 +319,9 @@ def handle_daemon(command: WorkerCommand) -> int:
 
 def handle_fetch(command: WorkerCommand) -> int:
     if command.force_overwrite:
-        sel = input('WARNING: This may create thumbnail orphans! Continue Y/N? ').strip()
+        sel = input(
+            'WARNING: This may create thumbnail orphans! Continue Y/N? '
+        ).strip()
         if sel != 'Y':
             return 0
 
@@ -297,41 +340,85 @@ def handle_cleanup(command: WorkerCommand) -> int:
     return 0
 
 
+def _report_subscribe_result(result: dict[str, Any], *, prog_name: str) -> None:
+    rc = result['rc']
+    if rc == 1:
+        print('%s: %s' % (prog_name, result['error']))
+    elif rc == 2:
+        print('%s: Hub not found.' % prog_name)
+    elif rc == 202:
+        print('hub=%s: Accepted for verification.' % result['hub'])
+    elif rc == 204:
+        print('hub=%s: Subscription verified.' % result['hub'])
+
+
+def _report_unsubscribe_result(result: dict[str, Any], *, prog_name: str) -> None:
+    rc = result['rc']
+    if rc == 1:
+        print('%s: No subscription found.' % prog_name)
+    elif rc == 202:
+        print('hub=%s: Accepted for verification.' % result['hub'])
+    elif rc == 204:
+        print('hub=%s: Unsubscribed.' % result['hub'])
+    else:
+        print('hub=%s: %s.' % (result['hub'], rc))
+
+
+def _websub_subscribe(command: WorkerCommand, *, prog_name: str) -> int | None:
+    if 'id' not in command.filters:
+        return None
+    service = Service.objects.get(id=command.filters['id'])
+    _report_subscribe_result(
+        websub.subscribe(service, command.verbose), prog_name=prog_name
+    )
+    return 0
+
+
+def _websub_unsubscribe(command: WorkerCommand, *, prog_name: str) -> int | None:
+    if 'id' not in command.filters:
+        return None
+    _report_unsubscribe_result(
+        websub.unsubscribe(command.filters['id'], command.verbose), prog_name=prog_name
+    )
+    return 0
+
+
+def _websub_renew(command: WorkerCommand, *, prog_name: str) -> int | None:
+    del prog_name
+    websub.renew_subscriptions(force=command.force_check, verbose=command.verbose)
+    return 0
+
+
+def _websub_list(command: WorkerCommand, *, prog_name: str) -> int | None:
+    del command, prog_name
+    websub.list_subs()
+    return 0
+
+
+def _websub_publish(command: WorkerCommand, *, prog_name: str) -> int | None:
+    del prog_name
+    websub.publish(verbose=command.verbose)
+    return 0
+
+
+WEBSUB_ACTIONS: dict[str, Callable[..., int | None]] = {
+    'subscribe': _websub_subscribe,
+    'unsubscribe': _websub_unsubscribe,
+    'renew': _websub_renew,
+    'list': _websub_list,
+    'publish': _websub_publish,
+}
+
+
 def handle_websub(command: WorkerCommand, *, prog_name: str) -> int:
-    action = command.websub_action
-    if action == 'subscribe' and 'id' in command.filters:
-        service = Service.objects.get(id=command.filters['id'])
-        result = websub.subscribe(service, command.verbose)
-        if result['rc'] == 1:
-            print('%s: %s' % (prog_name, result['error']))
-        elif result['rc'] == 2:
-            print('%s: Hub not found.' % prog_name)
-        elif result['rc'] == 202:
-            print('hub=%s: Accepted for verification.' % result['hub'])
-        elif result['rc'] == 204:
-            print('hub=%s: Subscription verified.' % result['hub'])
-        return 0
-    if action == 'unsubscribe' and 'id' in command.filters:
-        result = websub.unsubscribe(command.filters['id'], command.verbose)
-        if result['rc'] == 1:
-            print('%s: No subscription found.' % prog_name)
-        elif result['rc'] == 202:
-            print('hub=%s: Accepted for verification.' % result['hub'])
-        elif result['rc'] == 204:
-            print('hub=%s: Unsubscribed.' % result['hub'])
-        else:
-            print('hub=%s: %s.' % (result['hub'], result['rc']))
-        return 0
-    if action == 'renew':
-        websub.renew_subscriptions(force=command.force_check, verbose=command.verbose)
-        return 0
-    if action == 'list':
-        websub.list_subs()
-        return 0
-    if action == 'publish':
-        websub.publish(verbose=command.verbose)
-        return 0
-    print('%s: Unknown "%s" action.' % (prog_name, action))
+    handler = WEBSUB_ACTIONS.get(command.websub_action or '')
+    if handler is not None:
+        # A handler returns None when it cannot act, e.g. (un)subscribe
+        # without --id, which reports as an unknown action like it always has.
+        exit_code = handler(command, prog_name=prog_name)
+        if exit_code is not None:
+            return exit_code
+    print('%s: Unknown "%s" action.' % (prog_name, command.websub_action))
     return 1
 
 

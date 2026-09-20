@@ -23,7 +23,7 @@ from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
-from typing import cast
+from typing import Any, cast
 
 
 class VimeoService(BaseService):
@@ -62,68 +62,26 @@ class VimeoService(BaseService):
 
     def process_likes(self) -> None:
         """Process what user did like."""
-        for ent in self.json:
-            date = ent['liked_on'][:10]
-            guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
-            if self.verbose:
-                print('ID: %s' % guid)
-            try:
-                e = Entry.objects.get(service=self.service, guid=guid)
-                if (
-                    not self.force_overwrite
-                    and e.date_updated
-                    and mtime(ent['liked_on']) <= e.date_updated
-                ):
-                    continue
-                if e.protected:
-                    continue
-            except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=guid)
-
-            try:
-                t = datetime.datetime.strptime(ent['liked_on'], '%Y-%m-%d %H:%M:%S')
-                t = t.replace(tzinfo=datetime.timezone.utc)
-            except ValueError:
-                t = ent['liked_on']
-
-            e.title = ent['title']
-            e.link = ent['url']
-            e.date_published = t
-            e.date_updated = t
-            e.author_name = ent['user_name']
-
-            e.idata = 'liked'
-
-            if self.service.public:
-                ent['thumbnail_large'] = media.save_image(
-                    ent['thumbnail_large'], downscale=True, size=(320, 180)
-                )
-
-            e.content = (
-                """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>"""
-                % (ent['id'], e.link, ent['thumbnail_large'], ent['title'])
-            )
-
-            mblob = media.mrss_init()
-            mblob['content'].append(
-                [
-                    {
-                        'url': 'https://player.vimeo.com/video/%s' % ent['id'],
-                        'medium': 'video',
-                    }
-                ]
-            )
-            e.mblob = media.mrss_gen_json(mblob)
-
-            try:
-                e.save()
-            except Exception:
-                pass
+        self._process_entries(date_key='liked_on', idata='liked')
 
     def process_videos(self) -> None:
         """Process videos uploaded by user."""
+        self._process_entries(date_key='upload_date', register_media=True)
+
+    def _process_entries(
+        self,
+        *,
+        date_key: str,
+        idata: str | None = None,
+        register_media: bool = False,
+    ) -> None:
+        """Turn one Vimeo JSON listing into entries.
+
+        Likes and uploads differ only in which timestamp field they carry and
+        in whether the entry is tagged as a like, so they share this body.
+        """
         for ent in self.json:
-            date = ent['upload_date'][:10]
+            date = ent[date_key][:10]
             guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
             if self.verbose:
                 print('ID: %s' % guid)
@@ -132,7 +90,7 @@ class VimeoService(BaseService):
                 if (
                     not self.force_overwrite
                     and e.date_updated
-                    and mtime(ent['upload_date']) <= e.date_updated
+                    and mtime(ent[date_key]) <= e.date_updated
                 ):
                     continue
                 if e.protected:
@@ -140,17 +98,16 @@ class VimeoService(BaseService):
             except Entry.DoesNotExist:
                 e = Entry(service=self.service, guid=guid)
 
-            try:
-                t = datetime.datetime.strptime(ent['upload_date'], '%Y-%m-%d %H:%M:%S')
-                t = t.replace(tzinfo=datetime.timezone.utc)
-            except ValueError:
-                t = ent['upload_date']
+            t = _parse_vimeo_date(ent[date_key])
 
             e.title = ent['title']
             e.link = ent['url']
             e.date_published = t
             e.date_updated = t
             e.author_name = ent['user_name']
+
+            if idata:
+                e.idata = idata
 
             if self.service.public:
                 ent['thumbnail_large'] = media.save_image(
@@ -175,9 +132,19 @@ class VimeoService(BaseService):
 
             try:
                 e.save()
-                media.extract_and_register(e)
+                if register_media:
+                    media.extract_and_register(e)
             except Exception:
                 pass
+
+
+def _parse_vimeo_date(value: str) -> Any:
+    """Vimeo's own timestamp format, or the raw string when it does not parse."""
+    try:
+        t = datetime.datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        return t.replace(tzinfo=datetime.timezone.utc)
+    except ValueError:
+        return value
 
 
 def get_thumbnail_url(id_video: str) -> str | None:

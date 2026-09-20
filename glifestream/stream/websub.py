@@ -31,6 +31,52 @@ from glifestream.utils.time import now
 from glifestream.stream.models import WebSub, Service
 
 
+def _describe_http_error(e: Exception) -> str:
+    """Whatever the transport managed to say about a failed hub request."""
+    message = getattr(e, 'message', None)
+    if message:
+        return cast(str, message)
+    read_fn = getattr(e, 'read', None)
+    if callable(read_fn):
+        return cast(str, read_fn())
+    return ''
+
+
+def _find_hub(feed) -> str | None:
+    for link in feed.get('links', ()):
+        if link.rel == 'hub':
+            return cast(str, link.href)
+    return None
+
+
+def _subscription_secret(hub: str, service: Service) -> str:
+    return hashlib.md5(
+        (
+            '%s:%d/%s/%s'
+            % (hub, cast(int, service.pk), service.url, settings.SECRET_KEY)
+        ).encode('utf-8')
+    ).hexdigest()
+
+
+def _hub_form_data(
+    mode: str, hash_sub: str, *, verify: str, secret: str | None = None
+) -> dict[str, str]:
+    """The hub.* form both subscribe and unsubscribe POST."""
+    callback = __get_absolute_url(reverse('websub', args=[hash_sub]))
+    if settings.WEBSUB_HTTPS_CALLBACK:
+        callback = callback.replace('http://', 'https://')
+
+    data = {
+        'hub.mode': mode,
+        'hub.topic': __get_absolute_url(reverse('index')) + '?format=atom',
+        'hub.callback': callback,
+        'hub.verify': verify,
+    }
+    if secret:
+        data['hub.secret'] = secret
+    return data
+
+
 def subscribe(service: Service, verbose=False):
     api = ServiceFactory.create_service(service)
     if not isinstance(api, WebfeedService):
@@ -41,22 +87,12 @@ def subscribe(service: Service, verbose=False):
     if api.fp_error:
         return {'rc': 1, 'error': api.fp.bozo_exception}
 
-    hub = None
-    for link in api.fp.feed.get('links', ()):
-        if link.rel == 'hub':
-            hub = link.href
-            break
+    hub = _find_hub(api.fp.feed)
     if not hub:
         return {'rc': 2}
 
-    secret = hashlib.md5(
-        (
-            '%s:%d/%s/%s'
-            % (hub, cast(int, service.pk), service.url, settings.SECRET_KEY)
-        ).encode('utf-8')
-    ).hexdigest()
+    secret = _subscription_secret(hub, service)
     hash_sub = hashlib.sha1(secret.encode('utf-8')).hexdigest()[0:20]
-    secret_val: str | None = secret[0:8] if 'https://' in hub else None
 
     save_db = False
     try:
@@ -65,20 +101,12 @@ def subscribe(service: Service, verbose=False):
         db = WebSub(hash=hash_sub, service=service, hub=hub, secret=secret)
         save_db = True
 
-    topic = __get_absolute_url(reverse('index')) + '?format=atom'
-    callback = __get_absolute_url(reverse('websub', args=[hash_sub]))
-
-    if settings.WEBSUB_HTTPS_CALLBACK:
-        callback = callback.replace('http://', 'https://')
-
-    data = {
-        'hub.mode': 'subscribe',
-        'hub.topic': topic,
-        'hub.callback': callback,
-        'hub.verify': 'async',
-    }
-    if secret_val:
-        data['hub.secret'] = secret_val
+    data = _hub_form_data(
+        'subscribe',
+        hash_sub,
+        verify='async',
+        secret=secret[0:8] if 'https://' in hub else None,
+    )
 
     try:
         r = httpclient.post(hub, data=data)
@@ -88,14 +116,7 @@ def subscribe(service: Service, verbose=False):
             db.save()
         return {'hub': hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
-        error = ''
-        message = getattr(e, 'message', None)
-        if message:
-            error = message
-        else:
-            read_fn = getattr(e, 'read', None)
-            if callable(read_fn):
-                error = read_fn()
+        error = _describe_http_error(e)
         if verbose:
             print('%s, Response: "%s"' % (e, error))
         return {'hub': hub, 'rc': error}
@@ -107,18 +128,7 @@ def unsubscribe(id_sub, verbose=False):
     except WebSub.DoesNotExist:
         return {'rc': 1}
 
-    topic = __get_absolute_url(reverse('index')) + '?format=atom'
-    callback = __get_absolute_url(reverse('websub', args=[db.hash]))
-
-    if settings.WEBSUB_HTTPS_CALLBACK:
-        callback = callback.replace('http://', 'https://')
-
-    data = {
-        'hub.mode': 'unsubscribe',
-        'hub.topic': topic,
-        'hub.callback': callback,
-        'hub.verify': 'sync',
-    }
+    data = _hub_form_data('unsubscribe', db.hash, verify='sync')
 
     try:
         r = httpclient.post(db.hub, data=data)
@@ -126,14 +136,7 @@ def unsubscribe(id_sub, verbose=False):
             print('Response code: %d' % r.status_code)
         return {'hub': db.hub, 'rc': r.status_code}
     except (IOError, httpclient.HTTPError) as e:
-        error = ''
-        message = getattr(e, 'message', None)
-        if message:
-            error = message
-        else:
-            read_fn = getattr(e, 'read', None)
-            if callable(read_fn):
-                error = read_fn()
+        error = _describe_http_error(e)
         if verbose:
             print('%s, Response: "%s"' % (e, error))
         return {'hub': db.hub, 'rc': error}
@@ -177,17 +180,10 @@ def publish(hubs=None, verbose=False):
                     print('%s: Pinged and got %d (URL: %s)' % (hub, r.status_code, url))
                     print('Response content:\n', r.content)
         except (IOError, httpclient.HTTPError) as e:
-            if hasattr(e, 'status_code') and e.status_code == 204:
+            if getattr(e, 'status_code', None) == 204:
                 continue
             if verbose:
-                error = ''
-                if hasattr(e, 'message'):
-                    error = e.message
-                else:
-                    read_fn = getattr(e, 'read', None)
-                    if callable(read_fn):
-                        error = read_fn()
-                print('%s, Response: "%s"' % (e, error))
+                print('%s, Response: "%s"' % (e, _describe_http_error(e)))
 
 
 def accept_payload(id_sub, payload, meta=None):
