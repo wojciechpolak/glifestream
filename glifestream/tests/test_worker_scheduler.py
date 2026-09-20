@@ -31,10 +31,12 @@ from glifestream.worker.daemon import WorkerDaemon
 from glifestream.worker.maintenance import run_maintenance_args
 from glifestream.worker.schedule import CronSchedule
 import worker
-from glifestream.stream.models import Entry
+from glifestream.stream.models import Entry, Service, ServiceFetchState
 
 
-def _aware(year: int, month: int, day: int, hour: int, minute: int) -> datetime.datetime:
+def _aware(
+    year: int, month: int, day: int, hour: int, minute: int
+) -> datetime.datetime:
     return timezone.make_aware(datetime.datetime(year, month, day, hour, minute))
 
 
@@ -53,7 +55,10 @@ def test_cron_schedule_next_after_supports_names_and_steps():
 
 
 def test_preprocess_cli_args_supports_compact_verbose_level():
-    assert worker_cli._preprocess_cli_args(['--daemon', '-v0']) == ['--daemon', '--verbose=0']
+    assert worker_cli._preprocess_cli_args(['--daemon', '-v0']) == [
+        '--daemon',
+        '--verbose=0',
+    ]
     assert worker_cli._preprocess_cli_args(['-v', '--silent']) == ['-v', '--silent']
 
 
@@ -122,7 +127,9 @@ def test_worker_daemon_runs_due_maintenance_job(settings):
     now = timezone.now().replace(second=0, microsecond=0)
     daemon.maintenance_jobs[0].next_run_at = now - datetime.timedelta(minutes=1)
 
-    with patch('glifestream.worker.daemon.run_maintenance_args') as run_maintenance_mock:
+    with patch(
+        'glifestream.worker.daemon.run_maintenance_args'
+    ) as run_maintenance_mock:
         count = daemon._run_due_maintenance_jobs(now=now)
 
     assert count == 1
@@ -209,3 +216,86 @@ def test_run_daemon_handles_keyboard_interrupt_cleanly(monkeypatch, capsys):
     daemon._verbose_print.assert_called_once_with('shutdown requested, exiting')
     captured = capsys.readouterr()
     assert 'KeyboardInterrupt' not in captured.err
+
+
+def make_daemon(settings) -> WorkerDaemon:
+    settings.WORKER_MAINTENANCE_JOBS = []
+    return WorkerDaemon(max_workers=1, verbose=0, lifecycle_logs=False)
+
+
+@pytest.mark.django_db
+def test_next_fetch_plan_reports_nothing_to_do(settings):
+    assert make_daemon(settings)._describe_next_fetch_plan() == 'no scheduled fetches'
+
+
+@pytest.mark.django_db
+def test_next_fetch_plan_announces_a_queued_manual_fetch(settings, service):
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_QUEUED,
+        requested_at=timezone.now(),
+    )
+
+    plan = make_daemon(settings)._describe_next_fetch_plan()
+
+    assert plan == 'manual fetch queued: #%d "Test Service"' % service.pk
+
+
+@pytest.mark.django_db
+def test_next_fetch_plan_prefers_the_earliest_queued_request(settings, service):
+    later = Service.objects.create(name='Later', api='webfeed', url='http://l/f')
+    now = timezone.now()
+    ServiceFetchState.objects.create(
+        service=later,
+        status=ServiceFetchState.STATUS_QUEUED,
+        requested_at=now,
+    )
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_QUEUED,
+        requested_at=now - datetime.timedelta(minutes=5),
+    )
+
+    plan = make_daemon(settings)._describe_next_fetch_plan()
+
+    assert 'Test Service' in plan
+
+
+@pytest.mark.django_db
+def test_next_fetch_plan_describes_the_soonest_schedule(settings, service):
+    now = timezone.now()
+    service.next_fetch_at = now + datetime.timedelta(minutes=30)
+    service.save(update_fields=['next_fetch_at'])
+
+    plan = make_daemon(settings)._describe_next_fetch_plan(now=now)
+
+    assert plan.startswith('next fetch: #%d "Test Service" at ' % service.pk)
+    assert '(in 30m 0s)' in plan
+
+
+@pytest.mark.django_db
+def test_next_fetch_plan_clamps_an_overdue_schedule_to_zero(settings, service):
+    now = timezone.now()
+    service.next_fetch_at = now - datetime.timedelta(hours=1)
+    service.save(update_fields=['next_fetch_at'])
+
+    assert '(in 0.000s)' in make_daemon(settings)._describe_next_fetch_plan(now=now)
+
+
+@pytest.mark.django_db
+def test_next_fetch_plan_skips_selfposts_services(settings):
+    now = timezone.now()
+    notes = Service.objects.create(name='Notes', api='selfposts')
+    notes.next_fetch_at = now + datetime.timedelta(minutes=1)
+    notes.save(update_fields=['next_fetch_at'])
+
+    assert make_daemon(settings)._describe_next_fetch_plan() == 'no scheduled fetches'
+
+
+@pytest.mark.django_db
+def test_next_fetch_plan_ignores_inactive_services(settings, service):
+    service.active = False
+    service.next_fetch_at = timezone.now() + datetime.timedelta(minutes=1)
+    service.save(update_fields=['active', 'next_fetch_at'])
+
+    assert make_daemon(settings)._describe_next_fetch_plan() == 'no scheduled fetches'

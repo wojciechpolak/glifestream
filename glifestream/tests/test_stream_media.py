@@ -297,3 +297,87 @@ def test_downsave_uploaded_image_applies_file_upload_permissions(tmp_path):
 
     assert res == ('[GLS-THUMBS]/thumb.webp', '[GLS-UPLOAD]/2026/04/07/upload.jpg')
     assert os.stat(target).st_mode & 0o777 == 0o644
+
+
+def write_image(path, size=(1200, 900), mode='RGB'):
+    from PIL import Image
+
+    Image.new(mode, size, 'red').save(str(path))
+    return path
+
+
+def test_downscale_image_shrinks_an_oversized_picture(tmp_path):
+    from PIL import Image
+
+    path = write_image(tmp_path / 'big.jpg')
+
+    media.downscale_image(str(path))
+
+    with Image.open(str(path)) as im:
+        assert im.size == (533, 400)
+
+
+def test_downscale_image_leaves_a_small_picture_alone(tmp_path):
+    from PIL import Image
+
+    path = write_image(tmp_path / 'small.jpg', size=(320, 240))
+    before = path.read_bytes()
+
+    media.downscale_image(str(path))
+
+    with Image.open(str(path)) as im:
+        assert im.size == (320, 240)
+    assert path.read_bytes() == before
+
+
+def test_downscale_image_honours_an_explicit_size(tmp_path):
+    from PIL import Image
+
+    path = write_image(tmp_path / 'sized.jpg')
+
+    media.downscale_image(str(path), size=(100, 100))
+
+    with Image.open(str(path)) as im:
+        assert max(im.size) == 100
+
+
+def test_downscale_image_flattens_transparency_for_jpeg(tmp_path):
+    from PIL import Image
+
+    path = write_image(tmp_path / 'alpha.png', mode='RGBA')
+
+    media.downscale_image(str(path), iformat='JPEG')
+
+    with Image.open(str(path)) as im:
+        assert im.mode == 'RGB'
+
+
+def test_downscale_image_writes_the_format_it_was_given(tmp_path):
+    from PIL import Image
+
+    path = write_image(tmp_path / 'keep.png', mode='RGBA')
+
+    media.downscale_image(str(path), iformat='WEBP')
+
+    with Image.open(str(path)) as im:
+        assert im.format == 'WEBP'
+        assert im.size == (533, 400)
+
+
+def test_downscale_image_swallows_an_unreadable_file(tmp_path):
+    path = tmp_path / 'broken.jpg'
+    path.write_bytes(b'not an image')
+
+    media.downscale_image(str(path))
+
+    assert path.read_bytes() == b'not an image'
+
+
+def test_downscale_image_is_a_no_op_without_pillow(tmp_path):
+    path = write_image(tmp_path / 'nopillow.jpg')
+    before = path.read_bytes()
+
+    with patch('glifestream.stream.media.Image', None):
+        media.downscale_image(str(path))
+
+    assert path.read_bytes() == before

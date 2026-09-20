@@ -18,6 +18,7 @@ from glifestream.fetching import (
     ProcessedFetchJob,
     run_service_fetch,
     send_worker_wake_signal,
+    serialize_fetch_state,
     sync_service_schedule,
 )
 from glifestream.stream.models import Service, ServiceFetchState
@@ -80,9 +81,7 @@ def test_initialize_missing_schedules_recomputes_existing_cadence(settings, serv
 
 
 @pytest.mark.django_db
-def test_initialize_missing_schedules_does_not_move_retry_backwards(
-    settings, service
-):
+def test_initialize_missing_schedules_does_not_move_retry_backwards(settings, service):
     settings.FETCH_DEFAULT_INTERVAL_SEC = 7200
     now = timezone.now()
     service.api = 'atproto'
@@ -257,7 +256,9 @@ def test_fetch_worker_run_ready_jobs_processes_queued_manual_job(service):
         ran.set()
 
     fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
-    with patch('glifestream.fetching.run_service_fetch', side_effect=_run_service_fetch):
+    with patch(
+        'glifestream.fetching.run_service_fetch', side_effect=_run_service_fetch
+    ):
         claimed = fetch_worker.run_ready_jobs()
 
     assert claimed == 1
@@ -282,15 +283,17 @@ def test_fetch_worker_serve_wakes_on_ready_socket() -> None:
         stop_event.set()
         return 1
 
-    with patch.object(fetch_worker, 'open_socket', return_value=fake_socket), patch.object(
-        fetch_worker, 'close_socket', return_value=None
-    ), patch.object(
-        fetch_worker, 'run_ready_jobs', side_effect=_run_ready_jobs
-    ), patch.object(fetch_worker, 'drain_socket', return_value=None), patch(
-        'glifestream.fetching.initialize_missing_schedules', return_value=None
-    ), patch('glifestream.fetching.get_next_wait_timeout', return_value=None), patch(
-        'glifestream.fetching.select.select',
-        return_value=([fake_socket], [], []),
+    with (
+        patch.object(fetch_worker, 'open_socket', return_value=fake_socket),
+        patch.object(fetch_worker, 'close_socket', return_value=None),
+        patch.object(fetch_worker, 'run_ready_jobs', side_effect=_run_ready_jobs),
+        patch.object(fetch_worker, 'drain_socket', return_value=None),
+        patch('glifestream.fetching.initialize_missing_schedules', return_value=None),
+        patch('glifestream.fetching.get_next_wait_timeout', return_value=None),
+        patch(
+            'glifestream.fetching.select.select',
+            return_value=([fake_socket], [], []),
+        ),
     ):
         fetch_worker.serve(stop_event=stop_event)
 
@@ -301,11 +304,14 @@ def test_fetch_worker_open_socket_replaces_stale_socket_file():
     fake_socket = Mock()
     fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
 
-    with patch('glifestream.fetching.os.path.exists', return_value=True), patch(
-        'glifestream.fetching.os.unlink'
-    ) as unlink, patch('glifestream.fetching.os.chmod') as chmod, patch(
-        'glifestream.fetching.socket.socket',
-        return_value=fake_socket,
+    with (
+        patch('glifestream.fetching.os.path.exists', return_value=True),
+        patch('glifestream.fetching.os.unlink') as unlink,
+        patch('glifestream.fetching.os.chmod') as chmod,
+        patch(
+            'glifestream.fetching.socket.socket',
+            return_value=fake_socket,
+        ),
     ):
         sock = fetch_worker.open_socket()
 
@@ -357,7 +363,9 @@ def test_fetch_worker_wake_flow_smoke(settings):
 
     fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
 
-    with patch('glifestream.fetching.run_service_fetch', side_effect=_run_service_fetch):
+    with patch(
+        'glifestream.fetching.run_service_fetch', side_effect=_run_service_fetch
+    ):
         enqueue_manual_fetch(service, wake_worker=False)
         assert fetch_worker.run_ready_jobs() == 1
 
@@ -404,10 +412,13 @@ def test_run_service_fetch_failure_preserves_last_success(service):
         last_result='Fetch completed.',
     )
 
-    with patch(
-        'glifestream.fetching.ServiceFactory.create_service',
-        return_value=Mock(run=Mock(side_effect=RuntimeError('boom'))),
-    ), pytest.raises(RuntimeError, match='boom'):
+    with (
+        patch(
+            'glifestream.fetching.ServiceFactory.create_service',
+            return_value=Mock(run=Mock(side_effect=RuntimeError('boom'))),
+        ),
+        pytest.raises(RuntimeError, match='boom'),
+    ):
         run_service_fetch(service, state_id=state.pk, worker_token='worker-token')
 
     state.refresh_from_db()
@@ -435,10 +446,13 @@ def test_run_service_fetch_records_classified_fetch_failure(service):
         url='http://example.com/feed',
     )
 
-    with patch(
-        'glifestream.fetching.ServiceFactory.create_service',
-        return_value=Mock(run=Mock(side_effect=fetch_error)),
-    ), pytest.raises(httpclient.FetchError):
+    with (
+        patch(
+            'glifestream.fetching.ServiceFactory.create_service',
+            return_value=Mock(run=Mock(side_effect=fetch_error)),
+        ),
+        pytest.raises(httpclient.FetchError),
+    ):
         run_service_fetch(service, state_id=state.pk, worker_token='worker-token')
 
     state.refresh_from_db()
@@ -463,10 +477,13 @@ def test_run_service_fetch_records_invalid_response_failure(service):
         url='http://example.com/feed',
     )
 
-    with patch(
-        'glifestream.fetching.ServiceFactory.create_service',
-        return_value=Mock(run=Mock(side_effect=fetch_error)),
-    ), pytest.raises(httpclient.FetchError):
+    with (
+        patch(
+            'glifestream.fetching.ServiceFactory.create_service',
+            return_value=Mock(run=Mock(side_effect=fetch_error)),
+        ),
+        pytest.raises(httpclient.FetchError),
+    ):
         run_service_fetch(service, state_id=state.pk, worker_token='worker-token')
 
     state.refresh_from_db()
@@ -476,3 +493,76 @@ def test_run_service_fetch_records_invalid_response_failure(service):
         == 'Remote service returned an invalid or unsupported response.'
     )
     assert 'unsupported content type image/png' in state.last_error
+
+
+@pytest.mark.django_db
+def test_serialize_fetch_state_without_a_state_row_reads_all_blanks(service):
+    payload = serialize_fetch_state(service)
+
+    assert payload['service_id'] == service.pk
+    assert payload['status'] == ServiceFetchState.STATUS_IDLE
+    assert payload['trigger'] == ''
+    assert payload['last_result'] == ''
+    assert payload['last_error'] == ''
+    assert all(
+        payload[name] is None
+        for name in (
+            'requested_at',
+            'started_at',
+            'finished_at',
+            'last_succeeded_at',
+            'last_failed_at',
+            'next_fetch_at',
+        )
+    )
+
+
+@pytest.mark.django_db
+def test_serialize_fetch_state_renders_every_timestamp_it_has(service):
+    service.api = 'webfeed'
+    service.save(update_fields=['api'])
+    now = timezone.now()
+    state = ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        trigger=ServiceFetchState.TRIGGER_MANUAL,
+        requested_at=now,
+        started_at=now,
+        finished_at=now,
+        last_succeeded_at=now - timedelta(hours=1),
+        last_failed_at=now,
+        last_result='Remote request timed out.',
+        last_error='timeout',
+    )
+    service.next_fetch_at = now + timedelta(hours=2)
+    service.save(update_fields=['next_fetch_at'])
+
+    payload = serialize_fetch_state(service, state)
+
+    assert payload['status'] == ServiceFetchState.STATUS_FAILED
+    assert payload['trigger'] == ServiceFetchState.TRIGGER_MANUAL
+    assert payload['requested_at'] == now.isoformat()
+    assert payload['last_succeeded_at'] == (now - timedelta(hours=1)).isoformat()
+    assert payload['next_fetch_at'] == (now + timedelta(hours=2)).isoformat()
+    assert payload['last_result'] == 'Remote request timed out.'
+    assert payload['last_error'] == 'timeout'
+    assert payload['can_fetch'] is True
+
+
+@pytest.mark.django_db
+def test_serialize_fetch_state_looks_the_row_up_when_not_given_one(service):
+    ServiceFetchState.objects.create(
+        service=service, status=ServiceFetchState.STATUS_QUEUED
+    )
+
+    assert serialize_fetch_state(service)['status'] == ServiceFetchState.STATUS_QUEUED
+
+
+@pytest.mark.django_db
+def test_serialize_fetch_state_marks_a_selfposts_service_unfetchable(db):
+    notes = Service.objects.create(name='Notes', api='selfposts')
+
+    payload = serialize_fetch_state(notes)
+
+    assert payload['can_fetch'] is False
+    assert payload['effective_interval_sec'] is None

@@ -25,7 +25,7 @@ import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from django.conf import settings
@@ -220,6 +220,19 @@ def send_worker_wake_signal() -> bool:
         sock.close()
 
 
+_STATE_TIMESTAMPS = (
+    'requested_at',
+    'started_at',
+    'finished_at',
+    'last_succeeded_at',
+    'last_failed_at',
+)
+
+
+def _isoformat(value: datetime | None) -> str | None:
+    return value.isoformat() if value else None
+
+
 def serialize_fetch_state(
     service: Service,
     state: ServiceFetchState | None = None,
@@ -227,39 +240,21 @@ def serialize_fetch_state(
     if state is None:
         state = ServiceFetchState.objects.filter(service=service).first()
 
-    effective_interval_sec = get_effective_interval_sec(service)
-    status = state.status if state else ServiceFetchState.STATUS_IDLE
-    trigger = state.trigger if state else ''
-
-    return {
+    payload: dict[str, Any] = {
         'service_id': service.pk,
         'can_fetch': is_service_fetchable(service),
-        'status': status,
-        'trigger': trigger,
-        'requested_at': (
-            state.requested_at.isoformat()
-            if state and state.requested_at
-            else None
-        ),
-        'started_at': state.started_at.isoformat() if state and state.started_at else None,
-        'finished_at': (
-            state.finished_at.isoformat() if state and state.finished_at else None
-        ),
-        'last_succeeded_at': (
-            state.last_succeeded_at.isoformat()
-            if state and state.last_succeeded_at
-            else None
-        ),
-        'last_failed_at': (
-            state.last_failed_at.isoformat() if state and state.last_failed_at else None
-        ),
-        'last_result': state.last_result if state else '',
-        'last_error': state.last_error if state else '',
-        'next_fetch_at': (
-            service.next_fetch_at.isoformat() if service.next_fetch_at else None
-        ),
-        'effective_interval_sec': effective_interval_sec,
+        'status': state.status if state else ServiceFetchState.STATUS_IDLE,
+        'trigger': state.trigger if state else '',
     }
+    # getattr covers the no-state case: every timestamp reads back as None.
+    payload.update(
+        (name, _isoformat(getattr(state, name, None))) for name in _STATE_TIMESTAMPS
+    )
+    payload['last_result'] = state.last_result if state else ''
+    payload['last_error'] = state.last_error if state else ''
+    payload['next_fetch_at'] = _isoformat(service.next_fetch_at)
+    payload['effective_interval_sec'] = get_effective_interval_sec(service)
+    return payload
 
 
 def enqueue_manual_fetch(
@@ -302,9 +297,7 @@ def enqueue_manual_fetch(
 
 def _get_public_latest_entry() -> Entry | None:
     return (
-        Entry.objects.filter(service__public=True)
-        .order_by('-date_published')
-        .first()
+        Entry.objects.filter(service__public=True).order_by('-date_published').first()
     )
 
 
@@ -325,9 +318,7 @@ def _update_state_success(
     if state_id is None:
         return
 
-    ServiceFetchState.objects.filter(
-        id=state_id, worker_token=worker_token
-    ).update(
+    ServiceFetchState.objects.filter(id=state_id, worker_token=worker_token).update(
         status=ServiceFetchState.STATUS_SUCCEEDED,
         finished_at=finished_at,
         last_succeeded_at=finished_at,
@@ -356,9 +347,7 @@ def _update_state_failure(
         return
 
     last_result, last_error = _describe_fetch_failure(error)
-    ServiceFetchState.objects.filter(
-        id=state_id, worker_token=worker_token
-    ).update(
+    ServiceFetchState.objects.filter(id=state_id, worker_token=worker_token).update(
         status=ServiceFetchState.STATUS_FAILED,
         finished_at=finished_at,
         last_failed_at=finished_at,
@@ -495,9 +484,7 @@ def claim_runnable_jobs(
             state.status = ServiceFetchState.STATUS_RUNNING
             state.started_at = now
             state.worker_token = worker_token
-            state.save(
-                update_fields=['status', 'started_at', 'worker_token']
-            )
+            state.save(update_fields=['status', 'started_at', 'worker_token'])
             claimed.append((state.pk, state.service.pk))
 
         due_services = list(
@@ -538,7 +525,9 @@ def claim_runnable_jobs(
 
 def get_next_wait_timeout(*, now: Any | None = None) -> float | None:
     now = now or timezone.now()
-    if ServiceFetchState.objects.filter(status=ServiceFetchState.STATUS_QUEUED).exists():
+    if ServiceFetchState.objects.filter(
+        status=ServiceFetchState.STATUS_QUEUED
+    ).exists():
         return 0.0
 
     blocked_service_ids = ServiceFetchState.objects.filter(
@@ -622,7 +611,9 @@ class FetchWorker:
             if not claimed:
                 return 0
 
-            state_ids = [state_id for state_id, _service_id in claimed if state_id is not None]
+            state_ids = [
+                state_id for state_id, _service_id in claimed if state_id is not None
+            ]
             state_map = {
                 state.pk: state
                 for state in ServiceFetchState.objects.select_related('service').filter(
@@ -634,7 +625,8 @@ class FetchWorker:
                 ProcessedFetchJob(
                     service_id=service_id,
                     service_name=state_map[state_id].service.name,
-                    trigger=state_map[state_id].trigger or ServiceFetchState.TRIGGER_SCHEDULE,
+                    trigger=state_map[state_id].trigger
+                    or ServiceFetchState.TRIGGER_SCHEDULE,
                 )
                 for state_id, service_id in claimed
                 if state_id is not None and state_id in state_map

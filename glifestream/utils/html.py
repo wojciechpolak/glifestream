@@ -102,6 +102,50 @@ def smart_urlquote(url):
     return url
 
 
+def _split_punctuation(word: str) -> tuple[str, str, str]:
+    """Peel leading and trailing punctuation off a candidate link."""
+    lead, middle, trail = '', word, ''
+    for punctuation in TRAILING_PUNCTUATION:
+        if middle.endswith(punctuation):
+            middle = middle[: -len(punctuation)]
+            trail = punctuation + trail
+    for opening, closing in WRAPPING_PUNCTUATION:
+        if middle.startswith(opening):
+            middle = middle[len(opening) :]
+            lead = lead + opening
+        # Keep parentheses at the end only if they're balanced.
+        if (
+            middle.endswith(closing)
+            and middle.count(closing) == middle.count(opening) + 1
+        ):
+            middle = middle[: -len(closing)]
+            trail = closing + trail
+    return lead, middle, trail
+
+
+def _resolve_link(middle: str, nofollow: bool) -> tuple[str | None, str, bool]:
+    """(url, rel attribute, leave-this-word-alone) for one candidate word.
+
+    The third element is the original's ``continue``: an e-mail address whose
+    domain will not encode as IDNA is passed through untouched, unescaped.
+    """
+    nofollow_attr = ' rel="nofollow"' if nofollow else ''
+
+    if simple_url_re.match(middle):
+        return smart_urlquote(middle), nofollow_attr, False
+    if simple_url_2_re.match(middle):
+        return smart_urlquote('http://%s' % middle), nofollow_attr, False
+    if ':' not in middle and simple_email_re.match(middle):
+        local, domain = middle.rsplit('@', 1)
+        try:
+            domain = domain.encode('idna').decode('ascii')
+        except UnicodeError:
+            return None, nofollow_attr, True
+        return 'mailto:%s@%s' % (local, domain), '', False
+
+    return None, nofollow_attr, False
+
+
 def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
     """
     Converts any URLs in text into clickable links.
@@ -129,41 +173,11 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
     words = word_split_re.split(text)
     for i, word in enumerate(words):
         if '.' in word or '@' in word or ':' in word:
-            # Deal with punctuation.
-            lead, middle, trail = '', word, ''
-            for punctuation in TRAILING_PUNCTUATION:
-                if middle.endswith(punctuation):
-                    middle = middle[: -len(punctuation)]
-                    trail = punctuation + trail
-            for opening, closing in WRAPPING_PUNCTUATION:
-                if middle.startswith(opening):
-                    middle = middle[len(opening) :]
-                    lead = lead + opening
-                # Keep parentheses at the end only if they're balanced.
-                if (
-                    middle.endswith(closing)
-                    and middle.count(closing) == middle.count(opening) + 1
-                ):
-                    middle = middle[: -len(closing)]
-                    trail = closing + trail
+            lead, middle, trail = _split_punctuation(word)
+            url, nofollow_attr, skip = _resolve_link(middle, nofollow)
+            if skip:
+                continue
 
-            # Make URL we want to point to.
-            url = None
-            nofollow_attr = ' rel="nofollow"' if nofollow else ''
-            if simple_url_re.match(middle):
-                url = smart_urlquote(middle)
-            elif simple_url_2_re.match(middle):
-                url = smart_urlquote('http://%s' % middle)
-            elif ':' not in middle and simple_email_re.match(middle):
-                local, domain = middle.rsplit('@', 1)
-                try:
-                    domain = domain.encode('idna').decode('ascii')
-                except UnicodeError:
-                    continue
-                url = 'mailto:%s@%s' % (local, domain)
-                nofollow_attr = ''
-
-            # Make link.
             if url:
                 trimmed = trim_url(middle)
                 if autoescape and not safe_input:
@@ -171,12 +185,9 @@ def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
                     url, trimmed = escape(url), escape(trimmed)
                 middle = '<a href="%s"%s>%s</a>' % (url, nofollow_attr, trimmed)
                 words[i] = mark_safe('%s%s%s' % (lead, middle, trail))
-            else:
-                if safe_input:
-                    words[i] = mark_safe(word)
-                elif autoescape:
-                    words[i] = escape(word)
-        elif safe_input:
+                continue
+
+        if safe_input:
             words[i] = mark_safe(word)
         elif autoescape:
             words[i] = escape(word)

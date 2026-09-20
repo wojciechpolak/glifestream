@@ -83,68 +83,29 @@ class WebfeedService(BaseService):
             guid = ent.id if 'id' in ent else ent.link
             if self.verbose:
                 print('ID: %s' % guid)
-            try:
-                e = Entry.objects.get(service=self.service, guid=guid)
-                if not self.force_overwrite and 'updated_parsed' in ent:
-                    if e.date_updated and mtime(ent.updated_parsed) <= e.date_updated:
-                        continue
-                if e.protected:
-                    continue
-            except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=guid)
+
+            e = self._resolve_entry(guid, ent)
+            if e is None:
+                continue
 
             e.title = ent.get('title', ent.get('summary', ''))
             e.link = ent.get('feedburner_origlink', ent.get('link', ''))
 
-            if 'author_detail' in ent:
-                e.author_name = ent.author_detail.get('name', '')
-                e.author_email = ent.author_detail.get('email', '')
-                e.author_uri = ent.author_detail.get('href', '')
-            else:
-                e.author_name = ent.get('author', ent.get('creator', ''))
-                if not e.author_name and 'author_detail' in self.fp.feed:
-                    e.author_name = self.fp.feed.author_detail.get('name', '')
-                    e.author_email = self.fp.feed.author_detail.get('email', '')
-                    e.author_uri = self.fp.feed.author_detail.get('href', '')
+            self._apply_author(e, ent)
+            self._apply_content(e, ent)
+            self._apply_dates(e, ent)
+            self._apply_geo(e, ent)
 
-            try:
-                e.content = ent.content[0].value
-            except Exception:
-                e.content = ent.get('summary', ent.get('description', ''))
-
-            if 'published_parsed' in ent:
-                e.date_published = mtime(ent.published_parsed)
-            elif 'updated_parsed' in ent:
-                e.date_published = mtime(ent.updated_parsed)
-
-            if 'updated_parsed' in ent:
-                e.date_updated = mtime(ent.updated_parsed)
-
-            if 'geo_lat' in ent and 'geo_long' in ent:
-                e.geolat = ent.geo_lat
-                e.geolng = ent.geo_long
-            elif 'georss_point' in ent:
-                geo = ent['georss_point'].split(' ')
-                e.geolat = geo[0]
-                e.geolng = geo[1]
-
-            if 'image' in self.fp.feed:
-                e.link_image = media.save_image(self.fp.feed.image.url)
-            else:
-                for link in ent.links:
-                    if link.rel == 'image' or link.rel == 'photo':
-                        e.link_image = media.save_image(link.href)
+            link_image = self._resolve_link_image(ent)
+            if link_image is not None:
+                e.link_image = link_image
 
             custom_process = getattr(self, 'custom_process', None)
             if callable(custom_process):
                 custom_process(e, ent)
 
             e.mblob = getattr(e, 'custom_mblob', None)
-
-            mblob = media.mrss_init(e.mblob)
-            if 'media_content' in ent:
-                mblob['content'].append(ent.media_content)
-            e.mblob = media.mrss_gen_json(mblob)
+            self._apply_mblob(e, ent)
 
             e.content = strip_script(e.content)
 
@@ -153,6 +114,77 @@ class WebfeedService(BaseService):
                 media.extract_and_register(e)
             except Exception:
                 pass
+
+    def _resolve_entry(self, guid, ent):
+        """The entry to write, or None when this one should be skipped."""
+        try:
+            e = Entry.objects.get(service=self.service, guid=guid)
+        except Entry.DoesNotExist:
+            return Entry(service=self.service, guid=guid)
+
+        if not self.force_overwrite and 'updated_parsed' in ent:
+            if e.date_updated and mtime(ent.updated_parsed) <= e.date_updated:
+                return None
+        if e.protected:
+            return None
+        return e
+
+    def _apply_author(self, e: Entry, ent) -> None:
+        """The entry's own author, falling back to the feed-level one."""
+        if 'author_detail' in ent:
+            e.author_name = ent.author_detail.get('name', '')
+            e.author_email = ent.author_detail.get('email', '')
+            e.author_uri = ent.author_detail.get('href', '')
+            return
+
+        e.author_name = ent.get('author', ent.get('creator', ''))
+        if not e.author_name and 'author_detail' in self.fp.feed:
+            e.author_name = self.fp.feed.author_detail.get('name', '')
+            e.author_email = self.fp.feed.author_detail.get('email', '')
+            e.author_uri = self.fp.feed.author_detail.get('href', '')
+
+    @staticmethod
+    def _apply_content(e: Entry, ent) -> None:
+        try:
+            e.content = ent.content[0].value
+        except Exception:
+            e.content = ent.get('summary', ent.get('description', ''))
+
+    @staticmethod
+    def _apply_dates(e: Entry, ent) -> None:
+        if 'published_parsed' in ent:
+            e.date_published = mtime(ent.published_parsed)
+        elif 'updated_parsed' in ent:
+            e.date_published = mtime(ent.updated_parsed)
+        if 'updated_parsed' in ent:
+            e.date_updated = mtime(ent.updated_parsed)
+
+    @staticmethod
+    def _apply_geo(e: Entry, ent) -> None:
+        if 'geo_lat' in ent and 'geo_long' in ent:
+            e.geolat = ent.geo_lat
+            e.geolng = ent.geo_long
+        elif 'georss_point' in ent:
+            geo = ent['georss_point'].split(' ')
+            e.geolat = geo[0]
+            e.geolng = geo[1]
+
+    def _resolve_link_image(self, ent):
+        """The feed's own image, else the last image the entry links to."""
+        if 'image' in self.fp.feed:
+            return media.save_image(self.fp.feed.image.url)
+        found = None
+        for link in ent.links:
+            if link.rel in ('image', 'photo'):
+                found = media.save_image(link.href)
+        return found
+
+    @staticmethod
+    def _apply_mblob(e: Entry, ent) -> None:
+        mblob = media.mrss_init(e.mblob)
+        if 'media_content' in ent:
+            mblob['content'].append(ent.media_content)
+        e.mblob = media.mrss_gen_json(mblob)
 
 
 def filter_title(entry: Entry) -> str:

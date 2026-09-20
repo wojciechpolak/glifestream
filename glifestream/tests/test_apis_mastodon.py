@@ -2,7 +2,7 @@ import json
 import pytest
 from unittest.mock import patch, MagicMock
 
-from glifestream.apis.mastodon import MastodonService
+from glifestream.apis.mastodon import MastodonService, _render_status_reference
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
 
@@ -293,7 +293,10 @@ def test_mastodon_hydrates_shallow_quoted_status(service, mastodon_json):
         },
     }
 
-    with patch('glifestream.apis.mastodon.httpclient.get', side_effect=[list_response, status_response]) as mock_get:
+    with patch(
+        'glifestream.apis.mastodon.httpclient.get',
+        side_effect=[list_response, status_response],
+    ) as mock_get:
         api = MastodonService(service)
         api.run()
 
@@ -304,7 +307,9 @@ def test_mastodon_hydrates_shallow_quoted_status(service, mastodon_json):
 
 
 @pytest.mark.django_db
-def test_mastodon_renders_quote_placeholder_for_non_displayable_state(service, mastodon_json):
+def test_mastodon_renders_quote_placeholder_for_non_displayable_state(
+    service, mastodon_json
+):
     service.user_id = '123'
     service.save()
 
@@ -349,7 +354,10 @@ def test_mastodon_hydrates_reply_parent(service, mastodon_json):
         },
     }
 
-    with patch('glifestream.apis.mastodon.httpclient.get', side_effect=[list_response, status_response]):
+    with patch(
+        'glifestream.apis.mastodon.httpclient.get',
+        side_effect=[list_response, status_response],
+    ):
         api = MastodonService(service)
         api.run()
 
@@ -358,3 +366,77 @@ def test_mastodon_hydrates_reply_parent(service, mastodon_json):
         assert 'Reply Parent' in e.content
         assert 'Parent reply body' in e.content
         assert e.content.index('Replying to') < e.content.index('Hello')
+
+
+def test_status_reference_quotes_the_author_and_body():
+    html = _render_status_reference(
+        {
+            'account': {'display_name': 'Alice', 'url': 'https://m.example/@alice'},
+            'content': '<p>Original</p>',
+        },
+        label='Quoted post',
+    )
+
+    assert 'mastodon-reference' in html
+    assert 'Quoted post' in html
+    assert 'href="https://m.example/@alice"' in html
+    assert '>Alice<' in html
+    assert '<p>Original</p>' in html
+
+
+def test_status_reference_falls_back_to_acct_then_the_status_url():
+    html = _render_status_reference(
+        {'account': {'acct': 'bob@m.example'}, 'url': 'https://m.example/@bob/9'},
+        label='Replying to',
+    )
+
+    assert 'href="https://m.example/@bob/9"' in html
+    assert 'bob@m.example' in html
+
+
+def test_status_reference_shows_the_link_itself_when_there_is_no_name():
+    html = _render_status_reference(
+        {'account': {'url': 'https://m.example/@carol'}, 'content': '<p>Hi</p>'},
+        label='Quoted post',
+    )
+
+    assert html.count('https://m.example/@carol') == 2
+
+
+def test_status_reference_uses_a_hash_when_nothing_links_anywhere():
+    html = _render_status_reference({'content': '<p>Hi</p>'}, label='Quoted post')
+
+    assert 'href="#"' in html
+
+
+def test_status_reference_escapes_a_plain_text_status():
+    html = _render_status_reference(
+        {'account': {'display_name': 'Dave'}, 'text': 'tea & <biscuits>'},
+        label='Quoted post',
+    )
+
+    assert '<p>tea &amp; &lt;biscuits&gt;</p>' in html
+
+
+def test_status_reference_says_so_when_there_is_no_text_at_all():
+    html = _render_status_reference(
+        {'account': {'display_name': 'Eve'}, 'text': ''}, label='Quoted post'
+    )
+
+    assert 'No text content.' in html
+
+
+def test_status_reference_escapes_the_author_name_and_link():
+    html = _render_status_reference(
+        {
+            'account': {
+                'display_name': 'Mallory & "friends"',
+                'url': 'https://m.example/?a=1&b=2',
+            },
+            'content': '<p>x</p>',
+        },
+        label='Quoted post',
+    )
+
+    assert 'Mallory &amp; &quot;friends&quot;' in html
+    assert 'https://m.example/?a=1&amp;b=2' in html

@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from django.contrib.auth.decorators import login_required
@@ -32,6 +33,52 @@ from glifestream.usettings.common import (
 )
 
 
+# WebSub hub result codes, as returned by glifestream.stream.websub, mapped to
+# the notice the settings page shows. An unlisted code says nothing.
+_SUBSCRIBE_MESSAGES: dict[Any, Callable[[dict], str]] = {
+    1: lambda r: str(r['error']),
+    2: lambda r: _('Hub not found.'),
+    202: lambda r: _('Hub %s: Accepted for verification.') % r['hub'],
+    204: lambda r: _('Hub %s: Subscription verified.') % r['hub'],
+}
+
+_UNSUBSCRIBE_MESSAGES: dict[Any, Callable[[dict], str]] = {
+    1: lambda r: _('No subscription found.'),
+    202: lambda r: _('Hub %s: Accepted for verification.') % r['hub'],
+    204: lambda r: _('Hub %s: Unsubscribed.') % r['hub'],
+}
+
+EXCLUDED_APIS = (
+    'selfposts',
+    'atproto',
+    'fb',
+    'flickr',
+    'friendfeed',
+    'mastodon',
+    'pixelfed',
+    'pocket',
+    'twitter',
+    'vimeo',
+    'youtube',
+)
+
+
+def _handle_subscribe(request: HttpRequest) -> str | None:
+    service = Service.objects.get(id=request.POST['subscribe'])
+    result = gls_websub.subscribe(service)
+    render_message = _SUBSCRIBE_MESSAGES.get(result['rc'])
+    return render_message(result) if render_message else None
+
+
+def _handle_unsubscribe(request: HttpRequest) -> str | None:
+    result = gls_websub.unsubscribe(request.POST['unsubscribe'])
+    render_message = _UNSUBSCRIBE_MESSAGES.get(result['rc'])
+    if render_message:
+        return render_message(result)
+    # Anything else is a transport-level complaint worth showing verbatim.
+    return 'Hub %s: %s.' % (result['hub'], result['rc'])
+
+
 @login_required
 def websub(request: HttpRequest, **args: Any) -> HttpResponse:
     user = get_staff_settings_user(request)
@@ -39,46 +86,19 @@ def websub(request: HttpRequest, **args: Any) -> HttpResponse:
         return user
 
     page = build_settings_page(request, title=_('WebSub - Settings'), menu='websub')
-    excluded_apis = (
-        'selfposts',
-        'atproto',
-        'fb',
-        'flickr',
-        'friendfeed',
-        'mastodon',
-        'pixelfed',
-        'pocket',
-        'twitter',
-        'vimeo',
-        'youtube',
-    )
 
     if request.POST.get('subscribe', False):
-        service = Service.objects.get(id=request.POST['subscribe'])
-        r = gls_websub.subscribe(service)
-        if r['rc'] == 1:
-            page['msg'] = r['error']
-        elif r['rc'] == 2:
-            page['msg'] = _('Hub not found.')
-        elif r['rc'] == 202:
-            page['msg'] = _('Hub %s: Accepted for verification.') % r['hub']
-        elif r['rc'] == 204:
-            page['msg'] = _('Hub %s: Subscription verified.') % r['hub']
-
+        message = _handle_subscribe(request)
     elif request.POST.get('unsubscribe', False):
-        r = gls_websub.unsubscribe(request.POST['unsubscribe'])
-        if r['rc'] == 1:
-            page['msg'] = _('No subscription found.')
-        elif r['rc'] == 202:
-            page['msg'] = _('Hub %s: Accepted for verification.') % r['hub']
-        elif r['rc'] == 204:
-            page['msg'] = _('Hub %s: Unsubscribed.') % r['hub']
-        else:
-            page['msg'] = 'Hub %s: %s.' % (r['hub'], r['rc'])
+        message = _handle_unsubscribe(request)
+    else:
+        message = None
+    if message is not None:
+        page['msg'] = message
 
     subs = gls_websub.list_subs(raw=True)
     services = (
-        Service.objects.exclude(api__in=excluded_apis)
+        Service.objects.exclude(api__in=EXCLUDED_APIS)
         .exclude(id__in=subs.values('service__id'))
         .order_by('name')
     )

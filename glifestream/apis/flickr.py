@@ -19,8 +19,6 @@ from itertools import groupby
 from django.utils.translation import gettext as _
 
 from glifestream.apis.webfeed import WebfeedService
-from glifestream.utils.time import mtime
-from glifestream.stream.models import Entry
 from glifestream.stream import media
 
 
@@ -94,29 +92,6 @@ class FlickrService(WebfeedService):
                 mblob['content'].append(ent.media_content)
 
         return content + '</p>', mblob, first, count
-
-    def _resolve_entry(self, guid, ent):
-        """The entry to write, or None when this group should be skipped."""
-        try:
-            e = Entry.objects.get(service=self.service, guid=guid)
-        except Entry.DoesNotExist:
-            return Entry(service=self.service, guid=guid)
-
-        if not self.force_overwrite and 'updated_parsed' in ent:
-            if e.date_updated and mtime(ent.updated_parsed) <= e.date_updated:
-                return None
-        if e.protected:
-            return None
-        return e
-
-    @staticmethod
-    def _apply_dates(e, ent):
-        if 'published_parsed' in ent:
-            e.date_published = mtime(ent.published_parsed)
-        elif 'updated_parsed' in ent:
-            e.date_published = mtime(ent.updated_parsed)
-        if 'updated_parsed' in ent:
-            e.date_updated = mtime(ent.updated_parsed)
 
     def _resolve_link_image(self, ent):
         """The feed's own image, else the last image the entry links to."""

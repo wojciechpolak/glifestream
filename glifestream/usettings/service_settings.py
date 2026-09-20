@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any, cast
 import re
 
@@ -71,9 +72,7 @@ def services(request: HttpRequest, **args: Any) -> HttpResponse:
     if isinstance(user, HttpResponseForbidden):
         return user
 
-    page = build_settings_page(
-        request, title=_('Services - Settings'), menu='services'
-    )
+    page = build_settings_page(request, title=_('Services - Settings'), menu='services')
     services_all = list(
         Service.objects.select_related('fetch_state').all().order_by('api', 'name')
     )
@@ -368,9 +367,7 @@ def build_service_form_response(
                 'name': 'fetch_interval_sec',
                 'value': s['fetch_interval_sec'],
                 'label': _('Fetch interval (seconds)'),
-                'hint': _(
-                    'Leave empty to use the service default refresh interval.'
-                ),
+                'hint': _('Leave empty to use the service default refresh interval.'),
                 'miss': miss.get('fetch_interval_sec', False),
             }
         )
@@ -516,50 +513,79 @@ def build_service_form_response(
     return payload
 
 
+@dataclass(frozen=True)
+class _ImportRule:
+    """How one well-known host's feed URL becomes a native service."""
+
+    host: str
+    api: str
+    cls: str
+    pattern: str | None = None
+    replacements: tuple[tuple[str, str], ...] = ()
+    # True when the host only counts as its own API if the pattern matched;
+    # otherwise the URL stays a plain webfeed.
+    require_match: bool = False
+
+
+_IMPORT_RULES: tuple[_ImportRule, ...] = (
+    _ImportRule(
+        host='flickr.com',
+        api='flickr',
+        cls='photos',
+        pattern=r'flickr.com/services/feeds/photos_public\.gne\?id=([0-9@A-Z]+)',
+        replacements=(('format=atom', 'format=rss_200'),),
+    ),
+    _ImportRule(
+        host='twitter.com',
+        api='twitter',
+        cls='sms',
+        pattern=r'twitter.com/1/statuses/user_timeline/(\w+)\.',
+        require_match=True,
+    ),
+    _ImportRule(
+        host='vimeo.com',
+        api='vimeo',
+        cls='videos',
+        pattern=r'vimeo.com/([\w/]+)/\w+/rss',
+        replacements=(('channels/', 'channel/'), ('groups/', 'group/')),
+        require_match=True,
+    ),
+    _ImportRule(
+        host='youtube.com',
+        api='youtube',
+        cls='videos',
+        pattern=r'gdata.youtube.com/feeds/api/users/(\w+)',
+    ),
+    _ImportRule(host='yelp.com/syndicate', api='yelp', cls='reviews'),
+)
+
+# APIs whose imported services show both the title and the body by default.
+_IMPORT_BOTH_DISPLAY = ('vimeo', 'webfeed', 'yelp', 'youtube')
+
+
+def _apply_import_rules(url: str, cls: str) -> tuple[str, str, str]:
+    """Resolve a feed URL to its (url, api, cls) triple."""
+    for rule in _IMPORT_RULES:
+        if rule.host not in url:
+            continue
+        match = re.search(rule.pattern, url) if rule.pattern else None
+        if match:
+            url = match.groups()[0]
+        elif rule.require_match:
+            break
+        for old, new in rule.replacements:
+            url = url.replace(old, new)
+        return url, rule.api, rule.cls
+    return url, 'webfeed', cls
+
+
 def normalize_imported_service(url: str, title: str, cls: str = 'webfeed') -> None:
-    api_name = 'webfeed'
-
-    if 'flickr.com' in url:
-        m = re.search(
-            r'flickr.com/services/feeds/photos_public\.gne\?id=([0-9@A-Z]+)', url
-        )
-        if m:
-            url = m.groups()[0]
-        url = url.replace('format=atom', 'format=rss_200')
-        api_name = 'flickr'
-        cls = 'photos'
-    elif 'twitter.com' in url:
-        m = re.search(r'twitter.com/1/statuses/user_timeline/(\w+)\.', url)
-        if m:
-            url = m.groups()[0]
-            api_name = 'twitter'
-            cls = 'sms'
-    elif 'vimeo.com' in url:
-        m = re.search(r'vimeo.com/([\w/]+)/\w+/rss', url)
-        if m:
-            url = m.groups()[0]
-            url = url.replace('channels/', 'channel/')
-            url = url.replace('groups/', 'group/')
-            api_name = 'vimeo'
-            cls = 'videos'
-    elif 'youtube.com' in url:
-        m = re.search(r'gdata.youtube.com/feeds/api/users/(\w+)', url)
-        if m:
-            url = m.groups()[0]
-        api_name = 'youtube'
-        cls = 'videos'
-    elif 'yelp.com/syndicate' in url:
-        api_name = 'yelp'
-        cls = 'reviews'
-
+    url, api_name, cls = _apply_import_rules(url, cls)
     try:
         try:
             Service.objects.get(api=api_name, url=url)
         except Service.DoesNotExist:
-            if api_name in ('vimeo', 'webfeed', 'yelp', 'youtube'):
-                display = 'both'
-            else:
-                display = 'content'
+            display = 'both' if api_name in _IMPORT_BOTH_DISPLAY else 'content'
             service = Service(
                 api=api_name, cls=cls, url=url, name=title, display=display
             )
@@ -623,7 +649,10 @@ def opml(request: HttpRequest, **args: Any) -> HttpResponse:
             try:
                 service_instance = ServiceFactory.create_service(service)
                 srvs.extend(
-                    [{'name': service.name, 'url': u} for u in service_instance.get_urls()]
+                    [
+                        {'name': service.name, 'url': u}
+                        for u in service_instance.get_urls()
+                    ]
                 )
             except Exception:
                 pass

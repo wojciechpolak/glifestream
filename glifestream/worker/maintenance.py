@@ -106,38 +106,42 @@ def parse_maintenance_args(args: Sequence[str]) -> MaintenanceCommand:
     )
 
 
-def execute_maintenance_command(command: MaintenanceCommand, *, verbose: int = 0) -> None:
+def _run_thumbs_action(action: str, *, verbose: int) -> None:
+    files = list_orphan_thumbs()
+    if action == 'delete-orphans':
+        if verbose:
+            print('Files to remove: %d' % len(files))
+        delete_thumb_files(files)
+        return
+    for file in files:
+        print(file)
+
+
+def _run_old_entries_action(command: MaintenanceCommand) -> None:
+    listing = command.list_old_days is not None
+    days = command.list_old_days if listing else command.delete_old_days
+    assert days is not None
+    queryset = get_old_entries_queryset(
+        days,
+        only_inactive=command.only_inactive,
+        filters=command.filters,
+    )
+    if not listing:
+        queryset.delete()
+        return
+    for entry in queryset:
+        print('%4d "%s" by %s' % (entry.pk, entry.title, entry.author_name))
+
+
+def execute_maintenance_command(
+    command: MaintenanceCommand, *, verbose: int = 0
+) -> None:
     if command.thumbs:
-        files = list_orphan_thumbs()
-        if command.thumbs == 'delete-orphans':
-            if verbose:
-                print('Files to remove: %d' % len(files))
-            delete_thumb_files(files)
-        else:
-            for file in files:
-                print(file)
-        return
-
-    if command.list_old_days or command.delete_old_days:
-        days = (
-            command.list_old_days
-            if command.list_old_days is not None
-            else command.delete_old_days
-        )
-        assert days is not None
-        queryset = get_old_entries_queryset(
-            days,
-            only_inactive=command.only_inactive,
-            filters=command.filters,
-        )
-        if command.list_old_days is not None:
-            for entry in queryset:
-                print('%4d "%s" by %s' % (entry.pk, entry.title, entry.author_name))
-        else:
-            queryset.delete()
-        return
-
-    raise ValueError('Maintenance job must specify a cleanup action.')
+        _run_thumbs_action(command.thumbs, verbose=verbose)
+    elif command.list_old_days or command.delete_old_days:
+        _run_old_entries_action(command)
+    else:
+        raise ValueError('Maintenance job must specify a cleanup action.')
 
 
 def run_maintenance_args(args: Sequence[str], *, verbose: int = 0) -> None:
@@ -177,23 +181,35 @@ def get_old_entries_queryset(
     return Entry.objects.filter(**fs).exclude(id__in=favs)
 
 
-def list_orphan_thumbs() -> list[str]:
-    ths: dict[str, bool] = {}
+def _thumb_rel(thumb_hash: str) -> str:
+    return str(media.get_thumb_info(thumb_hash, append_suffix=False)['rel'])
+
+
+def _collect_thumb_files() -> set[str]:
+    """Every thumbnail currently on disk, as a MEDIA_ROOT-relative path."""
+    found: set[str] = set()
     for _root, _dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT, 'thumbs')):
-        for file in files:
-            if file[0] != '.':
-                ths[media.get_thumb_info(file, append_suffix=False)['rel']] = True
-    entries = Entry.objects.all()
-    for entry in entries:
-        thumb_hash = media.get_thumb_hash(entry.link_image)
-        t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel'] if thumb_hash else ''
-        if t in ths:
-            del ths[t]
-        for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', entry.content):
-            t = media.get_thumb_info(thumb_hash, append_suffix=False)['rel']
-            if t in ths:
-                del ths[t]
-    return sorted(ths)
+        found.update(_thumb_rel(file) for file in files if file[0] != '.')
+    return found
+
+
+def _referenced_thumbs(entry: Entry) -> set[str]:
+    """The thumbnails one entry lays claim to, via link_image or its body."""
+    referenced = {
+        _thumb_rel(thumb_hash)
+        for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', entry.content)
+    }
+    link_hash = media.get_thumb_hash(entry.link_image)
+    if link_hash:
+        referenced.add(_thumb_rel(link_hash))
+    return referenced
+
+
+def list_orphan_thumbs() -> list[str]:
+    orphans = _collect_thumb_files()
+    for entry in Entry.objects.all():
+        orphans -= _referenced_thumbs(entry)
+    return sorted(orphans)
 
 
 def delete_thumb_files(files: Sequence[str]) -> None:
