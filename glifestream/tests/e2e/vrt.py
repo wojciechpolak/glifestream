@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import Sequence
 
 import pytest
-from PIL import Image, ImageChops
+from PIL import Image, ImageChops, ImageFilter
 from playwright.sync_api import Locator, Page
 
 
@@ -34,6 +34,21 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 BASELINE_ROOT = PROJECT_ROOT / '.visual-regression'
 ARTIFACT_ROOT = PROJECT_ROOT / 'test-results' / 'vrt'
 PIXEL_TOLERANCE = 3
+
+# Playwright paints masked elements in this colour.
+MASK_COLOR = (255, 0, 255)
+
+# Playwright derives a mask rectangle from the element's bounding box and
+# rounds it to whole pixels, while the browser paints the element's own border
+# on its own rounding of the same fractional edge. When a masked element's
+# height lands close enough to half a pixel the two disagree, and one row of
+# its border falls outside the mask -- so the snapshot passes or fails
+# depending on which side of the boundary a given machine's layout lands.
+# Ignore a thin halo around every mask. The cost is that a mask moving by a
+# pixel or two no longer registers, which is the intended trade: a masked
+# element is one whose exact extent has already been declared volatile, and a
+# real layout shift moves the unmasked content around it as well.
+MASK_BLEED = 2
 
 
 def env_flag(name: str) -> bool:
@@ -61,6 +76,45 @@ def _load_image_file(path: Path) -> Image.Image:
 
 def _threshold_diff(diff: Image.Image, *, tolerance: int) -> Image.Image:
     return diff.point(lambda value: 0 if value <= tolerance else 255)
+
+
+def _mask_map(image: Image.Image) -> Image.Image:
+    """A single-channel map of the pixels Playwright painted as a mask."""
+    channels = image.split()
+    flags = [
+        channel.point(lambda value, wanted=wanted: 255 if value == wanted else 0)
+        for channel, wanted in zip(channels, MASK_COLOR)
+    ]
+    both = ImageChops.multiply(flags[0], flags[1])
+    return ImageChops.multiply(both, flags[2])
+
+
+def _mask_halo(
+    expected: Image.Image, actual: Image.Image, *, bleed: int = MASK_BLEED
+) -> Image.Image | None:
+    """Pixels both images agree are mask, give or take `bleed`.
+
+    Taking the intersection rather than the union is what keeps this honest:
+    a mask that grew covers new ground in one image only, so the growth still
+    reads as a difference. Only the shared edge is forgiven.
+    """
+    grow = ImageFilter.MaxFilter(2 * bleed + 1)
+    halos = []
+    for image in (expected, actual):
+        found = _mask_map(image)
+        if found.getbbox() is None:
+            return None
+        halos.append(found.filter(grow))
+    shared = ImageChops.darker(halos[0], halos[1])
+    return shared if shared.getbbox() is not None else None
+
+
+def _ignore_mask_edges(
+    visible_diff: Image.Image, halo: Image.Image | None
+) -> Image.Image:
+    if halo is not None:
+        visible_diff.paste((0, 0, 0), mask=halo)
+    return visible_diff
 
 
 def _prepare_page_for_screenshot(page: Page) -> None:
@@ -240,7 +294,10 @@ class VisualRegressionSession:
             raise AssertionError(self._failure_message(name, baseline_path))
 
         diff = ImageChops.difference(expected, actual)
-        visible_diff = _threshold_diff(diff, tolerance=PIXEL_TOLERANCE)
+        visible_diff = _ignore_mask_edges(
+            _threshold_diff(diff, tolerance=PIXEL_TOLERANCE),
+            _mask_halo(expected, actual),
+        )
         if visible_diff.getbbox() is not None:
             self._write_artifacts(name, actual=actual, expected=expected, diff=diff)
             raise AssertionError(self._failure_message(name, baseline_path))
