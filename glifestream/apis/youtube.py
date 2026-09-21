@@ -67,75 +67,79 @@ class YoutubeService(BaseService):
         self.process(url)
 
     def process(self, url: str) -> None:
+        kind = self.playlist_types.get(url)
         for ent in self.json.get('items', ()):
             snippet = ent.get('snippet', {})
-
             vid = ent['contentDetails']['videoId']
-            if self.playlist_types[url] == 'favorite':
+            if kind == 'favorite':
                 guid = 'tag:youtube.com,2008:favorite:%s' % ent.get('id')
             else:
                 guid = 'tag:youtube.com,2008:video:%s' % vid
 
-            try:
-                t = datetime.datetime.strptime(
-                    snippet['publishedAt'], '%Y-%m-%dT%H:%M:%SZ'
-                )
-                t = t.replace(tzinfo=datetime.timezone.utc)
-            except ValueError:
-                t = datetime.datetime.strptime(
-                    snippet['publishedAt'], '%Y-%m-%dT%H:%M:%S.000Z'
-                )
-                t = t.replace(tzinfo=datetime.timezone.utc)
+            t = _parse_published(snippet['publishedAt'])
 
             if self.verbose:
                 print('ID: %s' % guid)
-            try:
-                e = Entry.objects.get(service=self.service, guid=guid)
-                if (
-                    not self.force_overwrite
-                    and e.date_updated
-                    and mtime(t.timetuple()) <= e.date_updated
-                ):
-                    continue
-                if e.protected:
-                    continue
-            except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=guid)
+            e = self.resolve_entry(guid, mtime(t.timetuple()))
+            if e is None:
+                continue
 
             e.title = snippet['title']
             e.link = 'https://www.youtube.com/watch?v=%s' % vid
             e.date_published = t
             e.date_updated = t
             e.author_name = snippet['channelTitle']
-
-            if vid and 'thumbnails' in snippet and 'default' in snippet['thumbnails']:
-                tn = None
-                if 'medium' in snippet['thumbnails']:
-                    tn = snippet['thumbnails']['medium']
-                    tn['width'], tn['height'] = 320, 180
-                elif 'high' in snippet['thumbnails']:
-                    tn = snippet['thumbnails']['high']
-                    tn['width'], tn['height'] = 200, 150
-                if not tn:
-                    tn = snippet['thumbnails']['default']
-                    tn['width'], tn['height'] = 200, 150
-
-                if self.service.public:
-                    tn['url'] = media.save_image(
-                        tn['url'], downscale=True, size=(tn['width'], tn['height'])
-                    )
-
-                e.content = (
-                    """<div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>"""
-                    % (vid, e.link, tn['url'], tn['width'], tn['height'])
-                )
-            else:
-                e.content = '<a href="%s">%s</a>' % (e.link, e.title)
+            e.content = self._render_content(e, vid, snippet.get('thumbnails', {}))
 
             try:
                 e.save()
             except Exception as exc:
                 print(exc)
+
+    def _render_content(self, e: Entry, vid: str, thumbnails: dict) -> str:
+        tn = _pick_thumbnail(thumbnails) if vid else None
+        if tn is None:
+            return '<a href="%s">%s</a>' % (e.link, e.title)
+
+        if self.service.public:
+            tn['url'] = media.save_image(
+                tn['url'], downscale=True, size=(tn['width'], tn['height'])
+            )
+        return (
+            """<div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>"""
+            % (vid, e.link, tn['url'], tn['width'], tn['height'])
+        )
+
+
+# Preferred thumbnail sizes, best first, with the box each is shown in.
+_THUMBNAIL_SIZES = (
+    ('medium', 320, 180),
+    ('high', 200, 150),
+    ('default', 200, 150),
+)
+
+
+def _pick_thumbnail(thumbnails: dict) -> dict | None:
+    """The best available thumbnail, sized for display, or None.
+
+    YouTube always lists a `default` thumbnail; without one the entry falls
+    back to a plain link.
+    """
+    if 'default' not in thumbnails:
+        return None
+    for key, width, height in _THUMBNAIL_SIZES:
+        if thumbnails.get(key):
+            return {**thumbnails[key], 'width': width, 'height': height}
+    return None
+
+
+def _parse_published(value: str) -> datetime.datetime:
+    """`publishedAt`, with or without milliseconds, as an aware UTC datetime."""
+    try:
+        t = datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')
+    except ValueError:
+        t = datetime.datetime.strptime(value, '%Y-%m-%dT%H:%M:%S.000Z')
+    return t.replace(tzinfo=datetime.timezone.utc)
 
 
 def filter_title(entry: Entry) -> str:

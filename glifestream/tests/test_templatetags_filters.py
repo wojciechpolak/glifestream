@@ -143,3 +143,19 @@ def test_gls_content_friends_only(service):
     content = gls_content(None, e)
     assert 'friends-only-entry' in content
     assert 'Private' not in content
+
+
+@pytest.mark.parametrize(
+    'is_secure, expected',
+    [
+        (False, 'http://cdn.example.com/static/'),
+        (True, 'https://cdn.example.com/static/'),
+    ],
+)
+def test_static_tag_follows_the_request_scheme(settings, is_secure, expected):
+    from django.template import Context, Template
+
+    settings.STATIC_URL = 'http://cdn.example.com/static/'
+    template = Template('{% load media %}{% static %}')
+
+    assert template.render(Context({'is_secure': is_secure})) == expected

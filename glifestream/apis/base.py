@@ -17,7 +17,11 @@
 
 from __future__ import annotations
 from abc import ABC, abstractmethod
-from glifestream.stream.models import Service
+import datetime
+from django.utils.html import strip_tags
+from glifestream.filters import truncate
+from glifestream.stream.models import Entry, Service
+from glifestream.utils.html import strip_entities
 
 
 class BaseService(ABC):
@@ -46,6 +50,31 @@ class BaseService(ABC):
     def get_urls(self) -> list[str]:
         return []
 
+    def resolve_entry(
+        self, guid: str, updated: datetime.datetime | None
+    ) -> Entry | None:
+        """The entry to write for `guid`, or None when it should be skipped.
+
+        An existing entry is skipped when it is protected, or when `updated`
+        is no newer than what is stored (unless forcing an overwrite). Pass
+        `updated=None` to skip the freshness check.
+        """
+        try:
+            e = Entry.objects.get(service=self.service, guid=guid)
+        except Entry.DoesNotExist:
+            return Entry(service=self.service, guid=guid)
+
+        if (
+            not self.force_overwrite
+            and updated is not None
+            and e.date_updated
+            and updated <= e.date_updated
+        ):
+            return None
+        if e.protected:
+            return None
+        return e
+
     def get_base_url(self) -> str | None:
         return None
 
@@ -54,3 +83,16 @@ class BaseService(ABC):
 
     def get_token_url(self) -> str | None:
         return None
+
+
+def post_title(html: str) -> str:
+    """A short plain-text title for a microblog post's HTML body."""
+    title = truncate.smart(strip_entities(strip_tags(html)), max_length=40)
+    return title.replace('#', '').replace('@', '')
+
+
+def set_reblog(e: Entry, reblog: bool, by: str = '', uri: str = '') -> None:
+    """Mark `e` as reshared by `by`, or clear any earlier reshare."""
+    e.reblog = reblog
+    e.reblog_by = by if reblog else ''
+    e.reblog_uri = uri if reblog else ''

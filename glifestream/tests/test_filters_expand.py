@@ -50,3 +50,94 @@ def test_normalize_youtube_url_supports_common_variants():
         assert expand.normalize_youtube_url(url) == (
             'https://www.youtube.com/watch?v=vid123'
         )
+
+
+def test_normalize_youtube_url_rejects_other_hosts_and_schemes():
+    for url in (
+        'ftp://youtu.be/vid123',
+        'https://vimeo.com/123',
+        'https://youtu.be/',
+        'https://www.youtube.com/watch?v=bad id',
+        'https://www.youtube-nocookie.com/v/vid123',
+    ):
+        assert expand.normalize_youtube_url(url) is None
+
+
+def test_is_video_url():
+    assert expand.is_video_url('https://youtu.be/vid123')
+    assert expand.is_video_url('https://vimeo.com/42')
+    assert not expand.is_video_url('https://vimeo.com/channels/staff')
+
+
+@patch('glifestream.filters.expand.media.save_image', return_value='thumb.jpg')
+@patch(
+    'glifestream.filters.expand.vimeo.get_thumbnail_url',
+    return_value='https://i.vimeocdn.com/42.jpg',
+)
+def test_videolinks_renders_a_vimeo_card(_mock_thumb, _mock_save):
+    rendered = expand.videolinks('see https://vimeo.com/42')
+
+    assert rendered == (
+        'see <div data-id="vimeo-42" class="play-video">'
+        '<a href="https://vimeo.com/42" rel="nofollow">'
+        '<img src="thumb.jpg" width="320" height="180" alt="Vimeo Video" /></a>'
+        '<div class="playbutton"></div></div>'
+    )
+
+
+@patch('glifestream.filters.expand.vimeo.get_thumbnail_url', return_value=None)
+def test_videolinks_leaves_vimeo_without_a_thumbnail(_mock_thumb):
+    assert expand.videolinks('https://vimeo.com/42') == 'https://vimeo.com/42'
+
+
+@patch('glifestream.filters.expand.vimeo.get_thumbnail_url')
+def test_videolinks_leaves_vimeo_urls_inside_attributes(mock_thumb):
+    html = '<a href="https://vimeo.com/42">clip</a>'
+    assert expand.videolinks(html) == html
+    mock_thumb.assert_not_called()
+
+
+@patch('glifestream.filters.expand.oembed.discover')
+def test_shortpics_embeds_a_flickr_photo(mock_discover):
+    mock_discover.return_value = {
+        'type': 'photo',
+        'url': 'https://live.staticflickr.com/1.jpg',
+    }
+
+    rendered = expand.shortpics('https://www.flickr.com/photos/me/1')
+
+    assert rendered == (
+        '<p class="thumbnails"><a href="https://www.flickr.com/photos/me/1" '
+        'rel="nofollow"><img src="https://live.staticflickr.com/1.jpg" '
+        'alt="thumbnail" /></a></p>'
+    )
+
+
+@patch('glifestream.filters.expand.oembed.discover', return_value={'type': 'video'})
+def test_shortpics_leaves_other_flickr_links(_mock_discover):
+    url = 'https://www.flickr.com/photos/me/1'
+    assert expand.shortpics(url) == url
+
+
+def test_audiolinks_wraps_ogg_links():
+    rendered = expand.audiolinks('<a href="https://example.com/song.ogg">Song</a>')
+
+    assert rendered.startswith('<span data-id="audio-')
+    assert rendered.endswith(
+        ' class="play-audio"><a href="https://example.com/song.ogg">Song</a></span>'
+    )
+
+
+def test_maplinks_renders_coordinates():
+    rendered = expand.maplinks('at http://maps.google.com/maps?ll=52.2297,21.0122 ok')
+
+    assert rendered == (
+        'at <div class="geo"><a href="http://maps.google.com/maps?ll=52.2297,21.0122"'
+        ' class="map"><span class="latitude">52.2297000000</span> '
+        '<span class="longitude">21.0122000000</span></a></div> ok'
+    )
+
+
+def test_maplinks_leaves_a_map_link_without_coordinates():
+    url = 'http://maps.google.com/maps?q=Warsaw'
+    assert expand.maplinks(url) == url

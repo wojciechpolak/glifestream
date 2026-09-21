@@ -1,6 +1,9 @@
 import os
 import json
+import time
 from unittest.mock import patch, MagicMock
+
+import pytest
 
 from glifestream.stream import media
 from glifestream.utils import httpclient
@@ -381,3 +384,147 @@ def test_downscale_image_is_a_no_op_without_pillow(tmp_path):
         media.downscale_image(str(path))
 
     assert path.read_bytes() == before
+
+
+@pytest.fixture
+def cached_thumb(tmp_path, settings):
+    settings.BASE_URL = 'http://mysite.com'
+    thumb = {
+        'format': 'WEBP',
+        'local': str(tmp_path / 'thumb.webp'),
+        'url': '/media/thumbs/a/thumb.webp',
+        'rel': 'thumbs/a/thumb.webp',
+        'internal': '[GLS-THUMBS]/thumb.webp',
+    }
+    with patch('glifestream.stream.media.get_thumb_info', return_value=thumb):
+        yield thumb
+
+
+def _age(path, seconds):
+    then = time.time() - seconds
+    os.utime(path, (then, then))
+
+
+def test_save_image_serves_a_cached_image_without_fetching(cached_thumb):
+    open(cached_thumb['local'], 'wb').close()
+    _age(cached_thumb['local'], 30 * 24 * 3600)
+
+    with patch('glifestream.stream.media.httpclient.retrieve') as retrieve:
+        res = media.save_image('http://remote.com/img.jpg')
+
+    assert res == '[GLS-THUMBS]/thumb.webp'
+    retrieve.assert_not_called()
+
+
+def test_save_image_serves_a_fresh_page_thumbnail_without_fetching(cached_thumb):
+    open(cached_thumb['local'], 'wb').close()
+
+    with patch('glifestream.stream.media.httpclient.retrieve') as retrieve:
+        res = media.save_image('http://remote.com/page', direct_image=False)
+
+    assert res == '[GLS-THUMBS]/thumb.webp'
+    retrieve.assert_not_called()
+
+
+def test_save_image_keeps_serving_a_stale_page_thumbnail_if_refetch_fails(
+    cached_thumb, caplog
+):
+    open(cached_thumb['local'], 'wb').close()
+    _age(cached_thumb['local'], 8 * 24 * 3600)
+
+    with patch(
+        'glifestream.stream.media.httpclient.retrieve',
+        side_effect=RuntimeError('connection reset'),
+    ) as retrieve:
+        res = media.save_image('http://remote.com/page', direct_image=False)
+
+    retrieve.assert_called_once()
+    assert res == '[GLS-THUMBS]/thumb.webp'
+    assert os.path.exists(cached_thumb['local'])
+    assert 'connection reset' in caplog.text
+
+
+def test_save_image_without_pillow_warns_only_when_forced(cached_thumb, caplog):
+    def fake_retrieve(url, filename, **kwargs):
+        with open(filename, 'wb') as handle:
+            handle.write(b'data')
+        return MagicMock(
+            headers={'content-type': 'image/png'}, status_code=200, url=url
+        )
+
+    with (
+        patch('glifestream.stream.media.Image', None),
+        patch(
+            'glifestream.stream.media.httpclient.retrieve', side_effect=fake_retrieve
+        ),
+    ):
+        media.save_image('http://remote.com/a.png', downscale=False)
+        assert 'Pillow unavailable' not in caplog.text
+        os.remove(cached_thumb['local'])
+        res = media.save_image('http://remote.com/a.png', downscale=False, force=True)
+
+    assert res == '[GLS-THUMBS]/thumb.webp'
+    assert 'Pillow unavailable' in caplog.text
+
+
+@pytest.mark.parametrize(
+    'iformat, suffix',
+    [
+        ('JPEG', '.jpg'),
+        ('jpg', '.jpg'),
+        ('AVIF', '.avif'),
+        ('HEIF', '.heif'),
+        ('PNG', ''),
+    ],
+)
+def test_get_thumb_info_suffix_follows_the_format(settings, iformat, suffix):
+    settings.APP_THUMBNAIL_FORMAT = iformat
+
+    assert media.get_thumb_info('abc', append_suffix=True)['internal'] == (
+        '[GLS-THUMBS]/abc' + suffix
+    )
+    assert media.get_thumb_info('abc', append_suffix=False)['internal'] == (
+        '[GLS-THUMBS]/abc'
+    )
+
+
+def test_mrss_init():
+    assert media.mrss_init() == {'content': []}
+    assert media.mrss_init({'other': 1}) == {'content': []}
+    assert media.mrss_init('{"content": [1]}') == {'content': [1]}
+    blob = {'content': []}
+    assert media.mrss_init(blob) is blob
+
+
+def test_mrss_gen_xml_groups_several_items_and_drops_namespaced_keys():
+    e = MagicMock(
+        mblob=json.dumps(
+            {
+                'content': [
+                    [{'url': 'a.mp4', 'filesize': 10, 'yt:x': 'drop'}],
+                    [{'url': 'b.jpg'}, {'url': 'c.jpg'}],
+                ]
+            }
+        )
+    )
+
+    assert media.mrss_gen_xml(e) == (
+        '    <media:content url="a.mp4" fileSize="10"/>\n'
+        '    <media:group>\n'
+        '      <media:content url="b.jpg"/>\n'
+        '      <media:content url="c.jpg"/>\n'
+        '    </media:group>\n'
+    )
+
+
+def test_mrss_gen_xml_escapes_attribute_values():
+    e = MagicMock(mblob=json.dumps({'content': [[{'url': 'https://e/x?a=1&b="2"<'}]]}))
+
+    assert media.mrss_gen_xml(e) == (
+        '    <media:content url="https://e/x?a=1&amp;b=&quot;2&quot;&lt;"/>\n'
+    )
+
+
+def test_mrss_gen_xml_without_media():
+    assert media.mrss_gen_xml(MagicMock(mblob=None)) == ''
+    assert media.mrss_gen_xml(MagicMock(mblob='{"other": 1}')) == ''

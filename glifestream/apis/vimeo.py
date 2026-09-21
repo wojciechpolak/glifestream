@@ -20,7 +20,7 @@ from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
 from glifestream.utils import httpclient
-from glifestream.utils.time import mtime, now
+from glifestream.utils.time import now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
 from typing import Any, cast
@@ -85,20 +85,12 @@ class VimeoService(BaseService):
             guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
             if self.verbose:
                 print('ID: %s' % guid)
-            try:
-                e = Entry.objects.get(service=self.service, guid=guid)
-                if (
-                    not self.force_overwrite
-                    and e.date_updated
-                    and mtime(ent[date_key]) <= e.date_updated
-                ):
-                    continue
-                if e.protected:
-                    continue
-            except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=guid)
-
             t = _parse_vimeo_date(ent[date_key])
+            e = self.resolve_entry(
+                guid, t if isinstance(t, datetime.datetime) else None
+            )
+            if e is None:
+                continue
 
             e.title = ent['title']
             e.link = ent['url']

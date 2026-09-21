@@ -524,3 +524,28 @@ def test_process_carries_media_content_into_the_mblob(webfeed):
     )
 
     assert 'http://e/clip.mp4' in Entry.objects.get().mblob
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'date_tag, rewritten',
+    [
+        # No update time: always rewritten, never compared to the publish date.
+        ('<pubDate>Wed, 01 Nov 2023 12:00:00 GMT</pubDate>', True),
+        ('<atom:updated>2023-11-01T12:00:00Z</atom:updated>', False),
+    ],
+)
+def test_process_skips_only_entries_whose_update_time_has_not_moved(
+    webfeed, date_tag, rewritten
+):
+    xml = build_feed(
+        '<item><guid>g-1</guid><title>A Title</title>'
+        '<link>http://example.com/1</link>%s</item>' % date_tag
+    )
+    run_process(webfeed, xml)
+    Entry.objects.update(title='Edited locally')
+
+    run_process(webfeed, xml)
+
+    title = Entry.objects.get().title
+    assert title == ('A Title' if rewritten else 'Edited locally')

@@ -117,35 +117,46 @@ def imgloc(s: str) -> str:
 #
 
 
+def _youtube_path_id(parts: list[str], query: dict[str, str], path: str) -> str | None:
+    if path == '/watch':
+        return query.get('v')
+    if len(parts) >= 2 and parts[0] in ('shorts', 'live', 'embed'):
+        return parts[1]
+    return None
+
+
+def _youtu_be_id(parts: list[str], query: dict[str, str], path: str) -> str | None:
+    return parts[0] if parts else None
+
+
+def _nocookie_id(parts: list[str], query: dict[str, str], path: str) -> str | None:
+    if len(parts) >= 2 and parts[0] == 'embed':
+        return parts[1]
+    return None
+
+
+# Host (without "www.") -> how that host carries the video id.
+_YOUTUBE_ID_EXTRACTORS = {
+    'youtube.com': _youtube_path_id,
+    'm.youtube.com': _youtube_path_id,
+    'youtu.be': _youtu_be_id,
+    'youtube-nocookie.com': _nocookie_id,
+}
+
+
 def normalize_youtube_url(url: str) -> str | None:
     parsed = urlparse(url)
     if parsed.scheme not in ('http', 'https'):
         return None
 
-    host = parsed.netloc.lower()
-    if host.startswith('www.'):
-        host = host[4:]
+    host = parsed.netloc.lower().removeprefix('www.')
+    extract = _YOUTUBE_ID_EXTRACTORS.get(host)
+    if extract is None:
+        return None
 
     path = parsed.path.rstrip('/')
-    query = dict(parse_qsl(parsed.query))
-    video_id = None
-
-    if host in ('youtube.com', 'm.youtube.com'):
-        if path == '/watch':
-            video_id = query.get('v')
-        else:
-            parts = [part for part in path.split('/') if part]
-            if len(parts) >= 2 and parts[0] in ('shorts', 'live', 'embed'):
-                video_id = parts[1]
-    elif host == 'youtu.be':
-        parts = [part for part in path.split('/') if part]
-        if parts:
-            video_id = parts[0]
-    elif host == 'youtube-nocookie.com':
-        parts = [part for part in path.split('/') if part]
-        if len(parts) >= 2 and parts[0] == 'embed':
-            video_id = parts[1]
-
+    parts = [part for part in path.split('/') if part]
+    video_id = extract(parts, dict(parse_qsl(parsed.query)), path)
     if not video_id or not re.fullmatch(r'[\-\w]+', video_id):
         return None
     return 'https://www.youtube.com/watch?v=%s' % video_id
@@ -248,7 +259,7 @@ def videolinks(s: str) -> str:
 def __sa_ogg(m: Match) -> str:
     link = m.group(1)
     name = m.group(2)
-    id_audio = hashlib.md5(link).hexdigest()
+    id_audio = hashlib.md5(link.encode()).hexdigest()
     return '<span data-id="audio-%s" class="play-audio"><a href="%s">%s</a></span>' % (
         id_audio,
         link,

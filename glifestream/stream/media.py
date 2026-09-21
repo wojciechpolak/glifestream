@@ -24,6 +24,7 @@ import tempfile
 import time
 import shutil
 from typing import Match, cast
+from xml.sax.saxutils import escape as xml_escape
 
 from django.conf import settings
 from django.db.models.fields.files import FieldFile
@@ -70,19 +71,23 @@ def get_thumb_hash(s: str) -> str | None:
     return m.groups()[0] if m else None
 
 
+_THUMB_SUFFIXES = {
+    'jpeg': '.jpg',
+    'jpg': '.jpg',
+    'webp': '.webp',
+    'avif': '.avif',
+    'heif': '.heif',
+}
+
+# A cached thumbnail of a page (rather than of an image URL) is refetched
+# once it is older than this.
+_PAGE_THUMB_MAX_AGE_SEC = 7 * 24 * 3600
+
+
 def get_thumb_info(thumb_hash: str, append_suffix: bool) -> ThumbInfo:
     prefix = thumb_hash[0] + '/'
     iformat = getattr(settings, 'APP_THUMBNAIL_FORMAT', 'JPEG')
-    suffix = ''
-    if append_suffix:
-        if iformat.lower() == 'jpeg' or iformat.lower() == 'jpg':
-            suffix = '.jpg'
-        elif iformat.lower() == 'webp':
-            suffix = '.webp'
-        elif iformat.lower() == 'avif':
-            suffix = '.avif'
-        elif iformat.lower() == 'heif':
-            suffix = '.heif'
+    suffix = _THUMB_SUFFIXES.get(iformat.lower(), '') if append_suffix else ''
     return {
         'format': iformat,
         'local': '%s/thumbs/%s%s%s' % (settings.MEDIA_ROOT, prefix, thumb_hash, suffix),
@@ -99,64 +104,88 @@ def save_image(
     downscale=True,
     size: tuple[int, int] | None = None,
 ) -> str:
+    """Cache a remote image as a local thumbnail and return its internal URL.
+
+    Falls back to the remote `url` when the download fails and there is no
+    earlier copy to keep serving.
+    """
     if settings.BASE_URL in url:
         return url
     thumb_id = hashlib.sha1(force_bytes(url)).hexdigest()
     thumb = get_thumb_info(thumb_id, append_suffix=True)
-    stale = False
 
-    is_file = os.path.isfile(thumb['local'])
-    if is_file and not direct_image:
-        if (time.time() - os.path.getmtime(thumb['local'])) > 604800:
-            is_file = False
-            stale = True
-
-    if not is_file:
-        fd, tmp = tempfile.mkstemp(suffix='_gls')
-        os.close(fd)
-        moved = False
-        try:
-            resp = httpclient.retrieve(url, tmp)
-            httpclient.validate_media_response(resp)
-            if Image:
-                try:
-                    with Image.open(tmp) as image:
-                        image.verify()
-                except Exception as exc:
-                    raise httpclient.build_fetch_error(
-                        category='invalid_response',
-                        detail='Media download from %s could not be validated as an image: %s'
-                        % (url, exc),
-                        retryable=False,
-                        status_code=resp.status_code,
-                        url=resp.url,
-                    ) from exc
-            elif force:
-                logger.warning(
-                    'Pillow unavailable while validating remote media: %s', url
-                )
-
-            if downscale:
-                downscale_image(tmp, size=size, iformat=thumb['format'])
-            shutil.move(tmp, thumb['local'])
-            apply_media_permissions(thumb['local'])
-            moved = True
-        except Exception as exc:
-            if isinstance(exc, httpclient.FetchError):
-                logger.warning(
-                    'Rejected remote media %s: %s (%s)',
-                    url,
-                    exc.category,
-                    exc.detail,
-                )
-            else:
-                logger.error(exc)
-            if not stale:
-                return url
-        finally:
-            if not moved and os.path.exists(tmp):
-                os.remove(tmp)
+    cached, stale = _cached_thumb(thumb['local'], direct_image)
+    if cached:
+        return thumb['internal']
+    try:
+        _download_thumb(url, thumb, force=force, downscale=downscale, size=size)
+    except Exception as exc:
+        _log_rejected_media(url, exc)
+        if not stale:
+            return url
     return thumb['internal']
+
+
+def _cached_thumb(path: str, direct_image: bool) -> tuple[bool, bool]:
+    """(usable, stale): whether a cached copy can be served as-is, and
+    whether an expired copy exists to fall back on if refetching fails."""
+    if not os.path.isfile(path):
+        return False, False
+    if not direct_image:
+        if time.time() - os.path.getmtime(path) > _PAGE_THUMB_MAX_AGE_SEC:
+            return False, True
+    return True, False
+
+
+def _download_thumb(
+    url: str,
+    thumb: ThumbInfo,
+    *,
+    force: bool,
+    downscale: bool,
+    size: tuple[int, int] | None,
+) -> None:
+    fd, tmp = tempfile.mkstemp(suffix='_gls')
+    os.close(fd)
+    try:
+        resp = httpclient.retrieve(url, tmp)
+        httpclient.validate_media_response(resp)
+        _verify_image(tmp, url, resp, force=force)
+        if downscale:
+            downscale_image(tmp, size=size, iformat=thumb['format'])
+        shutil.move(tmp, thumb['local'])
+        apply_media_permissions(thumb['local'])
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+def _verify_image(path: str, url: str, resp, *, force: bool) -> None:
+    if not Image:
+        if force:
+            logger.warning('Pillow unavailable while validating remote media: %s', url)
+        return
+    try:
+        with Image.open(path) as image:
+            image.verify()
+    except Exception as exc:
+        raise httpclient.build_fetch_error(
+            category='invalid_response',
+            detail='Media download from %s could not be validated as an image: %s'
+            % (url, exc),
+            retryable=False,
+            status_code=resp.status_code,
+            url=resp.url,
+        ) from exc
+
+
+def _log_rejected_media(url: str, exc: Exception) -> None:
+    if isinstance(exc, httpclient.FetchError):
+        logger.warning(
+            'Rejected remote media %s: %s (%s)', url, exc.category, exc.detail
+        )
+    else:
+        logger.error(exc)
 
 
 def downscale_image(filename: str, size=None, iformat='JPEG') -> None:
@@ -244,30 +273,37 @@ def mrss_gen_json(mblob) -> str | None:
     return None
 
 
+# Lower-case keys stored in mblobs that Media RSS spells in camel case.
+_MRSS_ATTR_RENAMES = {'isdefault': 'isDefault', 'filesize': 'fileSize'}
+
+
 def mrss_gen_xml(entry: Entry) -> str:
-    m = ''
-    if entry.mblob:
-        mblob = json.loads(entry.mblob)
-        if 'content' in mblob:
-            for g in mblob['content']:
-                group = len(g) > 1
-                if group:
-                    m += '    <media:group>\n'
-                for i in g:
-                    for k in list(i.keys()):
-                        if ':' in k:
-                            del i[k]
-                        if k == 'isdefault':
-                            i['isDefault'] = i[k]
-                            del i[k]
-                        elif k == 'filesize':
-                            i['fileSize'] = i[k]
-                            del i[k]
-                    attrs = ''.join([' %s="%s"' % (k, str(i[k])) for k in i])
-                    if group:
-                        m += '  '
-                    m += '    <media:content%s/>\n' % attrs
-                if group:
-                    m += '    </media:group>\n'
-            m = set_upload_url(set_thumbs_url(m))
-    return m
+    if not entry.mblob:
+        return ''
+    mblob = json.loads(entry.mblob)
+    m = ''.join(_mrss_group_xml(group) for group in mblob.get('content', ()))
+    return set_upload_url(set_thumbs_url(m))
+
+
+def _mrss_group_xml(group: list[dict]) -> str:
+    if len(group) <= 1:
+        return ''.join('    <media:content%s/>\n' % _mrss_attrs(i) for i in group)
+    items = ''.join('      <media:content%s/>\n' % _mrss_attrs(i) for i in group)
+    return '    <media:group>\n%s    </media:group>\n' % items
+
+
+def _mrss_attrs(item: dict) -> str:
+    """The item as XML attributes, dropping namespaced keys.
+
+    Renamed keys are emitted last, the order this function has always used.
+    """
+    plain = [
+        (k, v) for k, v in item.items() if ':' not in k and k not in _MRSS_ATTR_RENAMES
+    ]
+    renamed = [
+        (_MRSS_ATTR_RENAMES[k], v) for k, v in item.items() if k in _MRSS_ATTR_RENAMES
+    ]
+    return ''.join(
+        ' %s="%s"' % (k, xml_escape(str(v), {'"': '&quot;'}))
+        for k, v in plain + renamed
+    )

@@ -566,3 +566,93 @@ def test_serialize_fetch_state_marks_a_selfposts_service_unfetchable(db):
 
     assert payload['can_fetch'] is False
     assert payload['effective_interval_sec'] is None
+
+
+def test_fetch_worker_drain_socket_empties_pending_signals():
+    import socket as socket_mod
+
+    reader, writer = socket_mod.socketpair(socket_mod.AF_UNIX, socket_mod.SOCK_DGRAM)
+    fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
+    fetch_worker.socket = reader
+    try:
+        for _ in range(3):
+            writer.send(b'wake')
+        fetch_worker.drain_socket()
+
+        reader.setblocking(False)
+        with pytest.raises(BlockingIOError):
+            reader.recv(1024)
+    finally:
+        reader.close()
+        writer.close()
+
+
+def test_fetch_worker_drain_socket_stops_on_a_read_error():
+    fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
+    fetch_worker.socket = Mock()
+    fetch_worker.socket.recv.side_effect = OSError('gone')
+
+    with patch(
+        'glifestream.fetching.select.select',
+        return_value=([fetch_worker.socket], [], []),
+    ):
+        fetch_worker.drain_socket()
+
+    fetch_worker.socket.recv.assert_called_once_with(1024)
+
+
+def test_fetch_worker_drain_socket_without_a_socket_is_a_no_op():
+    FetchWorker(socket_path='.gls-worker.sock', max_workers=1).drain_socket()
+
+
+def test_fetch_worker_close_socket_removes_the_socket_file(tmp_path, monkeypatch):
+    # A relative path: macOS rejects AF_UNIX paths as long as tmp_path.
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / 'worker.sock'
+    fetch_worker = FetchWorker(socket_path='worker.sock', max_workers=1)
+    sock = fetch_worker.open_socket()
+
+    fetch_worker.close_socket()
+
+    assert fetch_worker.socket is None
+    assert sock.fileno() == -1
+    assert not path.exists()
+    fetch_worker.close_socket()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'last_checked_ago, force_check, runs',
+    [
+        (None, False, True),
+        (timedelta(hours=2), False, True),
+        (timedelta(minutes=5), False, False),
+        (timedelta(minutes=5), True, True),
+    ],
+)
+def test_run_services_honours_the_fetch_interval(
+    settings, service, last_checked_ago, force_check, runs
+):
+    from glifestream.fetching import run_services
+
+    settings.FETCH_DEFAULT_INTERVAL_SEC = 3600
+    service.api = 'webfeed'
+    service.last_checked = (
+        timezone.now() - last_checked_ago if last_checked_ago else None
+    )
+    service.save()
+
+    with patch('glifestream.fetching.run_service_fetch') as fetch:
+        run_services({'id': service.pk}, force_check=force_check)
+
+    assert fetch.called is runs
+
+
+@pytest.mark.django_db
+def test_run_services_with_no_matching_services_does_nothing():
+    from glifestream.fetching import run_services
+
+    with patch('glifestream.fetching.run_service_fetch') as fetch:
+        run_services({'id': 999})
+
+    fetch.assert_not_called()

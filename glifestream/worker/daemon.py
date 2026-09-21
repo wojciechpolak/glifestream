@@ -254,24 +254,25 @@ class WorkerDaemon:
         sock = self.fetch_worker.open_socket()
         try:
             while True:
-                self.fetch_worker.initialize_missing_schedules()
-                self._verbose_print(self._describe_next_fetch_plan())
-                self._maybe_log_next_maintenance_plan()
-                timeout = self._select_timeout()
-                self._verbose_print(self._describe_sleep(timeout))
-                ready, _, _ = select.select([sock], [], [], timeout)
-                if ready:
-                    self._verbose_print('woken by socket signal')
-                    self.fetch_worker.drain_socket()
-                else:
-                    self._verbose_print('woken by scheduler timeout')
-                fetched = self.fetch_worker.run_ready_jobs()
-                if fetched:
-                    self._verbose_print(self._describe_processed_fetch_jobs())
-                maintenance_runs = self._run_due_maintenance_jobs()
-                if maintenance_runs:
-                    self._verbose_print(
-                        'processed %d maintenance job(s)' % maintenance_runs
-                    )
+                self.serve_once(sock)
         finally:
             self.fetch_worker.close_socket()
+
+    def serve_once(self, sock) -> None:
+        """One daemon cycle: sleep until a signal or a deadline, then do the work."""
+        self.fetch_worker.initialize_missing_schedules()
+        self._verbose_print(self._describe_next_fetch_plan())
+        self._maybe_log_next_maintenance_plan()
+        timeout = self._select_timeout()
+        self._verbose_print(self._describe_sleep(timeout))
+        ready, _, _ = select.select([sock], [], [], timeout)
+        if ready:
+            self._verbose_print('woken by socket signal')
+            self.fetch_worker.drain_socket()
+        else:
+            self._verbose_print('woken by scheduler timeout')
+        if self.fetch_worker.run_ready_jobs():
+            self._verbose_print(self._describe_processed_fetch_jobs())
+        maintenance_runs = self._run_due_maintenance_jobs()
+        if maintenance_runs:
+            self._verbose_print('processed %d maintenance job(s)' % maintenance_runs)

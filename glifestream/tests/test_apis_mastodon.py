@@ -440,3 +440,101 @@ def test_status_reference_escapes_the_author_name_and_link():
 
     assert 'Mallory &amp; &quot;friends&quot;' in html
     assert 'https://m.example/?a=1&amp;b=2' in html
+
+
+def test_render_video_attachment_full():
+    from glifestream.apis.mastodon import _render_video_attachment
+
+    attachment = {
+        'id': '7',
+        'type': 'gifv',
+        'url': 'https://m.example/v.mp4',
+        'preview_url': 'https://m.example/p.jpg',
+        'description': 'A <cat>',
+        'meta': {'original': {'width': 640, 'height': 360}},
+    }
+    with patch(
+        'glifestream.apis.mastodon.media.save_image', return_value='[GLS-THUMBS]/p'
+    ) as save:
+        html = _render_video_attachment(attachment, is_public=True)
+
+    save.assert_called_once_with('https://m.example/p.jpg')
+    assert html == (
+        ' <div data-id="mastodon-7" data-src="https://m.example/v.mp4"'
+        ' data-poster="[GLS-THUMBS]/p" data-media-type="gifv"'
+        ' data-width="640" data-height="360" class="play-video">'
+        '<a href="https://m.example/v.mp4" rel="nofollow">'
+        '<img src="[GLS-THUMBS]/p" alt="A &lt;cat&gt;" /></a>'
+        '<div class="playbutton"></div></div>'
+    )
+
+
+def test_render_video_attachment_minimal():
+    from glifestream.apis.mastodon import _render_video_attachment
+
+    with patch('glifestream.apis.mastodon.media.save_image') as save:
+        html = _render_video_attachment(
+            {'url': 'https://m.example/v.mp4', 'meta': {'original': {'width': 'x'}}},
+            is_public=True,
+        )
+
+    save.assert_not_called()
+    assert html == (
+        ' <div data-id="mastodon-https://m.example/v.mp4"'
+        ' data-src="https://m.example/v.mp4" class="play-video">'
+        '<a href="https://m.example/v.mp4" rel="nofollow">video attachment</a>'
+        '<div class="playbutton"></div></div>'
+    )
+    assert _render_video_attachment({'url': ''}, is_public=False) == ''
+
+
+def test_render_video_attachment_private_keeps_the_remote_poster():
+    from glifestream.apis.mastodon import _render_video_attachment
+
+    with patch('glifestream.apis.mastodon.media.save_image') as save:
+        html = _render_video_attachment(
+            {
+                'url': 'https://m.example/v.mp4',
+                'preview_url': 'https://m.example/p.jpg',
+            },
+            is_public=False,
+        )
+
+    save.assert_not_called()
+    assert 'data-poster="https://m.example/p.jpg"' in html
+
+
+def test_render_card():
+    from glifestream.apis.mastodon import _render_card
+
+    card = {
+        'url': 'https://news.example/a',
+        'title': 'Big & news',
+        'description': 'Details',
+        'image': 'https://news.example/a.jpg',
+    }
+    with patch(
+        'glifestream.apis.mastodon.media.save_image', return_value='[GLS-THUMBS]/a'
+    ):
+        html = _render_card(card, is_public=True)
+
+    assert html == (
+        ' <blockquote class="mastodon-card mastodon-preview">'
+        '<p><a href="https://news.example/a" rel="nofollow">Big &amp; news</a></p>'
+        '<p>Details</p>'
+        '<p class="thumbnails"><a href="https://news.example/a" rel="nofollow">'
+        '<img src="[GLS-THUMBS]/a" alt="Big &amp; news" /></a></p>'
+        '</blockquote>'
+    )
+
+
+def test_render_card_minimal_and_missing():
+    from glifestream.apis.mastodon import _render_card
+
+    assert _render_card({'url': 'https://news.example/a'}, is_public=False) == (
+        ' <blockquote class="mastodon-card mastodon-preview">'
+        '<p><a href="https://news.example/a" rel="nofollow">https://news.example/a</a></p>'
+        '</blockquote>'
+    )
+    assert _render_card(None, is_public=False) == ''
+    assert _render_card({'title': 'no url'}, is_public=False) == ''

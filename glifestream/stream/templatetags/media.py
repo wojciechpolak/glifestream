@@ -15,8 +15,6 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import os
-import hashlib
 from django.conf import settings
 from django import template
 from django.template import Context, Library
@@ -24,61 +22,15 @@ from django.template import Context, Library
 register = Library()
 
 
-class MediaUrl(template.Node):
-    def render(self, context: Context) -> str:
-        url = settings.MEDIA_URL
-        if 'is_secure' in context and context['is_secure']:
-            url = url.replace('http://', 'https://')
-        return url
-
-
 class StaticUrl(template.Node):
     def render(self, context: Context) -> str:
         url = settings.STATIC_URL
-        if 'is_secure' in context and context['is_secure']:
+        if context.get('is_secure'):
             url = url.replace('http://', 'https://')
         return url
-
-
-@register.tag
-def media(parser, token):
-    """Return the string contained in the setting MEDIA_URL."""
-    return MediaUrl()
 
 
 @register.tag
 def static(parser, token):
     """Return the string contained in the setting STATIC_URL."""
     return StaticUrl()
-
-
-class StaticUrlHash(template.Node):
-    def __init__(self, path: str):
-        self.path = path
-        self.hash = None
-        try:
-            with open(os.path.join(settings.STATIC_ROOT, path), 'rb') as f:
-                self.hash = hashlib.md5(f.read()).hexdigest()[:5]
-        except Exception:
-            pass
-
-    def render(self, context: Context) -> str:
-        url = settings.STATIC_URL
-        if 'is_secure' in context and context['is_secure']:
-            url = url.replace('http://', 'https://')
-        url += self.path
-        if self.hash:
-            url += '?v=' + self.hash
-        return url
-
-
-@register.tag
-def static_hash(parser, token):
-    """Return a static URL for the given relative static file path."""
-    try:
-        _, path = token.split_contents()
-    except ValueError:
-        raise template.TemplateSyntaxError(
-            '%r tag requires a single argument' % token.contents.split()[0]
-        )
-    return StaticUrlHash(path)

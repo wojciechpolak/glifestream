@@ -20,14 +20,13 @@ import re
 from typing import cast
 
 from django.utils import timezone
-from django.utils.html import escape, strip_tags
+from django.utils.html import escape
 from django.utils.translation import gettext as _
 
-from glifestream.apis.base import BaseService
-from glifestream.filters import expand, truncate
+from glifestream.apis.base import BaseService, post_title, set_reblog
+from glifestream.filters import expand
 from glifestream.gauth import gls_oauth2
 from glifestream.utils import httpclient
-from glifestream.utils.html import strip_entities
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
@@ -92,11 +91,8 @@ class MastodonService(BaseService):
 
     def process(self, entries) -> None:
         for ent in entries:
-            reblog = False
-            entry = ent
-            if ent['reblog']:
-                reblog = True
-                entry = ent['reblog']
+            entry = ent['reblog'] or ent
+            reblog = entry is not ent
             if reblog and self.service.skip_reblogs:
                 if self.verbose:
                     print('Skipping reblogged ID: %s' % entry['url'])
@@ -110,24 +106,12 @@ class MastodonService(BaseService):
                 ent['created_at'].replace('Z', '+00:00')
             )
 
-            try:
-                e = Entry.objects.get(service=self.service, guid=guid)
-                if (
-                    not self.force_overwrite
-                    and e.date_updated
-                    and mtime(t.timetuple()) <= e.date_updated
-                ):
-                    continue
-                if e.protected:
-                    continue
-            except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=guid)
+            e = self.resolve_entry(guid, mtime(t.timetuple()))
+            if e is None:
+                continue
 
             e.guid = guid
-            e.title = truncate.smart(
-                strip_entities(strip_tags(entry['content'])), max_length=40
-            )
-            e.title = e.title.replace('#', '').replace('@', '')
+            e.title = post_title(entry['content'])
 
             e.link = entry['url']
             image_url = entry['account']['avatar_static']
@@ -139,13 +123,10 @@ class MastodonService(BaseService):
 
             e.content = self._render_entry_content(entry)
             e.mblob = _build_video_mblob(entry)
-            e.reblog = False
-            e.reblog_by = ''
-            e.reblog_uri = ''
             if reblog:
-                e.reblog = True
-                e.reblog_by = ent['account']['display_name']
-                e.reblog_uri = ent['uri']
+                set_reblog(e, True, ent['account']['display_name'], ent['uri'])
+            else:
+                set_reblog(e, False)
 
             try:
                 e.save()

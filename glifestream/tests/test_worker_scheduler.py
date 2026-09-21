@@ -299,3 +299,141 @@ def test_next_fetch_plan_ignores_inactive_services(settings, service):
     service.save(update_fields=['active', 'next_fetch_at'])
 
     assert make_daemon(settings)._describe_next_fetch_plan() == 'no scheduled fetches'
+
+
+@pytest.mark.parametrize(
+    'fetch, maintenance, expected',
+    [(None, None, None), (30.0, None, 30.0), (None, 5.0, 5.0), (30.0, 5.0, 5.0)],
+)
+def test_select_timeout_is_the_nearest_deadline(settings, fetch, maintenance, expected):
+    daemon = make_daemon(settings)
+    with (
+        patch.object(daemon.fetch_worker, 'get_next_wait_timeout', return_value=fetch),
+        patch.object(daemon, '_get_next_maintenance_timeout', return_value=maintenance),
+    ):
+        assert daemon._select_timeout() == expected
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('signalled', [True, False])
+def test_serve_once_runs_ready_work(settings, signalled):
+    daemon = make_daemon(settings)
+    worker_ = daemon.fetch_worker
+    sock = object()
+    with (
+        patch.object(worker_, 'initialize_missing_schedules') as init,
+        patch.object(worker_, 'get_next_wait_timeout', return_value=1.0),
+        patch(
+            'glifestream.worker.daemon.select.select',
+            return_value=([sock] if signalled else [], [], []),
+        ) as select_,
+        patch.object(worker_, 'drain_socket') as drain,
+        patch.object(worker_, 'run_ready_jobs', return_value=1) as run_jobs,
+        patch.object(daemon, '_run_due_maintenance_jobs', return_value=1) as run_mnt,
+    ):
+        daemon.serve_once(sock)
+
+    init.assert_called_once_with()
+    select_.assert_called_once_with([sock], [], [], 1.0)
+    assert drain.called is signalled
+    run_jobs.assert_called_once_with()
+    run_mnt.assert_called_once_with()
+
+
+def test_serve_closes_the_socket_when_the_loop_stops(settings):
+    daemon = make_daemon(settings)
+    worker_ = daemon.fetch_worker
+    sock = object()
+    with (
+        patch.object(worker_, 'open_socket', return_value=sock),
+        patch.object(worker_, 'close_socket') as close,
+        patch.object(
+            daemon, 'serve_once', side_effect=[None, None, KeyboardInterrupt]
+        ) as serve_once,
+    ):
+        with pytest.raises(KeyboardInterrupt):
+            daemon.serve()
+
+    assert serve_once.call_count == 3
+    serve_once.assert_called_with(sock)
+    close.assert_called_once_with()
+
+
+@pytest.mark.parametrize(
+    'expression, dow',
+    [
+        ('0 3 * * 7', {0}),
+        ('0 3 * * 5-7', {0, 5, 6}),
+        ('0 3 * * 1-7', {0, 1, 2, 3, 4, 5, 6}),
+        ('0 3 * * 0,7', {0}),
+    ],
+)
+def test_cron_day_of_week_seven_is_sunday(expression, dow):
+    assert CronSchedule.parse(expression).day_of_week.values == frozenset(dow)
+
+
+@pytest.mark.parametrize(
+    'expression',
+    [
+        '0 3 * *',
+        '*/0 * * * *',
+        '60 * * * *',
+        '5-1 * * * *',
+        ', * * * *',
+        'x * * * *',
+        '0 3 * * fri-sun',
+    ],
+)
+def test_cron_rejects_invalid_expressions(expression):
+    with pytest.raises(ValueError):
+        CronSchedule.parse(expression)
+
+
+@pytest.mark.parametrize(
+    'expression, when, matches',
+    [
+        # Both day fields restricted: either one is enough.
+        ('0 0 13 * fri', (2026, 2, 13, 0, 0), True),  # Friday the 13th
+        ('0 0 13 * fri', (2026, 3, 13, 0, 0), True),  # the 13th, a Friday too
+        ('0 0 13 * fri', (2026, 3, 20, 0, 0), True),  # a Friday
+        ('0 0 13 * fri', (2026, 3, 14, 0, 0), False),  # neither
+        # One restricted: only that one counts.
+        ('0 0 13 * *', (2026, 3, 20, 0, 0), False),
+        ('0 0 * * fri', (2026, 3, 13, 0, 0), True),
+        ('0 0 * * fri', (2026, 3, 14, 0, 0), False),
+        ('0 0 * * *', (2026, 3, 14, 0, 0), True),
+        ('0 0 * * *', (2026, 3, 14, 0, 1), False),
+    ],
+)
+def test_cron_day_matching_follows_cron_rules(expression, when, matches):
+    assert CronSchedule.parse(expression).matches(_aware(*when)) is matches
+
+
+@pytest.mark.parametrize(
+    'args, expected',
+    [
+        ('--thumbs-list-orphans  --verbose', ('--thumbs-list-orphans', '--verbose')),
+        (['--delete-old', 30], ('--delete-old', '30')),
+        (None, None),
+    ],
+)
+def test_maintenance_job_from_config_args(args, expected):
+    from glifestream.worker.schedule import MaintenanceJob
+
+    config = {'schedule': '0 3 * * *', 'args': args}
+    if expected is None:
+        with pytest.raises(ValueError, match='list or string'):
+            MaintenanceJob.from_config(config, now=timezone.now())
+        return
+
+    job = MaintenanceJob.from_config(config, now=timezone.now())
+    assert job.args == expected
+    assert job.name == '0 3 * * *'
+
+
+@pytest.mark.parametrize('schedule', [None, '', '   ', 5])
+def test_maintenance_job_from_config_needs_a_schedule(schedule):
+    from glifestream.worker.schedule import MaintenanceJob
+
+    with pytest.raises(ValueError, match='schedule'):
+        MaintenanceJob.from_config({'schedule': schedule}, now=timezone.now())

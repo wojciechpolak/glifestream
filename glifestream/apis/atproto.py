@@ -24,12 +24,12 @@ import re
 from typing import TYPE_CHECKING, Any, Optional, cast
 
 from django.utils import timezone
-from django.utils.html import escape, strip_tags
+from django.utils.html import escape
 from django.utils.translation import gettext as _
 
-from glifestream.apis.base import BaseService
-from glifestream.filters import expand, truncate
-from glifestream.utils.html import strip_entities, urlize
+from glifestream.apis.base import BaseService, post_title, set_reblog
+from glifestream.filters import expand
+from glifestream.utils.html import urlize
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
@@ -113,50 +113,25 @@ class AtProtoService(BaseService):
             if self.verbose:
                 print('ID: %s' % guid)
 
-            created_at = cast(
-                str,
-                getattr(repost_reason, 'indexed_at', None)
-                or _get_post_created_at(record),
-            )
-            t = datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+            t = _entry_timestamp(repost_reason, record)
 
-            try:
-                e = Entry.objects.get(service=self.service, guid=guid)
-                if (
-                    not self.force_overwrite
-                    and e.date_updated
-                    and mtime(t.timetuple()) <= e.date_updated
-                ):
-                    continue
-                if e.protected:
-                    continue
-            except Entry.DoesNotExist:
-                e = Entry(service=self.service, guid=guid)
+            e = self.resolve_entry(guid, mtime(t.timetuple()))
+            if e is None:
+                continue
 
             e.guid = guid
-            e.title = truncate.smart(
-                strip_entities(strip_tags(cast(str, record.text))), max_length=40
-            )
-            e.title = e.title.replace('#', '').replace('@', '')
+            e.title = post_title(cast(str, record.text))
 
             e.link = self.convert_uri_to_web_link(author.handle, post.uri)
             if author.avatar:
-                image_url = author.avatar
-                e.link_image = media.save_image(image_url, direct_image=False)
+                e.link_image = media.save_image(author.avatar, direct_image=False)
 
             e.date_published = t
             e.date_updated = t
             e.author_name = author.display_name or author.handle
 
             e.content = self._render_post_content(ent, post, record, e.link, guid)
-            e.reblog = False
-            e.reblog_by = ''
-            e.reblog_uri = ''
-            if repost_reason:
-                reposted_by = repost_reason.by
-                e.reblog = True
-                e.reblog_by = reposted_by.display_name or reposted_by.handle
-                e.reblog_uri = cast(str, getattr(repost_reason, 'uri', '') or '')
+            _apply_repost(e, repost_reason)
 
             post_embed = post.embed
             record_embed = getattr(record, 'embed', None)
@@ -229,6 +204,28 @@ class AtProtoService(BaseService):
     def convert_uri_to_web_link(self, profile: str, uri: str) -> str:
         # Example URI: "at://did:plc:abcdef/app.bsky.feed.post/123456"
         return _convert_at_uri_to_web_link(uri, profile)
+
+
+def _entry_timestamp(repost_reason: Any, record: Any) -> datetime.datetime:
+    """When the entry happened: the repost time for a repost, else the post's."""
+    created_at = cast(
+        str,
+        getattr(repost_reason, 'indexed_at', None) or _get_post_created_at(record),
+    )
+    return datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+
+
+def _apply_repost(e: Entry, repost_reason: Any) -> None:
+    if not repost_reason:
+        set_reblog(e, False)
+        return
+    reposted_by = repost_reason.by
+    set_reblog(
+        e,
+        True,
+        reposted_by.display_name or reposted_by.handle,
+        cast(str, getattr(repost_reason, 'uri', '') or ''),
+    )
 
 
 def filter_title(entry: Entry) -> str:

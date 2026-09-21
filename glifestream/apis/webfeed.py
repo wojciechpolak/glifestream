@@ -117,17 +117,10 @@ class WebfeedService(BaseService):
 
     def _resolve_entry(self, guid, ent):
         """The entry to write, or None when this one should be skipped."""
-        try:
-            e = Entry.objects.get(service=self.service, guid=guid)
-        except Entry.DoesNotExist:
-            return Entry(service=self.service, guid=guid)
-
-        if not self.force_overwrite and 'updated_parsed' in ent:
-            if e.date_updated and mtime(ent.updated_parsed) <= e.date_updated:
-                return None
-        if e.protected:
-            return None
-        return e
+        # A membership test, not .get(): feedparser's deprecated .get() fallback
+        # would substitute published_parsed for entries with no update time.
+        updated = mtime(ent.updated_parsed) if 'updated_parsed' in ent else None
+        return self.resolve_entry(guid, updated)
 
     def _apply_author(self, e: Entry, ent) -> None:
         """The entry's own author, falling back to the feed-level one."""

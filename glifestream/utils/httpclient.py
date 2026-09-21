@@ -175,19 +175,6 @@ def _classify_request_exception(
     )
 
 
-def _coerce_fetch_error(exc: Exception, url: str | None = None) -> FetchError:
-    if isinstance(exc, FetchError):
-        return exc
-    if isinstance(exc, requests.exceptions.RequestException):
-        return _classify_request_exception(exc, url or '')
-    return build_fetch_error(
-        category='unexpected',
-        detail=str(exc) or 'Unexpected fetch error.',
-        retryable=False,
-        url=url,
-    )
-
-
 def _get_retry_after_sec(response: Response) -> int | None:
     retry_after = response.headers.get('Retry-After', '').strip()
     if not retry_after:
