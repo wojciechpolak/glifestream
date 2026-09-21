@@ -14,5 +14,8 @@ def test_factory_import_keeps_atproto_client_lazy():
     factory_module = importlib.import_module('glifestream.apis.factory')
     factory_module = importlib.reload(factory_module)
 
-    assert factory_module.ServiceFactory.get_service_class('atproto') is atproto_module.AtProtoService
+    assert (
+        factory_module.ServiceFactory.get_service_class('atproto')
+        is atproto_module.AtProtoService
+    )
     assert atproto_module.Client is None

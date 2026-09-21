@@ -73,7 +73,9 @@ class CronSchedule:
             hour=_parse_cron_field(parts[1], 0, 23),
             day_of_month=_parse_cron_field(parts[2], 1, 31),
             month=_parse_cron_field(parts[3], 1, 12, names=CRON_MONTH_NAMES),
-            day_of_week=_parse_cron_field(parts[4], 0, 7, names=CRON_DOW_NAMES, is_dow=True),
+            day_of_week=_parse_cron_field(
+                parts[4], 0, 7, names=CRON_DOW_NAMES, is_dow=True
+            ),
         )
 
     def matches(self, when: datetime.datetime) -> bool:
@@ -99,7 +101,9 @@ class CronSchedule:
         )
 
     def next_after(self, when: datetime.datetime) -> datetime.datetime:
-        candidate = (when + datetime.timedelta(minutes=1)).replace(second=0, microsecond=0)
+        candidate = (when + datetime.timedelta(minutes=1)).replace(
+            second=0, microsecond=0
+        )
         limit = candidate + datetime.timedelta(days=366)
         while candidate <= limit:
             if self.matches(candidate):

@@ -270,7 +270,9 @@ def test_retrieve_rejects_streamed_media_over_limit(mock_get, tmp_path):
     )
 
     with pytest.raises(httpclient.FetchError) as excinfo:
-        httpclient.retrieve('example.com/image.png', str(tmp_path / 'image.bin'), max_bytes=10)
+        httpclient.retrieve(
+            'example.com/image.png', str(tmp_path / 'image.bin'), max_bytes=10
+        )
 
     assert excinfo.value.category == 'invalid_response'
     assert 'Media download from http://example.com/image.png exceeds 10 bytes' in (

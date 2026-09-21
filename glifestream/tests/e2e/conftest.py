@@ -529,7 +529,9 @@ class MockAtProtoHandler(BaseHTTPRequestHandler):
                     {'error': 'Unauthorized', 'message': 'Bad token'}, status=401
                 )
                 return
-            self._send_json({'posts': self.mock_server.get_posts(query.get('uris', []))})
+            self._send_json(
+                {'posts': self.mock_server.get_posts(query.get('uris', []))}
+            )
             return
 
         if parsed.path == '/avatar.png':

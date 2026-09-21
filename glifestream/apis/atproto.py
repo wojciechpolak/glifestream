@@ -114,7 +114,9 @@ class AtProtoService(BaseService):
                 print('ID: %s' % guid)
 
             created_at = cast(
-                str, getattr(repost_reason, 'indexed_at', None) or _get_post_created_at(record)
+                str,
+                getattr(repost_reason, 'indexed_at', None)
+                or _get_post_created_at(record),
             )
             t = datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
 
@@ -340,7 +342,9 @@ def collect_post_media_urls(record: Any, post_embed: Any) -> list[str]:
 
 
 def _get_post_created_at(record: Any) -> str:
-    created_at = getattr(record, 'created_at', None) or getattr(record, 'createdAt', None)
+    created_at = getattr(record, 'created_at', None) or getattr(
+        record, 'createdAt', None
+    )
     if not created_at:
         raise ValueError('ATProto post record is missing created_at/createdAt.')
     return cast(str, created_at)
@@ -477,7 +481,9 @@ def _aspect_ratio_attrs(aspect_ratio: Any) -> str:
 def _convert_at_uri_to_web_link(uri: str, profile: str | None = None) -> str:
     parts = uri.split('/')
     if len(parts) < 5 or not parts[0].startswith('at:'):
-        raise ValueError('The provided URI does not appear to be in the expected format.')
+        raise ValueError(
+            'The provided URI does not appear to be in the expected format.'
+        )
 
     actor = profile or parts[2]
     rkey = parts[-1]
@@ -485,7 +491,9 @@ def _convert_at_uri_to_web_link(uri: str, profile: str | None = None) -> str:
 
 
 def _record_author_label(author: Any) -> str:
-    return cast(str, getattr(author, 'display_name', None) or getattr(author, 'handle', ''))
+    return cast(
+        str, getattr(author, 'display_name', None) or getattr(author, 'handle', '')
+    )
 
 
 def _record_author_path(author: Any, fallback_uri: str) -> str:
@@ -512,7 +520,11 @@ def _render_external_embed_card(external: Any, is_public: bool) -> str:
         thumbnail_markup = (
             '<p class="thumbnails"><a href="%s" rel="nofollow">'
             '<img src="%s" alt="%s" /></a></p>'
-            % (escape(uri), escape(image_url), escape(cast(str, title or _('Link preview'))))
+            % (
+                escape(uri),
+                escape(image_url),
+                escape(cast(str, title or _('Link preview'))),
+            )
         )
 
     summary_markup = ''

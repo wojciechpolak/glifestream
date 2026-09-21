@@ -234,7 +234,9 @@ def apply_context_filters(
         query.filters['id__in'] = favs.values('entry')
     elif 'list' in state.args:
         try:
-            services = List.objects.get(user=state.user, slug=state.args['list']).services
+            services = List.objects.get(
+                user=state.user, slug=state.args['list']
+            ).services
             del query.filters['service__home']
             query.filters['service__id__in'] = services.values('id')
             query.page['ctx'] = 'list/' + state.args['list']
@@ -257,7 +259,9 @@ def apply_context_filters(
     return None
 
 
-def apply_query_string_filters(state: IndexRequestState, query: IndexQueryState) -> None:
+def apply_query_string_filters(
+    state: IndexRequestState, query: IndexQueryState
+) -> None:
     request = state.request
 
     cls = request.GET.get('class', 'all')
@@ -268,9 +272,9 @@ def apply_query_string_filters(state: IndexRequestState, query: IndexQueryState)
         if 'subtitle' in query.page:
             query.page['subtitle'] += ' <b>(%s)</b>' % escape(cls.capitalize())
         else:
-            query.page['subtitle'] = _('You are currently browsing %s entries only.') % (
-                '<b>' + escape(cls) + '</b>'
-            )
+            query.page['subtitle'] = _(
+                'You are currently browsing %s entries only.'
+            ) % ('<b>' + escape(cls) + '</b>')
 
     author = request.GET.get('author', 'all')
     if author != 'all':
@@ -293,7 +297,9 @@ def apply_query_string_filters(state: IndexRequestState, query: IndexQueryState)
 
     if (
         state.authed
-        and state.request.GET.get('reblogs', state.request.COOKIES.get('gls-reblogs', '1'))
+        and state.request.GET.get(
+            'reblogs', state.request.COOKIES.get('gls-reblogs', '1')
+        )
         == '0'
     ):
         query.filters['reblog'] = False
@@ -307,26 +313,30 @@ def run_index_query(state: IndexRequestState, query: IndexQueryState) -> IndexRe
     return run_normal_query(state, query, after)
 
 
-def apply_start_pagination(state: IndexRequestState, query: IndexQueryState) -> int | bool:
+def apply_start_pagination(
+    state: IndexRequestState, query: IndexQueryState
+) -> int | bool:
     start = state.request.GET.get('start', False)
     if not start:
         return False
 
     qs = query.filters.copy()
     try:
-        dt = datetime.datetime.fromtimestamp(
-            float(start), tz=datetime.timezone.utc
-        )
+        dt = datetime.datetime.fromtimestamp(float(start), tz=datetime.timezone.utc)
     except (OverflowError, ValueError):
         raise Http404
 
     if query.page['backtime']:
         query.filters[state.entries_orderby + '__lte'] = dt
-        qs[state.entries_orderby + '__gt'] = query.filters[state.entries_orderby + '__lte']
+        qs[state.entries_orderby + '__gt'] = query.filters[
+            state.entries_orderby + '__lte'
+        ]
         entries = Entry.objects.order_by(state.entries_orderby)
     else:
         query.filters[state.entries_orderby + '__gte'] = dt
-        qs[state.entries_orderby + '__lt'] = query.filters[state.entries_orderby + '__gte']
+        qs[state.entries_orderby + '__lt'] = query.filters[
+            state.entries_orderby + '__gte'
+        ]
         entries = Entry.objects.order_by('-' + state.entries_orderby)
 
     older_entries = entries.filter(**qs)[0 : state.entries_on_page].values(
@@ -367,7 +377,12 @@ def run_search_query(
             extra_page['prevpage'] = page_number - 1
         if limit < entries.count():
             extra_page['nextpage'] = page_number + 1
-        return IndexResult(entries=entries[offset:limit], start=False, after=after, extra_page=extra_page)
+        return IndexResult(
+            entries=entries[offset:limit],
+            start=False,
+            after=after,
+            extra_page=extra_page,
+        )
     except Exception:
         return IndexResult(entries=cast(Any, []), start=False, after=after)
 
@@ -473,9 +488,7 @@ def decorate_entries(
                 gls_slugify(truncatewords(entry.title, 7)),
             )
         else:
-            entry_obj.gls_link = '%s/' % (
-                reverse('entry', args=[cast(int, entry.pk)])
-            )
+            entry_obj.gls_link = '%s/' % (reverse('entry', args=[cast(int, entry.pk)]))
             if 'title' in query.page:
                 del query.page['title']
 
@@ -483,7 +496,9 @@ def decorate_entries(
             query.page['site_url'],
             entry_obj.gls_link,
         )
-        entry_obj.friends_login_url = build_friends_login_url(entry_obj.gls_absolute_link)
+        entry_obj.friends_login_url = build_friends_login_url(
+            entry_obj.gls_absolute_link
+        )
 
 
 def validate_exact_entry_request(
@@ -556,9 +571,7 @@ def dispatch_index_format(
     return render(state.request, 'stream.html', context)
 
 
-def prepare_entry_actions(
-    state: IndexRequestState, page: Page, entries: Any
-) -> None:
+def prepare_entry_actions(state: IndexRequestState, page: Page, entries: Any) -> None:
     if not state.authed or page['ctx'] == 'favorites':
         return
 
@@ -617,13 +630,15 @@ def build_archive_dates(query: IndexQueryState) -> Any:
     )
 
 
-def build_available_classes(state: IndexRequestState, page: Page) -> list[dict[str, Any]]:
+def build_available_classes(
+    state: IndexRequestState, page: Page
+) -> list[dict[str, Any]]:
     service_filters: dict[str, Any] = {}
     if not state.authed or page['ctx'] == 'public':
         service_filters['public'] = True
 
-    service_rows = Service.objects.filter(**service_filters).order_by('id').values(
-        'api', 'cls'
+    service_rows = (
+        Service.objects.filter(**service_filters).order_by('id').values('api', 'cls')
     )
     classes: dict[str, dict[str, Any]] = {}
     for item in service_rows:
@@ -638,4 +653,3 @@ def get_preferred_language(request: HttpRequest) -> str:
     for index, lang in enumerate(accepted):
         accepted[index] = lang.split(';')[0]
     return cast(str, accepted[0])
-

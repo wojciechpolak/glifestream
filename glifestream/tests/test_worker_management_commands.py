@@ -29,7 +29,9 @@ from glifestream.stream.models import Entry
 
 
 def test_run_worker_command_uses_extracted_worker_daemon():
-    with patch('glifestream.stream.management.commands.run_worker.WorkerDaemon') as daemon_cls:
+    with patch(
+        'glifestream.stream.management.commands.run_worker.WorkerDaemon'
+    ) as daemon_cls:
         daemon = daemon_cls.return_value
         call_command(
             'run_worker',

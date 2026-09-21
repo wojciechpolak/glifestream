@@ -86,12 +86,8 @@ def test_entry_save_normalizes_naive_datetimes_to_utc(service):
         date_updated=datetime.datetime(2013, 6, 16, 4, 24, 19),
     )
 
-    assert entry.date_published == datetime.datetime(
-        2013, 6, 16, 4, 24, 19, tzinfo=UTC
-    )
-    assert entry.date_updated == datetime.datetime(
-        2013, 6, 16, 4, 24, 19, tzinfo=UTC
-    )
+    assert entry.date_published == datetime.datetime(2013, 6, 16, 4, 24, 19, tzinfo=UTC)
+    assert entry.date_updated == datetime.datetime(2013, 6, 16, 4, 24, 19, tzinfo=UTC)
 
 
 @pytest.mark.django_db
@@ -101,9 +97,7 @@ def test_service_save_normalizes_naive_schedule_datetimes_to_utc(service):
     service.save()
     service.refresh_from_db()
 
-    assert service.last_checked == datetime.datetime(
-        2013, 6, 16, 4, 24, 19, tzinfo=UTC
-    )
+    assert service.last_checked == datetime.datetime(2013, 6, 16, 4, 24, 19, tzinfo=UTC)
     assert service.next_fetch_at == datetime.datetime(
         2013, 6, 16, 6, 24, 19, tzinfo=UTC
     )
@@ -120,12 +114,8 @@ def test_entry_save_normalizes_date_values_to_utc_midnight(service):
         date_updated=datetime.date(2007, 9, 17),
     )
 
-    assert entry.date_published == datetime.datetime(
-        2007, 9, 17, 0, 0, 0, tzinfo=UTC
-    )
-    assert entry.date_updated == datetime.datetime(
-        2007, 9, 17, 0, 0, 0, tzinfo=UTC
-    )
+    assert entry.date_published == datetime.datetime(2007, 9, 17, 0, 0, 0, tzinfo=UTC)
+    assert entry.date_updated == datetime.datetime(2007, 9, 17, 0, 0, 0, tzinfo=UTC)
 
 
 @pytest.mark.django_db
@@ -139,9 +129,5 @@ def test_entry_save_normalizes_datetime_strings_to_utc(service):
         date_updated='2007-09-17 00:00:00',
     )
 
-    assert entry.date_published == datetime.datetime(
-        2007, 9, 17, 0, 0, 0, tzinfo=UTC
-    )
-    assert entry.date_updated == datetime.datetime(
-        2007, 9, 17, 0, 0, 0, tzinfo=UTC
-    )
+    assert entry.date_published == datetime.datetime(2007, 9, 17, 0, 0, 0, tzinfo=UTC)
+    assert entry.date_updated == datetime.datetime(2007, 9, 17, 0, 0, 0, tzinfo=UTC)

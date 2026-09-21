@@ -149,7 +149,9 @@ def test_atproto_process_renders_native_video_embed_and_exports_mrss(service):
             '<a href="https://bsky.app/profile/user.bsky.social/post/native-video-cid"'
             in entry.content
         )
-        assert 'src="https://video.bsky.app/watch/example/thumbnail.jpg"' in entry.content
+        assert (
+            'src="https://video.bsky.app/watch/example/thumbnail.jpg"' in entry.content
+        )
         assert 'width="3840" height="2160"' not in entry.content
         assert 'alt="Trackside clip"' in entry.content
         assert '<div class="playbutton"></div>' in entry.content
@@ -204,7 +206,10 @@ def test_atproto_process_supports_record_with_media_video_embed(service):
         entry = Entry.objects.get(guid='record-with-media-cid')
         assert 'class="play-video"' in entry.content
         assert 'data-id="atproto-record-with-media-cid"' in entry.content
-        assert 'data-playlist="https://video.bsky.app/watch/example/nested.m3u8"' in entry.content
+        assert (
+            'data-playlist="https://video.bsky.app/watch/example/nested.m3u8"'
+            in entry.content
+        )
         assert 'data-width="1280" data-height="720"' in entry.content
         assert 'src="https://video.bsky.app/watch/example/nested.jpg"' in entry.content
         assert 'alt="Nested video thumbnail"' in entry.content
@@ -240,7 +245,10 @@ def test_atproto_process_native_video_embed_tolerates_missing_optional_fields(se
         entry = Entry.objects.get(guid='video-no-optional-cid')
         assert 'class="play-video"' in entry.content
         assert 'data-id="atproto-video-no-optional-cid"' in entry.content
-        assert 'src="https://video.bsky.app/watch/example/no-optional.jpg"' in entry.content
+        assert (
+            'src="https://video.bsky.app/watch/example/no-optional.jpg"'
+            in entry.content
+        )
         assert 'alt="video thumbnail"' in entry.content
         assert 'data-width=' not in entry.content
         assert ' width=' not in entry.content
@@ -316,7 +324,9 @@ def test_atproto_process_marks_reposts_with_reposter_context(service):
         assert entry.author_name == 'Original Author'
         assert entry.reblog is True
         assert entry.reblog_by == 'Followed Reposter'
-        assert entry.reblog_uri == 'at://did:plc:reposter/app.bsky.feed.repost/repost-123'
+        assert (
+            entry.reblog_uri == 'at://did:plc:reposter/app.bsky.feed.repost/repost-123'
+        )
         assert entry.date_published.isoformat() == '2025-01-02T15:30:00+00:00'
         assert filter_content(entry).startswith('Followed Reposter reblogged')
 
@@ -522,7 +532,10 @@ def test_atproto_process_renders_quoted_record_card(service):
         assert 'Quoted post' in entry.content
         assert 'Quoted User' in entry.content
         assert 'Quoted post body' in entry.content
-        assert 'href="https://bsky.app/profile/quoted-user.bsky.social/post/quoted-rkey"' in entry.content
+        assert (
+            'href="https://bsky.app/profile/quoted-user.bsky.social/post/quoted-rkey"'
+            in entry.content
+        )
         assert '>Quoted post body</a>' not in entry.content
 
 
@@ -551,7 +564,10 @@ def test_atproto_process_renders_placeholder_for_unavailable_quoted_record(servi
 
         entry = Entry.objects.get(guid='quoted-missing-cid')
         assert 'Quoted post unavailable.' in entry.content
-        assert 'href="https://bsky.app/profile/did:plc:missing/post/missing-rkey"' in entry.content
+        assert (
+            'href="https://bsky.app/profile/did:plc:missing/post/missing-rkey"'
+            in entry.content
+        )
 
 
 @pytest.mark.django_db
@@ -596,7 +612,9 @@ def test_atproto_process_fetches_parent_reply_context(service):
             assert 'Replying to' in entry.content
             assert 'Parent User' in entry.content
             assert 'Parent post body' in entry.content
-            assert entry.content.index('Replying to') < entry.content.index('Reply body')
+            assert entry.content.index('Replying to') < entry.content.index(
+                'Reply body'
+            )
             assert '>Parent post body</a>' not in entry.content
 
 
@@ -621,7 +639,10 @@ def test_atproto_process_reply_hydration_failure_degrades_to_placeholder(service
 
             entry = Entry.objects.get(guid='reply-missing-cid')
             assert 'Replied-to post unavailable.' in entry.content
-            assert 'href="https://bsky.app/profile/did:plc:parent/post/parent-rkey"' in entry.content
+            assert (
+                'href="https://bsky.app/profile/did:plc:parent/post/parent-rkey"'
+                in entry.content
+            )
 
 
 @pytest.mark.django_db

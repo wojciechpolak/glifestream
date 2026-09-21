@@ -26,14 +26,20 @@ class Command(BaseCommand):
     help = 'Run worker cleanup actions such as old-entry pruning and thumbnail cleanup.'
 
     def add_arguments(self, parser) -> None:
-        parser.add_argument('-i', '--id', help='Restrict cleanup to a service id or comma list.')
+        parser.add_argument(
+            '-i', '--id', help='Restrict cleanup to a service id or comma list.'
+        )
         parser.add_argument(
             '-a',
             '--api',
             help='Restrict cleanup to an API name or comma list.',
         )
-        parser.add_argument('--list-old', type=int, help='List entries older than DAYS.')
-        parser.add_argument('--delete-old', type=int, help='Delete entries older than DAYS.')
+        parser.add_argument(
+            '--list-old', type=int, help='List entries older than DAYS.'
+        )
+        parser.add_argument(
+            '--delete-old', type=int, help='Delete entries older than DAYS.'
+        )
         parser.add_argument(
             '--only-inactive',
             action='store_true',

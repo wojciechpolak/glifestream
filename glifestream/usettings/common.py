@@ -56,4 +56,3 @@ def build_settings_page(
             }
         )
     return page
-

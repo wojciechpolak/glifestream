@@ -108,14 +108,10 @@ def test_apply_context_filters_sets_list_scope(request_factory, user, service):
 
 
 @pytest.mark.django_db
-def test_apply_query_string_filters_builds_filters_and_urlparams(
-    request_factory, user
-):
+def test_apply_query_string_filters_builds_filters_and_urlparams(request_factory, user):
     user.is_staff = True
     user.save(update_fields=['is_staff'])
-    request = request_factory.get(
-        '/?class=feed&author=Alice&service=feed&reblogs=0'
-    )
+    request = request_factory.get('/?class=feed&author=Alice&service=feed&reblogs=0')
     request.user = user
 
     state = _build_state(request, {})

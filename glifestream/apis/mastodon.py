@@ -161,7 +161,9 @@ class MastodonService(BaseService):
     def _render_entry_content(self, entry: dict) -> str:
         reply_context = self._render_reply_context(entry)
         quote_card = self._render_quote_card(entry.get('quote'))
-        body = _render_status_body(entry['content'], strip_quote_inline=bool(quote_card))
+        body = _render_status_body(
+            entry['content'], strip_quote_inline=bool(quote_card)
+        )
         body = expand.run_all(expand.shorturls(body))
         body += _render_card(entry.get('card'), self.service.public)
         body += quote_card
@@ -205,10 +207,14 @@ class MastodonService(BaseService):
             url = self.get_base_url() + '/api/v1/statuses/%s' % status_id
             try:
                 if not self.service.user_id:
-                    response = httpclient.read(url, self._get_oauth_client().consumer.get)
+                    response = httpclient.read(
+                        url, self._get_oauth_client().consumer.get
+                    )
                 else:
                     response = httpclient.get(url)
-                self._status_cache[status_id] = cast(dict, httpclient.require_json(response))
+                self._status_cache[status_id] = cast(
+                    dict, httpclient.require_json(response)
+                )
             except Exception:
                 self._status_cache[status_id] = None
         return self._status_cache[status_id]
@@ -289,8 +295,7 @@ def _render_quote_placeholder(quote: dict, base_url: str) -> str:
         )
     return (
         ' <blockquote class="mastodon-card mastodon-reference unavailable">'
-        '<p>%s</p><p>%s</p></blockquote>'
-        % (escape(_('Quoted post')), escape(message))
+        '<p>%s</p><p>%s</p></blockquote>' % (escape(_('Quoted post')), escape(message))
     )
 
 

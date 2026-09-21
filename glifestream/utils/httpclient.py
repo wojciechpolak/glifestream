@@ -152,7 +152,9 @@ def _classify_response_error(response: Response) -> FetchError:
     )
 
 
-def _classify_request_exception(exc: requests.exceptions.RequestException, url: str) -> FetchError:
+def _classify_request_exception(
+    exc: requests.exceptions.RequestException, url: str
+) -> FetchError:
     if isinstance(exc, requests.exceptions.Timeout):
         category = 'timeout'
         retryable = True
@@ -335,9 +337,7 @@ def get_feed(
     html_sniff_bytes: int | None = None,
 ) -> BodyResponse:
     if max_bytes is None:
-        max_bytes = int(
-            getattr(settings, 'FETCH_FEED_MAX_BYTES', 5 * 1024 * 1024)
-        )
+        max_bytes = int(getattr(settings, 'FETCH_FEED_MAX_BYTES', 5 * 1024 * 1024))
     if html_sniff_bytes is None:
         html_sniff_bytes = int(
             getattr(
@@ -451,11 +451,11 @@ def validate_media_response(response: Response) -> str:
     return content_type
 
 
-def retrieve(url: str, filename: str, timeout=15, max_bytes: int | None = None) -> Response:
+def retrieve(
+    url: str, filename: str, timeout=15, max_bytes: int | None = None
+) -> Response:
     if max_bytes is None:
-        max_bytes = int(
-            getattr(settings, 'FETCH_MEDIA_MAX_BYTES', 10 * 1024 * 1024)
-        )
+        max_bytes = int(getattr(settings, 'FETCH_MEDIA_MAX_BYTES', 10 * 1024 * 1024))
     r = _request_read(
         url,
         requests.get,

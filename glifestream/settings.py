@@ -48,9 +48,7 @@ def _default_worker_maintenance_jobs() -> list[dict[str, Any]]:
     return [dict(job) for job in DEFAULT_WORKER_MAINTENANCE_JOBS]
 
 
-def _load_worker_maintenance_jobs(
-    environ: Mapping[str, str]
-) -> list[dict[str, Any]]:
+def _load_worker_maintenance_jobs(environ: Mapping[str, str]) -> list[dict[str, Any]]:
     raw = get_env(environ, 'WORKER_MAINTENANCE_JOBS')
     if raw is None:
         return _default_worker_maintenance_jobs()
@@ -352,9 +350,7 @@ PWA_APP_ICONS = [
 # A shortcut icon URL (favicon).
 FAVICON = STATIC_URL + 'favicon.ico'
 
-THEMES = (
-    'default',
-)
+THEMES = ('default',)
 
 STREAM_TITLE = get_env(ENV, 'STREAM_TITLE', default='Stream') or 'Stream'
 STREAM_TITLE_SUFFIX = (

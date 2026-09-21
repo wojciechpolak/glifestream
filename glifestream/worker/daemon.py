@@ -107,9 +107,7 @@ class WorkerDaemon:
             return '%dh %dm %ds' % (hours, minutes, seconds)
         return '%dm %ds' % (minutes, seconds)
 
-    def _describe_next_fetch_plan(
-        self, *, now: datetime.datetime | None = None
-    ) -> str:
+    def _describe_next_fetch_plan(self, *, now: datetime.datetime | None = None) -> str:
         now = now or timezone.now()
         queued_state = (
             ServiceFetchState.objects.select_related('service')
@@ -242,7 +240,8 @@ class WorkerDaemon:
             )
 
         details = ', '.join(
-            '#%d "%s" (%s)' % (
+            '#%d "%s" (%s)'
+            % (
                 job.service_id,
                 job.service_name,
                 job.trigger or 'scheduled',

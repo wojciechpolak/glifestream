@@ -29,4 +29,6 @@ class Command(BaseCommand):
         del args, options
         result = init_files_dirs()
         if result != 0:
-            raise CommandError('Unable to initialize worker runtime files and directories.')
+            raise CommandError(
+                'Unable to initialize worker runtime files and directories.'
+            )

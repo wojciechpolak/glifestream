@@ -498,9 +498,7 @@ def test_mastodon_oauth2_full_flow_ingests_stream_updates(
     card_article = _entry_article(page, 'Playwright Mastodon Card')
     expect(card_article.get_by_text('Playwright Mastodon Story')).to_be_visible()
     expect(
-        card_article.get_by_text(
-            'A compact preview card from the Mastodon timeline.'
-        )
+        card_article.get_by_text('A compact preview card from the Mastodon timeline.')
     ).to_be_visible()
     expect(card_article.locator('img[src*="card.png"]')).to_be_visible()
 
@@ -666,11 +664,15 @@ def test_bluesky_atproto_full_flow_ingests_stream_updates(
     expect(
         quote_article.get_by_role('link', name='Quoted Playwright', exact=True)
     ).to_be_visible()
-    expect(quote_article.get_by_text('Quoted Playwright Context', exact=True)).to_be_visible()
+    expect(
+        quote_article.get_by_text('Quoted Playwright Context', exact=True)
+    ).to_be_visible()
 
     reply_article = _entry_article(page, 'Playwright Bluesky Reply')
     expect(reply_article.get_by_text('Reply Parent')).to_be_visible()
-    expect(reply_article.get_by_text('Parent reply context from getPosts')).to_be_visible()
+    expect(
+        reply_article.get_by_text('Parent reply context from getPosts')
+    ).to_be_visible()
 
 
 def test_video_launcher_keeps_youtube_iframe_behavior(
@@ -795,7 +797,9 @@ def test_settings_async_create_fetches_feed_content(
         page.locator('#save').click()
 
     page.goto(f'{app_base_url}/settings/status')
-    service_row = page.locator('#status-table tbody tr', has_text='Playwright Async Feed')
+    service_row = page.locator(
+        '#status-table tbody tr', has_text='Playwright Async Feed'
+    )
     expect(service_row).to_be_visible()
     expect(page.locator('#status-table')).to_contain_text('Last successful import')
     expect(page.locator('#status-table')).to_contain_text('Last completed attempt')

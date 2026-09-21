@@ -132,7 +132,9 @@ def save_image(
                         url=resp.url,
                     ) from exc
             elif force:
-                logger.warning('Pillow unavailable while validating remote media: %s', url)
+                logger.warning(
+                    'Pillow unavailable while validating remote media: %s', url
+                )
 
             if downscale:
                 downscale_image(tmp, size=size, iformat=thumb['format'])
