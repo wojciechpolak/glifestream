@@ -21,9 +21,9 @@ import datetime
 import logging
 from collections.abc import Iterable
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 
-from glifestream.ingestion.types import Candidate, ImportResult
+from glifestream.ingestion.types import Candidate, ImportResult, NormalizedEntry
 from glifestream.stream import media
 from glifestream.stream.models import Entry, Service
 
@@ -83,16 +83,9 @@ def ingest(
             result.skipped += 1
             continue
 
-        is_new = e.pk is None
         normalized = candidate.build()
-        for name, value in normalized.assigned_fields().items():
-            setattr(e, name, value)
-
         try:
-            with transaction.atomic():
-                e.save()
-                if normalized.register_media:
-                    media.extract_and_register(e)
+            outcome = _store(e, normalized, candidate, force_overwrite)
         except Exception as exc:
             logger.exception(
                 'Could not store entry %s for service %s (%s).',
@@ -102,9 +95,45 @@ def ingest(
             )
             result.failed.append((candidate.guid, str(exc)))
             continue
-
-        if is_new:
-            result.created += 1
-        else:
-            result.updated += 1
+        result.count(outcome)
     return result
+
+
+def _store(
+    e: Entry,
+    normalized: NormalizedEntry,
+    candidate: Candidate,
+    force_overwrite: bool,
+) -> str:
+    """Write `normalized` into `e`.
+
+    If another import inserted the same guid first, update that row instead.
+    """
+    was_new = e.pk is None
+    try:
+        return _write(e, normalized)
+    except IntegrityError:
+        if not was_new:
+            raise
+    # Another import stored this guid after resolve_entry() looked for it.
+    # Apply the same rules to that row, reusing what build() returned.
+    existing = resolve_entry(
+        e.service,
+        candidate.guid,
+        candidate.freshness,
+        force_overwrite=force_overwrite,
+    )
+    if existing is None:
+        return 'skipped'
+    return _write(existing, normalized)
+
+
+def _write(e: Entry, normalized: NormalizedEntry) -> str:
+    outcome = 'created' if e.pk is None else 'updated'
+    for name, value in normalized.assigned_fields().items():
+        setattr(e, name, value)
+    with transaction.atomic():
+        e.save()
+        if normalized.register_media:
+            media.extract_and_register(e)
+    return outcome

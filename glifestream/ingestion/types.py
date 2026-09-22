@@ -99,6 +99,12 @@ class ImportResult:
             failed=self.failed + other.failed,
         )
 
+    def count(self, outcome: str) -> None:
+        """Add one to the `created`, `updated` or `skipped` counter."""
+        if outcome not in ('created', 'updated', 'skipped'):
+            raise ValueError('Unknown import outcome: %r' % outcome)
+        setattr(self, outcome, getattr(self, outcome) + 1)
+
     def summary(self) -> str:
         return 'created=%d updated=%d skipped=%d failed=%d' % (
             self.created,

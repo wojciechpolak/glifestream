@@ -1,6 +1,8 @@
 import datetime
 from unittest.mock import patch
 
+from django.db import IntegrityError
+
 import pytest
 
 from glifestream.ingestion import (
@@ -189,6 +191,115 @@ def test_ingest_lets_a_mapping_error_propagate(service):
 
     with pytest.raises(KeyError):
         ingest(service, [Candidate('x', None, build)])
+
+
+# --- overlapping and repeated imports -----------------------------------------
+
+
+def racing(service, guid, *, stored_updated, protected=False, **fields):
+    """A candidate whose build() inserts the same guid itself.
+
+    This mimics a parallel import that runs between resolve_entry() and the
+    insert.
+    """
+    builds = []
+
+    def build():
+        builds.append(guid)
+        Entry.objects.create(
+            service=service,
+            guid=guid,
+            title='From the other import',
+            date_published=NOON,
+            date_updated=stored_updated,
+            protected=protected,
+        )
+        return NormalizedEntry(guid, **fields)
+
+    return Candidate(guid, NOON + HOUR, build), builds
+
+
+@pytest.mark.django_db
+def test_a_lost_insert_race_updates_the_other_imports_row(service):
+    c, builds = racing(service, 'r', stored_updated=NOON, title='Mine')
+
+    result = ingest(service, [c])
+
+    assert result == ImportResult(updated=1)
+    assert builds == ['r']
+    assert list(Entry.objects.values_list('guid', 'title')) == [('r', 'Mine')]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'stored_updated, protected', [(NOON + 2 * HOUR, False), (NOON, True)]
+)
+def test_a_lost_insert_race_skips_a_newer_or_protected_row(
+    service, stored_updated, protected
+):
+    c, _ = racing(
+        service, 'r', stored_updated=stored_updated, protected=protected, title='x'
+    )
+
+    result = ingest(service, [c])
+
+    assert result == ImportResult(skipped=1)
+    assert Entry.objects.get(guid='r').title == 'From the other import'
+
+
+@pytest.mark.django_db
+def test_a_lost_insert_race_honours_force_overwrite(service):
+    c, _ = racing(service, 'r', stored_updated=NOON + 2 * HOUR, title='Forced')
+
+    result = ingest(service, [c], force_overwrite=True)
+
+    assert result == ImportResult(updated=1)
+    assert Entry.objects.get(guid='r').title == 'Forced'
+
+
+@pytest.mark.django_db
+def test_an_integrity_error_on_update_is_a_failure(service, stored):
+    with patch(
+        'glifestream.ingestion.service.Entry.save',
+        side_effect=IntegrityError('constraint'),
+    ):
+        result = ingest(service, [candidate()])
+
+    assert [guid for guid, _ in result.failed] == ['guid-1']
+
+
+@pytest.mark.django_db
+def test_a_duplicate_guid_in_one_payload_is_stored_once(service):
+    result = ingest(
+        service,
+        [
+            candidate('d', freshness=NOON, date_updated=NOON, title='First'),
+            candidate('d', freshness=NOON, date_updated=NOON, title='Second'),
+        ],
+    )
+
+    assert result == ImportResult(created=1, skipped=1)
+    assert Entry.objects.get(guid='d').title == 'First'
+
+
+@pytest.mark.django_db
+def test_reimporting_media_logs_nothing(service, caplog):
+    content = '<img src="%s"><img src="%s">' % (THUMB, THUMB)
+    ingest(service, [candidate('m', freshness=NOON, content=content)])
+    caplog.clear()
+
+    ingest(
+        service,
+        [candidate('m', freshness=None, content=content)],
+    )
+
+    assert Media.objects.filter(entry__guid='m').count() == 1
+    assert caplog.records == []
+
+
+def test_import_result_rejects_an_unknown_outcome():
+    with pytest.raises(ValueError):
+        ImportResult().count('lost')
 
 
 # --- types --------------------------------------------------------------------

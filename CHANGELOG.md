@@ -80,6 +80,11 @@ work, so only the significant changes are listed.
 - Re-importing an entry whose thumbnail is already registered no longer breaks
   the surrounding database transaction.
 - Ingestion now logs a failed entry save instead of ignoring it.
+- Two overlapping imports of one service, such as a WebSub push during a
+  scheduled fetch, no longer lose an entry. The import that loses the insert
+  race applies its data to the row the other one stored.
+- Re-importing an entry no longer logs a database error for every thumbnail it
+  already has.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
 

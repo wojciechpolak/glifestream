@@ -226,9 +226,19 @@ def downsave_uploaded_image(file: FieldFile) -> tuple[str, str]:
 
 
 def extract_and_register(entry: Entry) -> None:
+    """Create a Media row for each thumbnail in the content that lacks one."""
+    registered: set[str] = set()
+    if entry.pk is not None:
+        registered.update(
+            Media.objects.filter(entry=entry).values_list('file', flat=True)
+        )
     for hash_thumb in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', entry.content):
+        rel = get_thumb_info(hash_thumb, append_suffix=False)['rel']
+        if rel in registered:
+            continue
+        registered.add(rel)
         md = Media(entry=entry)
-        md.file.name = get_thumb_info(hash_thumb, append_suffix=False)['rel']
+        md.file.name = rel
         try:
             # The savepoint keeps a duplicate thumbnail from breaking an
             # enclosing transaction, such as the one ingest() opens per entry.

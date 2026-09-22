@@ -15,6 +15,7 @@ import decimal
 import hashlib
 import json
 import os
+from collections.abc import Iterator
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -29,6 +30,7 @@ from glifestream.apis.mastodon import MastodonService
 from glifestream.apis.vimeo import VimeoService
 from glifestream.apis.webfeed import WebfeedService
 from glifestream.apis.youtube import YoutubeService
+from glifestream.ingestion import service as service_module
 from glifestream.stream.models import Entry, Media, Service
 
 GOLDEN = Path(__file__).parent / 'golden' / 'ingestion_bc.json'
@@ -68,7 +70,7 @@ def snapshot(service: Service) -> list[dict]:
 
 
 @pytest.fixture(scope='module')
-def golden():
+def golden() -> Iterator[dict]:
     if RECORD:
         data: dict = {}
         yield data
@@ -436,21 +438,26 @@ def test_vimeo_golden(golden):
     check(golden, 'vimeo.force', s)
 
 
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    'api, run',
-    [
-        ('webfeed', lambda s: run_webfeed(s, title='T', body='B', updated=NOW)),
-        ('flickr', lambda s: run_flickr(s, NOW)),
-        ('mastodon', lambda s: run_mastodon(s, 'Hello')),
-        ('atproto', lambda s: run_atproto(s, 'Hello sky')),
-        ('youtube', lambda s: run_youtube(s, 'Video')),
-        ('vimeo', lambda s: run_vimeo(s, 'Clip')),
-    ],
-)
-def test_repeated_fetch_creates_nothing(api, run):
+NOW = '2026-03-01T10:00:00Z'
+PROVIDER_RUNS = [
+    ('webfeed', lambda s: run_webfeed(s, title='T', body='B', updated=NOW)),
+    ('flickr', lambda s: run_flickr(s, NOW)),
+    ('mastodon', lambda s: run_mastodon(s, 'Hello')),
+    ('atproto', lambda s: run_atproto(s, 'Hello sky')),
+    ('youtube', lambda s: run_youtube(s, 'Video')),
+    ('vimeo', lambda s: run_vimeo(s, 'Clip')),
+]
+
+
+def provider_service(api: str) -> Service:
     url = 'someone' if api == 'vimeo' else 'http://feed.example/x'
-    s = make_service(api=api, url=url, user_id='42')
+    return make_service(api=api, url=url, user_id='42')
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('api, run', PROVIDER_RUNS)
+def test_repeated_fetch_creates_nothing(api, run):
+    s = provider_service(api)
     first = run(s).last_result
     rows = snapshot(s)
 
@@ -462,4 +469,29 @@ def test_repeated_fetch_creates_nothing(api, run):
     assert snapshot(s) == rows
 
 
-NOW = '2026-03-01T10:00:00Z'
+@pytest.mark.django_db
+@pytest.mark.parametrize('api, run', PROVIDER_RUNS)
+def test_retrying_an_aborted_fetch_matches_a_clean_one(api, run):
+    clean = provider_service(api)
+    run(clean)
+
+    retried = provider_service(api)
+    real_resolve = service_module.resolve_entry
+    calls = []
+
+    def abort_on_second_entry(*args, **kwargs):
+        calls.append(args)
+        if len(calls) == 2:
+            raise RuntimeError('connection reset')
+        return real_resolve(*args, **kwargs)
+
+    with (
+        patch.object(service_module, 'resolve_entry', abort_on_second_entry),
+        pytest.raises(RuntimeError),
+    ):
+        run(retried)
+    assert Entry.objects.filter(service=retried).count() == 1
+
+    run(retried)
+
+    assert snapshot(retried) == snapshot(clean)
