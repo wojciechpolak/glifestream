@@ -102,9 +102,21 @@ DATABASE_NAME = get_env(ENV, 'DATABASE_NAME', default=DEFAULT_DATABASE_NAME) or 
 if DATABASE_ENGINE == 'django.db.backends.sqlite3':
     DATABASE_NAME = _project_path(DATABASE_NAME)
 
+# Start every SQLite transaction by taking the write lock. SQLite otherwise
+# starts in DEFERRED mode, takes a read lock and upgrades it on the first
+# write, and when two transactions have both read it fails one of them at
+# once with "database is locked" rather than waiting for `timeout`. The
+# worker claiming jobs and a "Run now" click do exactly that.
+SQLITE_OPTIONS: dict[str, Any] = {
+    'transaction_mode': 'IMMEDIATE',
+    'timeout': get_int(ENV, 'DATABASE_TIMEOUT_SEC', default=30),
+}
+DATABASE_OPTIONS: dict[str, Any] = {}
+
 DATABASES: dict[str, dict[str, Any]] = {
     'default': {
         'ENGINE': DATABASE_ENGINE,
+        'OPTIONS': DATABASE_OPTIONS,
         'NAME': DATABASE_NAME,
         'USER': get_env(ENV, 'DATABASE_USER', default='') or '',
         'PASSWORD': get_env(ENV, 'DATABASE_PASSWORD', default='') or '',
@@ -115,7 +127,26 @@ DATABASES: dict[str, dict[str, Any]] = {
 
 database_charset = get_env(ENV, 'DATABASE_CHARSET')
 if database_charset:
-    DATABASES['default']['OPTIONS'] = {'charset': database_charset}
+    DATABASE_OPTIONS['charset'] = database_charset
+
+
+def apply_sqlite_options(
+    databases: dict[str, dict[str, Any]], options: dict[str, Any]
+) -> None:
+    """Give every SQLite database `options` it has not set for itself.
+
+    Applied again after a local settings file has run, so a deployment that
+    replaces DATABASES still gets them.
+    """
+    for config in databases.values():
+        if config.get('ENGINE') != 'django.db.backends.sqlite3':
+            continue
+        config.setdefault('OPTIONS', {})
+        for name, value in options.items():
+            config['OPTIONS'].setdefault(name, value)
+
+
+apply_sqlite_options(DATABASES, SQLITE_OPTIONS)
 
 if not DEBUG and not DATABASES['default']['NAME']:
     raise ValueError('DATABASE_NAME must be configured when DEBUG is false.')
@@ -428,6 +459,7 @@ if LOAD_SETTINGS_LOCAL and SETTINGS_LOCAL_PATH.is_file():
         ),
         globals(),
     )
+    apply_sqlite_options(DATABASES, SQLITE_OPTIONS)
 
 if VALIDATE_SETTINGS_SECRETS:
     validate_secret_value(

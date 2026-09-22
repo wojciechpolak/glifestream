@@ -97,6 +97,12 @@ These settings matter most for a hardened deployment:
 - `DATABASE_ENGINE`, `DATABASE_NAME`, `DATABASE_USER`, `DATABASE_PASSWORD`,
   `DATABASE_HOST`, `DATABASE_PORT`, `DATABASE_CHARSET`
   Configure these for your production database.
+- `DATABASE_TIMEOUT_SEC`
+  How long SQLite waits for another writer before giving up, in seconds.
+  Defaults to `30`. gLifestream also runs SQLite transactions in `IMMEDIATE`
+  mode, so a transaction that reads and then writes cannot fail another one
+  with "database is locked". A deployment that defines `DATABASES` itself
+  still gets both, unless it sets them to something else.
 - `RUN_DIR`
   Runtime directory for DB files, templates, and generated static input.
   This directory must be persistent and writable if you rely on file-based runtime assets.
