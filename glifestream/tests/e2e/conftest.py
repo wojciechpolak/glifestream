@@ -661,16 +661,28 @@ class SingleThreadLiveServer:
         from django.test.testcases import _StaticFilesHandler
 
         liveserver_kwargs: dict[str, Any] = {}
-        connections_override = {}
         uses_sqlite = False
 
+        # An in-memory SQLite database cannot be reopened from the server
+        # thread, so Django's live server hands that one connection object to
+        # both threads. Two threads stepping through the same sqlite3 object
+        # segfaults the interpreter, so `django_db_setup` below always puts the
+        # e2e suite on a file and each thread opens its own connection. If that
+        # ordering ever breaks we want a traceback, not an intermittent crash.
         for conn in connections.all():
-            if conn.vendor == 'sqlite':
-                uses_sqlite = True
-                if _sqlite_connection_is_in_memory(conn):
-                    connections_override[conn.alias] = conn
+            if conn.vendor != 'sqlite':
+                continue
+            uses_sqlite = True
+            if _sqlite_connection_is_in_memory(conn):
+                raise RuntimeError(
+                    'e2e live server refuses to share the in-memory SQLite '
+                    f'connection {conn.alias!r} ({conn.settings_dict["NAME"]}) '
+                    'across threads. The live_server fixture must be created '
+                    'after the e2e django_db_setup fixture has moved the test '
+                    'database onto a file.'
+                )
 
-        liveserver_kwargs['connections_override'] = connections_override
+        liveserver_kwargs['connections_override'] = {}
         if 'django.contrib.staticfiles' in settings.INSTALLED_APPS:
             liveserver_kwargs['static_handler'] = StaticFilesHandler
         else:
@@ -694,10 +706,8 @@ class SingleThreadLiveServer:
             self.start()
 
     def start(self) -> None:
-        connections_override = self.thread.connections_override or {}
-        for conn in connections_override.values():
-            conn.inc_thread_sharing()
-
+        # No inc_thread_sharing() counterpart to Django's LiveServerTestCase:
+        # nothing is shared, the server thread opens its own connections.
         self.thread.start()
         self.thread.is_ready.wait()
 
@@ -708,9 +718,6 @@ class SingleThreadLiveServer:
 
     def stop(self) -> None:
         self.thread.terminate()
-        connections_override = self.thread.connections_override or {}
-        for conn in connections_override.values():
-            conn.dec_thread_sharing()
 
     @property
     def url(self) -> str:
@@ -762,6 +769,11 @@ def django_db_setup(
     old_async_unsafe = os.environ.get('DJANGO_ALLOW_ASYNC_UNSAFE')
     os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 
+    # A combined run reaches this with the unit suite's in-memory database still
+    # open on the default connection. Drop it before setup_databases() reopens
+    # the same connection objects against the file above.
+    connections.close_all()
+
     with django_db_blocker.unblock():
         db_cfg = setup_databases(
             verbosity=request.config.option.verbose,
@@ -789,7 +801,13 @@ def django_db_setup(
 @pytest.fixture(scope='session')
 def live_server(
     request: pytest.FixtureRequest,
+    django_db_setup: None,
 ) -> Generator[SingleThreadLiveServer, None, None]:
+    # `django_db_setup` is requested for its ordering, not its value: without it
+    # this session-scoped fixture is built before the function-scoped database
+    # fixtures, and in a combined run it would capture the in-memory database
+    # that the unit tests left behind.
+    del django_db_setup
     addr = (
         request.config.getvalue('liveserver')
         or os.getenv('DJANGO_LIVE_TEST_SERVER_ADDRESS')
