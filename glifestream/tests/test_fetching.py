@@ -272,6 +272,34 @@ def test_fetch_worker_run_ready_jobs_processes_queued_manual_job(service):
     ]
 
 
+@pytest.mark.django_db
+def test_fetch_worker_survives_a_failed_fetch_and_runs_the_rest(caplog):
+    broken = Service.objects.create(name='Broken', api='webfeed', url='http://a')
+    healthy = Service.objects.create(name='Healthy', api='webfeed', url='http://b')
+    enqueue_manual_fetch(broken, wake_worker=False)
+    enqueue_manual_fetch(healthy, wake_worker=False)
+    ran = []
+
+    def _run_service_fetch(service_arg, **kwargs):
+        del kwargs
+        ran.append(service_arg.name)
+        if service_arg.pk == broken.pk:
+            raise RuntimeError('provider exploded')
+
+    fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
+    with patch(
+        'glifestream.fetching.run_service_fetch', side_effect=_run_service_fetch
+    ):
+        claimed = fetch_worker.run_ready_jobs()
+
+    assert claimed == 2
+    assert sorted(ran) == ['Broken', 'Healthy']
+    assert (
+        'Fetch job for service %d ended with RuntimeError: provider exploded'
+        % broken.pk
+    ) in caplog.text
+
+
 def test_fetch_worker_serve_wakes_on_ready_socket() -> None:
     fake_socket = Mock()
     fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)

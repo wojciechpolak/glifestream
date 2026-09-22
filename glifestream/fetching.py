@@ -653,8 +653,17 @@ class FetchWorker:
                     for state_id, service_id in claimed
                 ]
                 wait(futures)
-                for future in futures:
-                    future.result()
+            # run_service_fetch already logged and recorded each failure, so
+            # a failed service must not stop the worker for the others.
+            for (_state_id, service_id), future in zip(claimed, futures):
+                error = future.exception()
+                if error is not None:
+                    logger.warning(
+                        'Fetch job for service %s ended with %s: %s',
+                        service_id,
+                        type(error).__name__,
+                        error,
+                    )
             return len(claimed)
         except DatabaseError:
             logger.exception('Fetch worker database cycle failed.')

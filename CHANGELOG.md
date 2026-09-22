@@ -85,6 +85,9 @@ work, so only the significant changes are listed.
   race applies its data to the row the other one stored.
 - Re-importing an entry no longer logs a database error for every thumbnail it
   already has.
+- The fetch worker keeps running when one service's fetch fails. It used to
+  re-raise that failure after the batch and exit, relying on a process manager
+  to restart it.
 - Resharing a post now registers its local thumbnails. The reshare used to
   register them before it saved the entry, so every registration failed and
   logged an error.
