@@ -5,9 +5,13 @@ from types import SimpleNamespace
 from typing import cast
 from django.utils import timezone
 from glifestream.apis.atproto import AtProtoService, filter_content
+from atproto_client.exceptions import UnauthorizedError
 from atproto_client.models.app.bsky.feed.defs import FeedViewPost
+from atproto_client.models.common import XrpcError
+from atproto_client.request import Response
 from glifestream.stream.models import Entry
 from glifestream.stream import media
+from glifestream.utils import httpclient
 
 
 def _make_facet(text, fragment, feature):
@@ -693,18 +697,38 @@ def test_atproto_run_uses_author_feed_when_user_id_is_present(service):
 
 
 @pytest.mark.django_db
-def test_atproto_run_swallows_login_errors(service):
+def test_atproto_run_reports_a_rejected_login(service):
     service.api = 'atproto'
     service.creds = 'playwright.test:app-pass'
     service.save()
 
     mock_client = MagicMock()
-    mock_client.login.side_effect = Exception('boom')
+    mock_client.login.side_effect = UnauthorizedError(
+        Response(
+            success=False,
+            status_code=401,
+            content=XrpcError(
+                error='AuthenticationRequired',
+                message='Invalid identifier or password',
+            ),
+            headers={},
+        )
+    )
 
     with patch('glifestream.apis.atproto.Client', return_value=mock_client):
         api = AtProtoService(service)
-        with patch.object(api, 'process') as mock_process:
+        with (
+            patch.object(api, 'process') as mock_process,
+            pytest.raises(httpclient.FetchError) as raised,
+        ):
             api.run()
+
+    assert raised.value.category == 'auth'
+    assert raised.value.retryable is False
+    assert raised.value.detail == (
+        'AT Protocol request failed with HTTP 401: '
+        'AuthenticationRequired: Invalid identifier or password'
+    )
 
     mock_client.login.assert_called_once_with('playwright.test', 'app-pass')
     mock_client.get_timeline.assert_not_called()

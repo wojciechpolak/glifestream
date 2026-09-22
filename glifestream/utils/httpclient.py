@@ -137,8 +137,8 @@ def build_fetch_error(
     )
 
 
-def _classify_response_error(response: Response) -> FetchError:
-    status_code = response.status_code
+def classify_status_code(status_code: int) -> tuple[str, bool]:
+    """The failure category of an HTTP error status, and whether to retry."""
     if status_code in (401, 403):
         category = 'auth'
     elif status_code == 429:
@@ -149,10 +149,16 @@ def _classify_response_error(response: Response) -> FetchError:
         category = 'remote_5xx'
     else:
         category = 'unexpected'
+    return category, status_code in READ_RETRY_STATUS_CODES
+
+
+def _classify_response_error(response: Response) -> FetchError:
+    status_code = response.status_code
+    category, retryable = classify_status_code(status_code)
     return build_fetch_error(
         category=category,
         detail=_build_http_error_detail(response),
-        retryable=status_code in READ_RETRY_STATUS_CODES,
+        retryable=retryable,
         status_code=status_code,
         url=response.url,
         retry_after_sec=_get_retry_after_sec(response),

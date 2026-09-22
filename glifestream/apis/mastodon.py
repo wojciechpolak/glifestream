@@ -79,9 +79,10 @@ class MastodonService(BaseService):
 
     def fetch(self, url) -> None:
         r = httpclient.get(url)
+        self.json = httpclient.require_json(r)
         self.service.last_checked = timezone.now()
         self.service.save()
-        self.process(httpclient.require_json(r))
+        self.process(self.json)
 
     def fetch_oauth2(self, url) -> None:
         oauth = self._get_oauth_client()

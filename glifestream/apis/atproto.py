@@ -17,8 +17,6 @@
 
 from __future__ import annotations
 
-import sys
-import traceback
 import datetime
 import re
 from functools import partial
@@ -68,37 +66,32 @@ class AtProtoService(BaseService):
             self.count = None
 
     def run(self) -> None:
+        hs = httpclient.gen_auth(self.service)
+        if not hs or len(hs) < 2:
+            raise httpclient.build_fetch_error(
+                category='auth',
+                detail='No handle and app password are stored for this service.',
+            )
         try:
-            hs = httpclient.gen_auth(self.service)
             self.connect(hs)
-        except Exception as e:
-            if self.verbose:
-                print(
-                    '%s (%d) Exception: %s'
-                    % (self.service.api, cast(int, self.service.pk), e)
-                )
-                traceback.print_exc(file=sys.stdout)
+        except Exception as exc:
+            error = _to_fetch_error(exc)
+            if error is None:
+                raise
+            raise error from exc
 
     def connect(self, hs) -> None:
-        try:
-            self.client.login(hs[0], hs[1])
-            self.service.last_checked = timezone.now()
-            self.service.save()
-            if self.service.user_id:
-                me = self.client.me
-                data = self.client.get_author_feed(
-                    me.did, filter='posts_no_replies', limit=self.count
-                )
-            else:
-                data = self.client.get_timeline(limit=self.count)
-            self.process(data.feed)
-        except Exception as e:
-            if self.verbose:
-                print(
-                    '%s (%d) Exception: %s'
-                    % (self.service.api, cast(int, self.service.pk), e)
-                )
-                traceback.print_exc(file=sys.stdout)
+        self.client.login(hs[0], hs[1])
+        self.service.last_checked = timezone.now()
+        self.service.save()
+        if self.service.user_id:
+            me = self.client.me
+            data = self.client.get_author_feed(
+                me.did, filter='posts_no_replies', limit=self.count
+            )
+        else:
+            data = self.client.get_timeline(limit=self.count)
+        self.process(data.feed)
 
     def process(self, entries: list[FeedViewPost]) -> None:
         self.ingest(self._candidates(entries))
@@ -346,6 +339,52 @@ def collect_post_media_urls(record: Any, post_embed: Any) -> list[str]:
         urls.append(cast(str, external_uri))
 
     return list(dict.fromkeys(urls))
+
+
+def _to_fetch_error(exc: Exception) -> httpclient.FetchError | None:
+    """An AT Protocol client error, classified like any HTTP fetch error.
+
+    None for anything else, which the fetcher reports as unexpected.
+    """
+    from atproto_client import exceptions as errors
+    from atproto_core.exceptions import AtProtocolError
+
+    if not isinstance(exc, AtProtocolError):
+        return None
+    response = getattr(exc, 'response', None)
+    status_code = getattr(response, 'status_code', None)
+    if isinstance(exc, errors.InvokeTimeoutError):
+        category, retryable = 'timeout', True
+    elif status_code is not None:
+        category, retryable = httpclient.classify_status_code(status_code)
+    elif isinstance(exc, errors.NetworkError):
+        category, retryable = 'connection', True
+    elif isinstance(exc, (errors.UnauthorizedError, errors.LoginRequiredError)):
+        category, retryable = 'auth', False
+    elif isinstance(exc, errors.ModelError):
+        category, retryable = 'invalid_response', False
+    else:
+        return None
+    return httpclient.build_fetch_error(
+        category=category,
+        detail=_describe_client_error(exc, response, status_code),
+        retryable=retryable,
+        status_code=status_code,
+    )
+
+
+def _describe_client_error(exc: Exception, response: Any, status_code: Any) -> str:
+    detail = 'AT Protocol request failed'
+    if status_code is not None:
+        detail += ' with HTTP %d' % status_code
+    # A failed XRPC call carries the server's error name and message.
+    content = getattr(response, 'content', None)
+    reason = [
+        str(part)
+        for part in (getattr(content, 'error', None), getattr(content, 'message', None))
+        if part
+    ] or [str(exc) or type(exc).__name__]
+    return '%s: %s' % (detail, ': '.join(reason))
 
 
 def _get_post_created_at(record: Any) -> str:

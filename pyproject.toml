@@ -54,7 +54,13 @@ plugins = ["mypy_django_plugin.main"]
 exclude = '(?x)^(run-.*|run/vrt-uv-cache/|run/vrt-venv/|run/vrt-home/)'
 
 [[tool.mypy.overrides]]
-module = ["feedparser", "atproto", "atproto_client.models.app.bsky.feed.defs"]
+module = [
+    "feedparser",
+    "atproto",
+    "atproto_client",
+    "atproto_client.*",
+    "atproto_core.*",
+]
 ignore_missing_imports = true
 
 [tool.django-stubs]

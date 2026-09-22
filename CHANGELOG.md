@@ -104,6 +104,14 @@ work, so only the significant changes are listed.
   used to replace the running worker's wake socket and, on every cycle, mark
   that worker's fetches as interrupted and fetch the same services again. The
   worker holds a lock on `<WORKER_SOCKET>.lock` for as long as it runs.
+- A failed Bluesky/ATProto fetch now shows up as failed. The provider used to
+  swallow every error, from a rejected app password to a network outage, so
+  the service status read "Fetch completed" and no retry was scheduled. Its
+  client errors are now classified like HTTP errors: rejected credentials and
+  unusable payloads wait for the long delay, timeouts, rate limits and server
+  errors retry with backoff.
+- A Mastodon or PixelFed fetch that gets a non-JSON response no longer records
+  the service as checked.
 - Resharing a post now registers its local thumbnails. The reshare used to
   register them before it saved the entry, so every registration failed and
   logged an error.
