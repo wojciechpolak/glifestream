@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import fcntl
 import logging
 import os
 import queue
@@ -28,7 +29,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any
+from typing import IO, Any
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -691,6 +692,10 @@ def get_next_wait_timeout(*, now: Any | None = None) -> float | None:
     return max(delta, 0.0)
 
 
+class WorkerAlreadyRunning(RuntimeError):
+    """Another fetch worker holds the lock beside the wake socket."""
+
+
 class FetchWorker:
     def __init__(
         self,
@@ -705,15 +710,23 @@ class FetchWorker:
         self.verbose = verbose
         self.job_timeout_sec = job_timeout_sec or get_fetch_job_timeout_sec()
         self.socket: socket.socket | None = None
+        self.lock_file: IO[str] | None = None
         self.last_processed_jobs: list[ProcessedFetchJob] = []
 
     def open_socket(self) -> socket.socket:
-        if os.path.exists(self.socket_path):
-            os.unlink(self.socket_path)
+        self._acquire_lock()
+        try:
+            # Holding the lock, a socket file left here belongs to a worker
+            # that is gone.
+            if os.path.exists(self.socket_path):
+                os.unlink(self.socket_path)
 
-        sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-        sock.bind(self.socket_path)
-        os.chmod(self.socket_path, 0o666)
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+            sock.bind(self.socket_path)
+            os.chmod(self.socket_path, 0o666)
+        except BaseException:
+            self._release_lock()
+            raise
         self.socket = sock
         return sock
 
@@ -721,8 +734,35 @@ class FetchWorker:
         if self.socket is not None:
             self.socket.close()
             self.socket = None
-        if os.path.exists(self.socket_path):
-            os.unlink(self.socket_path)
+            if os.path.exists(self.socket_path):
+                os.unlink(self.socket_path)
+        self._release_lock()
+
+    def _acquire_lock(self) -> None:
+        """Make this the only worker serving `socket_path`.
+
+        The worker assumes it is alone: each claim marks every running job
+        as interrupted, and a second worker would steal the first one's jobs
+        and its wake socket. The kernel drops the lock when the process
+        exits, so a crashed worker never blocks the next one.
+        """
+        lock_path = self.socket_path + '.lock'
+        lock_file = open(lock_path, 'a')
+        try:
+            fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            lock_file.close()
+            raise WorkerAlreadyRunning(
+                'Another fetch worker is already running (lock held on %s).' % lock_path
+            ) from None
+        self.lock_file = lock_file
+
+    def _release_lock(self) -> None:
+        # The file stays: removing it would let a new worker lock a fresh
+        # file while another one still holds the old one.
+        if self.lock_file is not None:
+            self.lock_file.close()
+            self.lock_file = None
 
     def drain_socket(self) -> None:
         if self.socket is None:

@@ -23,6 +23,7 @@ from unittest.mock import patch
 
 import pytest
 
+from glifestream.fetching import WorkerAlreadyRunning
 from glifestream.worker import cli
 import worker
 
@@ -323,9 +324,19 @@ def test_handle_daemon_survives_a_keyboard_interrupt(capsys):
         daemon_cls.return_value.serve.side_effect = KeyboardInterrupt
         command = cli.WorkerCommand(kind=cli.WorkerCommandKind.DAEMON)
 
-        assert cli.handle_daemon(command) == 0
+        assert cli.handle_daemon(command, prog_name='worker.py') == 0
 
     daemon_cls.return_value._verbose_print.assert_called_once()
+
+
+def test_handle_daemon_refuses_to_run_beside_another_worker(capsys):
+    with patch('glifestream.worker.cli.WorkerDaemon') as daemon_cls:
+        daemon_cls.return_value.serve.side_effect = WorkerAlreadyRunning('taken')
+        command = cli.WorkerCommand(kind=cli.WorkerCommandKind.DAEMON)
+
+        assert cli.handle_daemon(command, prog_name='worker.py') == 1
+
+    assert capsys.readouterr().err == 'worker.py: taken\n'
 
 
 def test_handle_email2post_and_init_files_delegate():

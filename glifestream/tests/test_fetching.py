@@ -16,6 +16,7 @@ from glifestream.fetching import (
     get_next_wait_timeout,
     initialize_missing_schedules,
     ProcessedFetchJob,
+    WorkerAlreadyRunning,
     run_service_fetch,
     send_worker_wake_signal,
     serialize_fetch_state,
@@ -328,7 +329,8 @@ def test_fetch_worker_serve_wakes_on_ready_socket() -> None:
     assert calls == ['run']
 
 
-def test_fetch_worker_open_socket_replaces_stale_socket_file():
+def test_fetch_worker_open_socket_replaces_stale_socket_file(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)  # for the lock file beside the socket
     fake_socket = Mock()
     fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
 
@@ -645,6 +647,45 @@ def test_fetch_worker_close_socket_removes_the_socket_file(tmp_path, monkeypatch
     assert fetch_worker.socket is None
     assert sock.fileno() == -1
     assert not path.exists()
+    fetch_worker.close_socket()
+
+
+def test_second_fetch_worker_refuses_to_take_over_the_socket(tmp_path, monkeypatch):
+    # A relative path: macOS rejects AF_UNIX paths as long as tmp_path.
+    monkeypatch.chdir(tmp_path)
+    first = FetchWorker(socket_path='worker.sock', max_workers=1)
+    first.open_socket()
+    second = FetchWorker(socket_path='worker.sock', max_workers=1)
+
+    try:
+        with pytest.raises(WorkerAlreadyRunning, match='worker.sock.lock'):
+            second.open_socket()
+        second.close_socket()
+
+        # The first worker still owns its socket and can still be woken.
+        assert (tmp_path / 'worker.sock').is_socket()
+        with patch(
+            'glifestream.fetching.get_worker_socket', return_value='worker.sock'
+        ):
+            assert send_worker_wake_signal() is True
+    finally:
+        first.close_socket()
+
+    second.open_socket()
+    second.close_socket()
+
+
+def test_fetch_worker_releases_the_lock_when_bind_fails(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    fetch_worker = FetchWorker(socket_path='worker.sock', max_workers=1)
+
+    with patch('glifestream.fetching.socket.socket') as socket_cls:
+        socket_cls.return_value.bind.side_effect = OSError('address in use')
+        with pytest.raises(OSError, match='address in use'):
+            fetch_worker.open_socket()
+
+    assert fetch_worker.lock_file is None
+    fetch_worker.open_socket()
     fetch_worker.close_socket()
 
 

@@ -21,10 +21,13 @@ import datetime
 from io import StringIO
 from unittest.mock import patch
 
+import pytest
 from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.test import override_settings
 from django.utils import timezone
 
+from glifestream.fetching import WorkerAlreadyRunning
 from glifestream.stream.models import Entry
 
 
@@ -46,6 +49,16 @@ def test_run_worker_command_uses_extracted_worker_daemon():
         socket_path='.test-worker.sock',
     )
     daemon.serve.assert_called_once_with()
+
+
+def test_run_worker_command_refuses_to_run_beside_another_worker():
+    with patch(
+        'glifestream.stream.management.commands.run_worker.WorkerDaemon'
+    ) as daemon_cls:
+        daemon_cls.return_value.serve.side_effect = WorkerAlreadyRunning('taken')
+
+        with pytest.raises(CommandError, match='taken'):
+            call_command('run_worker', '--socket-path=.test-worker.sock')
 
 
 def test_worker_cleanup_command_deletes_old_inactive_entries(service):

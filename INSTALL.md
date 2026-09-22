@@ -144,6 +144,10 @@ The fetch worker (`./worker.py --daemon` or `manage.py run_worker`) reads:
   stop the stuck fetch, so it keeps running in the background, but it can no
   longer change the service's status or schedule.
 
+Run one worker per installation. While it runs, the worker holds a lock on a
+file beside its socket, `WORKER_SOCKET` plus `.lock`, and a second worker
+started against the same socket exits with an error.
+
 Magic Link SSO settings
 -----------------------
 

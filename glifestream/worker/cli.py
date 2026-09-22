@@ -29,7 +29,11 @@ from django.conf import settings
 from django.db import connections
 
 from glifestream.apis import mail
-from glifestream.fetching import DEFAULT_WORKER_POOL_SIZE, run_services
+from glifestream.fetching import (
+    DEFAULT_WORKER_POOL_SIZE,
+    WorkerAlreadyRunning,
+    run_services,
+)
 from glifestream.stream import websub
 from glifestream.stream.models import Service
 from glifestream.worker.daemon import WorkerDaemon
@@ -303,7 +307,7 @@ def parse_legacy_command(argv: Sequence[str]) -> WorkerCommand:
     )
 
 
-def handle_daemon(command: WorkerCommand) -> int:
+def handle_daemon(command: WorkerCommand, *, prog_name: str) -> int:
     daemon_runner = WorkerDaemon(
         max_workers=command.daemon_workers,
         verbose=command.verbose,
@@ -311,6 +315,9 @@ def handle_daemon(command: WorkerCommand) -> int:
     )
     try:
         daemon_runner.serve()
+    except WorkerAlreadyRunning as exc:
+        print('%s: %s' % (prog_name, exc), file=sys.stderr)
+        return 1
     except KeyboardInterrupt:
         if command.lifecycle_logs:
             daemon_runner._verbose_print('shutdown requested, exiting')
@@ -442,7 +449,7 @@ def execute_command(command: WorkerCommand, *, prog_name: str) -> int:
         _print_usage(prog_name)
         return command.usage_exit_code
     if command.kind == WorkerCommandKind.DAEMON:
-        return handle_daemon(command)
+        return handle_daemon(command, prog_name=prog_name)
     if command.kind == WorkerCommandKind.FETCH:
         return handle_fetch(command)
     if command.kind == WorkerCommandKind.CLEANUP:

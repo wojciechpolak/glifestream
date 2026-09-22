@@ -18,8 +18,9 @@
 from __future__ import annotations
 
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
+from glifestream.fetching import WorkerAlreadyRunning
 from glifestream.worker.daemon import WorkerDaemon
 
 
@@ -51,4 +52,7 @@ class Command(BaseCommand):
             verbose=options['verbose_fetch'],
             socket_path=options['socket_path'],
         )
-        daemon.serve()
+        try:
+            daemon.serve()
+        except WorkerAlreadyRunning as exc:
+            raise CommandError(str(exc)) from exc

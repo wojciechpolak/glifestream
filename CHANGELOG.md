@@ -100,6 +100,10 @@ work, so only the significant changes are listed.
 - The fetch worker keeps running when one service's fetch fails. It used to
   re-raise that failure after the batch and exit, relying on a process manager
   to restart it.
+- A second fetch worker now refuses to start while one is already running. It
+  used to replace the running worker's wake socket and, on every cycle, mark
+  that worker's fetches as interrupted and fetch the same services again. The
+  worker holds a lock on `<WORKER_SOCKET>.lock` for as long as it runs.
 - Resharing a post now registers its local thumbnails. The reshare used to
   register them before it saved the entry, so every registration failed and
   logged an error.
