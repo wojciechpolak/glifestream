@@ -55,7 +55,19 @@ work, so only the significant changes are listed.
 - Upgraded Markdown to v3.
 - Refactored the stream index view and the settings views into smaller modules,
   and split `worker.py` into a package.
+- Moved entry persistence out of the provider adapters into the new
+  `glifestream.ingestion` package. Providers now yield `Candidate` and
+  `NormalizedEntry` values. `ingest()` decides whether to create, update or skip
+  each entry, stores it with its media in one transaction, and returns an
+  `ImportResult`, which the fetcher logs after every fetch. Stored data is
+  unchanged.
 - Improved mobile stream interactions.
+
+### Deprecated
+
+- `BaseService.resolve_entry()`. Providers should yield `Candidate` objects to
+  `BaseService.ingest()` instead. The old method still works and emits a
+  `DeprecationWarning`. A later release will remove it.
 
 ### Removed
 
@@ -65,6 +77,9 @@ work, so only the significant changes are listed.
 
 ### Fixed
 
+- Re-importing an entry whose thumbnail is already registered no longer breaks
+  the surrounding database transaction.
+- Ingestion now logs a failed entry save instead of ignoring it.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
 

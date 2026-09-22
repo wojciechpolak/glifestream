@@ -378,6 +378,12 @@ def run_service_fetch(
     try:
         api = ServiceFactory.create_service(service, verbose, force_overwrite)
         api.run()
+        logger.info(
+            'Imported service %s (%s): %s',
+            service.pk,
+            service.api,
+            api.last_result.summary(),
+        )
         service.refresh_from_db()
         finished_at = timezone.now()
         _update_state_success(state_id, worker_token, service, finished_at=finished_at)

@@ -15,10 +15,12 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from functools import partial
 from itertools import groupby
 from django.utils.translation import gettext as _
 
 from glifestream.apis.webfeed import WebfeedService
+from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.stream import media
 
 
@@ -36,34 +38,36 @@ class FlickrService(WebfeedService):
             )
 
     def process(self, entries):
+        self.ingest(self._candidates(entries))
+
+    def _candidates(self, entries):
         # Flickr posts a burst of photos with the same timestamp; each burst
         # becomes one grouped entry.
         for _key, group in groupby(entries, lambda x: x.updated[0:19]):
             content, mblob, ent, count = self._render_group(group)
             guid = 'tag:flickr.com,2004:/photo/%s' % ent.id
+            yield Candidate(
+                guid,
+                self._freshness(ent),
+                partial(self._normalize_group, guid, ent, content, mblob, count),
+            )
 
-            e = self._resolve_entry(guid, ent)
-            if e is None:
-                continue
+    def _normalize_group(self, guid, ent, content, mblob, count) -> NormalizedEntry:
+        e = NormalizedEntry(guid=guid, register_media=False)
+        e.mblob = media.mrss_gen_json(mblob)
+        if count > 1:
+            e.idata = 'grouped'
 
-            e.mblob = media.mrss_gen_json(mblob)
-            if count > 1:
-                e.idata = 'grouped'
+        e.link = self.service.link
+        e.title = 'Posted Photos'
+        e.content = content
 
-            e.link = self.service.link
-            e.title = 'Posted Photos'
-            e.content = content
+        self._apply_dates(e, ent)
 
-            self._apply_dates(e, ent)
-
-            link_image = self._resolve_link_image(ent)
-            if link_image is not None:
-                e.link_image = link_image
-
-            try:
-                e.save()
-            except Exception:
-                pass
+        link_image = self._resolve_link_image(ent)
+        if link_image is not None:
+            e.link_image = link_image
+        return e
 
     def _render_group(self, group):
         """Fold one burst of photos into a thumbnail paragraph and an mblob."""

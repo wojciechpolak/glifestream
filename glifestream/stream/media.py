@@ -27,6 +27,7 @@ from typing import Match, cast
 from xml.sax.saxutils import escape as xml_escape
 
 from django.conf import settings
+from django.db import transaction
 from django.db.models.fields.files import FieldFile
 from django.utils.encoding import force_bytes
 from glifestream.stream.models import Media, Entry
@@ -229,7 +230,10 @@ def extract_and_register(entry: Entry) -> None:
         md = Media(entry=entry)
         md.file.name = get_thumb_info(hash_thumb, append_suffix=False)['rel']
         try:
-            md.save()
+            # The savepoint keeps a duplicate thumbnail from breaking an
+            # enclosing transaction, such as the one ingest() opens per entry.
+            with transaction.atomic():
+                md.save()
         except Exception as exc:
             logger.error(exc)
 

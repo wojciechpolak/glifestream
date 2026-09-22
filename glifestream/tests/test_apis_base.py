@@ -3,6 +3,7 @@ import datetime
 import pytest
 
 from glifestream.apis.base import BaseService, post_title, set_reblog
+from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.stream.models import Entry
 
 
@@ -29,39 +30,37 @@ def stored(service):
     )
 
 
-@pytest.mark.django_db
-def test_resolve_entry_builds_an_unsaved_entry_for_a_new_guid(service):
-    e = _Service(service).resolve_entry('new-guid', NOON)
-
-    assert e is not None
-    assert e.pk is None
-    assert (e.service, e.guid) == (service, 'new-guid')
-
-
-def test_resolve_entry_returns_the_stored_entry_when_newer(service, stored):
-    assert _Service(service).resolve_entry('guid-1', NOON + HOUR) == stored
-
-
-@pytest.mark.parametrize('updated', [NOON, NOON - HOUR])
-def test_resolve_entry_skips_an_entry_that_has_not_changed(service, stored, updated):
-    assert _Service(service).resolve_entry('guid-1', updated) is None
-
-
-def test_resolve_entry_force_overwrite_ignores_freshness(service, stored):
+def test_resolve_entry_is_deprecated_but_keeps_its_rules(service, stored):
     api = _Service(service, force_overwrite=True)
-    assert api.resolve_entry('guid-1', NOON - HOUR) == stored
+    with pytest.deprecated_call():
+        assert api.resolve_entry('guid-1', NOON - HOUR) == stored
+    with pytest.deprecated_call():
+        new = api.resolve_entry('new-guid', NOON)
+    assert new is not None and new.pk is None
 
 
-def test_resolve_entry_without_a_timestamp_skips_the_freshness_check(service, stored):
-    assert _Service(service).resolve_entry('guid-1', None) == stored
+def _candidate(guid, freshness, title):
+    return Candidate(guid, freshness, lambda: NormalizedEntry(guid, title=title))
 
 
-def test_resolve_entry_never_rewrites_a_protected_entry(service, stored):
-    stored.protected = True
-    stored.save()
+def test_ingest_sums_every_call_into_last_result(service, stored):
+    api = _Service(service)
+    api.ingest([_candidate('guid-1', NOON + HOUR, 'Changed')])
+    api.ingest([_candidate('guid-2', NOON, 'New'), _candidate('guid-1', NOON, 'x')])
 
+    assert (
+        api.last_result.created,
+        api.last_result.updated,
+        api.last_result.skipped,
+    ) == (1, 1, 1)
+
+
+def test_ingest_honours_force_overwrite(service, stored):
     api = _Service(service, force_overwrite=True)
-    assert api.resolve_entry('guid-1', NOON + HOUR) is None
+    api.ingest([_candidate('guid-1', NOON - HOUR, 'Forced')])
+
+    stored.refresh_from_db()
+    assert stored.title == 'Forced'
 
 
 def test_post_title_strips_markup_and_mention_sigils():
@@ -69,8 +68,9 @@ def test_post_title_strips_markup_and_mention_sigils():
     assert post_title(html) == 'Hello alice and friends, this is a...'
 
 
-def test_set_reblog_marks_and_clears_a_reshare():
-    e = Entry()
+@pytest.mark.parametrize('target', [Entry, lambda: NormalizedEntry('g')])
+def test_set_reblog_marks_and_clears_a_reshare(target):
+    e = target()
     set_reblog(e, True, 'Bob', 'https://example.com/r/1')
     assert (e.reblog, e.reblog_by, e.reblog_uri) == (
         True,

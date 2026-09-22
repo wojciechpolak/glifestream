@@ -16,9 +16,12 @@
 """
 
 import datetime
+from functools import partial
+
 from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
+from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.utils import httpclient
 from glifestream.utils.time import now
 from glifestream.stream.models import Entry
@@ -80,54 +83,64 @@ class VimeoService(BaseService):
         Likes and uploads differ only in which timestamp field they carry and
         in whether the entry is tagged as a like, so they share this body.
         """
+        self.ingest(
+            self._candidates(
+                idata=idata, register_media=register_media, date_key=date_key
+            )
+        )
+
+    def _candidates(self, *, date_key: str, idata: str | None, register_media: bool):
         for ent in self.json:
             date = ent[date_key][:10]
             guid = 'tag:vimeo,%s:clip%s' % (date, ent['id'])
             if self.verbose:
                 print('ID: %s' % guid)
             t = _parse_vimeo_date(ent[date_key])
-            e = self.resolve_entry(
-                guid, t if isinstance(t, datetime.datetime) else None
-            )
-            if e is None:
-                continue
-
-            e.title = ent['title']
-            e.link = ent['url']
-            e.date_published = t
-            e.date_updated = t
-            e.author_name = ent['user_name']
-
-            if idata:
-                e.idata = idata
-
-            if self.service.public:
-                ent['thumbnail_large'] = media.save_image(
-                    ent['thumbnail_large'], downscale=True, size=(320, 180)
-                )
-
-            e.content = (
-                """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>"""
-                % (ent['id'], e.link, ent['thumbnail_large'], ent['title'])
+            yield Candidate(
+                guid,
+                t if isinstance(t, datetime.datetime) else None,
+                partial(self._normalize, guid, t, ent, idata, register_media),
             )
 
-            mblob = media.mrss_init()
-            mblob['content'].append(
-                [
-                    {
-                        'url': 'https://player.vimeo.com/video/%s' % ent['id'],
-                        'medium': 'video',
-                    }
-                ]
-            )
-            e.mblob = media.mrss_gen_json(mblob)
+    def _normalize(
+        self,
+        guid: str,
+        t: Any,
+        ent: dict,
+        idata: str | None,
+        register_media: bool,
+    ) -> NormalizedEntry:
+        e = NormalizedEntry(guid=guid, register_media=register_media)
+        e.title = ent['title']
+        e.link = ent['url']
+        e.date_published = t
+        e.date_updated = t
+        e.author_name = ent['user_name']
 
-            try:
-                e.save()
-                if register_media:
-                    media.extract_and_register(e)
-            except Exception:
-                pass
+        if idata:
+            e.idata = idata
+
+        if self.service.public:
+            ent['thumbnail_large'] = media.save_image(
+                ent['thumbnail_large'], downscale=True, size=(320, 180)
+            )
+
+        e.content = (
+            """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>"""
+            % (ent['id'], e.link, ent['thumbnail_large'], ent['title'])
+        )
+
+        mblob = media.mrss_init()
+        mblob['content'].append(
+            [
+                {
+                    'url': 'https://player.vimeo.com/video/%s' % ent['id'],
+                    'medium': 'video',
+                }
+            ]
+        )
+        e.mblob = media.mrss_gen_json(mblob)
+        return e
 
 
 def _parse_vimeo_date(value: str) -> Any:

@@ -15,9 +15,12 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from functools import partial
+
 import feedparser
 
 from glifestream.apis.base import BaseService
+from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime, now
 from glifestream.utils.html import strip_script
@@ -79,50 +82,49 @@ class WebfeedService(BaseService):
                 self.process(self.fp.entries)
 
     def process(self, entries) -> None:
+        self.ingest(self._candidates(entries))
+
+    def _candidates(self, entries):
         for ent in entries:
             guid = ent.id if 'id' in ent else ent.link
             if self.verbose:
                 print('ID: %s' % guid)
+            yield Candidate(
+                guid, self._freshness(ent), partial(self._normalize, guid, ent)
+            )
 
-            e = self._resolve_entry(guid, ent)
-            if e is None:
-                continue
+    def _normalize(self, guid, ent) -> NormalizedEntry:
+        e = NormalizedEntry(guid=guid)
+        e.title = ent.get('title', ent.get('summary', ''))
+        e.link = ent.get('feedburner_origlink', ent.get('link', ''))
 
-            e.title = ent.get('title', ent.get('summary', ''))
-            e.link = ent.get('feedburner_origlink', ent.get('link', ''))
+        self._apply_author(e, ent)
+        self._apply_content(e, ent)
+        self._apply_dates(e, ent)
+        self._apply_geo(e, ent)
 
-            self._apply_author(e, ent)
-            self._apply_content(e, ent)
-            self._apply_dates(e, ent)
-            self._apply_geo(e, ent)
+        link_image = self._resolve_link_image(ent)
+        if link_image is not None:
+            e.link_image = link_image
 
-            link_image = self._resolve_link_image(ent)
-            if link_image is not None:
-                e.link_image = link_image
+        custom_process = getattr(self, 'custom_process', None)
+        if callable(custom_process):
+            custom_process(e, ent)
 
-            custom_process = getattr(self, 'custom_process', None)
-            if callable(custom_process):
-                custom_process(e, ent)
+        e.mblob = getattr(e, 'custom_mblob', None)
+        self._apply_mblob(e, ent)
 
-            e.mblob = getattr(e, 'custom_mblob', None)
-            self._apply_mblob(e, ent)
+        e.content = strip_script(e.content)
+        return e
 
-            e.content = strip_script(e.content)
-
-            try:
-                e.save()
-                media.extract_and_register(e)
-            except Exception:
-                pass
-
-    def _resolve_entry(self, guid, ent):
-        """The entry to write, or None when this one should be skipped."""
+    @staticmethod
+    def _freshness(ent):
+        """The entry's update time, or None to rewrite it on every fetch."""
         # A membership test, not .get(): feedparser's deprecated .get() fallback
         # would substitute published_parsed for entries with no update time.
-        updated = mtime(ent.updated_parsed) if 'updated_parsed' in ent else None
-        return self.resolve_entry(guid, updated)
+        return mtime(ent.updated_parsed) if 'updated_parsed' in ent else None
 
-    def _apply_author(self, e: Entry, ent) -> None:
+    def _apply_author(self, e: Entry | NormalizedEntry, ent) -> None:
         """The entry's own author, falling back to the feed-level one."""
         if 'author_detail' in ent:
             e.author_name = ent.author_detail.get('name', '')
@@ -137,14 +139,14 @@ class WebfeedService(BaseService):
             e.author_uri = self.fp.feed.author_detail.get('href', '')
 
     @staticmethod
-    def _apply_content(e: Entry, ent) -> None:
+    def _apply_content(e: Entry | NormalizedEntry, ent) -> None:
         try:
             e.content = ent.content[0].value
         except Exception:
             e.content = ent.get('summary', ent.get('description', ''))
 
     @staticmethod
-    def _apply_dates(e: Entry, ent) -> None:
+    def _apply_dates(e: Entry | NormalizedEntry, ent) -> None:
         if 'published_parsed' in ent:
             e.date_published = mtime(ent.published_parsed)
         elif 'updated_parsed' in ent:
@@ -153,7 +155,7 @@ class WebfeedService(BaseService):
             e.date_updated = mtime(ent.updated_parsed)
 
     @staticmethod
-    def _apply_geo(e: Entry, ent) -> None:
+    def _apply_geo(e: Entry | NormalizedEntry, ent) -> None:
         if 'geo_lat' in ent and 'geo_long' in ent:
             e.geolat = ent.geo_lat
             e.geolng = ent.geo_long
@@ -173,7 +175,7 @@ class WebfeedService(BaseService):
         return found
 
     @staticmethod
-    def _apply_mblob(e: Entry, ent) -> None:
+    def _apply_mblob(e: Entry | NormalizedEntry, ent) -> None:
         mblob = media.mrss_init(e.mblob)
         if 'media_content' in ent:
             mblob['content'].append(ent.media_content)

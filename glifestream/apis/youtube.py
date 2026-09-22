@@ -16,9 +16,12 @@
 """
 
 import datetime
+from functools import partial
+
 from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
+from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.stream import media
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
@@ -67,6 +70,9 @@ class YoutubeService(BaseService):
         self.process(url)
 
     def process(self, url: str) -> None:
+        self.ingest(self._candidates(url))
+
+    def _candidates(self, url: str):
         kind = self.playlist_types.get(url)
         for ent in self.json.get('items', ()):
             snippet = ent.get('snippet', {})
@@ -80,23 +86,28 @@ class YoutubeService(BaseService):
 
             if self.verbose:
                 print('ID: %s' % guid)
-            e = self.resolve_entry(guid, mtime(t.timetuple()))
-            if e is None:
-                continue
+            yield Candidate(
+                guid,
+                mtime(t.timetuple()),
+                partial(self._normalize, guid, t, vid, snippet),
+            )
 
-            e.title = snippet['title']
-            e.link = 'https://www.youtube.com/watch?v=%s' % vid
-            e.date_published = t
-            e.date_updated = t
-            e.author_name = snippet['channelTitle']
-            e.content = self._render_content(e, vid, snippet.get('thumbnails', {}))
+    def _normalize(
+        self, guid: str, t: datetime.datetime, vid: str, snippet: dict
+    ) -> NormalizedEntry:
+        # YouTube entries never registered their thumbnail as Media.
+        e = NormalizedEntry(guid=guid, register_media=False)
+        e.title = snippet['title']
+        e.link = 'https://www.youtube.com/watch?v=%s' % vid
+        e.date_published = t
+        e.date_updated = t
+        e.author_name = snippet['channelTitle']
+        e.content = self._render_content(e, vid, snippet.get('thumbnails', {}))
+        return e
 
-            try:
-                e.save()
-            except Exception as exc:
-                print(exc)
-
-    def _render_content(self, e: Entry, vid: str, thumbnails: dict) -> str:
+    def _render_content(
+        self, e: Entry | NormalizedEntry, vid: str, thumbnails: dict
+    ) -> str:
         tn = _pick_thumbnail(thumbnails) if vid else None
         if tn is None:
             return '<a href="%s">%s</a>' % (e.link, e.title)

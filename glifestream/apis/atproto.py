@@ -21,6 +21,7 @@ import sys
 import traceback
 import datetime
 import re
+from functools import partial
 from typing import TYPE_CHECKING, Any, Optional, cast
 
 from django.utils import timezone
@@ -29,6 +30,7 @@ from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService, post_title, set_reblog
 from glifestream.filters import expand
+from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.utils.html import urlize
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
@@ -99,6 +101,9 @@ class AtProtoService(BaseService):
                 traceback.print_exc(file=sys.stdout)
 
     def process(self, entries: list[FeedViewPost]) -> None:
+        self.ingest(self._candidates(entries))
+
+    def _candidates(self, entries: list[FeedViewPost]):
         for ent in entries:
             repost_reason = _get_repost_reason(ent)
             if repost_reason and self.service.skip_reblogs:
@@ -107,42 +112,47 @@ class AtProtoService(BaseService):
                 continue
 
             post = cast(Any, ent.post)
-            author = post.author
             record = post.record
             guid = post.cid
             if self.verbose:
                 print('ID: %s' % guid)
 
             t = _entry_timestamp(repost_reason, record)
+            yield Candidate(
+                guid,
+                mtime(t.timetuple()),
+                partial(self._normalize, guid, t, ent, post, repost_reason),
+            )
 
-            e = self.resolve_entry(guid, mtime(t.timetuple()))
-            if e is None:
-                continue
+    def _normalize(
+        self,
+        guid: str,
+        t: datetime.datetime,
+        ent: FeedViewPost,
+        post: Any,
+        repost_reason: Any,
+    ) -> NormalizedEntry:
+        author = post.author
+        record = post.record
+        e = NormalizedEntry(guid=guid)
+        e.title = post_title(cast(str, record.text))
 
-            e.guid = guid
-            e.title = post_title(cast(str, record.text))
+        e.link = self.convert_uri_to_web_link(author.handle, post.uri)
+        if author.avatar:
+            e.link_image = media.save_image(author.avatar, direct_image=False)
 
-            e.link = self.convert_uri_to_web_link(author.handle, post.uri)
-            if author.avatar:
-                e.link_image = media.save_image(author.avatar, direct_image=False)
+        e.date_published = t
+        e.date_updated = t
+        e.author_name = author.display_name or author.handle
 
-            e.date_published = t
-            e.date_updated = t
-            e.author_name = author.display_name or author.handle
+        e.content = self._render_post_content(ent, post, record, e.link, guid)
+        _apply_repost(e, repost_reason)
 
-            e.content = self._render_post_content(ent, post, record, e.link, guid)
-            _apply_repost(e, repost_reason)
-
-            post_embed = post.embed
-            record_embed = getattr(record, 'embed', None)
-            video_embed = _normalize_video_embed(post_embed, record_embed)
-            e.mblob = _build_video_mblob(video_embed) if video_embed else None
-
-            try:
-                e.save()
-                media.extract_and_register(e)
-            except Exception:
-                pass
+        post_embed = post.embed
+        record_embed = getattr(record, 'embed', None)
+        video_embed = _normalize_video_embed(post_embed, record_embed)
+        e.mblob = _build_video_mblob(video_embed) if video_embed else None
+        return e
 
     def _render_post_content(
         self, entry: FeedViewPost, post: Any, record: Any, link: str, guid: str
@@ -215,7 +225,7 @@ def _entry_timestamp(repost_reason: Any, record: Any) -> datetime.datetime:
     return datetime.datetime.fromisoformat(created_at.replace('Z', '+00:00'))
 
 
-def _apply_repost(e: Entry, repost_reason: Any) -> None:
+def _apply_repost(e: NormalizedEntry, repost_reason: Any) -> None:
     if not repost_reason:
         set_reblog(e, False)
         return

@@ -17,6 +17,7 @@
 
 import datetime
 import re
+from functools import partial
 from typing import cast
 
 from django.utils import timezone
@@ -26,6 +27,7 @@ from django.utils.translation import gettext as _
 from glifestream.apis.base import BaseService, post_title, set_reblog
 from glifestream.filters import expand
 from glifestream.gauth import gls_oauth2
+from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.utils import httpclient
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
@@ -90,6 +92,9 @@ class MastodonService(BaseService):
         self.process(self.json)
 
     def process(self, entries) -> None:
+        self.ingest(self._candidates(entries))
+
+    def _candidates(self, entries):
         for ent in entries:
             entry = ent['reblog'] or ent
             reblog = entry is not ent
@@ -105,34 +110,38 @@ class MastodonService(BaseService):
             t = datetime.datetime.fromisoformat(
                 ent['created_at'].replace('Z', '+00:00')
             )
+            yield Candidate(
+                guid,
+                mtime(t.timetuple()),
+                partial(self._normalize, guid, t, ent, entry, reblog),
+            )
 
-            e = self.resolve_entry(guid, mtime(t.timetuple()))
-            if e is None:
-                continue
+    def _normalize(
+        self,
+        guid: str,
+        t: datetime.datetime,
+        ent: dict,
+        entry: dict,
+        reblog: bool,
+    ) -> NormalizedEntry:
+        e = NormalizedEntry(guid=guid)
+        e.title = post_title(entry['content'])
 
-            e.guid = guid
-            e.title = post_title(entry['content'])
+        e.link = entry['url']
+        image_url = entry['account']['avatar_static']
+        e.link_image = media.save_image(image_url, direct_image=False)
 
-            e.link = entry['url']
-            image_url = entry['account']['avatar_static']
-            e.link_image = media.save_image(image_url, direct_image=False)
+        e.date_published = t
+        e.date_updated = t
+        e.author_name = entry['account']['display_name']
 
-            e.date_published = t
-            e.date_updated = t
-            e.author_name = entry['account']['display_name']
-
-            e.content = self._render_entry_content(entry)
-            e.mblob = _build_video_mblob(entry)
-            if reblog:
-                set_reblog(e, True, ent['account']['display_name'], ent['uri'])
-            else:
-                set_reblog(e, False)
-
-            try:
-                e.save()
-                media.extract_and_register(e)
-            except Exception:
-                pass
+        e.content = self._render_entry_content(entry)
+        e.mblob = _build_video_mblob(entry)
+        if reblog:
+            set_reblog(e, True, ent['account']['display_name'], ent['uri'])
+        else:
+            set_reblog(e, False)
+        return e
 
     def _get_oauth_client(self) -> gls_oauth2.OAuth2Client:
         if self._oauth_client is None:
