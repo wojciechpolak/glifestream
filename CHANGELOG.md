@@ -85,6 +85,9 @@ work, so only the significant changes are listed.
   race applies its data to the row the other one stored.
 - Re-importing an entry no longer logs a database error for every thumbnail it
   already has.
+- Resharing a post now registers its local thumbnails. The reshare used to
+  register them before it saved the entry, so every registration failed and
+  logged an error.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
 

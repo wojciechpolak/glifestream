@@ -19,6 +19,7 @@ import logging
 from typing import Any
 
 from django.conf import settings
+from django.db import transaction
 from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
@@ -287,8 +288,10 @@ class SelfpostsService(BaseService):
 
         try:
             media.transform_to_local(e)
-            media.extract_and_register(e)
-            e.save()
+            # Media rows reference the entry, so save it first.
+            with transaction.atomic():
+                e.save()
+                media.extract_and_register(e)
             return e
         except Exception as exc:
             logger.error(exc)

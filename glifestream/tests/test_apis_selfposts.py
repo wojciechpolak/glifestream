@@ -5,7 +5,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.datastructures import MultiValueDict
-from glifestream.stream.models import Entry, Service
+from glifestream.stream.models import Entry, Media, Service
 from glifestream.apis.selfposts import SelfpostsService
 
 UTC = datetime.timezone.utc
@@ -345,6 +345,47 @@ def test_reshare_reports_a_post_it_could_not_save(selfposts, service, caplog):
         assert selfposts.reshare(source, {}) is None
 
     assert 'db is upset' in caplog.text
+
+
+@pytest.mark.django_db
+def test_reshare_registers_the_local_thumbnails(selfposts, service, caplog):
+    source = Entry.objects.create(
+        service=service,
+        title='Source',
+        guid='reshare-thumbs',
+        link='http://example.com/',
+        content='<img src="[GLS-THUMBS]/abcdef0123456789" alt="" />',
+        date_published=datetime.datetime(2026, 3, 22, 17, 0, tzinfo=UTC),
+    )
+
+    entry = selfposts.reshare(source, {})
+
+    assert entry is not None and entry.pk is not None
+    assert list(Media.objects.filter(entry=entry).values_list('file', flat=True)) == [
+        'thumbs/a/abcdef0123456789'
+    ]
+    assert caplog.records == []
+
+
+@pytest.mark.django_db
+def test_reshare_rolls_back_the_entry_when_media_fails(selfposts, service, caplog):
+    source = Entry.objects.create(
+        service=service,
+        title='Source',
+        guid='reshare-media-fails',
+        link='http://example.com/',
+        content='Body',
+        date_published=datetime.datetime(2026, 3, 22, 17, 0, tzinfo=UTC),
+    )
+
+    with patch(
+        'glifestream.apis.selfposts.media.extract_and_register',
+        side_effect=Exception('thumbs unavailable'),
+    ):
+        assert selfposts.reshare(source, {}) is None
+
+    assert 'thumbs unavailable' in caplog.text
+    assert list(Entry.objects.values_list('guid', flat=True)) == ['reshare-media-fails']
 
 
 def test_selfposts_service_has_no_feed_to_fetch(service):
