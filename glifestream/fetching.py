@@ -19,9 +19,11 @@ from __future__ import annotations
 
 import logging
 import os
+import queue
 import select
 import socket
 import threading
+import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass
@@ -31,7 +33,7 @@ from typing import Any
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import DatabaseError, close_old_connections, connections, transaction
-from django.db.models import Q
+from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.translation import ngettext
 
@@ -48,6 +50,7 @@ DEFAULT_WORKER_POOL_SIZE = 4
 DEFAULT_FETCH_INTERVAL_SEC = 7200
 DEFAULT_FETCH_RETRY_BASE_SEC = 60
 DEFAULT_FETCH_TERMINAL_DELAY_SEC = 24 * 3600
+DEFAULT_FETCH_JOB_TIMEOUT_SEC = 900
 # Past this many doublings the retry delay has long hit the interval cap.
 MAX_RETRY_DOUBLINGS = 20
 
@@ -64,6 +67,12 @@ class FetchFailure:
     kind: str
     category: str
     retry_after_sec: int | None = None
+
+
+@dataclass(slots=True, frozen=True)
+class _FetchJob:
+    state_id: int | None
+    service: Service
 
 
 @dataclass(slots=True, frozen=True)
@@ -108,6 +117,12 @@ def get_fetch_retry_base_sec() -> int:
 def get_fetch_terminal_delay_sec() -> int:
     return int(
         getattr(settings, 'FETCH_TERMINAL_DELAY_SEC', DEFAULT_FETCH_TERMINAL_DELAY_SEC)
+    )
+
+
+def get_fetch_job_timeout_sec() -> int:
+    return int(
+        getattr(settings, 'FETCH_JOB_TIMEOUT_SEC', DEFAULT_FETCH_JOB_TIMEOUT_SEC)
     )
 
 
@@ -256,6 +271,9 @@ def recover_abandoned_fetch_states(*, now: Any | None = None) -> None:
         last_failed_at=now,
         last_result='Fetch interrupted.',
         last_error='Worker stopped before fetch completed.',
+        consecutive_failures=F('consecutive_failures') + 1,
+        failure_kind=ServiceFetchState.FAILURE_RETRYABLE,
+        failure_category='interrupted',
         worker_token='',
     )
 
@@ -399,17 +417,9 @@ def _update_state_success(
     *,
     finished_at: Any,
 ) -> None:
-    service.next_fetch_at = compute_next_fetch_at(
-        service,
-        now=finished_at,
-        reference_time=finished_at,
-    )
-    service.save(update_fields=['next_fetch_at'])
-
-    if state_id is None:
-        return
-
-    ServiceFetchState.objects.filter(id=state_id, worker_token=worker_token).update(
+    if not _record_outcome(
+        state_id,
+        worker_token,
         status=ServiceFetchState.STATUS_SUCCEEDED,
         finished_at=finished_at,
         last_succeeded_at=finished_at,
@@ -418,8 +428,14 @@ def _update_state_success(
         consecutive_failures=0,
         failure_kind='',
         failure_category='',
-        worker_token='',
+    ):
+        return
+    service.next_fetch_at = compute_next_fetch_at(
+        service,
+        now=finished_at,
+        reference_time=finished_at,
     )
+    service.save(update_fields=['next_fetch_at'])
 
 
 def _update_state_failure(
@@ -431,43 +447,46 @@ def _update_state_failure(
     error: Exception,
 ) -> None:
     failure = classify_fetch_failure(error)
-    with transaction.atomic():
-        state = None
-        if state_id is not None:
-            state = (
-                ServiceFetchState.objects.select_for_update()
-                .filter(id=state_id, worker_token=worker_token)
-                .first()
-            )
-        attempt = state.consecutive_failures + 1 if state else 1
-        service.next_fetch_at = compute_retry_at(
-            service, failure, attempt, now=finished_at
-        )
-        service.save(update_fields=['next_fetch_at'])
-        if state is None:
-            return
+    last_result, last_error = _describe_fetch_failure(error)
+    if not _record_outcome(
+        state_id,
+        worker_token,
+        status=ServiceFetchState.STATUS_FAILED,
+        finished_at=finished_at,
+        last_failed_at=finished_at,
+        last_result=last_result,
+        last_error=last_error,
+        consecutive_failures=F('consecutive_failures') + 1,
+        failure_kind=failure.kind,
+        failure_category=failure.category,
+    ):
+        return
+    attempt = 1
+    if state_id is not None:
+        attempt = ServiceFetchState.objects.values_list(
+            'consecutive_failures', flat=True
+        ).get(id=state_id)
+    service.next_fetch_at = compute_retry_at(service, failure, attempt, now=finished_at)
+    service.save(update_fields=['next_fetch_at'])
 
-        state.last_result, state.last_error = _describe_fetch_failure(error)
-        state.status = ServiceFetchState.STATUS_FAILED
-        state.finished_at = finished_at
-        state.last_failed_at = finished_at
-        state.consecutive_failures = attempt
-        state.failure_kind = failure.kind
-        state.failure_category = failure.category
-        state.worker_token = ''
-        state.save(
-            update_fields=[
-                'status',
-                'finished_at',
-                'last_failed_at',
-                'last_result',
-                'last_error',
-                'consecutive_failures',
-                'failure_kind',
-                'failure_category',
-                'worker_token',
-            ]
+
+def _record_outcome(state_id: int | None, worker_token: str, **fields: Any) -> bool:
+    """Store a job's outcome, and say whether the job may reschedule its service.
+
+    The UPDATE matches only while the job still holds its worker token, and
+    clears the token. The worker clears it itself when it gives up on a job,
+    for example after a timeout, so a fetch that finishes after that changes
+    nothing. One UPDATE statement, rather than a read then a write, also waits
+    for SQLite's write lock instead of failing with "database is locked".
+    A fetch without a state, as run from the command line, always reschedules.
+    """
+    if state_id is None:
+        return True
+    return bool(
+        ServiceFetchState.objects.filter(id=state_id, worker_token=worker_token).update(
+            worker_token='', **fields
         )
+    )
 
 
 def _describe_fetch_failure(error: Exception) -> tuple[str, str]:
@@ -679,10 +698,12 @@ class FetchWorker:
         socket_path: str | None = None,
         max_workers: int | None = None,
         verbose: int = 0,
+        job_timeout_sec: float | None = None,
     ):
         self.socket_path = socket_path or get_worker_socket()
         self.max_workers = max_workers or get_worker_pool_size()
         self.verbose = verbose
+        self.job_timeout_sec = job_timeout_sec or get_fetch_job_timeout_sec()
         self.socket: socket.socket | None = None
         self.last_processed_jobs: list[ProcessedFetchJob] = []
 
@@ -751,38 +772,107 @@ class FetchWorker:
                 if state_id is not None and state_id in state_map
             ]
 
-            with ThreadPoolExecutor(
-                max_workers=min(self.max_workers, len(claimed))
-            ) as executor:
-                futures = [
-                    executor.submit(
-                        run_service_fetch,
-                        Service.objects.get(pk=service_id),
-                        state_id=state_id,
-                        worker_token=worker_token,
-                        verbose=self.verbose,
-                        trigger=ServiceFetchState.TRIGGER_MANUAL,
-                    )
-                    for state_id, service_id in claimed
-                ]
-                wait(futures)
-            # run_service_fetch already logged and recorded each failure, so
-            # a failed service must not stop the worker for the others.
-            for (_state_id, service_id), future in zip(claimed, futures):
-                error = future.exception()
-                if error is not None:
-                    logger.warning(
-                        'Fetch job for service %s ended with %s: %s',
-                        service_id,
-                        type(error).__name__,
-                        error,
-                    )
+            jobs = [
+                _FetchJob(state_id, Service.objects.get(pk=service_id))
+                for state_id, service_id in claimed
+            ]
+            self._run_jobs(jobs, worker_token)
             return len(claimed)
         except DatabaseError:
             logger.exception('Fetch worker database cycle failed.')
             return 0
         finally:
             connections.close_all()
+
+    def _run_jobs(self, jobs: list[_FetchJob], worker_token: str) -> None:
+        """Fetch `jobs`, at most `max_workers` at a time, each with a deadline.
+
+        A job still running at its deadline is recorded as timed out and no
+        longer counts toward `max_workers`. Python cannot stop its thread, so
+        it keeps running in the background; it can no longer record anything.
+        """
+        finished: queue.Queue[tuple[int, BaseException | None]] = queue.Queue()
+        waiting = list(jobs)
+        running: dict[int, tuple[_FetchJob, float]] = {}
+        while waiting or running:
+            while waiting and len(running) < self.max_workers:
+                job = waiting.pop(0)
+                running[job.service.pk] = (
+                    job,
+                    time.monotonic() + self.job_timeout_sec,
+                )
+                self._start_job(job, worker_token, finished)
+            next_deadline = min(deadline for _, deadline in running.values())
+            try:
+                service_id, error = finished.get(
+                    timeout=max(next_deadline - time.monotonic(), 0)
+                )
+            except queue.Empty:
+                self._abandon_overdue_jobs(running, worker_token)
+                continue
+            if running.pop(service_id, None) is not None and error is not None:
+                # run_service_fetch already logged and recorded the failure,
+                # so a failed service must not stop the worker for the others.
+                logger.warning(
+                    'Fetch job for service %s ended with %s: %s',
+                    service_id,
+                    type(error).__name__,
+                    error,
+                )
+
+    def _start_job(
+        self,
+        job: _FetchJob,
+        worker_token: str,
+        finished: queue.Queue[tuple[int, BaseException | None]],
+    ) -> None:
+        def target() -> None:
+            error: BaseException | None = None
+            try:
+                run_service_fetch(
+                    job.service,
+                    state_id=job.state_id,
+                    worker_token=worker_token,
+                    verbose=self.verbose,
+                    trigger=ServiceFetchState.TRIGGER_MANUAL,
+                )
+            except Exception as exc:
+                error = exc
+            finally:
+                finished.put((job.service.pk, error))
+
+        threading.Thread(
+            target=target,
+            name='fetch-service-%s' % job.service.pk,
+            daemon=True,
+        ).start()
+
+    def _abandon_overdue_jobs(
+        self, running: dict[int, tuple[_FetchJob, float]], worker_token: str
+    ) -> None:
+        now = time.monotonic()
+        for service_id, (job, deadline) in list(running.items()):
+            if deadline > now:
+                continue
+            del running[service_id]
+            logger.warning(
+                'Fetch job for service %s did not finish within %g seconds.',
+                service_id,
+                self.job_timeout_sec,
+            )
+            _update_state_failure(
+                job.state_id,
+                worker_token,
+                job.service,
+                finished_at=timezone.now(),
+                error=httpclient.build_fetch_error(
+                    category='timeout',
+                    detail='The fetch did not finish within %g seconds.'
+                    % self.job_timeout_sec,
+                    retryable=True,
+                    user_message='Fetch timed out.',
+                ),
+            )
 
     def serve(self, stop_event: threading.Event | None = None) -> None:
         sock = self.open_socket()

@@ -34,6 +34,9 @@ work, so only the significant changes are listed.
   `Retry-After` from the remote wins. A failure that retrying cannot fix waits
   at least a day. The status tab shows how many times in a row a service has
   failed. `FETCH_RETRY_BASE_SEC` and `FETCH_TERMINAL_DELAY_SEC` set the delays.
+- A fetch timeout, `FETCH_JOB_TIMEOUT_SEC` (15 minutes by default). A service
+  whose fetch hangs no longer stops the worker from fetching the others; it is
+  recorded as timed out and retried with backoff.
 - Magic Link SSO as the new backend for the "Friends Only" mode.
 - Forced password change flow for initial admin accounts.
 - Test infrastructure: pytest suite, Playwright E2E coverage (including OAuth

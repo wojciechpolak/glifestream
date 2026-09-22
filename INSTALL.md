@@ -131,6 +131,12 @@ The fetch worker (`./worker.py --daemon` or `manage.py run_worker`) reads:
   an HTTP 404, rejected credentials or an unparsable feed, in seconds. Defaults
   to `86400`. The service's interval wins when it is longer. The next
   successful fetch returns the service to its normal interval.
+- `FETCH_JOB_TIMEOUT_SEC`
+  How long the worker waits for one service's fetch, in seconds. Defaults to
+  `900`. After that it records the fetch as timed out, retries it like any
+  other temporary failure, and goes on with the other services. Python cannot
+  stop the stuck fetch, so it keeps running in the background, but it can no
+  longer change the service's status or schedule.
 
 Magic Link SSO settings
 -----------------------

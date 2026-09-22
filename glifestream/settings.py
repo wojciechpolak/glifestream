@@ -179,6 +179,8 @@ FETCH_RETRY_BASE_SEC = get_int(ENV, 'FETCH_RETRY_BASE_SEC', default=60) or 60
 FETCH_TERMINAL_DELAY_SEC = (
     get_int(ENV, 'FETCH_TERMINAL_DELAY_SEC', default=24 * 3600) or 24 * 3600
 )
+# Give up waiting for a single service's fetch after this many seconds.
+FETCH_JOB_TIMEOUT_SEC = get_int(ENV, 'FETCH_JOB_TIMEOUT_SEC', default=900) or 900
 FETCH_FEED_MAX_BYTES = get_int(ENV, 'FETCH_FEED_MAX_BYTES', default=5 * 1024 * 1024)
 FETCH_FEED_HTML_SNIFF_BYTES = get_int(
     ENV,
