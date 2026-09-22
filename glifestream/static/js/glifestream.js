@@ -1635,7 +1635,8 @@
             last_failed_at: diagnostics.attr('data-last-failed-at') || null,
             next_fetch_at: diagnostics.attr('data-next-fetch-at') || null,
             last_result: diagnostics.attr('data-last-result') || '',
-            last_error: diagnostics.attr('data-last-error') || ''
+            last_error: diagnostics.attr('data-last-error') || '',
+            failure_note: diagnostics.attr('data-failure-note') || ''
         };
     }
 
@@ -1656,6 +1657,7 @@
         diagnostics.attr('data-next-fetch-at', state.next_fetch_at || '');
         diagnostics.attr('data-last-result', state.last_result || '');
         diagnostics.attr('data-last-error', state.last_error || '');
+        diagnostics.attr('data-failure-note', state.failure_note || '');
     }
 
     function render_fetch_diagnostics(state) {
@@ -1670,9 +1672,10 @@
         $('#fetch-summary-finished-' + state.service_id).text(
             format_fetch_timestamp(state.finished_at, _('No completed runs'))
         );
-        $('#fetch-summary-next-fetch-' + state.service_id).text(
-            format_fetch_timestamp(state.next_fetch_at, _('Not scheduled'))
-        );
+        const retryNote = $('#fetch-retry-note-' + state.service_id).detach();
+        $('#fetch-summary-next-fetch-' + state.service_id)
+            .text(format_fetch_timestamp(state.next_fetch_at, _('Not scheduled')))
+            .append(retryNote.text(state.failure_note || ''));
 
         const errorWrap = $('#fetch-error-' + state.service_id);
         const errorText = $('#fetch-error-text-' + state.service_id);

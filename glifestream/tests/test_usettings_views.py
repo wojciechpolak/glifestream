@@ -87,6 +87,24 @@ def test_usettings_status_list(logged_in_client):
 
 
 @pytest.mark.django_db
+def test_usettings_status_shows_the_failure_streak(logged_in_client):
+    service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        consecutive_failures=3,
+        failure_kind=ServiceFetchState.FAILURE_RETRYABLE,
+        failure_category='timeout',
+    )
+
+    body = logged_in_client.get(reverse('usettings-status')).content.decode()
+
+    note = 'Failed 3 times in a row. Retrying sooner than usual.'
+    assert 'data-failure-note="%s"' % note in body
+    assert 'id="fetch-retry-note-%d">%s</span>' % (service.pk, note) in body
+
+
+@pytest.mark.django_db
 def test_usettings_status_hides_non_fetchable_services(logged_in_client):
     Service.objects.create(name='Notes', api='selfposts')
 
@@ -238,6 +256,7 @@ def test_usettings_fetch_status_exposes_failure_state(logged_in_client):
     assert state['last_error'] == 'remote 500'
     assert state['last_succeeded_at'] == succeeded_at.isoformat()
     assert state['last_failed_at'] == failed_at.isoformat()
+    assert (state['consecutive_failures'], state['failure_note']) == (0, '')
 
 
 @pytest.mark.django_db

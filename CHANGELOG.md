@@ -29,6 +29,11 @@ work, so only the significant changes are listed.
 - Worker daemon that replaces cron-driven fetches, with a retry-capable fetch
   scheduler and improved fetch failure handling.
 - Service status tab in user settings.
+- Fetch retries with backoff. A temporary failure is retried after one minute,
+  doubling on each further failure up to the service's interval, and a longer
+  `Retry-After` from the remote wins. A failure that retrying cannot fix waits
+  at least a day. The status tab shows how many times in a row a service has
+  failed. `FETCH_RETRY_BASE_SEC` and `FETCH_TERMINAL_DELAY_SEC` set the delays.
 - Magic Link SSO as the new backend for the "Friends Only" mode.
 - Forced password change flow for initial admin accounts.
 - Test infrastructure: pytest suite, Playwright E2E coverage (including OAuth

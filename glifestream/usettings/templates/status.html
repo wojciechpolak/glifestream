@@ -77,6 +77,16 @@
       opacity: 0.56;
       pointer-events: none;
     }
+    #status-table .retry-note {
+      display: block;
+      margin-top: 0.2rem;
+      font-size: 0.82rem;
+      line-height: 1.35;
+      opacity: 0.8;
+    }
+    #status-table .retry-note:empty {
+      display: none;
+    }
     #status-table .error-text {
       color: #8c1d1d;
       word-break: break-word;
@@ -118,7 +128,8 @@
           data-last-failed-at="{{ s.fetch_state_snapshot.last_failed_at|default_if_none:'' }}"
           data-next-fetch-at="{{ s.fetch_state_snapshot.next_fetch_at|default_if_none:'' }}"
           data-last-result="{{ s.fetch_state_snapshot.last_result }}"
-          data-last-error="{{ s.fetch_state_snapshot.last_error }}">
+          data-last-error="{{ s.fetch_state_snapshot.last_error }}"
+          data-failure-note="{{ s.fetch_state_snapshot.failure_note }}">
         <td class="service-name">{{ s.name }}</td>
         <td>{{ s.api }}</td>
         <td class="action-cell">
@@ -158,6 +169,7 @@
           {% else %}
             {% trans "Not scheduled" %}
           {% endif %}
+          <span class="retry-note" id="fetch-retry-note-{{ s.id }}">{{ s.fetch_state_snapshot.failure_note }}</span>
         </td>
         <td id="fetch-error-{{ s.id }}" class="error-text">
           <span id="fetch-error-text-{{ s.id }}">

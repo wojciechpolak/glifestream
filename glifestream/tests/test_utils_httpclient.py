@@ -302,3 +302,46 @@ def test_gen_auth():
 
     service_none = Service(creds='')
     assert httpclient.gen_auth(service_none) is None
+
+
+@patch('glifestream.utils.httpclient.time.sleep')
+@patch('requests.get')
+def test_get_leaves_a_long_retry_after_to_the_scheduler(mock_get, mock_sleep):
+    mock_get.return_value = _make_response(
+        429, reason='Too Many Requests', headers={'Retry-After': '600'}
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get('example.com')
+
+    assert mock_get.call_count == 1
+    mock_sleep.assert_not_called()
+    assert excinfo.value.retry_after_sec == 600
+    assert excinfo.value.category == 'rate_limited'
+
+
+@patch('glifestream.utils.httpclient.time.sleep')
+@patch('requests.get')
+def test_get_caps_the_retry_after_it_reports(mock_get, mock_sleep):
+    mock_get.return_value = _make_response(
+        503, reason='Service Unavailable', headers={'Retry-After': '999999'}
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get('example.com')
+
+    assert excinfo.value.retry_after_sec == httpclient.MAX_SCHEDULED_RETRY_AFTER_SEC
+
+
+@patch('glifestream.utils.httpclient.time.sleep')
+@patch('requests.get')
+def test_get_reports_a_short_retry_after_once_retries_run_out(mock_get, mock_sleep):
+    mock_get.return_value = _make_response(
+        503, reason='Service Unavailable', headers={'Retry-After': '3'}
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get('example.com')
+
+    assert mock_get.call_count == len(httpclient.READ_RETRY_BACKOFF_SEC) + 1
+    assert excinfo.value.retry_after_sec == 3

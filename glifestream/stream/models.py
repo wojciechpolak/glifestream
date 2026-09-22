@@ -319,6 +319,13 @@ class ServiceFetchState(models.Model):
         (STATUS_FAILED, _('Failed')),
     )
 
+    FAILURE_RETRYABLE = 'retryable'
+    FAILURE_TERMINAL = 'terminal'
+    FAILURE_KIND_CHOICES = (
+        (FAILURE_RETRYABLE, _('Retryable')),
+        (FAILURE_TERMINAL, _('Terminal')),
+    )
+
     TRIGGER_MANUAL = 'manual'
     TRIGGER_SCHEDULE = 'schedule'
     TRIGGER_CHOICES = (
@@ -354,6 +361,19 @@ class ServiceFetchState(models.Model):
     last_failed_at = models.DateTimeField(_('Last failed at'), null=True, blank=True)
     last_result = models.CharField(_('Last result'), max_length=128, blank=True)
     last_error = models.TextField(_('Last error'), blank=True)
+    # Failures since the last success; a success resets all three fields.
+    consecutive_failures = models.PositiveIntegerField(
+        _('Consecutive failures'), default=0
+    )
+    failure_kind = models.CharField(
+        _('Failure kind'),
+        max_length=16,
+        choices=FAILURE_KIND_CHOICES,
+        blank=True,
+    )
+    failure_category = models.CharField(
+        _('Failure category'), max_length=32, blank=True
+    )
     triggered_by_user = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,

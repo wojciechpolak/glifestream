@@ -172,6 +172,13 @@ WORKER_POOL_SIZE = get_int(ENV, 'WORKER_POOL_SIZE', default=4) or 4
 FETCH_DEFAULT_INTERVAL_SEC = (
     get_int(ENV, 'FETCH_DEFAULT_INTERVAL_SEC', default=7200) or 7200
 )
+# Retry a temporary fetch failure after this many seconds, doubling on each
+# further failure up to the service's interval.
+FETCH_RETRY_BASE_SEC = get_int(ENV, 'FETCH_RETRY_BASE_SEC', default=60) or 60
+# After a failure that retrying cannot fix, wait at least this long.
+FETCH_TERMINAL_DELAY_SEC = (
+    get_int(ENV, 'FETCH_TERMINAL_DELAY_SEC', default=24 * 3600) or 24 * 3600
+)
 FETCH_FEED_MAX_BYTES = get_int(ENV, 'FETCH_FEED_MAX_BYTES', default=5 * 1024 * 1024)
 FETCH_FEED_HTML_SNIFF_BYTES = get_int(
     ENV,

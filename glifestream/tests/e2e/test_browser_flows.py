@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import time
 from collections.abc import Callable
@@ -820,3 +821,65 @@ def test_settings_async_create_fetches_feed_content(
     assert Entry.objects.filter(
         service__name='Playwright Async Feed', title='Public RSS Entry'
     ).exists()
+
+
+def test_status_tab_shows_and_clears_the_failure_note(
+    page: Page,
+    app_base_url: str,
+    ensure_admin_session,
+):
+    # In a full pytest run the live server shares the test thread's database
+    # connection, so the test thread must not query while a request is being
+    # served. Create the service before any page activity, and stub the fetch
+    # endpoints: this test checks how the page renders what they return.
+    service = Service.objects.create(
+        name='Playwright Flaky Feed', api='webfeed', url='http://feed.invalid/'
+    )
+    ensure_admin_session()
+    note_text = (
+        'Failed 3 times in a row. The error does not look temporary, '
+        'so fetches are slowed down.'
+    )
+    polled: list[dict] = []
+
+    def state(status: str, note: str = '') -> dict:
+        return {
+            'service_id': service.pk,
+            'status': status,
+            'next_fetch_at': '2026-03-02T10:00:00+00:00',
+            'failure_note': note,
+        }
+
+    def fulfil(route, body: dict) -> None:
+        route.fulfill(
+            status=200, content_type='application/json', body=json.dumps(body)
+        )
+
+    page.route(
+        '**/settings/api/fetch-now',
+        lambda route: fulfil(route, {'queued': True, 'state': state('queued')}),
+    )
+    page.route(
+        '**/settings/api/fetch-status*',
+        lambda route: fulfil(route, {'services': {str(service.pk): polled[-1]}}),
+    )
+
+    page.goto(f'{app_base_url}/settings/status')
+    row = page.locator('#fetch-diagnostics-%d' % service.pk)
+    note = page.locator('#fetch-retry-note-%d' % service.pk)
+    next_fetch = page.locator('#fetch-summary-next-fetch-%d' % service.pk)
+    expect(note).to_be_hidden()
+
+    polled.append(state('failed', note_text))
+    row.locator('a.run-fetch').click()
+    expect(note).to_have_text(note_text)
+    expect(note).to_be_visible()
+    expect(next_fetch).not_to_contain_text('Not scheduled')
+    expect(row.locator('.fetch-status')).to_have_attribute('data-status', 'failed')
+
+    polled.append(state('succeeded'))
+    row.locator('a.run-fetch').click()
+    expect(row.locator('.fetch-status')).to_have_attribute('data-status', 'succeeded')
+    expect(note).to_have_text('')
+    expect(note).to_be_hidden()
+    page.goto('about:blank')

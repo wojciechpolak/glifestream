@@ -33,6 +33,7 @@ from django.contrib.auth.models import User
 from django.db import DatabaseError, close_old_connections, connections, transaction
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.translation import ngettext
 
 from glifestream.apis.factory import ServiceFactory
 from glifestream.stream import websub
@@ -45,6 +46,10 @@ WAKE_PAYLOAD = b'wake'
 DEFAULT_WORKER_SOCKET = '/tmp/glifestream-worker.sock'
 DEFAULT_WORKER_POOL_SIZE = 4
 DEFAULT_FETCH_INTERVAL_SEC = 7200
+DEFAULT_FETCH_RETRY_BASE_SEC = 60
+DEFAULT_FETCH_TERMINAL_DELAY_SEC = 24 * 3600
+# Past this many doublings the retry delay has long hit the interval cap.
+MAX_RETRY_DOUBLINGS = 20
 
 
 @dataclass(slots=True)
@@ -52,6 +57,13 @@ class EnqueueResult:
     state: ServiceFetchState
     queued: bool
     wake_sent: bool
+
+
+@dataclass(slots=True, frozen=True)
+class FetchFailure:
+    kind: str
+    category: str
+    retry_after_sec: int | None = None
 
 
 @dataclass(slots=True, frozen=True)
@@ -86,6 +98,16 @@ def get_default_fetch_interval_sec() -> int:
             'FETCH_DEFAULT_INTERVAL_SEC',
             DEFAULT_FETCH_INTERVAL_SEC,
         )
+    )
+
+
+def get_fetch_retry_base_sec() -> int:
+    return int(getattr(settings, 'FETCH_RETRY_BASE_SEC', DEFAULT_FETCH_RETRY_BASE_SEC))
+
+
+def get_fetch_terminal_delay_sec() -> int:
+    return int(
+        getattr(settings, 'FETCH_TERMINAL_DELAY_SEC', DEFAULT_FETCH_TERMINAL_DELAY_SEC)
     )
 
 
@@ -129,6 +151,71 @@ def compute_next_fetch_at(
 
     base_time = reference_time or service.last_checked or now or timezone.now()
     return base_time + timedelta(seconds=interval_sec)
+
+
+def classify_fetch_failure(error: Exception) -> FetchFailure:
+    """Whether retrying soon can help, and why the fetch failed.
+
+    A FetchError says so itself. Any other exception counts as retryable,
+    because a provider bug may not trigger on the next payload.
+    """
+    if isinstance(error, httpclient.FetchError):
+        kind = (
+            ServiceFetchState.FAILURE_RETRYABLE
+            if error.retryable
+            else ServiceFetchState.FAILURE_TERMINAL
+        )
+        return FetchFailure(kind, error.category, error.retry_after_sec)
+    return FetchFailure(ServiceFetchState.FAILURE_RETRYABLE, 'unexpected')
+
+
+def compute_retry_at(
+    service: Service,
+    failure: FetchFailure,
+    attempt: int,
+    *,
+    now: Any,
+) -> Any | None:
+    """When to fetch `service` again after its `attempt`-th failure in a row.
+
+    A retryable failure waits base * 2^(attempt - 1) seconds, capped at the
+    service's interval. A terminal failure waits the longer of the interval
+    and the terminal delay. A longer Retry-After from the remote wins.
+    """
+    if not service.active or not is_service_fetchable(service):
+        return None
+    interval_sec = get_effective_interval_sec(service)
+    if interval_sec is None:
+        return None
+
+    if failure.kind == ServiceFetchState.FAILURE_TERMINAL:
+        delay_sec = max(interval_sec, get_fetch_terminal_delay_sec())
+    else:
+        doublings = min(max(attempt, 1) - 1, MAX_RETRY_DOUBLINGS)
+        delay_sec = min(get_fetch_retry_base_sec() * 2**doublings, interval_sec)
+    if failure.retry_after_sec is not None:
+        delay_sec = max(delay_sec, failure.retry_after_sec)
+    return now + timedelta(seconds=delay_sec)
+
+
+def describe_failure_backoff(state: ServiceFetchState | None) -> str:
+    """A status-tab note on how repeated failures change the schedule."""
+    if state is None or not state.consecutive_failures:
+        return ''
+    count = state.consecutive_failures
+    if state.failure_kind == ServiceFetchState.FAILURE_TERMINAL:
+        return ngettext(
+            'Failed %(count)d time in a row. The error does not look '
+            'temporary, so fetches are slowed down.',
+            'Failed %(count)d times in a row. The error does not look '
+            'temporary, so fetches are slowed down.',
+            count,
+        ) % {'count': count}
+    return ngettext(
+        'Failed %(count)d time in a row. Retrying sooner than usual.',
+        'Failed %(count)d times in a row. Retrying sooner than usual.',
+        count,
+    ) % {'count': count}
 
 
 def ensure_fetch_state(service: Service) -> ServiceFetchState:
@@ -252,6 +339,10 @@ def serialize_fetch_state(
     )
     payload['last_result'] = state.last_result if state else ''
     payload['last_error'] = state.last_error if state else ''
+    payload['consecutive_failures'] = state.consecutive_failures if state else 0
+    payload['failure_kind'] = state.failure_kind if state else ''
+    payload['failure_category'] = state.failure_category if state else ''
+    payload['failure_note'] = describe_failure_backoff(state)
     payload['next_fetch_at'] = _isoformat(service.next_fetch_at)
     payload['effective_interval_sec'] = get_effective_interval_sec(service)
     return payload
@@ -324,6 +415,9 @@ def _update_state_success(
         last_succeeded_at=finished_at,
         last_result='Fetch completed.',
         last_error='',
+        consecutive_failures=0,
+        failure_kind='',
+        failure_category='',
         worker_token='',
     )
 
@@ -336,25 +430,44 @@ def _update_state_failure(
     finished_at: Any,
     error: Exception,
 ) -> None:
-    service.next_fetch_at = compute_next_fetch_at(
-        service,
-        now=finished_at,
-        reference_time=finished_at,
-    )
-    service.save(update_fields=['next_fetch_at'])
+    failure = classify_fetch_failure(error)
+    with transaction.atomic():
+        state = None
+        if state_id is not None:
+            state = (
+                ServiceFetchState.objects.select_for_update()
+                .filter(id=state_id, worker_token=worker_token)
+                .first()
+            )
+        attempt = state.consecutive_failures + 1 if state else 1
+        service.next_fetch_at = compute_retry_at(
+            service, failure, attempt, now=finished_at
+        )
+        service.save(update_fields=['next_fetch_at'])
+        if state is None:
+            return
 
-    if state_id is None:
-        return
-
-    last_result, last_error = _describe_fetch_failure(error)
-    ServiceFetchState.objects.filter(id=state_id, worker_token=worker_token).update(
-        status=ServiceFetchState.STATUS_FAILED,
-        finished_at=finished_at,
-        last_failed_at=finished_at,
-        last_result=last_result,
-        last_error=last_error,
-        worker_token='',
-    )
+        state.last_result, state.last_error = _describe_fetch_failure(error)
+        state.status = ServiceFetchState.STATUS_FAILED
+        state.finished_at = finished_at
+        state.last_failed_at = finished_at
+        state.consecutive_failures = attempt
+        state.failure_kind = failure.kind
+        state.failure_category = failure.category
+        state.worker_token = ''
+        state.save(
+            update_fields=[
+                'status',
+                'finished_at',
+                'last_failed_at',
+                'last_result',
+                'last_error',
+                'consecutive_failures',
+                'failure_kind',
+                'failure_category',
+                'worker_token',
+            ]
+        )
 
 
 def _describe_fetch_failure(error: Exception) -> tuple[str, str]:

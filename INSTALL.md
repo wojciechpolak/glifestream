@@ -111,6 +111,27 @@ These settings matter most for a hardened deployment:
 - `GLIFESTREAM_VALIDATE_SETTINGS_SECRETS`
   Leave enabled in production so placeholder secrets fail fast at startup.
 
+Background worker settings
+--------------------------
+
+The fetch worker (`./worker.py --daemon` or `manage.py run_worker`) reads:
+
+- `WORKER_POOL_SIZE`
+  How many services it fetches at the same time. Defaults to `4`.
+- `FETCH_DEFAULT_INTERVAL_SEC`
+  How often a service is fetched when it has no interval of its own, in
+  seconds. Defaults to `7200`. A provider's own minimum wins when it is longer.
+- `FETCH_RETRY_BASE_SEC`
+  The first retry delay after a temporary failure such as a timeout or an HTTP
+  5xx, in seconds. Defaults to `60`. Each further failure in a row doubles the
+  delay, up to the service's interval. A longer `Retry-After` from the remote
+  service wins.
+- `FETCH_TERMINAL_DELAY_SEC`
+  How long the worker waits after a failure that retrying cannot fix, such as
+  an HTTP 404, rejected credentials or an unparsable feed, in seconds. Defaults
+  to `86400`. The service's interval wins when it is longer. The next
+  successful fetch returns the service to its normal interval.
+
 Magic Link SSO settings
 -----------------------
 

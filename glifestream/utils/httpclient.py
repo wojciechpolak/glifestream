@@ -35,6 +35,8 @@ HEADERS = {
 READ_RETRY_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 READ_RETRY_BACKOFF_SEC = (1, 2)
 MAX_RETRY_AFTER_SEC = 30
+# The longest Retry-After the fetch scheduler honours.
+MAX_SCHEDULED_RETRY_AFTER_SEC = 24 * 3600
 AMBIGUOUS_MEDIA_CONTENT_TYPES = {
     '',
     'application/octet-stream',
@@ -64,8 +66,10 @@ class FetchError(HTTPError):
         detail: str,
         status_code: int | None = None,
         url: str | None = None,
+        retry_after_sec: int | None = None,
     ) -> None:
         super().__init__(detail)
+        self.retry_after_sec = retry_after_sec
         self.category = category
         self.retryable = retryable
         self.status_code = status_code
@@ -120,12 +124,14 @@ def build_fetch_error(
     status_code: int | None = None,
     url: str | None = None,
     user_message: str | None = None,
+    retry_after_sec: int | None = None,
 ) -> FetchError:
     return FetchError(
         category=category,
         retryable=retryable,
         status_code=status_code,
         url=url,
+        retry_after_sec=retry_after_sec,
         user_message=user_message or _get_category_user_message(category),
         detail=detail,
     )
@@ -149,6 +155,7 @@ def _classify_response_error(response: Response) -> FetchError:
         retryable=status_code in READ_RETRY_STATUS_CODES,
         status_code=status_code,
         url=response.url,
+        retry_after_sec=_get_retry_after_sec(response),
     )
 
 
@@ -183,7 +190,7 @@ def _get_retry_after_sec(response: Response) -> int | None:
         seconds = int(retry_after)
     except ValueError:
         return None
-    return max(0, min(seconds, MAX_RETRY_AFTER_SEC))
+    return max(0, min(seconds, MAX_SCHEDULED_RETRY_AFTER_SEC))
 
 
 def _normalize_content_type(content_type: str) -> str:
@@ -293,8 +300,11 @@ def _request_read(
             last_error = _classify_response_error(response)
             if not last_error.retryable or attempt == attempts - 1:
                 raise last_error
-            retry_after = _get_retry_after_sec(response)
+            retry_after = last_error.retry_after_sec
             if retry_after is not None:
+                # A longer wait is left to the fetch scheduler.
+                if retry_after > MAX_RETRY_AFTER_SEC:
+                    raise last_error
                 time.sleep(retry_after)
                 continue
 
