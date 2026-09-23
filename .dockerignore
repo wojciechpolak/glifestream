@@ -1,6 +1,6 @@
-*.pyc
+**/*.py[co]
 **/__pycache__/
-.DS_Store
+**/.DS_Store
 .git
 .github
 .idea
@@ -19,3 +19,13 @@ run/**
 !run/settings_docker.py
 static/
 test-results/
+
+# Local files Git ignores, which must not end up in an image built from a
+# working checkout. A container takes its settings from the environment and
+# run/settings_docker.py, and its own templates from the mounted run/.
+.env*
+!.env.example
+glifestream/settings_local.py
+glifestream/templates/user-*
+# Compiled in the image by compilemessages.
+**/*.mo

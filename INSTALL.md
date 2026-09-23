@@ -294,6 +294,11 @@ uses the same repository file.
 Operational notes
 -----------------
 
+- An image never contains `glifestream/settings_local.py` or a `.env` file:
+  `.dockerignore` keeps them out of the build, even from a working checkout.
+  Configure a container through environment variables. For a Python override,
+  put a module in the mounted `run/` that starts with
+  `from run.settings_docker import *` and point `DJANGO_SETTINGS_MODULE` at it.
 - `run.settings_docker` defaults `DEBUG` to `False`.
 - It switches sessions to `django.contrib.sessions.backends.cached_db`.
 - It expects Memcached at `memcached:11211`.
