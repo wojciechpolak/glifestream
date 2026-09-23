@@ -1,0 +1,32 @@
+{
+  "name": "glifestream-frontend",
+  "private": true,
+  "license": "GPL-3.0-or-later",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build": "node frontend/build.ts",
+    "watch": "node frontend/build.ts --watch",
+    "typecheck": "tsc -p frontend/tsconfig.json && tsc -p frontend/tsconfig.node.json",
+    "lint": "oxlint --type-aware --deny-warnings frontend",
+    "format": "oxfmt frontend .oxlintrc.json .oxfmtrc.json",
+    "format:check": "oxfmt --check frontend .oxlintrc.json .oxfmtrc.json",
+    "test": "vitest run --config frontend/vitest.config.ts"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.6",
+    "esbuild": "0.28.2",
+    "happy-dom": "20.14.5",
+    "oxfmt": "0.70.0",
+    "oxlint": "1.85.0",
+    "oxlint-tsgolint": "7.0.2002",
+    "typescript": "7.0.2",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  },
+  "allowScripts": {
+    "esbuild": false
+  }
+}

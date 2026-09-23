@@ -25,12 +25,16 @@ Requirements
 - Python 3.12 or newer
 - A database supported by Django (SQLite, MySQL, PostgreSQL, and others supported by Django)
 - [uv](https://docs.astral.sh/uv/) for dependency management
+- Node.js, the version in `.node-version`, to build the page script from `frontend/`.
+  Only the build needs it: the site runs without Node, and the Docker image
+  builds the script in a separate stage.
 - `gettext` if you need to run `compilemessages`
 
 Install dependencies with:
 
 ```shell
 uv sync
+npm ci
 ```
 
 
@@ -43,8 +47,8 @@ One command takes a fresh checkout to a working instance:
 ./scripts/bootstrap
 ```
 
-It runs `uv sync --group dev`, creates `.env` from `.env.example` with random
-secrets, migrates the database, compiles translations when `gettext` is
+It runs `uv sync --group dev` and `npm ci`, builds the page script with
+`npm run build`, creates `.env` from `.env.example` with random secrets, migrates the database, compiles translations when `gettext` is
 installed, creates the media directories and the initial `admin` user, then
 prints how to start the site and the worker. Every step is safe to repeat, so
 you can run it again after pulling changes. It never overwrites an existing
@@ -53,18 +57,21 @@ you can run it again after pulling changes. It never overwrites an existing
 To do the same by hand:
 
 1. Change into the project directory.
-2. Copy `.env.example` to `.env`.
-3. Edit `.env` for your local environment.
-4. Run migrations.
-5. Compile translations if `gettext` is available.
-6. Create the runtime directories used for uploads and thumbnails.
-7. Create the initial admin user.
-8. Start the Django development server.
-9. Start the background worker in a second terminal.
+2. Build the page script.
+3. Copy `.env.example` to `.env`.
+4. Edit `.env` for your local environment.
+5. Run migrations.
+6. Compile translations if `gettext` is available.
+7. Create the runtime directories used for uploads and thumbnails.
+8. Create the initial admin user.
+9. Start the Django development server.
+10. Start the background worker in a second terminal.
 
 Commands:
 
 ```shell
+npm ci
+npm run build
 cp .env.example .env
 uv run manage.py migrate --run-syncdb
 uv run manage.py compilemessages
@@ -78,6 +85,17 @@ In another terminal:
 ```shell
 uv run worker.py --daemon
 ```
+
+The page script is TypeScript in `frontend/src/`, built into
+`glifestream/static/js/dist/`, which is not in Git. After changing it, run
+`npm run build` again, or keep this running while you work:
+
+```shell
+npm run watch
+```
+
+Without the built file, `runserver` and `collectstatic` stop with the system
+check error `glifestream.E001`.
 
 Local configuration notes:
 
@@ -316,39 +334,46 @@ Suggested setup flow
 
 ```shell
 uv sync
+npm ci
 ```
 
-5. Run database migrations:
+5. Build the page script:
+
+```shell
+npm run build
+```
+
+6. Run database migrations:
 
 ```shell
 uv run manage.py migrate --run-syncdb
 ```
 
-6. Compile translations if needed:
+7. Compile translations if needed:
 
 ```shell
 uv run manage.py compilemessages
 ```
 
-7. Collect static files:
+8. Collect static files:
 
 ```shell
 uv run manage.py collectstatic --no-input
 ```
 
-8. Create runtime directories:
+9. Create runtime directories:
 
 ```shell
 uv run worker.py --init-files-dirs
 ```
 
-9. Create the initial admin account:
+10. Create the initial admin account:
 
 ```shell
 uv run manage.py create_initial_user
 ```
 
-10. Start the web server and worker under supervision.
+11. Start the web server and worker under supervision.
 
 Example commands:
 
@@ -376,7 +401,8 @@ Non-Docker hardening notes
   one that applies the limit, configure the real client address there
   (`set_real_ip_from` and `real_ip_header` in nginx). Otherwise all clients
   share one limit.
-- Re-run `collectstatic` during upgrades before restarting the web tier.
+- Re-run `npm ci`, `npm run build` and then `collectstatic` during upgrades
+  before restarting the web tier.
 - Keep the worker process running continuously so scheduled imports and cleanup jobs continue to execute.
 
 

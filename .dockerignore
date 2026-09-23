@@ -10,7 +10,9 @@
 .venv
 .visual-regression
 .vscode
+glifestream/static/js/dist/
 media/
+node_modules/
 run-wap/
 run/**
 !run/__init__.py

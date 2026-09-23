@@ -22,9 +22,10 @@ uv has no task runner, so this is the repo's `npm run check`. Each check runs
 whatever the others do. A pass that stopped at the first failure would hide
 the rest until you fixed the first.
 
-The checks need the `dev` dependency group, so this puts `.venv/bin` in front
-of PATH the way `uv run` does. That is what lets plain `./scripts/check` work
-without an activated virtualenv.
+The Python checks need the `dev` dependency group, so this puts `.venv/bin` in
+front of PATH the way `uv run` does. That is what lets plain `./scripts/check`
+work without an activated virtualenv. The frontend checks need Node.js and
+`npm ci`; the build runs before pytest, whose browser tests load its output.
 """
 
 from __future__ import annotations
@@ -41,11 +42,19 @@ VENV = ROOT / '.venv'
 # Cheapest first, so a typo surfaces before the suite has finished.
 CHECKS = (
     ('ruff', ['ruff', 'check', '.']),
+    ('oxlint', ['npm', 'run', '--silent', 'lint']),
     ('imports', ['lint-imports']),
+    ('tsc', ['npm', 'run', '--silent', 'typecheck']),
     ('ty', ['ty', 'check', '.']),
     ('mypy', ['mypy', '.']),
+    ('vitest', ['npm', 'run', '--silent', 'test']),
+    ('build', ['npm', 'run', '--silent', 'build']),
     ('pytest', ['pytest']),
 )
+
+INSTALL_HINTS = {
+    'npm': 'install Node.js (see .node-version) and run `npm ci`',
+}
 
 WIDTH = max(len(name) for name, _ in CHECKS) + 12
 
@@ -61,10 +70,14 @@ def environment() -> dict[str, str]:
 
 def run(argv: list[str], env: dict[str, str]) -> bool:
     """Run one tool, letting it write straight to the terminal."""
+    if argv[0] == 'npm' and not (ROOT / 'node_modules').is_dir():
+        print(f'node_modules: not found -- {INSTALL_HINTS["npm"]}', flush=True)
+        return False
     try:
         return subprocess.run(argv, cwd=ROOT, env=env).returncode == 0
     except FileNotFoundError:
-        print(f'{argv[0]}: not found -- run `uv sync --group dev`', flush=True)
+        hint = INSTALL_HINTS.get(argv[0], 'run `uv sync --group dev`')
+        print(f'{argv[0]}: not found -- {hint}', flush=True)
         return False
 
 

@@ -1,5 +1,15 @@
 ARG python=python:3.14-slim-trixie
+ARG node=node:24-trixie-slim
 ARG TARGETARCH
+
+# The page script is the same file on every platform, so it is built once,
+# natively, and only the result goes into the image: no Node at runtime.
+FROM --platform=$BUILDPLATFORM ${node} AS gls-builder-js
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm npm ci --no-audit --no-fund
+COPY frontend frontend
+RUN npm run build
 
 FROM ${python} AS gls-builder-python
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -40,6 +50,7 @@ COPY conf/docker/entrypoint.sh .
 COPY run/__init__.py run/settings_docker.py run/
 COPY locale locale
 COPY glifestream glifestream
+COPY --from=gls-builder-js /app/glifestream/static/js/dist glifestream/static/js/dist
 COPY manage.py .
 COPY worker.py .
 RUN usermod -a -G users www-data

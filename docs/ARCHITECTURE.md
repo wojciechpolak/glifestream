@@ -133,6 +133,29 @@ publishes to the WebSub hubs, unless the share was a draft.
   that no `Media` row, entry or owner template mentions. Removing them is up
   to the owner.
 
+## The page script
+
+The browser code lives in `frontend/src/`, outside the Python layers.
+`npm run build` bundles `main.ts` with esbuild into
+`glifestream/static/js/dist/glifestream.js`, which is not in Git, and
+django-pipeline appends it to jQuery and fancyBox in its `main` bundle. Most
+of the code is still `legacy.js`, the jQuery script as it was; it moves into
+TypeScript modules one piece at a time. TypeScript 7 (`npm run typecheck`)
+only checks the types; esbuild strips them, so the build does not depend on
+the checker.
+
+- Templates hand the script its data in the globals `settings`, `stream_data`
+  and `gettext_msg`. A deployment customizes it through `user-scripts.js`,
+  with the globals listed in `glifestream/tests/e2e/test_js_extension_points.py`,
+  and that list is the contract a rewrite keeps.
+- Pipeline leaves a missing file out of a bundle without an error, so the
+  system check `glifestream.E001` stops `runserver` and `collectstatic` when a
+  bundle source, the built script included, cannot be found.
+- The Playwright tests in `glifestream/tests/e2e/test_js_*.py` describe what
+  the page does and sends, not how. Vitest tests sit next to the modules as
+  `*.test.ts`. `GLS_E2E_JS_COVERAGE=1` reports which functions the browser
+  tests never call, traced back to `frontend/src` through the source map.
+
 ## Adding things
 
 - **A provider**: add a module under `apis/` that extends `BaseService`, yields

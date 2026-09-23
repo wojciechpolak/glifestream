@@ -69,6 +69,10 @@ ATPROTO_FIXTURES_DIR = FIXTURES_DIR / 'atproto'
 ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'playwright'
 VRT_ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'vrt'
 JS_COVERAGE_DIR = Path(__file__).parents[3] / 'test-results' / 'js-coverage'
+FRONTEND_DIR = Path(__file__).parents[3] / 'frontend'
+FRONTEND_BUNDLE = (
+    Path(__file__).parents[2] / 'static' / 'js' / 'dist' / 'glifestream.js'
+)
 MOCK_OAUTH2_CODE = 'gls-e2e-auth-code'
 MOCK_OAUTH2_TOKEN = 'gls-e2e-access-token'
 MOCK_AVATAR_PNG = base64.b64decode(
@@ -836,6 +840,34 @@ def live_server(
     server = SingleThreadLiveServer(addr)
     yield server
     server.stop()
+
+
+@pytest.fixture(scope='session', autouse=True)
+def frontend_bundle() -> Path:
+    """The page script the browser runs, built from the current sources.
+
+    Pipeline would bundle js/main.js without a missing file, and a bundle
+    older than its sources would test code that is no longer there.
+    """
+    if not FRONTEND_BUNDLE.is_file():
+        pytest.fail(
+            f'{FRONTEND_BUNDLE} is missing: run `npm ci && npm run build`',
+            pytrace=False,
+        )
+    built = FRONTEND_BUNDLE.stat().st_mtime
+    sources = [FRONTEND_DIR / 'build.ts', *(FRONTEND_DIR / 'src').rglob('*')]
+    newer = sorted(
+        str(path.relative_to(FRONTEND_DIR.parent))
+        for path in sources
+        if path.is_file() and path.stat().st_mtime > built
+    )
+    if newer:
+        pytest.fail(
+            f'{FRONTEND_BUNDLE.name} is older than {", ".join(newer)}: '
+            'run `npm run build` (or keep `npm run watch` running)',
+            pytrace=False,
+        )
+    return FRONTEND_BUNDLE
 
 
 @pytest.fixture(autouse=True)

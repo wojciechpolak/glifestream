@@ -14,25 +14,28 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Function coverage of glifestream.js across the E2E run.
+Function coverage of the page script across the E2E run.
 
 Enabled with GLS_E2E_JS_COVERAGE=1. Each page starts V8 precise coverage over
 the Chrome DevTools Protocol. The counts are taken before every main-frame
-navigation and on teardown, mapped back to glifestream.js and summed over the
-session. The summary lists every function
-literal in the file with how often the tests called it, so a rewrite can check
+navigation and on teardown, mapped back to the script and summed over the
+session. The summary lists every function literal in the script with how often
+the tests called it, and where it is in frontend/src, so a rewrite can check
 that the part it replaces is exercised first.
 
-django-pipeline serves glifestream.js concatenated into js/main.<hash>.js, so
-the file is located inside that bundle and V8 offsets are shifted by where it
-starts. V8 reports a function's start at its `function` keyword, which is what
-the static scan below records too.
+`npm run build` writes the script to js/dist/glifestream.js with a source map
+beside it, and django-pipeline serves it concatenated into js/main.<hash>.js.
+So the built file is located inside that bundle, V8 offsets are shifted by
+where it starts, and the map leads from a function in the built file to its
+line in the sources. V8 reports a function's start at its `function` keyword,
+which is what the static scan below records too.
 """
 
 from __future__ import annotations
 
 import json
 import re
+import string
 from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -41,39 +44,107 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from playwright.sync_api import BrowserContext, CDPSession, Page, Request
 
-SOURCE = Path(__file__).parents[2] / 'static' / 'js' / 'glifestream.js'
+ROOT = Path(__file__).parents[3]
+BUILT = ROOT / 'glifestream' / 'static' / 'js' / 'dist' / 'glifestream.js'
 BUNDLE_PATH = re.compile(r'/js/main(\.[0-9a-f]+)?\.js$')
 
 
 @dataclass(frozen=True)
 class JsFunction:
     offset: int
-    line: int
+    where: str
     label: str
 
 
-def scan_functions(source: str) -> list[JsFunction]:
-    """Every `function` literal in the source, named where the code names it."""
+_BASE64 = {
+    c: i
+    for i, c in enumerate(
+        string.ascii_uppercase + string.ascii_lowercase + string.digits + '+/'
+    )
+}
+
+
+def _vlq(segment: str) -> list[int]:
+    """The numbers of one source map segment."""
+    values, value, shift = [], 0, 0
+    for char in segment:
+        digit = _BASE64[char]
+        value += (digit & 31) << shift
+        if digit & 32:
+            shift += 5
+            continue
+        values.append(-(value >> 1) if value & 1 else value >> 1)
+        value, shift = 0, 0
+    return values
+
+
+@dataclass(frozen=True)
+class SourceMap:
+    """Where each generated line and column came from in the sources."""
+
+    sources: list[Path]
+    contents: list[str]
+    # Per generated line: (column, source index, source line), by column.
+    lines: list[list[tuple[int, int, int]]]
+
+    @classmethod
+    def read(cls, path: Path) -> SourceMap:
+        data = json.loads(path.read_text())
+        lines: list[list[tuple[int, int, int]]] = []
+        source = source_line = 0
+        for encoded in data['mappings'].split(';'):
+            column = 0
+            segments = []
+            for fields in map(_vlq, filter(None, encoded.split(','))):
+                column += fields[0]
+                if len(fields) >= 4:
+                    source += fields[1]
+                    source_line += fields[2]
+                    segments.append((column, source, source_line))
+            lines.append(segments)
+        return cls(
+            [(path.parent / name).resolve() for name in data['sources']],
+            data.get('sourcesContent') or [],
+            lines,
+        )
+
+    def original(self, line: int, column: int) -> tuple[int, int] | None:
+        """(source index, source line), both from 0, of a generated position."""
+        found = None
+        for segment_column, source, source_line in (
+            self.lines[line] if line < len(self.lines) else ()
+        ):
+            if segment_column > column and found is not None:
+                break
+            found = (source, source_line)
+        return found
+
+
+def scan_functions(built: str, source_map: SourceMap) -> list[JsFunction]:
+    """Every `function` literal in the built script, labelled from its source."""
     functions = []
     # A literal is the keyword followed by an optional name and its parameter
     # list; this skips the word inside strings such as `typeof x == 'function'`.
-    for match in re.finditer(r"(?<!['\"])\bfunction\b(?=\s*[\w$]*\s*\()", source):
+    for match in re.finditer(r"(?<!['\"])\bfunction\b(?=\s*[\w$]*\s*\()", built):
         offset = match.start()
-        line_start = source.rfind('\n', 0, offset) + 1
-        line_end = source.find('\n', offset)
-        declared = re.match(r'function\s+([\w$]+)', source[offset:])
-        if declared:
-            label = declared.group(1)
-        else:
-            label = source[line_start:line_end].strip()[:72]
-        functions.append(JsFunction(offset, source.count('\n', 0, offset) + 1, label))
+        line = built.count('\n', 0, offset)
+        column = offset - (built.rfind('\n', 0, offset) + 1)
+        origin = source_map.original(line, column)
+        if origin is None:
+            continue
+        source, source_line = origin
+        text = source_map.contents[source].splitlines()[source_line].strip()
+        declared = re.search(r'\bfunction\s+([\w$]+)', text)
+        label = declared.group(1) if declared else text[:72]
+        where = source_map.sources[source].relative_to(ROOT)
+        functions.append(JsFunction(offset, f'{where}:{source_line + 1}', label))
     return functions
 
 
 @dataclass
 class JsCoverage:
     output_dir: Path
-    source: str = field(default_factory=lambda: SOURCE.read_text())
+    source: str = field(default_factory=lambda: BUILT.read_text())
     counts: Counter[int] = field(default_factory=Counter)
     snapshots: int = 0
 
@@ -121,7 +192,9 @@ class JsCoverage:
 
     def report(self) -> tuple[int, int, Path]:
         """Write the summary files; return (called, total, summary path)."""
-        functions = scan_functions(self.source)
+        functions = scan_functions(
+            self.source, SourceMap.read(BUILT.with_name(BUILT.name + '.map'))
+        )
         rows = [(fn, self.counts.get(fn.offset, 0)) for fn in functions]
         called = sum(1 for _, count in rows if count)
 
@@ -129,18 +202,18 @@ class JsCoverage:
         (self.output_dir / 'functions.json').write_text(
             json.dumps(
                 [
-                    {'line': fn.line, 'label': fn.label, 'calls': count}
+                    {'where': fn.where, 'label': fn.label, 'calls': count}
                     for fn, count in rows
                 ],
                 indent=2,
             )
         )
         lines = [
-            f'glifestream.js: {called} of {len(rows)} functions called '
+            f'{BUILT.name}: {called} of {len(rows)} functions called '
             f'in {self.snapshots} snapshots.',
             '',
             'Never called:',
-            *(f'  {fn.line:5d}  {fn.label}' for fn, count in rows if not count),
+            *(f'  {fn.where}  {fn.label}' for fn, count in rows if not count),
         ]
         summary = self.output_dir / 'summary.txt'
         summary.write_text('\n'.join(lines) + '\n')

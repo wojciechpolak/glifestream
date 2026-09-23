@@ -1,0 +1,44 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    "categories": {
+        "correctness": "error",
+        "suspicious": "warn"
+    },
+    "env": {
+        "browser": true,
+        "es2024": true
+    },
+    "overrides": [
+        {
+            "files": ["frontend/src/legacy.js"],
+            "globals": {
+                "$": "readonly",
+                "Quill": "readonly",
+                "gettext_msg": "readonly",
+                "settings": "readonly",
+                "stream_data": "readonly"
+            },
+            "rules": {
+                "no-underscore-dangle": "off",
+                "no-unneeded-ternary": "off",
+                "no-unreachable": "off",
+                "no-unused-vars": "off",
+                "no-useless-concat": "off",
+                "no-useless-escape": "off",
+                "typescript/consistent-return": "off",
+                "typescript/no-floating-promises": "off",
+                "typescript/no-for-in-array": "off",
+                "typescript/no-unnecessary-type-conversion": "off",
+                "unicorn/consistent-function-scoping": "off",
+                "unicorn/prefer-add-event-listener": "off"
+            }
+        },
+        {
+            "files": ["frontend/*.ts"],
+            "env": {
+                "browser": false,
+                "node": true
+            }
+        }
+    ]
+}

@@ -43,6 +43,11 @@ case "$mode" in
     ;;
 esac
 
+# The browser tests load the page script from the working tree mounted below,
+# so build it here, on the host, from the current sources.
+[ -d node_modules ] || npm ci
+npm run --silent build
+
 if ! docker image inspect "$image" >/dev/null 2>&1; then
   docker build -f scripts/vrt.Dockerfile -t "$image" .
 fi

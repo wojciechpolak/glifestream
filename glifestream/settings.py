@@ -360,7 +360,8 @@ PIPELINE = {
             'source_filenames': (
                 'js/jquery.min.js',
                 'js/jquery.fancybox.min.js',
-                'js/glifestream.js',
+                # Built from frontend/ by `npm run build`.
+                'js/dist/glifestream.js',
             ),
             'output_filename': 'js/main.js',
         },

@@ -18,9 +18,10 @@
 
 Take a fresh checkout to a running development instance in one command.
 
-It installs the dependencies, writes a `.env` with random secrets, migrates
-the database, compiles translations, creates the media directories and the
-initial admin/admin user. Every step is safe to repeat, so running it again
+It installs the Python and Node dependencies, builds the page script from
+frontend/, writes a `.env` with random secrets, migrates the database,
+compiles translations, creates the media directories and the initial
+admin/admin user. Every step is safe to repeat, so running it again
 after a pull brings an existing checkout up to date. An existing `.env` is
 never touched.
 
@@ -83,7 +84,16 @@ def main() -> int:
         )
         return 1
 
+    if shutil.which('npm') is None:
+        print(
+            'npm: not found -- install Node.js, the version in .node-version',
+            file=sys.stderr,
+        )
+        return 1
+
     run(['uv', 'sync', '--group', 'dev'])
+    run(['npm', 'ci', '--no-audit', '--no-fund'])
+    run(['npm', 'run', 'build'])
     write_env()
     manage('migrate', '--run-syncdb')
     if shutil.which('msgfmt'):
@@ -99,6 +109,9 @@ Ready. Start the site and the fetch worker in two terminals:
 
     uv run manage.py runserver
     uv run worker.py --daemon
+
+When you change anything under frontend/, rebuild with `npm run build`, or
+keep `npm run watch` running in a third terminal.
 
 On a first run, sign in at http://127.0.0.1:8000/ as admin / admin; you
 will be asked to choose a new password. Settings live in .env."""

@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "target": "es2024",
+        "lib": ["es2024", "dom"],
+        "module": "preserve",
+        "moduleResolution": "bundler",
+        "types": [],
+        "strict": true,
+        "noUncheckedIndexedAccess": true,
+        "exactOptionalPropertyTypes": true,
+        "noImplicitOverride": true,
+        "noFallthroughCasesInSwitch": true,
+        "verbatimModuleSyntax": true,
+        "isolatedModules": true,
+        "erasableSyntaxOnly": true,
+        "allowJs": true,
+        "checkJs": false,
+        "noEmit": true
+    },
+    "include": ["src"]
+}

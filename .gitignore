@@ -25,3 +25,6 @@ htmlcov/
 .coverage
 .coverage.*
 coverage.lcov
+node_modules/
+# Built by `npm run build` from frontend/.
+glifestream/static/js/dist/

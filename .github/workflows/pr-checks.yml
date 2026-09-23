@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   checks:
-    name: Ruff, mypy, and pytest
+    name: Lint, types, and tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -41,6 +41,18 @@ jobs:
       - name: Install development dependencies
         run: uv sync --locked --group dev
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: '.node-version'
+          cache: npm
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build the frontend
+        run: npm run build
+
       - name: Prepare Django settings for CI
         run: |
           mkdir -p run/db run/templates run/static media static
@@ -52,6 +64,9 @@ jobs:
       - name: Run ruff
         run: uv run ruff check
 
+      - name: Run oxlint
+        run: npm run lint
+
       - name: Check module boundaries
         run: uv run lint-imports
 
@@ -60,6 +75,12 @@ jobs:
 
       - name: Run mypy
         run: uv run mypy .
+
+      - name: Run tsc
+        run: npm run typecheck
+
+      - name: Run vitest
+        run: npm test
 
       - name: Run pytest
         run: uv run pytest
