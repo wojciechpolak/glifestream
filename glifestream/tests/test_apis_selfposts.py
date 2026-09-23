@@ -139,19 +139,50 @@ def test_share_falls_back_to_the_raw_text_for_a_title(selfposts):
 
 @pytest.mark.django_db
 def test_share_uses_the_configured_link_or_the_site_root(selfposts):
-    # The guid is second-resolution, so the two posts need distinct clocks.
-    with patch(
-        'glifestream.apis.selfposts.utcnow',
-        side_effect=[
-            datetime.datetime(2026, 3, 22, 17, 0, 0, tzinfo=UTC),
-            datetime.datetime(2026, 3, 22, 17, 0, 1, tzinfo=UTC),
-        ],
-    ):
-        linked = selfposts.share({'content': 'A', 'link': 'https://elsewhere.example/'})
-        default = selfposts.share({'content': 'B'})
+    linked = selfposts.share({'content': 'A', 'link': 'https://elsewhere.example/'})
+    default = selfposts.share({'content': 'B'})
 
     assert linked is not None and linked.link == 'https://elsewhere.example/'
     assert default is not None and default.link == settings.BASE_URL + '/'
+
+
+SAME_SECOND = datetime.datetime(2026, 3, 22, 17, 0, 0, tzinfo=UTC)
+SAME_SECOND_GUID = '%s/entry/2026-03-22T17:00:00Z' % settings.FEED_TAGURI
+
+
+@pytest.mark.django_db
+def test_posts_in_the_same_second_all_get_saved(selfposts):
+    with patch('glifestream.apis.selfposts.utcnow', return_value=SAME_SECOND):
+        entries = [selfposts.share({'content': text}) for text in 'ABC']
+
+    assert all(entry is not None for entry in entries)
+    assert [entry.guid for entry in entries if entry] == [
+        SAME_SECOND_GUID,
+        SAME_SECOND_GUID + '-2',
+        SAME_SECOND_GUID + '-3',
+    ]
+    assert Entry.objects.count() == 3
+
+
+@pytest.mark.django_db
+def test_a_reshare_in_the_same_second_as_a_post_gets_saved(selfposts, service):
+    source = Entry.objects.create(
+        service=service,
+        title='Source',
+        guid='reshare-same-second',
+        link='http://example.com/',
+        content='Body',
+        date_published=SAME_SECOND,
+    )
+
+    with patch('glifestream.apis.selfposts.utcnow', return_value=SAME_SECOND):
+        post = selfposts.share({'content': 'A'})
+        first = selfposts.reshare(source, {})
+        second = selfposts.reshare(source, {})
+
+    assert post is not None and post.guid == SAME_SECOND_GUID
+    assert first is not None and first.guid == SAME_SECOND_GUID + '-2'
+    assert second is not None and second.guid == SAME_SECOND_GUID + '-3'
 
 
 @pytest.mark.django_db

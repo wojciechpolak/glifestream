@@ -16,6 +16,7 @@
 """
 
 from __future__ import annotations
+import posixpath
 from typing import Any
 from django.conf import settings
 from django.urls import reverse
@@ -26,8 +27,11 @@ from django.http import (
     Http404,
     JsonResponse,
 )
+from django.http.response import HttpResponseBase
 from django.shortcuts import render
+from django.utils.http import content_disposition_header
 from django.views.decorators.cache import never_cache
+from django.views.static import serve as static_serve
 
 from glifestream.stream.typing import Page
 from glifestream.stream.index_view import render_index
@@ -49,6 +53,33 @@ def websub_dispatcher(request: HttpRequest, **args: Any) -> HttpResponse:
         websub.accept_payload(args['id'], request.body, request.META)
         return HttpResponse()
     raise Http404
+
+
+# Media types a browser may show inline. Anything else, SVG and HTML
+# included, is sent as a download so an uploaded file cannot run as this site.
+_INLINE_MEDIA_TYPES = ('image/', 'audio/', 'video/', 'application/pdf')
+
+
+def is_inline_media_type(content_type: str) -> bool:
+    ctype = content_type.split(';', 1)[0].strip().lower()
+    if ctype == 'image/svg+xml':
+        return False
+    return ctype.startswith(_INLINE_MEDIA_TYPES)
+
+
+def media(request: HttpRequest, path: str) -> HttpResponseBase:
+    """Serve MEDIA_ROOT when no web server in front does it."""
+    response = static_serve(request, path, document_root=settings.MEDIA_ROOT)
+    if not is_inline_media_type(response.get('Content-Type', '')):
+        response['Content-Disposition'] = (
+            content_disposition_header(
+                as_attachment=True, filename=posixpath.basename(path)
+            )
+            or 'attachment'
+        )
+    # SecurityMiddleware adds it too, unless SECURE_CONTENT_TYPE_NOSNIFF is off.
+    response['X-Content-Type-Options'] = 'nosniff'
+    return response
 
 
 def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponseNotFound:

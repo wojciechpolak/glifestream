@@ -281,6 +281,12 @@ Operational notes
 - It expects Memcached at `memcached:11211`.
 - It extends `ALLOWED_HOSTS` with `VIRTUAL_HOST`, `localhost`, and `backend`.
 - It keeps secure session and CSRF cookies enabled by default.
+- The `nginx` service serves `/media/` and `/static/` itself, from
+  `run/nginx/templates/default.conf.template`. It sends media that a browser
+  could run, such as HTML or SVG, as a download, and it rate-limits login
+  attempts per client. If the stack sits behind another reverse proxy,
+  uncomment the `set_real_ip_from` and `real_ip_header` lines in that template
+  and set the proxy's address. Otherwise all clients share one login limit.
 - The published image workflow builds multi-arch images for `linux/amd64` and `linux/arm64`.
 
 
@@ -357,6 +363,19 @@ Non-Docker hardening notes
 - Make sure `RUN_DIR`, `RUN_DIR_MEDIA`, and `STATIC_ROOT` live on persistent storage.
 - If you keep the default file-based session backend, ensure session files are stored on persistent writable storage as well.
 - Keep your reverse proxy responsible for TLS termination and static/media serving where appropriate.
+- When the reverse proxy serves `/media/`, give it the headers gLifestream sends
+  when it serves media itself. Otherwise an uploaded HTML or SVG file runs as
+  your site. Send `X-Content-Type-Options: nosniff` for every file, and
+  `Content-Disposition: attachment` for every type except images other than
+  SVG, audio, video and PDF. `run/nginx/templates/default.conf.template` does
+  this with a `map` on `$sent_http_content_type`.
+- Rate-limit POST requests to `/login` and `/admin/login/` at the reverse
+  proxy, because gLifestream itself does not slow down password guessing. The
+  bundled nginx template allows each client 6 attempts a minute after a burst
+  of 5, and answers `429` beyond that. If another proxy sits in front of the
+  one that applies the limit, configure the real client address there
+  (`set_real_ip_from` and `real_ip_header` in nginx). Otherwise all clients
+  share one limit.
 - Re-run `collectstatic` during upgrades before restarting the web tier.
 - Keep the worker process running continuously so scheduled imports and cleanup jobs continue to execute.
 
@@ -373,6 +392,8 @@ Before calling the deployment ready, verify:
 - `SESSION_COOKIE_SECURE` and `CSRF_COOKIE_SECURE` are enabled
 - Magic Link SSO secrets are changed from placeholders when `MAGICSSO_ENABLED=1`
 - `RUN_DIR`, media storage, and static storage are persistent and writable
+- The reverse proxy sends the media headers and rate-limits login attempts, as
+  described under Non-Docker hardening notes
 - database settings point to the intended production database
 - migrations, `collectstatic`, and `worker.py --init-files-dirs` have been run successfully
 - the web process is serving requests

@@ -16,10 +16,11 @@
 """
 
 import logging
+from datetime import datetime
 from typing import Any
 
 from django.conf import settings
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import UploadedFile
 from django.template.defaultfilters import urlizetrunc, title as df_title
 from django.utils.html import strip_tags
@@ -156,6 +157,32 @@ def _render_uploaded_docs(
     return doc + '</ul>\n'
 
 
+# How many posts may share one second before saving gives up.
+_MAX_POSTS_PER_SECOND = 100
+
+
+def _timestamp_guid(when: datetime) -> str:
+    return '%s/entry/%s' % (settings.FEED_TAGURI, when.strftime('%Y-%m-%dT%H:%M:%SZ'))
+
+
+def _insert(entry: Entry) -> None:
+    """Save a new entry. The guid has one-second resolution, so a later post
+    in the same second gets a numbered suffix instead of failing the
+    (service, guid) constraint."""
+    base = entry.guid
+    for n in range(2, _MAX_POSTS_PER_SECOND + 2):
+        try:
+            with transaction.atomic():
+                entry.save()
+            return
+        except IntegrityError:
+            taken = Entry.objects.filter(service=entry.service, guid=entry.guid)
+            if not taken.exists():
+                raise
+            entry.guid = '%s-%d' % (base, n)
+    raise IntegrityError('No free guid left for %s' % base)
+
+
 class SelfpostsService(BaseService):
     name = 'Selfposts API'
 
@@ -182,7 +209,7 @@ class SelfpostsService(BaseService):
         user = args.get('user', None)
 
         un = utcnow()
-        guid = '%s/entry/%s' % (settings.FEED_TAGURI, un.strftime('%Y-%m-%dT%H:%M:%SZ'))
+        guid = _timestamp_guid(un)
         if sid:
             s = Service.objects.get(id=sid, api='selfposts')
         else:
@@ -219,7 +246,7 @@ class SelfpostsService(BaseService):
         e.mblob = media.mrss_gen_json(mblob)
 
         try:
-            e.save()
+            _insert(e)
 
             pictures, docs = _store_uploads(e, files)
             if pictures:
@@ -245,7 +272,7 @@ class SelfpostsService(BaseService):
         user = args.get('user', None)
 
         un = utcnow()
-        guid = '%s/entry/%s' % (settings.FEED_TAGURI, un.strftime('%Y-%m-%dT%H:%M:%SZ'))
+        guid = _timestamp_guid(un)
         if sid:
             s = Service.objects.get(id=sid, api='selfposts')
         else:
@@ -290,7 +317,7 @@ class SelfpostsService(BaseService):
             media.transform_to_local(e)
             # Media rows reference the entry, so save it first.
             with transaction.atomic():
-                e.save()
+                _insert(e)
                 media.extract_and_register(e)
             return e
         except Exception as exc:

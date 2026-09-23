@@ -20,7 +20,6 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.urls import path, re_path
 from django.conf.urls import include
 from django.contrib import admin
-from django.views.static import serve as static_serve
 from glifestream.gauth.views import login, change_password, logout
 from glifestream.stream import views as sv
 
@@ -82,11 +81,7 @@ if getattr(settings, 'PWA_APP_NAME', None):
         re_path(r'^manifest.webmanifest$', sv.webmanifest, name='webmanifest')
     ]
 
-urlpatterns += [
-    re_path(
-        r'^media/(?P<path>.*)$', static_serve, {'document_root': settings.MEDIA_ROOT}
-    )
-]
+urlpatterns += [re_path(r'^media/(?P<path>.*)$', sv.media, name='media')]
 
 if settings.DEBUG:
     urlpatterns += staticfiles_urlpatterns()
