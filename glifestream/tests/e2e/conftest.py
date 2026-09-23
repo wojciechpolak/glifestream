@@ -18,6 +18,8 @@
 from __future__ import annotations
 
 import base64
+import datetime
+import itertools
 import json
 import os
 import re
@@ -54,7 +56,8 @@ from playwright.sync_api import (
 )
 
 from glifestream.fetching import FetchWorker
-from glifestream.stream.models import Service
+from glifestream.stream.models import Entry, Service
+from glifestream.tests.e2e.js_coverage import JsCoverage
 from glifestream.tests.e2e.vrt import VisualRegressionSession
 
 import worker as worker_module
@@ -65,6 +68,7 @@ MASTODON_FIXTURES_DIR = FIXTURES_DIR / 'mastodon'
 ATPROTO_FIXTURES_DIR = FIXTURES_DIR / 'atproto'
 ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'playwright'
 VRT_ARTIFACTS_DIR = Path(__file__).parents[3] / 'test-results' / 'vrt'
+JS_COVERAGE_DIR = Path(__file__).parents[3] / 'test-results' / 'js-coverage'
 MOCK_OAUTH2_CODE = 'gls-e2e-auth-code'
 MOCK_OAUTH2_TOKEN = 'gls-e2e-access-token'
 MOCK_AVATAR_PNG = base64.b64decode(
@@ -81,6 +85,12 @@ def _slugify_nodeid(nodeid: str) -> str:
 def _env_flag(name: str) -> bool:
     value = os.environ.get(name, '')
     return value.lower() in {'1', 'true', 'yes', 'on'}
+
+
+# Summed over the whole session; see js_coverage.py.
+JS_COVERAGE = (
+    JsCoverage(output_dir=JS_COVERAGE_DIR) if _env_flag('GLS_E2E_JS_COVERAGE') else None
+)
 
 
 def _sqlite_connection_is_in_memory(conn: BaseDatabaseWrapper) -> bool:
@@ -631,6 +641,15 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     setattr(item, f'rep_{report.when}', report)
 
 
+def pytest_terminal_summary(terminalreporter: Any) -> None:
+    if JS_COVERAGE is None or not JS_COVERAGE.snapshots:
+        return
+    called, total, summary = JS_COVERAGE.report()
+    terminalreporter.write_line(
+        f'glifestream.js function coverage: {called}/{total} called; see {summary}'
+    )
+
+
 def pytest_runtest_logstart(nodeid: str, location: tuple[str, int, str]) -> None:
     del location
     if _env_flag('GLS_E2E_PRINT_TESTS'):
@@ -963,8 +982,13 @@ def page(
         )
     context.tracing.start(screenshots=True, snapshots=True)
     page = context.new_page()
+    coverage = JS_COVERAGE
+    cdp = coverage.watch(context, page) if coverage is not None else None
 
     yield page
+
+    if coverage is not None and cdp is not None:
+        coverage.collect(cdp)
 
     failed = bool(
         getattr(request.node, 'rep_call', None) and request.node.rep_call.failed
@@ -1127,3 +1151,77 @@ def ensure_admin_session(
             page.goto(f'{app_base_url}/')
 
     return _ensure
+
+
+@pytest.fixture
+def notes_service(seeded_e2e_state) -> Service:
+    """The selfposts service `seed_e2e` creates, shown with title and content."""
+    return Service.objects.get(api='selfposts', name='Seeded Notes')
+
+
+@pytest.fixture
+def make_entry(notes_service: Service):
+    """Create stream entries newer than the seeded one, newest first.
+
+    Each call is published one hour before the previous one, so entries show
+    in the stream in the order the test created them.
+    """
+    counter = itertools.count()
+    newest = datetime.datetime(2025, 6, 15, 12, 0, tzinfo=datetime.UTC)
+
+    def _make(title: str, content: str = '', **fields: Any) -> Entry:
+        n = next(counter)
+        published = newest - datetime.timedelta(hours=n)
+        defaults: dict[str, Any] = {
+            'service': notes_service,
+            'guid': f'e2e-js-{n}',
+            'title': title,
+            'content': content,
+            'link': f'http://example.test/e2e-js-{n}',
+            'date_published': published,
+            'date_updated': published,
+            'active': True,
+            'draft': False,
+            'friends_only': False,
+        }
+        defaults.update(fields)
+        return Entry.objects.create(**defaults)
+
+    return _make
+
+
+@pytest.fixture
+def stub_external_requests(page: Page) -> Page:
+    """Answer every request that leaves the live server with an empty 200.
+
+    Embeds (YouTube, Vimeo, OpenStreetMap, Google Maps) would otherwise reach
+    the network, which makes the tests slow and flaky. The route is set on the
+    context so popups opened from the page are covered too.
+    """
+    local = re.compile(r'^https?://(127\.0\.0\.1|localhost)(:\d+)?/')
+
+    def _handle(route: Any) -> None:
+        if local.match(route.request.url):
+            route.fallback()
+        else:
+            route.fulfill(status=200, body='')
+
+    page.context.route('**/*', _handle)
+    return page
+
+
+@pytest.fixture
+def reload_spy(page: Page):
+    """Count page reloads instead of doing them, through `__glsReloadHandler`.
+
+    Returns a callable giving the number of reloads so far.
+    """
+    page.add_init_script(
+        """
+        window.__glsReloadCount = 0;
+        window.__glsReloadHandler = function() {
+            window.__glsReloadCount += 1;
+        };
+        """
+    )
+    return lambda: cast(int, page.evaluate('window.__glsReloadCount'))
