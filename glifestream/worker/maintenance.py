@@ -19,16 +19,19 @@ from __future__ import annotations
 
 import datetime
 import getopt
+import json
 import os
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Sequence
+from collections.abc import Iterator
+from typing import Any, Sequence, cast
+from urllib.parse import quote
 
 from django.conf import settings
 
 from glifestream.stream import media
-from glifestream.stream.models import Entry, Favorite
+from glifestream.stream.models import Entry, Favorite, Media
 from glifestream.utils.time import unixnow
 
 
@@ -39,6 +42,7 @@ class MaintenanceCommand:
     delete_old_days: int | None = None
     only_inactive: bool = False
     thumbs: str | None = None
+    report_orphan_uploads: bool = False
 
 
 def build_maintenance_command(
@@ -48,6 +52,7 @@ def build_maintenance_command(
     delete_old_days: int | None = None,
     only_inactive: bool = False,
     thumbs: str | None = None,
+    report_orphan_uploads: bool = False,
 ) -> MaintenanceCommand:
     return MaintenanceCommand(
         filters=dict(filters or {}),
@@ -55,6 +60,7 @@ def build_maintenance_command(
         delete_old_days=delete_old_days,
         only_inactive=only_inactive,
         thumbs=thumbs,
+        report_orphan_uploads=report_orphan_uploads,
     )
 
 
@@ -63,6 +69,7 @@ def parse_maintenance_args(args: Sequence[str]) -> MaintenanceCommand:
     delete_old: int | None = None
     only_inactive = False
     thumbs: str | None = None
+    uploads = False
     filters: dict[str, Any] = {}
 
     opts, extras = getopt.getopt(
@@ -76,6 +83,7 @@ def parse_maintenance_args(args: Sequence[str]) -> MaintenanceCommand:
             'only-inactive',
             'thumbs-list-orphans',
             'thumbs-delete-orphans',
+            'uploads-list-orphans',
         ],
     )
     if extras:
@@ -96,6 +104,8 @@ def parse_maintenance_args(args: Sequence[str]) -> MaintenanceCommand:
             thumbs = 'list-orphans'
         elif option == '--thumbs-delete-orphans':
             thumbs = 'delete-orphans'
+        elif option == '--uploads-list-orphans':
+            uploads = True
 
     return build_maintenance_command(
         filters=filters,
@@ -103,6 +113,7 @@ def parse_maintenance_args(args: Sequence[str]) -> MaintenanceCommand:
         delete_old_days=delete_old,
         only_inactive=only_inactive,
         thumbs=thumbs,
+        report_orphan_uploads=uploads,
     )
 
 
@@ -138,6 +149,8 @@ def execute_maintenance_command(
 ) -> None:
     if command.thumbs:
         _run_thumbs_action(command.thumbs, verbose=verbose)
+    elif command.report_orphan_uploads:
+        report_orphan_uploads()
     elif command.list_old_days or command.delete_old_days:
         _run_old_entries_action(command)
     else:
@@ -181,9 +194,8 @@ def get_old_entries_queryset(
     return Entry.objects.filter(**fs).exclude(id__in=favs)
 
 
-# A thumbnail newer than this is never an orphan. An import saves each
-# thumbnail before it commits the entry that shows it, and a cleanup run in
-# between would otherwise take the file from under that entry.
+# A file newer than this is never an orphan. An import saves each thumbnail,
+# and a selfpost each upload, before it commits the rows that claim the file.
 ORPHAN_MIN_AGE_SEC = 24 * 3600
 
 
@@ -191,11 +203,11 @@ def _thumb_rel(thumb_hash: str) -> str:
     return str(media.get_thumb_info(thumb_hash, append_suffix=False)['rel'])
 
 
-def _collect_thumb_files(*, modified_before: float) -> set[str]:
-    """Thumbnails on disk last written before `modified_before`, as
-    MEDIA_ROOT-relative paths of where they actually are."""
+def _collect_files(subdir: str, *, modified_before: float) -> set[str]:
+    """Files under MEDIA_ROOT/`subdir` last written before `modified_before`,
+    as MEDIA_ROOT-relative paths of where they actually are."""
     found: set[str] = set()
-    for root, _dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT, 'thumbs')):
+    for root, _dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT, subdir)):
         for file in files:
             if file[0] == '.':
                 continue
@@ -222,14 +234,111 @@ def _referenced_thumbs(content: str, link_image: str) -> set[str]:
 
 
 def list_orphan_thumbs() -> list[str]:
-    orphans = _collect_thumb_files(modified_before=time.time() - ORPHAN_MIN_AGE_SEC)
+    orphans = _collect_files('thumbs', modified_before=time.time() - ORPHAN_MIN_AGE_SEC)
     entries = Entry.objects.values_list('content', 'link_image')
     for content, link_image in entries.iterator(chunk_size=500):
         orphans -= _referenced_thumbs(content, link_image)
     return sorted(orphans)
 
 
+def _upload_needles(file: str) -> tuple[str, ...]:
+    """The ways a page can spell the path of `file` under upload/."""
+    path = file.removeprefix('upload/')
+    return tuple({path, quote(path)})
+
+
+def _entry_texts(fields: tuple[str | None, ...]) -> Iterator[str]:
+    for value in fields:
+        if value:
+            yield value
+    mblob = fields[-1]
+    if mblob:
+        # json.dumps escapes non-ASCII, so match the decoded form too.
+        try:
+            yield json.dumps(json.loads(mblob), ensure_ascii=False)
+        except ValueError:
+            pass
+
+
+def _template_texts() -> Iterator[str]:
+    """The owner's own templates, such as user-about.html, which may link to
+    an upload no entry mentions."""
+    for engine in cast(list[dict[str, Any]], settings.TEMPLATES):
+        for directory in engine.get('DIRS', ()):
+            for root, _dirs, files in os.walk(directory):
+                for file in files:
+                    try:
+                        with open(os.path.join(root, file), errors='ignore') as fp:
+                            yield fp.read()
+                    except OSError:
+                        continue
+
+
+def list_orphan_uploads() -> list[str]:
+    """Uploaded files that nothing in this installation seems to use.
+
+    Only a report: an upload is the owner's own file and the only copy of it,
+    so nothing here moves or deletes one. The test errs towards keeping a
+    file: it counts as used if a Media row names it, or if its path appears
+    anywhere in any entry or in the owner's templates, whatever the markup
+    around it. A reshared selfpost, for one, links to the original's uploads
+    from its content without a Media row of its own. Links from outside
+    gLifestream cannot be seen at all.
+    """
+    candidates = _collect_files(
+        'upload', modified_before=time.time() - ORPHAN_MIN_AGE_SEC
+    )
+    candidates -= set(
+        Media.objects.filter(file__startswith='upload/').values_list('file', flat=True)
+    )
+    if not candidates:
+        return []
+    needles = {file: _upload_needles(file) for file in candidates}
+
+    def claim(text: str) -> None:
+        for file in [
+            f for f, spellings in needles.items() if any(n in text for n in spellings)
+        ]:
+            del needles[file]
+
+    entries = Entry.objects.values_list(
+        'title', 'content', 'link', 'link_image', 'mblob'
+    )
+    for fields in entries.iterator(chunk_size=500):
+        for text in _entry_texts(fields):
+            claim(text)
+        if not needles:
+            return []
+    for text in _template_texts():
+        claim(text)
+    return sorted(needles)
+
+
+def report_orphan_uploads() -> None:
+    orphans = list_orphan_uploads()
+    if not orphans:
+        return
+    print(
+        '%d uploaded file(s) are not used by any entry or template. Nothing '
+        'was changed. Check for links from outside gLifestream before '
+        'removing any of them by hand:' % len(orphans)
+    )
+    total = len(_collect_files('upload', modified_before=float('inf')))
+    if len(orphans) * 2 > total:
+        print(
+            'Warning: that is more than half of all %d uploads. Check that '
+            'the database matches MEDIA_ROOT.' % total
+        )
+    for file in orphans:
+        print(file)
+
+
 def delete_thumb_files(files: Sequence[str]) -> None:
+    """Delete thumbnails, which can always be fetched again. Refuses any
+    other path, so an upload can never end up here."""
+    for file in files:
+        if os.path.normpath(file).split(os.sep)[0] != 'thumbs':
+            raise ValueError('Refusing to delete %s: not a thumbnail.' % file)
     for file in files:
         try:
             os.remove(os.path.join(settings.MEDIA_ROOT, file))

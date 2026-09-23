@@ -38,6 +38,12 @@ work, so only the significant changes are listed.
   whose fetch hangs no longer stops the worker from fetching the others; it is
   recorded as timed out and retried with backoff.
 - Magic Link SSO as the new backend for the "Friends Only" mode.
+- `--uploads-list-orphans` (also `manage.py worker_cleanup`) reports uploaded
+  files that no entry, `Media` row or template of the owner uses, such as the
+  files of a deleted selfpost. It only lists them: gLifestream never moves or
+  deletes an upload. The worker runs the report monthly and prints it to its
+  log, with a warning when most uploads look unused, which points to a
+  database that does not match `MEDIA_ROOT`.
 - `docs/ARCHITECTURE.md`, describing the module layers, what each module owns,
   and how requests, imports and WebSub pushes move through the code. The layers
   are checked with `import-linter` (`uv run lint-imports`), in

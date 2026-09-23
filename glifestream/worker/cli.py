@@ -96,6 +96,8 @@ def _print_usage(prog_name: str) -> None:
       --only-inactive          Match only inactive entries (hidden)
       --thumbs-list-orphans    List orphaned thumbnails
       --thumbs-delete-orphans  Delete orphaned thumbnails
+      --uploads-list-orphans   Report uploaded files nothing seems to use
+                               (only lists them; uploads are never deleted)
       --websub=ACTION          WebSub's actions: (un)subscribe, list, renew, publish
       --email2post             Post things using e-mail (from stdin)
       --init-files-dirs        Create initial upload/thumb directories and files
@@ -154,6 +156,7 @@ class _ParsedOptions:
     delete_old: int | None = None
     only_inactive: bool = False
     thumbs: str | None = None
+    report_orphan_uploads: bool = False
     websub_cmd: str | None = None
     daemon: bool = False
     email_to_post: bool = False
@@ -185,6 +188,7 @@ _CONST_OPTIONS: dict[str, tuple[str, Any]] = {
     '--silent': ('lifecycle_logs', False),
     '--thumbs-list-orphans': ('thumbs', 'list-orphans'),
     '--thumbs-delete-orphans': ('thumbs', 'delete-orphans'),
+    '--uploads-list-orphans': ('report_orphan_uploads', True),
 }
 
 _VALUE_OPTIONS: dict[str, tuple[str, Callable[[str], Any]]] = {
@@ -209,6 +213,7 @@ _LONG_OPTIONS = (
     'only-inactive',
     'thumbs-list-orphans',
     'thumbs-delete-orphans',
+    'uploads-list-orphans',
     'websub=',
     'email2post',
     'init-files-dirs',
@@ -278,6 +283,7 @@ def parse_legacy_command(argv: Sequence[str]) -> WorkerCommand:
         parsed.list_old is not None
         or parsed.delete_old is not None
         or parsed.thumbs is not None
+        or parsed.report_orphan_uploads
     ):
         cleanup_command = build_maintenance_command(
             filters=parsed.filters,
@@ -285,6 +291,7 @@ def parse_legacy_command(argv: Sequence[str]) -> WorkerCommand:
             delete_old_days=parsed.delete_old,
             only_inactive=parsed.only_inactive,
             thumbs=parsed.thumbs,
+            report_orphan_uploads=parsed.report_orphan_uploads,
         )
 
     kind = _select_command_kind(parsed, cleanup_command)

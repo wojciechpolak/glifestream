@@ -120,10 +120,15 @@ publishes to the WebSub hubs, unless the share was a draft.
   same image shares one file. Content refers to a thumbnail as
   `[GLS-THUMBS]/<sha1>.<ext>`.
 - `MEDIA_ROOT/upload/YYYY/MM/DD/` holds selfpost uploads, referred to as
-  `[GLS-UPLOAD]/...`.
+  `[GLS-UPLOAD]/...`. An upload is the only copy of a file the owner posted.
 - A thumbnail no entry refers to is an orphan. `--thumbs-delete-orphans`
   removes orphans older than a day. Anything newer may belong to an import
-  still in progress.
+  still in progress. `delete_thumb_files()` refuses any path outside
+  `thumbs/`.
+- Uploads are never deleted or moved by gLifestream. Deleting an entry leaves
+  its uploaded files on disk. `--uploads-list-orphans` only reports the ones
+  that no `Media` row, entry or owner template mentions. Removing them is up
+  to the owner.
 
 ## Adding things
 

@@ -130,6 +130,20 @@ def test_parse_thumbs_options_build_a_cleanup_command():
         assert command.cleanup_command.thumbs == expected
 
 
+def test_parse_uploads_option_builds_a_report_only_cleanup_command():
+    command = parse('--uploads-list-orphans')
+
+    assert command.kind == cli.WorkerCommandKind.CLEANUP
+    assert command.cleanup_command is not None
+    assert command.cleanup_command.report_orphan_uploads is True
+    assert command.cleanup_command.thumbs is None
+    assert command.cleanup_command.delete_old_days is None
+
+
+def test_there_is_no_cli_option_to_delete_uploads():
+    assert parse('--uploads-delete-orphans').kind == cli.WorkerCommandKind.USAGE
+
+
 def test_parse_list_old_builds_a_cleanup_command():
     command = parse('--list-old=7')
 

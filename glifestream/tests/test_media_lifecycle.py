@@ -10,6 +10,7 @@ whether it is still in use.
 
 from __future__ import annotations
 
+import getopt
 import hashlib
 import io
 import itertools
@@ -17,6 +18,7 @@ import json
 import os
 import time
 from collections.abc import Iterator
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import patch
 
@@ -31,6 +33,7 @@ from glifestream.apis.factory import ServiceFactory
 from glifestream.stream import media
 from glifestream.stream.models import Entry, Favorite, Media, Service
 from glifestream.worker import maintenance
+from glifestream.worker.config import DEFAULT_WORKER_MAINTENANCE_JOBS
 
 DAY = 24 * 3600
 
@@ -388,3 +391,212 @@ def test_orphan_cleanup_leaves_uploads_alone(media_root):
     run_maintenance('--thumbs-delete-orphans')
 
     assert upload.exists()
+
+
+# ------------------------------------------------------------ orphan uploads
+#
+# An upload is the only copy of a file the owner posted. The cleanup jobs
+# only ever report unused uploads; nothing may move or delete one.
+
+
+@pytest.fixture
+def selfposts(db) -> Service:
+    return Service.objects.create(api='selfposts', name='Me', public=True, active=True)
+
+
+def share_upload(admin_client, name: str = 'photo.png') -> Entry:
+    """Post a selfpost with one uploaded file, as the share form does."""
+    response = admin_client.post(
+        reverse('api', kwargs={'cmd': 'share'}),
+        {'content': 'Look', 'docs': SimpleUploadedFile(name, png(), 'image/png')},
+    )
+    assert response.status_code == 302
+    return Entry.objects.latest('id')
+
+
+def uploaded_file(entry: Entry) -> str:
+    name = Media.objects.get(entry=entry, file__startswith='upload/').file.name
+    assert name is not None
+    return name
+
+
+def age_media(media_root: Path) -> None:
+    for path in media_root.rglob('*'):
+        if path.is_file():
+            age(path, 7 * DAY)
+
+
+def make_upload(media_root: Path, rel: str, *, age_sec: float = 7 * DAY) -> Path:
+    path = media_root / 'upload' / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(b'%PDF')
+    age(path, age_sec)
+    return path
+
+
+@pytest.mark.django_db
+def test_an_upload_whose_entry_is_gone_is_reported_and_kept(
+    media_root, selfposts, admin_client, capsys
+):
+    entry = share_upload(admin_client)
+    upload = uploaded_file(entry)
+    age_media(media_root)
+    assert maintenance.list_orphan_uploads() == []
+
+    entry.delete()
+    run_maintenance('--uploads-list-orphans')
+
+    out = capsys.readouterr().out
+    assert '1 uploaded file(s) are not used' in out
+    assert 'Nothing was changed' in out
+    assert out.strip().endswith(upload)
+    assert (media_root / upload).exists()
+
+
+@pytest.mark.django_db
+def test_the_thumbnail_cleanup_never_touches_an_unused_upload(
+    media_root, selfposts, admin_client
+):
+    entry = share_upload(admin_client)
+    upload = uploaded_file(entry)
+    age_media(media_root)
+    entry.delete()
+
+    run_maintenance('--thumbs-delete-orphans')
+
+    # The upload's thumbnail can be made again, so it goes; the upload stays.
+    assert not any((media_root / 'thumbs').rglob('*.jpg'))
+    assert (media_root / upload).exists()
+
+
+def test_deleting_thumbnails_refuses_any_other_path(media_root):
+    upload = make_upload(media_root, 'photo.png')
+
+    for path in ('upload/photo.png', 'thumbs/../upload/photo.png', 'photo.png'):
+        with pytest.raises(ValueError, match='not a thumbnail'):
+            maintenance.delete_thumb_files(['thumbs/a/a5.jpg', path])
+
+    assert upload.exists()
+
+
+@pytest.mark.django_db
+def test_a_reshare_keeps_the_original_upload_in_use(
+    media_root, selfposts, admin_client
+):
+    original = share_upload(admin_client)
+    upload = uploaded_file(original)
+    # Shares made in one second get the same guid, so reshare a second later.
+    with patch(
+        'glifestream.apis.selfposts.utcnow',
+        return_value=original.date_published + timedelta(seconds=1),
+    ):
+        admin_client.post(
+            reverse('api', kwargs={'cmd': 'reshare'}), {'entry': original.pk}
+        )
+    reshare = Entry.objects.latest('id')
+    assert reshare.pk != original.pk
+    assert not Media.objects.filter(entry=reshare, file=upload).exists()
+    age_media(media_root)
+
+    original.delete()
+
+    assert maintenance.list_orphan_uploads() == []
+
+
+@pytest.mark.django_db
+def test_an_upload_claimed_only_by_its_media_row_is_in_use(media_root, service):
+    entry = Entry.objects.create(service=service, guid='row-only', content='')
+    row = Media(entry=entry)
+    row.file.save('kept.pdf', SimpleUploadedFile('kept.pdf', b'%PDF'))
+    row.save()
+    age_media(media_root)
+
+    assert maintenance.list_orphan_uploads() == []
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'field, reference',
+    [
+        ('content', '<a href="[GLS-UPLOAD]/2020/01/02/zdj%C4%99cie.pdf">file</a>'),
+        ('content', "<a href='/media/upload/2020/01/02/zdjęcie.pdf'>file</a>"),
+        ('content', 'see https://gls.example/media/upload/2020/01/02/zdjęcie.pdf?v=1'),
+        ('link', 'https://gls.example/media/upload/2020/01/02/zdjęcie.pdf'),
+        ('title', 'zdjęcie: 2020/01/02/zdjęcie.pdf'),
+        (
+            'mblob',
+            json.dumps({'content': [[{'url': '[GLS-UPLOAD]/2020/01/02/zdjęcie.pdf'}]]}),
+        ),
+    ],
+)
+def test_an_upload_mentioned_anywhere_in_an_entry_is_in_use(
+    media_root, service, field, reference
+):
+    make_upload(media_root, '2020/01/02/zdjęcie.pdf')
+    entry = Entry(service=service, guid='linked')
+    setattr(entry, field, reference)
+    entry.save()
+
+    assert maintenance.list_orphan_uploads() == []
+
+
+@pytest.mark.django_db
+def test_an_upload_linked_from_the_owners_templates_is_in_use(
+    media_root, settings, tmp_path
+):
+    make_upload(media_root, '2020/01/02/me.jpg')
+    templates = tmp_path / 'templates'
+    templates.mkdir()
+    (templates / 'user-about.html').write_text(
+        '<img src="/media/upload/2020/01/02/me.jpg" alt="Me" />'
+    )
+    settings.TEMPLATES = [{**settings.TEMPLATES[0], 'DIRS': [str(templates)]}]
+
+    assert maintenance.list_orphan_uploads() == []
+
+
+@pytest.mark.django_db
+def test_an_upload_written_moments_ago_is_not_reported(media_root):
+    # A selfpost saves the file before the Media row that claims it.
+    make_upload(media_root, 'fresh.png', age_sec=60)
+    stale = make_upload(media_root, 'stale.png', age_sec=2 * DAY)
+
+    assert maintenance.list_orphan_uploads() == [str(stale.relative_to(media_root))]
+
+
+@pytest.mark.django_db
+def test_the_report_warns_when_most_uploads_look_unused(media_root, service, capsys):
+    # What an empty or restored database next to the real MEDIA_ROOT looks like.
+    for name in ('a.pdf', 'b.pdf', 'c.pdf'):
+        make_upload(media_root, name)
+    Entry.objects.create(service=service, guid='one', content='[GLS-UPLOAD]/a.pdf')
+
+    run_maintenance('--uploads-list-orphans')
+
+    out = capsys.readouterr().out
+    assert 'more than half of all 3 uploads' in out
+    assert all(
+        (media_root / 'upload' / name).exists() for name in ('a.pdf', 'b.pdf', 'c.pdf')
+    )
+
+
+@pytest.mark.django_db
+def test_the_report_is_silent_when_every_upload_is_in_use(media_root, capsys):
+    run_maintenance('--uploads-list-orphans')
+
+    assert capsys.readouterr().out == ''
+
+
+def test_there_is_no_option_to_delete_uploads():
+    with pytest.raises(getopt.GetoptError):
+        maintenance.parse_maintenance_args(['--uploads-delete-orphans'])
+
+
+def test_the_daemon_only_reports_unused_uploads():
+    upload_jobs = [
+        job
+        for job in DEFAULT_WORKER_MAINTENANCE_JOBS
+        if any('upload' in arg for arg in job['args'])
+    ]
+
+    assert [job['args'] for job in upload_jobs] == [['--uploads-list-orphans']]

@@ -35,4 +35,11 @@ DEFAULT_WORKER_MAINTENANCE_JOBS: tuple[dict[str, Any], ...] = (
         'schedule': '7 9 1 * *',
         'args': ['--thumbs-delete-orphans'],
     },
+    {
+        # Uploads are the owner's own files, so this only lists the ones
+        # nothing seems to use. Removing them stays a manual decision.
+        'name': 'report-orphan-uploads',
+        'schedule': '8 9 1 * *',
+        'args': ['--uploads-list-orphans'],
+    },
 )

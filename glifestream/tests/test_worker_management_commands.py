@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import datetime
+import os
 from io import StringIO
 from unittest.mock import patch
 
@@ -79,6 +80,22 @@ def test_worker_cleanup_command_deletes_old_inactive_entries(service):
     call_command('worker_cleanup', '--delete-old=80', '--only-inactive')
 
     assert not Entry.objects.filter(pk=old_entry.pk).exists()
+
+
+@pytest.mark.django_db
+def test_worker_cleanup_command_reports_unused_uploads_without_deleting(
+    tmp_path, capsys
+):
+    upload = tmp_path / 'upload' / 'photo.png'
+    upload.parent.mkdir()
+    upload.write_bytes(b'photo')
+    os.utime(upload, (0, 0))
+
+    with override_settings(MEDIA_ROOT=str(tmp_path)):
+        call_command('worker_cleanup', '--uploads-list-orphans')
+
+    assert capsys.readouterr().out.strip().endswith('upload/photo.png')
+    assert upload.exists()
 
 
 def test_worker_init_files_command_creates_runtime_paths(tmp_path):

@@ -55,6 +55,11 @@ class Command(BaseCommand):
             action='store_true',
             help='Delete orphaned thumbnail files.',
         )
+        parser.add_argument(
+            '--uploads-list-orphans',
+            action='store_true',
+            help='Report uploaded files nothing seems to use. Never deletes them.',
+        )
 
     def handle(self, *args, **options) -> None:
         maintenance_args: list[str] = []
@@ -72,5 +77,7 @@ class Command(BaseCommand):
             maintenance_args.append('--thumbs-list-orphans')
         if options.get('thumbs_delete_orphans'):
             maintenance_args.append('--thumbs-delete-orphans')
+        if options.get('uploads_list_orphans'):
+            maintenance_args.append('--uploads-list-orphans')
 
         run_maintenance_args(maintenance_args, verbose=int(options['verbosity']))
