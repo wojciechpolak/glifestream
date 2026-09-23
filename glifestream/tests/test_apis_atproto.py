@@ -736,3 +736,114 @@ def test_atproto_run_reports_a_rejected_login(service):
     mock_process.assert_not_called()
     service.refresh_from_db()
     assert service.last_checked is None
+
+
+def _author_feed_with_embed(post_embed, record_embed):
+    """A getAuthorFeed response parsed by the SDK, as the client returns it."""
+    from atproto_client import models
+
+    return models.AppBskyFeedGetAuthorFeed.Response.model_validate(
+        {
+            'feed': [
+                {
+                    'post': {
+                        'uri': 'at://did:plc:testdid/app.bsky.feed.post/gallery',
+                        'cid': 'gallery-cid',
+                        'author': {
+                            'did': 'did:plc:testdid',
+                            'handle': 'user.bsky.social',
+                        },
+                        'record': {
+                            '$type': 'app.bsky.feed.post',
+                            'text': 'Gallery post',
+                            'createdAt': '2026-09-23T10:00:00Z',
+                            'embed': record_embed,
+                        },
+                        'embed': post_embed,
+                        'indexedAt': '2026-09-23T10:00:00Z',
+                    }
+                }
+            ]
+        }
+    )
+
+
+@pytest.mark.django_db
+def test_atproto_run_imports_a_gallery_post(service):
+    service.api = 'atproto'
+    service.creds = 'playwright.test:app-pass'
+    service.user_id = 'author-feed'
+    service.save()
+
+    mock_client = MagicMock()
+    mock_client.me = MagicMock(did='did:plc:testdid')
+    mock_client.get_author_feed.return_value = _author_feed_with_embed(
+        {
+            '$type': 'app.bsky.embed.gallery#view',
+            'items': [
+                {
+                    '$type': 'app.bsky.embed.gallery#viewImage',
+                    'alt': 'First',
+                    'aspectRatio': {'width': 640, 'height': 480},
+                    'thumbnail': 'https://cdn.bsky.app/thumb-1.jpg',
+                    'fullsize': 'https://cdn.bsky.app/full-1.jpg',
+                },
+                {
+                    '$type': 'app.bsky.embed.gallery#viewImage',
+                    'alt': 'Second',
+                    'aspectRatio': {'width': 480, 'height': 640},
+                    'thumbnail': 'https://cdn.bsky.app/thumb-2.jpg',
+                    'fullsize': 'https://cdn.bsky.app/full-2.jpg',
+                },
+            ],
+        },
+        {
+            '$type': 'app.bsky.embed.gallery',
+            'items': [
+                {
+                    '$type': 'app.bsky.embed.gallery#image',
+                    'alt': alt,
+                    'aspectRatio': {'width': 640, 'height': 480},
+                    'image': {
+                        '$type': 'blob',
+                        'ref': {'$link': 'bafkreigallery%d' % n},
+                        'mimeType': 'image/jpeg',
+                        'size': 1000,
+                    },
+                }
+                for n, alt in enumerate(('First', 'Second'))
+            ],
+        },
+    )
+
+    with patch('glifestream.apis.atproto.Client', return_value=mock_client):
+        AtProtoService(service).run()
+
+    entry = Entry.objects.get(guid='gallery-cid')
+    assert 'src="https://cdn.bsky.app/thumb-1.jpg"' in entry.content
+    assert 'data-imgurl="https://cdn.bsky.app/full-1.jpg"' in entry.content
+    assert 'width="640" height="480"' in entry.content
+    assert 'src="https://cdn.bsky.app/thumb-2.jpg"' in entry.content
+    assert 'data-imgurl="https://cdn.bsky.app/full-2.jpg"' in entry.content
+    assert entry.mblob is None
+
+
+@pytest.mark.django_db
+def test_atproto_run_imports_a_post_with_an_unknown_embed_type(service):
+    service.api = 'atproto'
+    service.creds = 'playwright.test:app-pass'
+    service.user_id = 'author-feed'
+    service.save()
+
+    mock_client = MagicMock()
+    mock_client.me = MagicMock(did='did:plc:testdid')
+    mock_client.get_author_feed.return_value = _author_feed_with_embed(
+        {'$type': 'app.bsky.embed.notYetReleased#view', 'things': [{'a': 1}]},
+        {'$type': 'app.bsky.embed.notYetReleased', 'things': [{'a': 1}]},
+    )
+
+    with patch('glifestream.apis.atproto.Client', return_value=mock_client):
+        AtProtoService(service).run()
+
+    entry = Entry.objects.get(guid='gallery-cid')
+    assert 'Gallery post' in entry.content

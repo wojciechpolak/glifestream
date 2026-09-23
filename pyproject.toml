@@ -15,7 +15,7 @@ dependencies = [
     "requests-oauthlib==2.0.0",
     "gunicorn>=25,<26",
     "pymemcache>=4.0.0,<5",
-    "atproto==0.0.65",
+    "atproto==0.0.72",
     "magic-link-sso-django",
 ]
 

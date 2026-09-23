@@ -451,6 +451,10 @@ def _extract_embed_images(embed: Any) -> list[Any]:
         images = getattr(candidate, 'images', None)
         if images:
             return cast(list[Any], images)
+        # A gallery (app.bsky.embed.gallery) lists its images as items.
+        items = getattr(candidate, 'items', None)
+        if isinstance(items, list):
+            return [item for item in items if getattr(item, 'fullsize', None)]
     return []
 
 
@@ -671,7 +675,12 @@ def _render_image_thumbnails(images: list[Any], is_public: bool) -> str:
 
     content = ' <p class="thumbnails">'
     for view_image in images:
-        image_url = view_image.thumb
+        # An images#view item names its thumbnail "thumb", a gallery item "thumbnail".
+        image_url = (
+            getattr(view_image, 'thumb', None)
+            or getattr(view_image, 'thumbnail', None)
+            or view_image.fullsize
+        )
         large_url = view_image.fullsize
         link = large_url
         if is_public:

@@ -126,6 +126,11 @@ work, so only the significant changes are listed.
   client errors are now classified like HTTP errors: rejected credentials and
   unusable payloads wait for the long delay, timeouts, rate limits and server
   errors retry with backoff.
+- A Bluesky/ATProto feed containing a post with an image gallery
+  (`app.bsky.embed.gallery`) no longer fails to import. The AT Protocol SDK is
+  upgraded to 0.0.72, which parses galleries and reads an embed type released
+  after it without rejecting the whole feed. Gallery images render as
+  thumbnails, like an image embed.
 - A Mastodon or PixelFed fetch that gets a non-JSON response no longer records
   the service as checked.
 - Resharing a post now registers its local thumbnails. The reshare used to
