@@ -15,15 +15,18 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Unit tests for the TypeScript modules. What the page does as a whole is
-// covered by the Playwright tests in glifestream/tests/e2e/.
+import { describe, expect, it } from 'vitest';
 
-import { defineConfig } from 'vitest/config';
+import { pad } from './format';
 
-export default defineConfig({
-    root: import.meta.dirname,
-    test: {
-        include: ['src/**/*.test.ts'],
-        environment: 'happy-dom',
-    },
+describe('pad', () => {
+    it('pads with zeros to the length', () => {
+        expect(pad(7, 2)).toBe('07');
+        expect(pad('3', 4)).toBe('0003');
+    });
+
+    it('leaves a long enough number alone', () => {
+        expect(pad(12, 2)).toBe('12');
+        expect(pad(2026, 2)).toBe('2026');
+    });
 });

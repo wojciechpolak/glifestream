@@ -16,6 +16,7 @@
     "test": "vitest run --config frontend/vitest.config.ts"
   },
   "devDependencies": {
+    "@types/jquery": "3.5.34",
     "@types/node": "24.13.6",
     "esbuild": "0.28.2",
     "happy-dom": "20.14.5",
@@ -27,6 +28,7 @@
     "vitest": "5.0.1"
   },
   "allowScripts": {
-    "esbuild": false
+    "esbuild": false,
+    "fsevents": false
   }
 }

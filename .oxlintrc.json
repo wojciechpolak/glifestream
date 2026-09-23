@@ -8,31 +8,26 @@
         "browser": true,
         "es2024": true
     },
+    "globals": {
+        "$": "readonly",
+        "Quill": "readonly",
+        "gettext_msg": "readonly",
+        "settings": "readonly",
+        "stream_data": "readonly"
+    },
+    "rules": {
+        "eslint/no-underscore-dangle": ["warn", { "allow": ["__glsReloadHandler"] }],
+        // The modules keep the style of the jQuery script they came from:
+        // handlers read the element from `this`, results of jQuery lookups
+        // are asserted to the element type, and on* properties are assigned
+        // so that a new handler replaces the old one. Turn these back on as
+        // jQuery goes.
+        "oxc/no-this-in-exported-function": "off",
+        "typescript/no-this-alias": "off",
+        "typescript/no-unsafe-type-assertion": "off",
+        "unicorn/prefer-add-event-listener": "off"
+    },
     "overrides": [
-        {
-            "files": ["frontend/src/legacy.js"],
-            "globals": {
-                "$": "readonly",
-                "Quill": "readonly",
-                "gettext_msg": "readonly",
-                "settings": "readonly",
-                "stream_data": "readonly"
-            },
-            "rules": {
-                "no-underscore-dangle": "off",
-                "no-unneeded-ternary": "off",
-                "no-unreachable": "off",
-                "no-unused-vars": "off",
-                "no-useless-concat": "off",
-                "no-useless-escape": "off",
-                "typescript/consistent-return": "off",
-                "typescript/no-floating-promises": "off",
-                "typescript/no-for-in-array": "off",
-                "typescript/no-unnecessary-type-conversion": "off",
-                "unicorn/consistent-function-scoping": "off",
-                "unicorn/prefer-add-event-listener": "off"
-            }
-        },
         {
             "files": ["frontend/*.ts"],
             "env": {

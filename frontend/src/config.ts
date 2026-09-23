@@ -15,15 +15,7 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Unit tests for the TypeScript modules. What the page does as a whole is
-// covered by the Playwright tests in glifestream/tests/e2e/.
-
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-    root: import.meta.dirname,
-    test: {
-        include: ['src/**/*.test.ts'],
-        environment: 'happy-dom',
-    },
-});
+/** Page-wide values, set from `settings` when the page is ready. */
+export const config = {
+    baseurl: '/',
+};

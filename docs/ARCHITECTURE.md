@@ -138,16 +138,31 @@ publishes to the WebSub hubs, unless the share was a draft.
 The browser code lives in `frontend/src/`, outside the Python layers.
 `npm run build` bundles `main.ts` with esbuild into
 `glifestream/static/js/dist/glifestream.js`, which is not in Git, and
-django-pipeline appends it to jQuery and fancyBox in its `main` bundle. Most
-of the code is still `legacy.js`, the jQuery script as it was; it moves into
-TypeScript modules one piece at a time. TypeScript 7 (`npm run typecheck`)
-only checks the types; esbuild strips them, so the build does not depend on
-the checker.
+django-pipeline appends it to jQuery and fancyBox in its `main` bundle.
+TypeScript 7 (`npm run typecheck`) only checks the types, in strict mode;
+esbuild strips them, so the build does not depend on the checker.
+
+```
+main.ts          sets up the stream or the settings pages when ready
+stream/          entries, composer, sharing, media, maps, calendar, shortcuts
+settings/        the service form and the fetch status of the settings pages
+ui/              lightbox, overlay, spinner, pull to refresh
+util/            ids, cookies, translations, DOM and scrolling helpers
+http.ts          CSRF header and error report for every jQuery request
+```
+
+The modules still use jQuery, which pipeline loads first, and handlers still
+read their element from `this`. What a module keeps between events is an
+exported state object, such as `stream_state` or `composer`, not a closure.
 
 - Templates hand the script its data in the globals `settings`, `stream_data`
-  and `gettext_msg`. A deployment customizes it through `user-scripts.js`,
-  with the globals listed in `glifestream/tests/e2e/test_js_extension_points.py`,
-  and that list is the contract a rewrite keeps.
+  and `gettext_msg`, declared in `frontend/src/globals.d.ts`. A deployment
+  customizes it through `user-scripts.js`, with the `window` globals declared
+  there and pinned by `glifestream/tests/e2e/test_js_extension_points.py`;
+  that list is the contract a rewrite keeps.
+- `frontend/src/api-types.ts` declares the JSON the script reads, and
+  `glifestream/tests/test_frontend_contract.py` checks that the views send
+  it. Change the two together.
 - Pipeline leaves a missing file out of a bundle without an error, so the
   system check `glifestream.E001` stops `runserver` and `collectstatic` when a
   bundle source, the built script included, cannot be found.

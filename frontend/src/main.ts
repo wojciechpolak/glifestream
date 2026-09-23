@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2026 Wojciech Polak
+ *  gLifestream Copyright (C) 2009-2026 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -15,6 +15,30 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// The entry point of the page script. The code still lives in legacy.js, the
-// jQuery script as it was; modules move out of it into TypeScript one by one.
-import './legacy.js';
+// The page script: every page loads it, and it sets up either the stream or
+// the settings pages once the document is ready.
+
+import { config } from './config';
+import { setup_ajax } from './http';
+import { run_fetch_service } from './settings/fetch-status';
+import { init_settings } from './settings/init';
+import { unhide_entry } from './stream/entry-actions';
+import { init_stream } from './stream/init';
+import { es } from './util/dom';
+
+// Called by inline handlers in the markup: the "Undo" link of a hidden entry
+// and "Run now" on the settings status page.
+es('gls.unhide_entry', unhide_entry);
+es('gls.run_fetch_service', run_fetch_service);
+
+setup_ajax();
+
+$(document).ready(function () {
+    config.baseurl = settings.baseurl;
+
+    if (document.getElementById('settings')) {
+        init_settings();
+        return;
+    }
+    init_stream();
+});

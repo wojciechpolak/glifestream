@@ -859,7 +859,9 @@ def frontend_bundle() -> Path:
     newer = sorted(
         str(path.relative_to(FRONTEND_DIR.parent))
         for path in sources
-        if path.is_file() and path.stat().st_mtime > built
+        if path.is_file()
+        and not path.name.endswith('.test.ts')
+        and path.stat().st_mtime > built
     )
     if newer:
         pytest.fail(

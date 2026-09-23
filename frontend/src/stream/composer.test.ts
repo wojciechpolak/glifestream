@@ -15,15 +15,21 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Unit tests for the TypeScript modules. What the page does as a whole is
-// covered by the Playwright tests in glifestream/tests/e2e/.
+import { describe, expect, it } from 'vitest';
 
-import { defineConfig } from 'vitest/config';
+import { is_quill_empty } from './composer';
 
-export default defineConfig({
-    root: import.meta.dirname,
-    test: {
-        include: ['src/**/*.test.ts'],
-        environment: 'happy-dom',
-    },
+describe('is_quill_empty', () => {
+    it('is empty with only markup and whitespace', () => {
+        expect(is_quill_empty('<div><br></div>')).toBe(true);
+        expect(is_quill_empty('<div>  </div>\n<p></p>')).toBe(true);
+    });
+
+    it('is not empty with text', () => {
+        expect(is_quill_empty('<div>Hello</div>')).toBe(false);
+    });
+
+    it('is not empty with a picture and no text', () => {
+        expect(is_quill_empty('<div><img src="a.png"></div>')).toBe(false);
+    });
 });

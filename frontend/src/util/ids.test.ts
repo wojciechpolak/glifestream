@@ -15,15 +15,22 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// Unit tests for the TypeScript modules. What the page does as a whole is
-// covered by the Playwright tests in glifestream/tests/e2e/.
+import { describe, expect, it } from 'vitest';
 
-import { defineConfig } from 'vitest/config';
+import { parse_id } from './ids';
 
-export default defineConfig({
-    root: import.meta.dirname,
-    test: {
-        include: ['src/**/*.test.ts'],
-        environment: 'happy-dom',
-    },
+describe('parse_id', () => {
+    it('splits at the first dash', () => {
+        expect(parse_id('entry-12')).toEqual(['entry', '12']);
+        expect(parse_id('youtube-a-b_c')).toEqual(['youtube', 'a-b_c']);
+    });
+
+    it('keeps an id without a dash whole', () => {
+        expect(parse_id('stream')).toEqual(['stream']);
+    });
+
+    it('gives an empty part around a leading or trailing dash', () => {
+        expect(parse_id('-12')).toEqual(['', '12']);
+        expect(parse_id('entry-')).toEqual(['entry', '']);
+    });
 });
