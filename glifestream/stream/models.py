@@ -19,6 +19,8 @@ from __future__ import annotations
 from __future__ import unicode_literals
 
 import datetime
+import posixpath
+import secrets
 from typing import Any
 
 from django.db import models
@@ -235,6 +237,21 @@ class Entry(models.Model):
         return '%s: %s' % (self.service.name, self.title)
 
 
+def upload_path(instance: Media, filename: str) -> str:
+    """upload/YYYY/MM/DD/<random>/<file name>.
+
+    The random directory keeps the file's own name, so a camera's sequential
+    IMG_1234.jpg cannot be guessed and fetched while its entry is a draft or
+    friends-only. Hex, so a case-insensitive file system loses no entropy.
+    """
+    del instance
+    return posixpath.join(
+        datetime.datetime.now().strftime('upload/%Y/%m/%d'),
+        secrets.token_hex(8),
+        filename,
+    )
+
+
 class Media(models.Model):
     entry = models.ForeignKey(
         Entry,
@@ -243,7 +260,7 @@ class Media(models.Model):
         null=False,
         blank=False,
     )
-    file = models.FileField(upload_to='upload/%Y/%m/%d')
+    file = models.FileField(upload_to=upload_path)
 
     class Meta:
         verbose_name = _('Media')

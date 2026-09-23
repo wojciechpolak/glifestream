@@ -119,8 +119,11 @@ publishes to the WebSub hubs, unless the share was a draft.
   file name is the SHA-1 of the source URL, so every entry that shows the
   same image shares one file. Content refers to a thumbnail as
   `[GLS-THUMBS]/<sha1>.<ext>`.
-- `MEDIA_ROOT/upload/YYYY/MM/DD/` holds selfpost uploads, referred to as
-  `[GLS-UPLOAD]/...`. An upload is the only copy of a file the owner posted.
+- `MEDIA_ROOT/upload/YYYY/MM/DD/<random>/<file name>` holds selfpost uploads,
+  referred to as `[GLS-UPLOAD]/...`. The random directory makes the path
+  impossible to guess, so the file of a draft or friends-only entry cannot be
+  fetched by trying likely names. Uploads from before this change sit directly
+  under the date. An upload is the only copy of a file the owner posted.
 - A thumbnail no entry refers to is an orphan. `--thumbs-delete-orphans`
   removes orphans older than a day. Anything newer may belong to an import
   still in progress. `delete_thumb_files()` refuses any path outside

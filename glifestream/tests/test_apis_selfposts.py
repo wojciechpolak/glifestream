@@ -1,5 +1,7 @@
 import datetime
 import json
+import posixpath
+import re
 import pytest
 from unittest.mock import patch
 from django.conf import settings
@@ -424,3 +426,55 @@ def test_selfposts_service_has_no_feed_to_fetch(service):
 
     assert api.get_urls() == []
     assert api.run() is None
+
+
+UPLOAD_PATH = re.compile(r'^upload/\d{4}/\d{2}/\d{2}/[0-9a-f]{16}/(?P<name>[^/]+)$')
+
+
+@pytest.fixture
+def media_root(tmp_path, settings):
+    settings.MEDIA_ROOT = str(tmp_path)
+    return tmp_path
+
+
+@pytest.mark.django_db
+def test_an_upload_gets_its_own_random_directory(selfposts, media_root):
+    entry = selfposts.share(
+        {
+            'content': 'Two of the same name',
+            'files': docs(
+                upload('IMG_1234.pdf', 'application/pdf'),
+                upload('IMG_1234.pdf', 'application/pdf'),
+            ),
+        }
+    )
+
+    assert entry is not None
+    names = list(
+        Media.objects.filter(entry=entry).order_by('pk').values_list('file', flat=True)
+    )
+    assert len(names) == 2
+    for name in names:
+        match = UPLOAD_PATH.match(name)
+        assert match and match['name'] == 'IMG_1234.pdf'
+        assert (media_root / name).is_file()
+        assert '[GLS-UPLOAD]/%s' % name.removeprefix('upload/') in entry.content
+    assert posixpath.dirname(names[0]) != posixpath.dirname(names[1])
+
+
+@pytest.mark.django_db
+def test_a_long_upload_name_is_shortened_to_fit(selfposts, media_root):
+    long_name = 'x' * 90 + '.pdf'
+
+    entry = selfposts.share(
+        {'content': 'Long', 'files': docs(upload(long_name, 'application/pdf'))}
+    )
+
+    assert entry is not None
+    name = Media.objects.get(entry=entry).file.name
+    assert name is not None
+    match = UPLOAD_PATH.match(name)
+    assert match and match['name'].endswith('.pdf')
+    # FileField's default max_length.
+    assert len(name) <= 100
+    assert (media_root / name).is_file()
