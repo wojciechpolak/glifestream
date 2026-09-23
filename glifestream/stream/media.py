@@ -253,8 +253,9 @@ def __img_subs(m: Match[str]) -> str:
 
 
 def transform_to_local(entry: Entry) -> None:
+    # Match within one tag, so every <img> is localized, not just the last.
     entry.content = re.sub(
-        r'<img(.*)src="(https?://.*?)"', __img_subs, entry.content, flags=re.DOTALL
+        r'<img(\s(?:[^>]*?\s)?)src="(https?://[^"]*)"', __img_subs, entry.content
     )
 
 

@@ -115,6 +115,14 @@ work, so only the significant changes are listed.
 - Resharing a post now registers its local thumbnails. The reshare used to
   register them before it saved the entry, so every registration failed and
   logged an error.
+- Favoriting or resharing an entry with several remote images now stores a
+  local copy of each. Only the last image in the entry used to be stored.
+- `--thumbs-delete-orphans` no longer deletes a thumbnail that an import has
+  just downloaded but not yet saved an entry for. Thumbnails newer than a day
+  are left for the next run.
+- `--thumbs-delete-orphans` no longer stops at a file that disappears while it
+  runs, and it deletes a thumbnail from the directory it was found in rather
+  than from the one its name implies.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
 

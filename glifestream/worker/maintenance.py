@@ -181,37 +181,57 @@ def get_old_entries_queryset(
     return Entry.objects.filter(**fs).exclude(id__in=favs)
 
 
+# A thumbnail newer than this is never an orphan. An import saves each
+# thumbnail before it commits the entry that shows it, and a cleanup run in
+# between would otherwise take the file from under that entry.
+ORPHAN_MIN_AGE_SEC = 24 * 3600
+
+
 def _thumb_rel(thumb_hash: str) -> str:
     return str(media.get_thumb_info(thumb_hash, append_suffix=False)['rel'])
 
 
-def _collect_thumb_files() -> set[str]:
-    """Every thumbnail currently on disk, as a MEDIA_ROOT-relative path."""
+def _collect_thumb_files(*, modified_before: float) -> set[str]:
+    """Thumbnails on disk last written before `modified_before`, as
+    MEDIA_ROOT-relative paths of where they actually are."""
     found: set[str] = set()
-    for _root, _dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT, 'thumbs')):
-        found.update(_thumb_rel(file) for file in files if file[0] != '.')
+    for root, _dirs, files in os.walk(os.path.join(settings.MEDIA_ROOT, 'thumbs')):
+        for file in files:
+            if file[0] == '.':
+                continue
+            path = os.path.join(root, file)
+            try:
+                if os.path.getmtime(path) >= modified_before:
+                    continue
+            except FileNotFoundError:
+                continue
+            found.add(os.path.relpath(path, settings.MEDIA_ROOT))
     return found
 
 
-def _referenced_thumbs(entry: Entry) -> set[str]:
+def _referenced_thumbs(content: str, link_image: str) -> set[str]:
     """The thumbnails one entry lays claim to, via link_image or its body."""
     referenced = {
         _thumb_rel(thumb_hash)
-        for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', entry.content)
+        for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', content)
     }
-    link_hash = media.get_thumb_hash(entry.link_image)
+    link_hash = media.get_thumb_hash(link_image)
     if link_hash:
         referenced.add(_thumb_rel(link_hash))
     return referenced
 
 
 def list_orphan_thumbs() -> list[str]:
-    orphans = _collect_thumb_files()
-    for entry in Entry.objects.all():
-        orphans -= _referenced_thumbs(entry)
+    orphans = _collect_thumb_files(modified_before=time.time() - ORPHAN_MIN_AGE_SEC)
+    entries = Entry.objects.values_list('content', 'link_image')
+    for content, link_image in entries.iterator(chunk_size=500):
+        orphans -= _referenced_thumbs(content, link_image)
     return sorted(orphans)
 
 
 def delete_thumb_files(files: Sequence[str]) -> None:
     for file in files:
-        os.remove(os.path.join(settings.MEDIA_ROOT, file))
+        try:
+            os.remove(os.path.join(settings.MEDIA_ROOT, file))
+        except FileNotFoundError:
+            pass

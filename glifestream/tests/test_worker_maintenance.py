@@ -20,6 +20,7 @@ from __future__ import annotations
 import datetime
 import itertools
 import os
+import time
 
 import pytest
 from django.utils import timezone
@@ -42,6 +43,9 @@ def make_thumb(media_root, thumb_hash: str) -> str:
     path = media_root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(b'thumb')
+    # Old enough that the cleanup no longer treats it as mid-import.
+    then = time.time() - maintenance.ORPHAN_MIN_AGE_SEC - 60
+    os.utime(path, (then, then))
     return rel
 
 
