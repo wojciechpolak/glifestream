@@ -49,6 +49,10 @@ work, so only the significant changes are listed.
   are checked with `import-linter` (`uv run lint-imports`), in
   `./scripts/check` and in CI.
 - Forced password change flow for initial admin accounts.
+- `./scripts/bootstrap`, a one-command local setup. It installs the
+  dependencies, writes a `.env` with random secrets, migrates the database,
+  compiles translations, creates the media directories and the initial admin
+  user. It is safe to run again and never overwrites an existing `.env`.
 - Test infrastructure: pytest suite, Playwright E2E coverage (including OAuth
   and Bluesky service flows), optional visual regression testing, and coverage
   reporting.
@@ -95,6 +99,8 @@ work, so only the significant changes are listed.
 
 ### Fixed
 
+- `worker.py --init-files-dirs` no longer fails on a fresh checkout whose media
+  directory does not exist yet.
 - Re-importing an entry whose thumbnail is already registered no longer breaks
   the surrounding database transaction.
 - Ingestion now logs a failed entry save instead of ignoring it.

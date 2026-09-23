@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+
+"""
+#  gLifestream Copyright (C) 2026 Wojciech Polak
+#
+#  This program is free software; you can redistribute it and/or modify it
+#  under the terms of the GNU General Public License as published by the
+#  Free Software Foundation; either version 3 of the License, or (at your
+#  option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License along
+#  with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Take a fresh checkout to a running development instance in one command.
+
+It installs the dependencies, writes a `.env` with random secrets, migrates
+the database, compiles translations, creates the media directories and the
+initial admin/admin user. Every step is safe to repeat, so running it again
+after a pull brings an existing checkout up to date. An existing `.env` is
+never touched.
+
+Unlike `scripts/check`, this stops at the first failure: each step needs the
+ones before it.
+"""
+
+from __future__ import annotations
+
+import re
+import secrets
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+VENV = ROOT / '.venv'
+ENV_FILE = ROOT / '.env'
+ENV_EXAMPLE = ROOT / '.env.example'
+
+# `.env.example` marks every secret it wants replaced this way.
+PLACEHOLDER = re.compile(r'^(?P<name>[A-Z_]+)=change-me-\S*$', re.MULTILINE)
+
+
+def with_random_secrets(text: str) -> str:
+    """`text` with each placeholder secret replaced by a fresh random one."""
+    return PLACEHOLDER.sub(
+        lambda match: f'{match["name"]}={secrets.token_urlsafe(48)}', text
+    )
+
+
+def write_env() -> None:
+    if ENV_FILE.exists():
+        print('.env exists, leaving it as it is', flush=True)
+        return
+    ENV_FILE.write_text(with_random_secrets(ENV_EXAMPLE.read_text()))
+    ENV_FILE.chmod(0o600)
+    print('created .env from .env.example with random secrets', flush=True)
+
+
+def run(argv: list[str]) -> None:
+    print(f'$ {" ".join(argv)}', flush=True)
+    if subprocess.run(argv, cwd=ROOT).returncode != 0:
+        raise SystemExit(f'bootstrap: `{" ".join(argv)}` failed')
+
+
+def manage(*args: str) -> None:
+    # Straight from the virtualenv: `uv sync` has just made it, and `uv run`
+    # would check the lockfile again for every step. Relative, since `run`
+    # works in ROOT, so the echoed command stays short.
+    run([str((VENV / 'bin' / 'python').relative_to(ROOT)), 'manage.py', *args])
+
+
+def main() -> int:
+    if shutil.which('uv') is None:
+        print(
+            'uv: not found -- install it from https://docs.astral.sh/uv/',
+            file=sys.stderr,
+        )
+        return 1
+
+    run(['uv', 'sync', '--group', 'dev'])
+    write_env()
+    manage('migrate', '--run-syncdb')
+    if shutil.which('msgfmt'):
+        manage('compilemessages', '--ignore', '.venv')
+    else:
+        print('msgfmt not found, skipping translations (install gettext)')
+    manage('worker_init_files')
+    manage('create_initial_user')
+
+    print(
+        """
+Ready. Start the site and the fetch worker in two terminals:
+
+    uv run manage.py runserver
+    uv run worker.py --daemon
+
+On a first run, sign in at http://127.0.0.1:8000/ as admin / admin; you
+will be asked to choose a new password. Settings live in .env."""
+    )
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

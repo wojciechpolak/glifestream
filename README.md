@@ -27,8 +27,9 @@ Getting started
 
 See [INSTALL](INSTALL.md) for the full setup and deployment guide.
 
-- For local development, `INSTALL.md` covers first-run setup, the initial admin
-  user, and the background worker.
+- For local development, `./scripts/bootstrap` sets up a fresh checkout in one
+  command; `INSTALL.md` covers the steps it runs, the initial admin user, and
+  the background worker.
 - For production, `INSTALL.md` covers both the shipped Docker/Compose path and
   non-Docker deployments, including the key environment variables and hardening
   expectations.

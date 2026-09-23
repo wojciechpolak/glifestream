@@ -124,3 +124,25 @@ def test_worker_init_files_command_creates_runtime_paths(tmp_path):
     assert (templates_dir / 'user-about.html').is_file()
     assert (templates_dir / 'user-copyright.html').is_file()
     assert (templates_dir / 'user-scripts.js').is_file()
+
+
+def test_worker_init_files_command_creates_missing_media_root(tmp_path):
+    media_root = tmp_path / 'media'
+    templates_dir = tmp_path / 'templates'
+    templates_dir.mkdir()
+
+    with override_settings(
+        MEDIA_ROOT=str(media_root),
+        TEMPLATES=[
+            {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'DIRS': [str(templates_dir)],
+                'APP_DIRS': True,
+                'OPTIONS': {'context_processors': []},
+            }
+        ],
+    ):
+        call_command('worker_init_files', stdout=StringIO())
+
+    assert (media_root / 'upload').is_dir()
+    assert (media_root / 'thumbs' / 'f').is_dir()

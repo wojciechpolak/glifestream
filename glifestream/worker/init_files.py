@@ -68,4 +68,5 @@ def _create_dir(path: str, verbose: bool = True) -> None:
     if not os.path.isdir(path):
         if verbose:
             print("Creating directory '%s'" % path)
-        os.mkdir(path)
+        # makedirs: on a fresh checkout MEDIA_ROOT itself does not exist yet.
+        os.makedirs(path, exist_ok=True)

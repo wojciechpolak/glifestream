@@ -37,6 +37,21 @@ uv sync
 Local Development / First Run
 =============================
 
+One command takes a fresh checkout to a working instance:
+
+```shell
+./scripts/bootstrap
+```
+
+It runs `uv sync --group dev`, creates `.env` from `.env.example` with random
+secrets, migrates the database, compiles translations when `gettext` is
+installed, creates the media directories and the initial `admin` user, then
+prints how to start the site and the worker. Every step is safe to repeat, so
+you can run it again after pulling changes. It never overwrites an existing
+`.env`.
+
+To do the same by hand:
+
 1. Change into the project directory.
 2. Copy `.env.example` to `.env`.
 3. Edit `.env` for your local environment.
