@@ -158,6 +158,14 @@ The fetch worker (`./worker.py --daemon` or `manage.py run_worker`) reads:
   other temporary failure, and goes on with the other services. Python cannot
   stop the stuck fetch, so it keeps running in the background, but it can no
   longer change the service's status or schedule.
+- `FETCH_MEDIA_ALLOW_PRIVATE_ADDRESSES`
+  Whether image downloads may reach loopback, private, link-local and other
+  non-public addresses. Defaults to `0`. Image URLs come from the content of
+  feeds and posts, so without this guard anyone who can put an image in a feed
+  you follow could make the worker send requests into your network. Set it to
+  `1` only if your sources serve images from your own network, for example a
+  Mastodon instance on the LAN. Behind an outgoing HTTP proxy, the proxy
+  decides which addresses can be reached.
 
 Run one worker per installation. While it runs, the worker holds a lock on a
 file beside its socket, `WORKER_SOCKET` plus `.lock`, and a second worker

@@ -116,6 +116,8 @@ class OAuth2Client:
         if not authorize_url:
             raise Exception(_('Authorize URL not set.'))
         url, state = self.consumer.authorization_url(authorize_url)
+        # The caller keeps it to check the callback against.
+        self.state = state
         return url
 
     def get_access_token(self, authorization_response):

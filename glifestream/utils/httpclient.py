@@ -15,15 +15,21 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import ipaddress
 import os
 import re
+import socket
 import time
 from dataclasses import dataclass
 from typing import Any, Callable, cast
 
 import requests
 from requests import Response
+from requests.adapters import HTTPAdapter
 from urllib.parse import urljoin
+from urllib3.connection import HTTPConnection, HTTPSConnection
+from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
+from urllib3.exceptions import NewConnectionError
 
 from django.conf import settings
 
@@ -86,6 +92,100 @@ class BodyResponse:
     body: bytes
 
 
+_NAT64_PREFIX = ipaddress.ip_network('64:ff9b::/96')
+
+
+def is_public_address(address: str) -> bool:
+    """Whether `address` lies outside loopback, private, link-local and other
+    special-purpose ranges. An IPv6 address that embeds an IPv4 one is judged
+    by the embedded address."""
+    ip: ipaddress.IPv4Address | ipaddress.IPv6Address
+    ip = ipaddress.ip_address(address.split('%', 1)[0])
+    if isinstance(ip, ipaddress.IPv6Address):
+        if ip.ipv4_mapped is not None:
+            ip = ip.ipv4_mapped
+        elif ip.sixtofour is not None:
+            ip = ip.sixtofour
+        elif ip in _NAT64_PREFIX:
+            ip = ipaddress.IPv4Address(int(ip) & 0xFFFFFFFF)
+    return ip.is_global and not ip.is_multicast
+
+
+class BlockedAddressError(NewConnectionError):
+    """A media download connected to an address it may not reach."""
+
+    def __init__(self, conn: HTTPConnection, detail: str) -> None:
+        super().__init__(conn, detail)
+        self.detail = detail
+
+
+def _require_public_peer(conn: HTTPConnection, sock: socket.socket) -> socket.socket:
+    peer = sock.getpeername()[0]
+    if not is_public_address(peer):
+        sock.close()
+        raise BlockedAddressError(
+            conn,
+            'Refused to fetch from %s at non-public address %s.' % (conn.host, peer),
+        )
+    return sock
+
+
+class _PublicHTTPConnection(HTTPConnection):
+    def _new_conn(self) -> socket.socket:
+        return _require_public_peer(self, super()._new_conn())
+
+
+class _PublicHTTPSConnection(HTTPSConnection):
+    def _new_conn(self) -> socket.socket:
+        return _require_public_peer(self, super()._new_conn())
+
+
+class _PublicHTTPConnectionPool(HTTPConnectionPool):
+    ConnectionCls = _PublicHTTPConnection
+
+
+class _PublicHTTPSConnectionPool(HTTPSConnectionPool):
+    ConnectionCls = _PublicHTTPSConnection
+
+
+class _PublicOnlyAdapter(HTTPAdapter):
+    """Checks the address each new socket actually connected to, so neither a
+    redirect nor a hostname that resolves differently on the second lookup
+    gets past it. Through a proxy the proxy decides what may be reached."""
+
+    def init_poolmanager(self, *args: Any, **kwargs: Any) -> None:
+        super().init_poolmanager(*args, **kwargs)
+        self.poolmanager.pool_classes_by_scheme = {
+            'http': _PublicHTTPConnectionPool,
+            'https': _PublicHTTPSConnectionPool,
+        }
+
+
+def _get_media(url: str, **kwargs: Any) -> Response:
+    """`requests.get` for a URL taken from remote content.
+
+    Whoever wrote a feed entry or a post chooses its image URLs, so by default
+    such a download may reach only public addresses: content must not make
+    the worker fetch from localhost, the LAN or a cloud metadata service.
+    FETCH_MEDIA_ALLOW_PRIVATE_ADDRESSES lifts the restriction.
+    """
+    if getattr(settings, 'FETCH_MEDIA_ALLOW_PRIVATE_ADDRESSES', False):
+        return requests.get(url, **kwargs)
+    session = requests.Session()
+    adapter = _PublicOnlyAdapter()
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session.get(url, **kwargs)
+
+
+def _blocked_address_reason(
+    exc: requests.exceptions.RequestException,
+) -> BlockedAddressError | None:
+    # requests wraps it: ConnectionError(MaxRetryError(reason=...)).
+    reason = getattr(exc.args[0], 'reason', None) if exc.args else None
+    return reason if isinstance(reason, BlockedAddressError) else None
+
+
 def _normalize_url(url: str) -> str:
     if not url.startswith('http'):
         return 'http://' + url
@@ -110,6 +210,7 @@ def _get_category_user_message(category: str) -> str:
         'auth': 'Stored credentials were rejected by the remote service.',
         'invalid_response': 'Remote service returned an invalid or unsupported response.',
         'parse_error': 'Remote response could not be parsed.',
+        'blocked_address': 'Remote address is not allowed.',
         'unexpected': 'Unexpected fetch error.',
     }
     return messages.get(category, messages['unexpected'])
@@ -167,6 +268,14 @@ def _classify_response_error(response: Response) -> FetchError:
 def _classify_request_exception(
     exc: requests.exceptions.RequestException, url: str
 ) -> FetchError:
+    blocked = _blocked_address_reason(exc)
+    if blocked is not None:
+        return build_fetch_error(
+            category='blocked_address',
+            detail=blocked.detail,
+            retryable=False,
+            url=url,
+        )
     if isinstance(exc, requests.exceptions.Timeout):
         category = 'timeout'
         retryable = True
@@ -460,7 +569,7 @@ def retrieve(
         max_bytes = int(getattr(settings, 'FETCH_MEDIA_MAX_BYTES', 10 * 1024 * 1024))
     r = _request_read(
         url,
-        requests.get,
+        _get_media,
         headers=HEADERS,
         timeout=timeout,
         stream=True,

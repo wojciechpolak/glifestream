@@ -95,6 +95,7 @@ def test_oauth2_get_authorize_url(service):
     url = client.get_authorize_url()
 
     assert url == 'https://example.social/oauth/authorize?state=test'
+    assert client.state == 'state-test'
     mock_consumer.authorization_url.assert_called_once_with(
         'https://example.social/oauth/authorize'
     )

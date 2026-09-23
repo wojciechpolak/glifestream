@@ -230,6 +230,110 @@ def test_oauth_get_reports_a_failed_access_token_exchange(
     assert str(response.context['page']['msg']) == 'exchange failed'
 
 
+def oauth2_url(service):
+    return reverse('usettings-oauth2', args=[service.pk])
+
+
+@pytest.fixture
+def oauth2_service(db):
+    return Service.objects.create(
+        name='Toots', api='mastodon', url='https://social.example'
+    )
+
+
+@pytest.fixture
+def patched_oauth2_client():
+    """A stand-in for gls_oauth2.OAuth2Client that hands out state 'st-1'."""
+    c = MagicMock()
+    c.db = SimpleNamespace(phase=0, token='')
+    c.base_url = 'https://social.example'
+    c.authorize_url = 'https://social.example/oauth/authorize'
+    c.token_url = 'https://social.example/oauth/token'
+
+    def authorize():
+        c.state = 'st-1'
+        return 'https://social.example/oauth/authorize?state=st-1'
+
+    c.get_authorize_url.side_effect = authorize
+
+    def exchange(code):
+        c.db.phase = 3
+
+    c.get_access_token.side_effect = exchange
+
+    with (
+        patch(
+            'glifestream.usettings.oauth_settings.gls_oauth2.OAuth2Client',
+            return_value=c,
+        ),
+        patch('glifestream.usettings.oauth_settings.ServiceFactory.create_service'),
+    ):
+        yield c
+
+
+def start_oauth2(client, service, fake):
+    response = client.post(oauth2_url(service), {'identifier': 'id'})
+    assert response.status_code == 302
+    assert fake.db.phase == 1
+
+
+@pytest.mark.django_db
+def test_oauth2_accepts_a_callback_carrying_the_issued_state(
+    staff_client, oauth2_service, patched_oauth2_client
+):
+    start_oauth2(staff_client, oauth2_service, patched_oauth2_client)
+
+    response = staff_client.get(
+        oauth2_url(oauth2_service), {'code': 'good-code', 'state': 'st-1'}
+    )
+
+    assert response.status_code == 302
+    patched_oauth2_client.get_access_token.assert_called_once_with('good-code')
+    assert 'oauth2-state-%s' % oauth2_service.pk not in staff_client.session
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('params', [{'code': 'x'}, {'code': 'x', 'state': 'other'}])
+def test_oauth2_refuses_a_callback_without_the_issued_state(
+    staff_client, oauth2_service, patched_oauth2_client, params
+):
+    start_oauth2(staff_client, oauth2_service, patched_oauth2_client)
+
+    response = staff_client.get(oauth2_url(oauth2_service), params)
+
+    assert response.status_code == 200
+    assert 'does not match' in str(response.context['page']['msg'])
+    patched_oauth2_client.get_access_token.assert_not_called()
+    assert patched_oauth2_client.db.phase == 1
+
+
+@pytest.mark.django_db
+def test_oauth2_refuses_a_callback_in_a_session_that_never_started_the_flow(
+    staff_client, oauth2_service, patched_oauth2_client
+):
+    patched_oauth2_client.db.phase = 1
+
+    response = staff_client.get(
+        oauth2_url(oauth2_service), {'code': 'x', 'state': 'st-1'}
+    )
+
+    assert response.status_code == 200
+    patched_oauth2_client.get_access_token.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_oauth2_page_revisited_mid_flow_just_renders(
+    staff_client, oauth2_service, patched_oauth2_client
+):
+    start_oauth2(staff_client, oauth2_service, patched_oauth2_client)
+
+    response = staff_client.get(oauth2_url(oauth2_service))
+
+    assert response.status_code == 200
+    assert 'msg' not in response.context['page']
+    patched_oauth2_client.get_access_token.assert_not_called()
+
+
 def test_help_table_covers_twitter():
     assert 'twitter' in oauth_settings.OAUTH1_APIS_HELP
     assert oauth_settings.OAUTH1_DEFAULT_HELP.startswith('http')

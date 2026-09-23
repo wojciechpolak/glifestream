@@ -73,7 +73,8 @@ def media_root(tmp_path: Path, settings) -> Path:
 
 
 class Remote:
-    """Serves `requests.get`: images by URL, JSON for anything else asked."""
+    """Serves `requests.get` and media downloads: images by URL, JSON for
+    anything else asked."""
 
     def __init__(self) -> None:
         self.images: dict[str, bytes] = {}
@@ -101,7 +102,10 @@ class Remote:
 @pytest.fixture
 def remote() -> Iterator[Remote]:
     serve = Remote()
-    with patch('glifestream.utils.httpclient.requests.get', side_effect=serve):
+    with (
+        patch('glifestream.utils.httpclient.requests.get', side_effect=serve),
+        patch('glifestream.utils.httpclient._get_media', side_effect=serve),
+    ):
         yield serve
 
 

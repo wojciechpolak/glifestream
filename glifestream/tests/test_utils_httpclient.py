@@ -260,7 +260,7 @@ def test_get_feed_rejects_unsupported_feed_content_type(mock_get):
     assert 'unsupported content type image/png' in excinfo.value.detail
 
 
-@patch('requests.get')
+@patch('glifestream.utils.httpclient._get_media')
 def test_retrieve_rejects_streamed_media_over_limit(mock_get, tmp_path):
     mock_get.return_value = _make_response(
         200,
@@ -341,3 +341,90 @@ def test_get_reports_a_short_retry_after_once_retries_run_out(mock_get, mock_sle
 
     assert mock_get.call_count == len(httpclient.READ_RETRY_BACKOFF_SEC) + 1
     assert excinfo.value.retry_after_sec == 3
+
+
+@pytest.mark.parametrize(
+    'address',
+    [
+        '127.0.0.1',
+        '10.1.2.3',
+        '172.16.0.1',
+        '192.168.1.1',
+        '169.254.169.254',
+        '100.64.0.1',
+        '0.0.0.0',
+        '224.0.0.1',
+        '::1',
+        'fe80::1%eth0',
+        'fd00::1',
+        '::ffff:127.0.0.1',
+        '2002:7f00:1::',
+        '64:ff9b::a00:1',
+    ],
+)
+def test_is_public_address_rejects_local_and_special_ranges(address):
+    assert not httpclient.is_public_address(address)
+
+
+@pytest.mark.parametrize(
+    'address', ['93.184.215.14', '2606:4700::6810:84e5', '::ffff:8.8.8.8']
+)
+def test_is_public_address_accepts_global_addresses(address):
+    assert httpclient.is_public_address(address)
+
+
+@pytest.fixture
+def loopback_image_server():
+    """A server on 127.0.0.1 that answers every GET with a PNG signature and
+    records the paths it was asked for."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    requested: list[str] = []
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            requested.append(self.path)
+            body = b'\x89PNG\r\n\x1a\n'
+            self.send_response(200)
+            self.send_header('Content-Type', 'image/png')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, format, *args):
+            pass
+
+    server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    try:
+        yield 'http://127.0.0.1:%d' % server.server_port, requested
+    finally:
+        server.shutdown()
+        server.server_close()
+
+
+def test_retrieve_refuses_a_non_public_address(loopback_image_server, tmp_path):
+    base_url, requested = loopback_image_server
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.retrieve(base_url + '/image.png', str(tmp_path / 'image.bin'))
+
+    assert excinfo.value.category == 'blocked_address'
+    assert not excinfo.value.retryable
+    assert '127.0.0.1' in excinfo.value.detail
+    assert requested == []
+
+
+def test_retrieve_may_reach_private_addresses_when_allowed(
+    loopback_image_server, tmp_path, settings
+):
+    settings.FETCH_MEDIA_ALLOW_PRIVATE_ADDRESSES = True
+    base_url, requested = loopback_image_server
+    target = tmp_path / 'image.bin'
+
+    httpclient.retrieve(base_url + '/image.png', str(target))
+
+    assert requested == ['/image.png']
+    assert target.read_bytes().startswith(b'\x89PNG')

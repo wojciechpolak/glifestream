@@ -21,7 +21,9 @@ from django.contrib.auth import login as django_login, logout as django_logout
 from django.contrib.auth.models import User
 from django.contrib.auth import update_session_auth_hash, REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.password_validation import validate_password
 from django.contrib.sites.requests import RequestSite
+from django.core.exceptions import ValidationError
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -30,11 +32,23 @@ from django.http import (
     HttpResponseRedirect,
 )
 from django.shortcuts import render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 from magic_sso_django.views import get_magic_sso_cookie_options
 from glifestream.gauth.forms import AuthenticationRememberMeForm
 from glifestream.utils import common
+
+
+def _safe_redirect_target(request: HttpRequest, url: str | None) -> str:
+    """`url` if it stays on this site, else the stream."""
+    if url and url_has_allowed_host_and_scheme(
+        url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return url
+    return reverse('index')
 
 
 @never_cache
@@ -44,16 +58,16 @@ def login(
     redirect_field_name=REDIRECT_FIELD_NAME,
 ):
 
-    redirect_to = request.GET.get(redirect_field_name, reverse('index'))
+    redirect_to = _safe_redirect_target(
+        request,
+        request.POST.get(redirect_field_name) or request.GET.get(redirect_field_name),
+    )
 
     if request.method == 'POST':
         form = AuthenticationRememberMeForm(
             data=request.POST,
         )
         if form.is_valid():
-            if not redirect_to or '//' in redirect_to or ' ' in redirect_to:
-                redirect_to = settings.BASE_URL + '/'
-
             if not form.cleaned_data['remember_me']:
                 request.session.set_expiry(0)
 
@@ -93,6 +107,21 @@ def login(
     )
 
 
+def _new_password_error(user: User, password1: str, password2: str) -> str | None:
+    if not password1 or not password2:
+        return _('Please fill in both password fields.')
+    if password1 != password2:
+        return _('Passwords do not match.')
+    # The forced change exists to get rid of the initial password.
+    if user.check_password(password1):
+        return _('The new password must differ from the current one.')
+    try:
+        validate_password(password1, user)
+    except ValidationError as exc:
+        return ' '.join(exc.messages)
+    return None
+
+
 @login_required
 @never_cache
 def change_password(request: HttpRequest):
@@ -112,26 +141,20 @@ def change_password(request: HttpRequest):
     }
 
     if request.method == 'POST':
-        password1 = request.POST.get('new_password1', '')
-        password2 = request.POST.get('new_password2', '')
-
-        if not password1 or not password2:
-            return render(
-                request,
-                'gauth/change_password.html',
-                {'page': page, 'error': _('Please fill in both password fields.')},
-            )
-
-        if password1 != password2:
-            return render(
-                request,
-                'gauth/change_password.html',
-                {'page': page, 'error': _('Passwords do not match.')},
-            )
-
         authed_user = user
         if not isinstance(authed_user, User):
             return HttpResponseForbidden()
+
+        password1 = request.POST.get('new_password1', '')
+        error = _new_password_error(
+            authed_user, password1, request.POST.get('new_password2', '')
+        )
+        if error:
+            return render(
+                request,
+                'gauth/change_password.html',
+                {'page': page, 'error': error},
+            )
 
         authed_user.set_password(password1)
         authed_user.save()

@@ -29,6 +29,7 @@ from django.http import (
 )
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils.crypto import constant_time_compare
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 
@@ -157,6 +158,50 @@ def oauth(request: HttpRequest, **args: Any) -> HttpResponse:
     )
 
 
+def _oauth2_state_key(id_service: Any) -> str:
+    return 'oauth2-state-%s' % id_service
+
+
+def _oauth2_state_matches(request: HttpRequest, id_service: Any) -> bool:
+    """Whether the callback answers the authorization request this session
+    started. A matching state is used up."""
+    key = _oauth2_state_key(id_service)
+    expected = request.session.get(key)
+    received = request.GET.get('state', '')
+    if not (expected and received and constant_time_compare(expected, received)):
+        return False
+    del request.session[key]
+    return True
+
+
+def _handle_oauth2_callback(
+    request: HttpRequest, c: Any, page: dict[str, Any], id_service: Any
+) -> HttpResponse | None:
+    code: str | None = None
+    if c.db.phase == gls_oauth2.PHASE_1:
+        if 'code' not in request.GET:
+            return None
+        # Without this check, a link carrying someone else's code would
+        # connect the service to their account.
+        if not _oauth2_state_matches(request, id_service):
+            page['msg'] = _(
+                'The authorization response does not match the request. '
+                'Reset the tokens and try again.'
+            )
+            return None
+        code = request.GET.get('code')
+        c.db.phase = gls_oauth2.PHASE_2
+
+    if c.db.phase == gls_oauth2.PHASE_2:
+        try:
+            c.get_access_token(code)
+            c.save()
+            return HttpResponseRedirect(reverse('usettings-oauth2', args=[id_service]))
+        except Exception as e:
+            page['msg'] = e
+    return None
+
+
 @login_required
 @never_cache
 def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
@@ -204,25 +249,15 @@ def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
             c.save()
         elif c.db.phase == gls_oauth2.PHASE_0:
             auth_url = c.get_authorize_url()
+            request.session[_oauth2_state_key(id_service)] = c.state
             c.db.phase = gls_oauth2.PHASE_1
             c.save()
             return HttpResponseRedirect(auth_url)
 
     if request.method == 'GET':
-        code: str | None = None
-        if c.db.phase == gls_oauth2.PHASE_1:
-            code = request.GET.get('code', None)
-            c.db.phase = gls_oauth2.PHASE_2
-
-        if c.db.phase == gls_oauth2.PHASE_2:
-            try:
-                c.get_access_token(code)
-                c.save()
-                return HttpResponseRedirect(
-                    reverse('usettings-oauth2', args=[id_service])
-                )
-            except Exception as e:
-                page['msg'] = e
+        response = _handle_oauth2_callback(request, c, page, id_service)
+        if response is not None:
+            return response
 
     api_help = apis_help.get(service.api, 'https://oauth.net/2/')
 

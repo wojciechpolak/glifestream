@@ -219,12 +219,26 @@ FETCH_FEED_HTML_SNIFF_BYTES = get_int(
     default=64 * 1024,
 )
 FETCH_MEDIA_MAX_BYTES = get_int(ENV, 'FETCH_MEDIA_MAX_BYTES', default=10 * 1024 * 1024)
+# Image URLs come from remote content, so by default a media download may not
+# reach loopback, private or link-local addresses.
+FETCH_MEDIA_ALLOW_PRIVATE_ADDRESSES = get_bool(
+    ENV, 'FETCH_MEDIA_ALLOW_PRIVATE_ADDRESSES', default=False
+)
 WORKER_MAINTENANCE_JOBS = _load_worker_maintenance_jobs(ENV)
 
 SECRET_KEY = (
     get_env(ENV, 'SECRET_KEY', 'APP_SECRET_KEY', default='dev-secret-key')
     or 'dev-secret-key'
 )
+
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'
+    },
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

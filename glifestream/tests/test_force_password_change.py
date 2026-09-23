@@ -129,6 +129,35 @@ def test_change_password_mismatch(client):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    'new_password, message',
+    [
+        ('admin', b'must differ from the current one'),
+        ('short', b'too short'),
+        ('password123', b'too common'),
+        ('83917264530', b'entirely numeric'),
+    ],
+)
+def test_change_password_rejects_a_weak_or_unchanged_password(
+    client, new_password, message
+):
+    user = User.objects.create_user(username='admin', password='admin', is_staff=True)
+    UserProfile.objects.create(user=user, must_change_password=True)
+    client.login(username='admin', password='admin')
+
+    response = client.post(
+        reverse('change-password'),
+        {'new_password1': new_password, 'new_password2': new_password},
+    )
+
+    assert response.status_code == 200
+    assert message in response.content
+    user.refresh_from_db()
+    assert user.check_password('admin')
+    assert UserProfile.objects.get(user=user).must_change_password is True
+
+
+@pytest.mark.django_db
 def test_change_password_empty_fields(client):
     user = User.objects.create_user(
         username='cpuser', password='oldpass', is_staff=True
