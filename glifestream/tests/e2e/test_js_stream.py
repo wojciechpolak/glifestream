@@ -577,20 +577,40 @@ def test_share_box_lists_sites_with_encoded_links(
     expect(page.locator('#overlay')).to_have_count(0)
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='shareit_entry takes the title from .html(), so entities stay escaped',
-)
 def test_share_box_title_is_plain_text(
     page: Page, app_base_url: str, ensure_admin_session, make_entry
 ):
-    entry = make_entry('Salt & Pepper')
+    entry = make_entry('Salt & Pepper <b>not markup</b>')
     ensure_admin_session()
     page.goto(f'{app_base_url}/')
 
     _article(page, entry).locator('a.shareit').click()
     href = _share_link(page, 'E-mail')
-    assert href.endswith('&body=Salt%20%26%20Pepper')
+    assert href.endswith('&body=Salt%20%26%20Pepper%20not%20markup')
+
+
+def test_share_box_uses_content_when_entry_has_no_title(
+    page: Page, app_base_url: str, ensure_admin_session, make_entry
+):
+    untitled = Service.objects.create(
+        api='selfposts',
+        name='Content Notes',
+        cls='contents',
+        display='content',
+        home=True,
+        active=True,
+        public=False,
+    )
+    entry = make_entry(
+        'Unused title', '  <p>Fish &amp; <i>chips</i></p>  ', service=untitled
+    )
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+    expect(_article(page, entry).locator('.entry-title')).to_have_count(0)
+
+    _article(page, entry).locator('a.shareit').click()
+    href = _share_link(page, 'E-mail')
+    assert href.endswith('&body=Fish%20%26%20chips')
 
 
 def test_reshare_entry_as_me(

@@ -411,10 +411,10 @@
         }
         let title = $('.entry-title', that);
         if (title.length) {
-            title = strip_tags_trim(title.html());
+            title = $.trim(title.text());
         }
         else {
-            title = strip_tags_trim($('.entry-content', that).html());
+            title = $.trim($('.entry-content', that).text());
         }
         if (title.length > 137) {
             title = title.substr(0, 137) + '...';
@@ -2543,10 +2543,6 @@
         while (str.length < len)
             str = '0' + str;
         return str;
-    }
-
-    function strip_tags_trim(s) {
-        return s.replace(/<\/?[^>]+>/gi, '').replace(/^\s+|\s+$/g, '');
     }
 
     function DCE(name, props, content_list) {
