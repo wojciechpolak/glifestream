@@ -20,7 +20,6 @@ import re
 from typing import Match, cast
 from urllib.parse import parse_qsl, urlparse
 from django.utils.html import strip_tags
-from glifestream.apis import vimeo
 from glifestream.stream import media
 from glifestream.utils import httpclient, oembed
 
@@ -203,12 +202,25 @@ def __sv_youtube(m: Match) -> str:
     return __youtube_card(link, rest=rest)
 
 
+def vimeo_thumbnail_url(id_video: str) -> str | None:
+    try:
+        r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id_video)
+        jsn = httpclient.require_json(r)
+        if 'thumbnail_large' in jsn[0]:
+            return cast(str | None, jsn[0]['thumbnail_large'])
+        elif 'thumbnail_medium' in jsn[0]:
+            return cast(str | None, jsn[0]['thumbnail_medium'])
+    except Exception:
+        pass
+    return None
+
+
 def __sv_vimeo(m: Match) -> str:
     if m.start() > 0 and m.string[m.start() - 1] == '"':
         return cast(str, m.group(0))
     id_video = m.group(2)
     link = m.group(0)
-    imgurl = vimeo.get_thumbnail_url(id_video)
+    imgurl = vimeo_thumbnail_url(id_video)
     if imgurl:
         imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
         return (

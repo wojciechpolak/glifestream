@@ -69,9 +69,36 @@ def test_is_video_url():
     assert not expand.is_video_url('https://vimeo.com/channels/staff')
 
 
+def test_vimeo_thumbnail_url_prefers_the_large_size():
+    with (
+        patch('glifestream.filters.expand.httpclient.get'),
+        patch(
+            'glifestream.filters.expand.httpclient.require_json',
+            return_value=[
+                {'thumbnail_large': 'big.jpg', 'thumbnail_medium': 'mid.jpg'}
+            ],
+        ),
+    ):
+        assert expand.vimeo_thumbnail_url('123') == 'big.jpg'
+
+    with (
+        patch('glifestream.filters.expand.httpclient.get'),
+        patch(
+            'glifestream.filters.expand.httpclient.require_json',
+            return_value=[{'thumbnail_medium': 'mid.jpg'}],
+        ),
+    ):
+        assert expand.vimeo_thumbnail_url('123') == 'mid.jpg'
+
+    with patch(
+        'glifestream.filters.expand.httpclient.get', side_effect=Exception('down')
+    ):
+        assert expand.vimeo_thumbnail_url('123') is None
+
+
 @patch('glifestream.filters.expand.media.save_image', return_value='thumb.jpg')
 @patch(
-    'glifestream.filters.expand.vimeo.get_thumbnail_url',
+    'glifestream.filters.expand.vimeo_thumbnail_url',
     return_value='https://i.vimeocdn.com/42.jpg',
 )
 def test_videolinks_renders_a_vimeo_card(_mock_thumb, _mock_save):
@@ -85,12 +112,12 @@ def test_videolinks_renders_a_vimeo_card(_mock_thumb, _mock_save):
     )
 
 
-@patch('glifestream.filters.expand.vimeo.get_thumbnail_url', return_value=None)
+@patch('glifestream.filters.expand.vimeo_thumbnail_url', return_value=None)
 def test_videolinks_leaves_vimeo_without_a_thumbnail(_mock_thumb):
     assert expand.videolinks('https://vimeo.com/42') == 'https://vimeo.com/42'
 
 
-@patch('glifestream.filters.expand.vimeo.get_thumbnail_url')
+@patch('glifestream.filters.expand.vimeo_thumbnail_url')
 def test_videolinks_leaves_vimeo_urls_inside_attributes(mock_thumb):
     html = '<a href="https://vimeo.com/42">clip</a>'
     assert expand.videolinks(html) == html

@@ -15,10 +15,11 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from typing import Protocol
+
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from glifestream.apis.base import BaseService
 from glifestream.gauth import models
 from glifestream.stream.models import Service
 
@@ -36,11 +37,21 @@ PHASE_2 = 2
 PHASE_3 = 3
 
 
+class OAuth2Endpoints(Protocol):
+    """What the client needs from a provider: where its OAuth 2 flow lives."""
+
+    def get_base_url(self) -> str | None: ...
+
+    def get_authorize_url(self) -> str | None: ...
+
+    def get_token_url(self) -> str | None: ...
+
+
 class OAuth2Client:
     def __init__(
         self,
         service: Service,
-        api: BaseService,
+        api: OAuth2Endpoints,
         identifier=None,
         secret=None,
         callback_url=None,

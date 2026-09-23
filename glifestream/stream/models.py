@@ -28,8 +28,21 @@ from django.utils.dateparse import parse_date, parse_datetime
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-from glifestream.apis import API_LIST
 from glifestream.utils.time import now
+
+
+# The providers a Service can use, as stored in its `api` column.
+API_LIST = (
+    ('selfposts', 'Self Posts'),
+    ('webfeed', 'Webfeed'),
+    ('mastodon', 'Mastodon'),
+    ('atproto', 'AT Protocol'),
+    ('pixelfed', 'PixelFed'),
+    ('flickr', 'Flickr'),
+    ('twitter', 'Twitter'),
+    ('vimeo', 'Vimeo'),
+    ('youtube', 'YouTube'),
+)
 
 
 def _normalize_dt(value: object) -> datetime.datetime | None:

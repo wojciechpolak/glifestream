@@ -38,6 +38,10 @@ work, so only the significant changes are listed.
   whose fetch hangs no longer stops the worker from fetching the others; it is
   recorded as timed out and retried with backoff.
 - Magic Link SSO as the new backend for the "Friends Only" mode.
+- `docs/ARCHITECTURE.md`, describing the module layers, what each module owns,
+  and how requests, imports and WebSub pushes move through the code. The layers
+  are checked with `import-linter` (`uv run lint-imports`), in
+  `./scripts/check` and in CI.
 - Forced password change flow for initial admin accounts.
 - Test infrastructure: pytest suite, Playwright E2E coverage (including OAuth
   and Bluesky service flows), optional visual regression testing, and coverage

@@ -35,7 +35,6 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 
-from glifestream.apis import API_LIST
 from glifestream.apis.factory import ServiceFactory
 from glifestream.fetching import (
     enqueue_manual_fetch,
@@ -44,7 +43,7 @@ from glifestream.fetching import (
     serialize_fetch_state,
     sync_service_schedule,
 )
-from glifestream.stream.models import Service
+from glifestream.stream.models import API_LIST, Service
 from glifestream.usettings.common import (
     build_settings_page,
     get_staff_settings_user,

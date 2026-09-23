@@ -18,7 +18,6 @@
 from django.conf import settings
 from django.utils.translation import gettext as _
 
-from glifestream.apis.base import BaseService
 from glifestream.gauth import models
 from glifestream.stream.models import Service
 
@@ -34,7 +33,8 @@ class OAuth1Client:
     def __init__(
         self,
         service: Service,
-        api: BaseService,
+        # The provider, read for its OAUTH_*_URL constants.
+        api: object,
         identifier=None,
         secret=None,
         callback_url=None,

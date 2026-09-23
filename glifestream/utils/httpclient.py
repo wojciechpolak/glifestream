@@ -27,7 +27,6 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 
-from glifestream.stream.models import Service
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (compatible; gLifestream; +%s/)' % settings.BASE_URL
@@ -519,8 +518,8 @@ def get_alturl_if_html(r: Response, html_text: str | None = None) -> str | None:
     return None
 
 
-def gen_auth(service: Service) -> list[str] | None:
-    """Generate web authentication."""
-    if service.creds and len(service.creds) and service.creds != 'oauth':
-        return service.creds.split(':')
+def gen_auth(creds: str | None) -> list[str] | None:
+    """Basic auth from a service's stored `user:password` credentials."""
+    if creds and creds != 'oauth':
+        return creds.split(':')
     return None

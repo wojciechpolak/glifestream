@@ -2,7 +2,7 @@ import datetime
 import pytest
 from unittest.mock import patch
 
-from glifestream.apis.vimeo import VimeoService, filter_title, get_thumbnail_url
+from glifestream.apis.vimeo import VimeoService, filter_title
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
 
@@ -225,32 +225,6 @@ def test_run_fetches_only_videos_for_a_channel(vimeo):
     assert [call.args[0] for call in fetch.call_args_list] == [
         '/api/v2/channel/staffpicks/videos.json'
     ]
-
-
-@pytest.mark.django_db
-def test_get_thumbnail_url_prefers_the_large_size():
-    with (
-        patch('glifestream.apis.vimeo.httpclient.get'),
-        patch(
-            'glifestream.apis.vimeo.httpclient.require_json',
-            return_value=[
-                {'thumbnail_large': 'big.jpg', 'thumbnail_medium': 'mid.jpg'}
-            ],
-        ),
-    ):
-        assert get_thumbnail_url('123') == 'big.jpg'
-
-    with (
-        patch('glifestream.apis.vimeo.httpclient.get'),
-        patch(
-            'glifestream.apis.vimeo.httpclient.require_json',
-            return_value=[{'thumbnail_medium': 'mid.jpg'}],
-        ),
-    ):
-        assert get_thumbnail_url('123') == 'mid.jpg'
-
-    with patch('glifestream.apis.vimeo.httpclient.get', side_effect=Exception('down')):
-        assert get_thumbnail_url('123') is None
 
 
 def test_filter_title_distinguishes_a_like_from_an_upload():

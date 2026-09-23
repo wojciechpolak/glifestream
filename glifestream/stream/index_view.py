@@ -41,9 +41,8 @@ from django.utils.html import escape, strip_spaces_between_tags
 from django.utils.translation import gettext as _
 
 from glifestream import REVISION, VERSION
-from glifestream.apis import API_LIST
 from glifestream.gauth.request_auth import RequestAuthState, get_request_auth_state
-from glifestream.stream.models import Entry, Favorite, List, Service
+from glifestream.stream.models import API_LIST, Entry, Favorite, List, Service
 from glifestream.stream.templatetags.gls_filters import gls_slugify
 from glifestream.stream.typing import Page
 from glifestream.utils import common

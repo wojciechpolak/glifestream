@@ -38,6 +38,7 @@ dev = [
     "types-pyyaml==6.0.12.20250915",
     "django-stubs-ext==6.0.2",
     "ty>=0.0.24",
+    "import-linter>=2,<3",
 ]
 
 [build-system]
@@ -65,6 +66,33 @@ ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "glifestream.settings"
+
+# Module boundaries, checked by `lint-imports`. A module may import from the
+# layers below its own, never from one above. Modules sharing a line with `|`
+# sit side by side and may not import each other. docs/ARCHITECTURE.md
+# explains what each layer owns.
+[tool.importlinter]
+root_package = "glifestream"
+
+[[tool.importlinter.contracts]]
+name = "Layers"
+type = "layers"
+layers = [
+    "glifestream.urls",
+    "glifestream.stream.management",
+    "glifestream.worker | glifestream.usettings | glifestream.stream.views",
+    "glifestream.stream.api_view",
+    "glifestream.stream.index_view",
+    "glifestream.stream.templatetags | glifestream.gauth.views",
+    "glifestream.fetching",
+    "glifestream.stream.websub",
+    "glifestream.apis",
+    "glifestream.ingestion | glifestream.filters",
+    "glifestream.stream.media | glifestream.gauth.gls_oauth | glifestream.gauth.gls_oauth2",
+    "glifestream.gauth.models",
+    "glifestream.stream.models",
+    "glifestream.utils",
+]
 
 [tool.ruff.lint]
 # Pinned explicitly: ruff 0.16 expanded its implicit default `select` from this

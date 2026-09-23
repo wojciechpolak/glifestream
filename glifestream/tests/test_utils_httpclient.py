@@ -295,13 +295,9 @@ def test_validate_media_response_rejects_explicit_non_image_type():
 
 
 def test_gen_auth():
-    from glifestream.stream.models import Service
-
-    service = Service(creds='user:pass')
-    assert httpclient.gen_auth(service) == ['user', 'pass']
-
-    service_none = Service(creds='')
-    assert httpclient.gen_auth(service_none) is None
+    assert httpclient.gen_auth('user:pass') == ['user', 'pass']
+    assert httpclient.gen_auth('') is None
+    assert httpclient.gen_auth('oauth') is None
 
 
 @patch('glifestream.utils.httpclient.time.sleep')

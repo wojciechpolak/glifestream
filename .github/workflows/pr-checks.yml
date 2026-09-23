@@ -52,6 +52,9 @@ jobs:
       - name: Run ruff
         run: uv run ruff check
 
+      - name: Check module boundaries
+        run: uv run lint-imports
+
       - name: Run ty
         run: uv run ty check
 

@@ -43,7 +43,7 @@ class WebfeedService(BaseService):
 
     def fetch(self, url: str) -> None:
         if not self.payload:
-            hs = httpclient.gen_auth(self.service)
+            hs = httpclient.gen_auth(self.service.creds)
             fetched = httpclient.get_feed(url, auth=hs)
             r = fetched.response
             self.fp = feedparser.parse(fetched.body)

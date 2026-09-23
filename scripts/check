@@ -16,9 +16,9 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Lint, types and tests, every check the repo has, in one pass.
+Lint, module boundaries, types and tests, every check the repo has, in one pass.
 
-uv has no task runner, so this is the repo's `npm run check`. All four run
+uv has no task runner, so this is the repo's `npm run check`. Each check runs
 whatever the others do. A pass that stopped at the first failure would hide
 the rest until you fixed the first.
 
@@ -41,6 +41,7 @@ VENV = ROOT / '.venv'
 # Cheapest first, so a typo surfaces before the suite has finished.
 CHECKS = (
     ('ruff', ['ruff', 'check', '.']),
+    ('imports', ['lint-imports']),
     ('ty', ['ty', 'check', '.']),
     ('mypy', ['mypy', '.']),
     ('pytest', ['pytest']),

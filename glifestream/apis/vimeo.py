@@ -26,7 +26,7 @@ from glifestream.utils import httpclient
 from glifestream.utils.time import now
 from glifestream.stream.models import Entry
 from glifestream.stream import media
-from typing import Any, cast
+from typing import Any
 
 
 class VimeoService(BaseService):
@@ -150,19 +150,6 @@ def _parse_vimeo_date(value: str) -> Any:
         return t.replace(tzinfo=datetime.timezone.utc)
     except ValueError:
         return value
-
-
-def get_thumbnail_url(id_video: str) -> str | None:
-    try:
-        r = httpclient.get('https://vimeo.com/api/v2/video/%s.json' % id_video)
-        jsn = httpclient.require_json(r)
-        if 'thumbnail_large' in jsn[0]:
-            return cast(str | None, jsn[0]['thumbnail_large'])
-        elif 'thumbnail_medium' in jsn[0]:
-            return cast(str | None, jsn[0]['thumbnail_medium'])
-    except Exception:
-        pass
-    return None
 
 
 def filter_title(entry: Entry) -> str:

@@ -17,15 +17,15 @@
 
 import re
 
+from glifestream.utils.html import urlize
+
 
 def parse(s: str, syntax_type='twitter') -> str:
-    from glifestream.stream.templatetags.gls_filters import gls_urlizetrunc
-
     if syntax_type == 'twitter':
         s = s.split(': ', 1)[1]
     s = hash_tag(s)
     s = at_reply(s)
-    s = gls_urlizetrunc(s, 45)
+    s = urlize(s, trim_url_limit=45, nofollow=True)
     return s
 
 

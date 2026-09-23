@@ -66,7 +66,7 @@ class AtProtoService(BaseService):
             self.count = None
 
     def run(self) -> None:
-        hs = httpclient.gen_auth(self.service)
+        hs = httpclient.gen_auth(self.service.creds)
         if not hs or len(hs) < 2:
             raise httpclient.build_fetch_error(
                 category='auth',

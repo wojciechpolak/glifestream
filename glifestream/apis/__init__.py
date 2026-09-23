@@ -29,15 +29,3 @@ __all__ = (
     'webfeed',
     'youtube',
 )
-
-API_LIST = (
-    ('selfposts', 'Self Posts'),
-    ('webfeed', 'Webfeed'),
-    ('mastodon', 'Mastodon'),
-    ('atproto', 'AT Protocol'),
-    ('pixelfed', 'PixelFed'),
-    ('flickr', 'Flickr'),
-    ('twitter', 'Twitter'),
-    ('vimeo', 'Vimeo'),
-    ('youtube', 'YouTube'),
-)
