@@ -481,10 +481,6 @@ def test_more_sharing_options_reveal_draft_and_files(
     expect(page.locator('#gls-docs')).to_be_visible()
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason='share() reads the checked attribute, not the checkbox state',
-)
 def test_draft_and_friends_only_checkboxes_are_sent(
     page: Page, app_base_url: str, ensure_admin_session
 ):
@@ -497,11 +493,15 @@ def test_draft_and_friends_only_checkboxes_are_sent(
     page.locator('#draft').check()
     page.locator('#friends-only').check()
 
-    with page.expect_request(_is_api_post('share')) as request_info:
+    with page.expect_response(lambda r: _is_api_post('share')(r.request)) as info:
         page.locator('#post').click()
-    form = _form(request_info.value)
+    form = _form(info.value.request)
     assert form['draft'] == '1'
     assert form['friends_only'] == '1'
+    expect(page.locator('#share .fieldset')).to_be_hidden()
+    entry = Entry.objects.get(content__contains='A draft for friends')
+    assert entry.draft is True
+    assert entry.friends_only is True
 
 
 def test_share_target_prefills_the_composer(

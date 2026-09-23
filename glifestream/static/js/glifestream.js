@@ -692,8 +692,8 @@
                 $.post(baseurl + 'api/share', {
                     sid: $('#status-class').val(),
                     content: content,
-                    draft: $('#draft').attr('checked') ? 1 : 0,
-                    friends_only: $('#friends-only').attr('checked') ? 1 : 0
+                    draft: $('#draft').prop('checked') ? 1 : 0,
+                    friends_only: $('#friends-only').prop('checked') ? 1 : 0
                 }, function (html) {
                     hide_spinner();
                     $('#stream article.hentry').first().before(html);
