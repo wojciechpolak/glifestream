@@ -2494,38 +2494,25 @@ img.noborder {
   height: 150px;
 }
 
-.ql-toolbar.ql-snow,
-.ql-container.ql-snow {
+.editor-toolbar,
+#status-editor {
   border-color: var(--border-input);
   background: var(--surface-input);
 }
 
-.ql-toolbar.ql-snow {
+.editor-toolbar {
   border-radius: 16px 16px 0 0;
+  color: var(--text-main);
 }
 
-.ql-container.ql-snow {
+#status-editor {
   border-radius: 0 0 16px 16px;
 }
 
-.ql-editor {
+#status-editor .ProseMirror {
   color: var(--text-main);
   font-family: var(--font-ui);
   line-height: 1.7;
-}
-
-@media (prefers-color-scheme: dark) {
-  .ql-snow .ql-stroke {
-    stroke: var(--text-main);
-  }
-
-  .ql-snow .ql-fill {
-    fill: var(--text-main);
-  }
-
-  .ql-snow .ql-picker {
-    color: var(--text-main);
-  }
 }
 
   body.style-default {

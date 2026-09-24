@@ -47,19 +47,18 @@ const options: esbuild.BuildOptions = {
 };
 
 // The rich editor is a bundle of its own, which only the signed-in owner
-// loads. It is Quill and little else, so it is minified, as the copy of Quill
-// it replaced was.
-const quill: esbuild.BuildOptions = {
+// loads. It is Tiptap and little else, so it is always minified.
+const editor: esbuild.BuildOptions = {
     ...options,
-    entryPoints: { quill: 'src/quill.ts' },
+    entryPoints: { editor: 'src/editor.ts' },
     minify: true,
 };
 
 if (watch) {
-    for (const build of [options, quill]) {
+    for (const build of [options, editor]) {
         const context = await esbuild.context(build);
         await context.watch();
     }
 } else {
-    await Promise.all([esbuild.build(options), esbuild.build(quill)]);
+    await Promise.all([esbuild.build(options), esbuild.build(editor)]);
 }

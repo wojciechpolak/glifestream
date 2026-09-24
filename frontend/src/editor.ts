@@ -15,11 +15,11 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// The rich editor of the composer: Quill 2, which base.html loads only for
-// the signed-in owner, ahead of the page script. The page script finds it on
+// The rich editor of the composer, which base.html loads only for the
+// signed-in owner, ahead of the page script. The page script finds it on
 // window, so the stream does not carry it for anyone else.
 
-import Quill from 'quill';
-import 'quill/dist/quill.snow.css';
+import './editor/editor.css';
+import { create_editor } from './editor/create';
 
-window.Quill = Quill;
+window.create_gls_editor = create_editor;

@@ -1334,13 +1334,8 @@ img.noborder { border: none; }
   }
 }
 
-/* Quill */
+/* The composer's rich editor */
 
 #status-editor {
   height: 150px;
-}
-@media (prefers-color-scheme: dark) {
-  .ql-snow .ql-stroke {
-    stroke: var(--color-font);
-  }
 }

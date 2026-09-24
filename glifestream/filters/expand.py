@@ -246,8 +246,21 @@ def __sv_dailymotion(m: Match) -> str:
     )
 
 
+# A link whose text is its own address, as editors write a pasted URL.
+_SELF_LINK = re.compile(r'<a\s[^>]*?\bhref="([^"]+)"[^>]*>\s*\1\s*</a>')
+
+
+def __unlink_video(m: Match) -> str:
+    url = cast(str, m.group(1))
+    return url if is_video_url(url.replace('&amp;', '&')) else cast(str, m.group(0))
+
+
 def videolinks(s: str) -> str:
     """Expand video links."""
+    # A linked video address becomes a bare one, so that its player is not
+    # put inside the link.
+    if '<a' in s:
+        s = _SELF_LINK.sub(__unlink_video, s)
     if 'youtube.com/' in s or 'youtu.be/' in s or 'youtube-nocookie.com/' in s:
         s = re.sub(
             r'(https?://(?:www\.)?(?:youtube\.com/watch\?[^\s<"]+|youtube\.com/(?:shorts|live|embed)/[\-\w]+[^\s<"]*|m\.youtube\.com/watch\?[^\s<"]+|youtu\.be/[\-\w]+[^\s<"]*|youtube-nocookie\.com/embed/[\-\w]+[^\s<"]*))(\S*)',

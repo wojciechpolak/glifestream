@@ -297,8 +297,8 @@ def test_spinner_shows_while_request_is_pending(
 # --- Editing ----------------------------------------------------------------
 
 
-def _quill(page: Page) -> Locator:
-    return page.locator('#status-editor .ql-editor')
+def _editor(page: Page) -> Locator:
+    return page.locator('#status-editor .ProseMirror')
 
 
 def test_edit_entry_in_rich_editor_saves_content(
@@ -314,11 +314,11 @@ def test_edit_entry_in_rich_editor_saves_content(
     assert _form(request_info.value) == {'entry': str(entry.pk), 'raw': '1'}
 
     expect(page.locator('#share .fieldset')).to_be_visible()
-    expect(_quill(page)).to_contain_text('Original rich content')
+    expect(_editor(page)).to_contain_text('Original rich content')
     expect(page.locator('#update')).to_be_visible()
     expect(page.locator('#post')).to_be_hidden()
 
-    _quill(page).click()
+    _editor(page).click()
     page.keyboard.press('End')
     page.keyboard.type(' plus edit')
     with page.expect_request(_is_api_post('putcontent')) as request_info:
@@ -405,7 +405,7 @@ def test_compose_and_post_selfpost(
     expect(share).not_to_have_class(re.compile(r'\bshare-collapsed\b'))
     expect(page.locator('#status-class option')).to_have_text(['notes'])
     expect(page.locator('#status-class')).to_have_value(str(notes_service.pk))
-    expect(_quill(page)).to_be_focused()
+    expect(_editor(page)).to_be_focused()
     assert len(gsc) == 1
 
     page.keyboard.type('Hello from Playwright')
@@ -422,7 +422,7 @@ def test_compose_and_post_selfpost(
     expect(share.locator('.fieldset')).to_be_hidden()
     expect(share).to_have_class(re.compile(r'\bshare-collapsed\b'))
     expect(page.locator('#post')).to_be_enabled()
-    expect(_quill(page)).to_have_text('')
+    expect(_editor(page)).to_have_text('')
     assert Entry.objects.filter(
         content__contains='Hello from Playwright', draft=False
     ).exists()
@@ -455,7 +455,7 @@ def test_empty_selfpost_is_not_sent(
     sent = _share_requests(page)
 
     page.locator('#ashare').click()
-    expect(_quill(page)).to_be_focused()
+    expect(_editor(page)).to_be_focused()
     page.keyboard.type('   ')
     page.locator('#post').click()
 
@@ -488,7 +488,7 @@ def test_draft_and_friends_only_checkboxes_are_sent(
     ensure_admin_session()
     page.goto(f'{app_base_url}/')
     page.locator('#ashare').click()
-    expect(_quill(page)).to_be_focused()
+    expect(_editor(page)).to_be_focused()
     page.keyboard.type('A draft for friends')
     page.locator('#expand-sharing').click()
     page.locator('#draft').check()
@@ -511,10 +511,12 @@ def test_rich_editor_sends_plain_markup(
     ensure_admin_session()
     page.goto(f'{app_base_url}/')
     page.locator('#ashare').click()
-    expect(_quill(page)).to_be_focused()
+    expect(_editor(page)).to_be_focused()
     page.keyboard.type('Two  spaces and words')
     page.keyboard.press('Enter')
-    page.locator('#share .ql-toolbar button.ql-list[value=bullet]').click()
+    page.locator('#share .editor-toolbar').get_by_role(
+        'button', name='Bullet list'
+    ).click()
     page.keyboard.type('first')
     page.keyboard.press('Enter')
     page.keyboard.type('second')
@@ -537,7 +539,7 @@ def test_share_target_prefills_the_composer(
     )
 
     expect(page.locator('#share .fieldset')).to_be_visible()
-    lines = _quill(page).locator('> *')
+    lines = _editor(page).locator('> *')
     expect(lines.nth(0)).to_have_text('Shared title')
     expect(lines.nth(1)).to_have_text('Shared text')
     expect(lines.nth(2)).to_have_text('https://example.test/shared')
@@ -838,11 +840,11 @@ def test_a_opens_the_composer_and_typing_there_is_not_a_shortcut(
 
     page.keyboard.press('a')
     expect(page.locator('#share .fieldset')).to_be_visible()
-    expect(_quill(page)).to_be_focused()
+    expect(_editor(page)).to_be_focused()
     page.keyboard.type('jjj a')
     expect(_highlighted(page)).to_have_count(0)
     expect(page.locator('#share .fieldset')).to_be_visible()
-    expect(_quill(page)).to_contain_text('jjj a')
+    expect(_editor(page)).to_contain_text('jjj a')
 
 
 def test_typing_in_search_is_not_a_shortcut(

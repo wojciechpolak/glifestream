@@ -15,10 +15,9 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type Quill from 'quill';
-
 import type { SelfpostsClass } from '../api-types';
 import { config } from '../config';
+import type { GlsEditor } from '../editor/create';
 import { get_json, post_text } from '../http';
 import {
     fade_in,
@@ -31,6 +30,8 @@ import {
     toggle,
 } from '../ui/fx';
 import { hide_spinner, show_spinner } from '../ui/spinner';
+import { h } from '../util/dom';
+import { _ } from '../util/i18n';
 import { scroll_to_top } from '../util/scroll';
 import { $M } from './entry-actions';
 import { scaledown_images } from './images';
@@ -38,8 +39,8 @@ import { render_maps } from './maps';
 
 /** The selfpost composer at the top of the stream. */
 const composer = {
-    /** The rich editor, when the page loaded Quill. */
-    quill: undefined as Quill | undefined,
+    /** The rich editor, when the page loaded it. */
+    editor: undefined as GlsEditor | undefined,
     /** The selfposts classes from api/gsc, once loaded. */
     gsc_load: false as false | SelfpostsClass[],
     /** Whether the class select has its options. */
@@ -52,7 +53,7 @@ function by_id(id: string): HTMLElement {
     return document.getElementById(id) as HTMLElement;
 }
 
-/** The plain textarea, which Quill replaces when the page loads it. */
+/** The plain textarea, which the rich editor replaces when the page loads it. */
 function status_field(): HTMLTextAreaElement {
     return by_id('status') as HTMLTextAreaElement;
 }
@@ -82,8 +83,8 @@ export function open_sharing(): boolean {
     stop(fs);
     if (expanding) {
         void slide_down(fs).then(function () {
-            if (composer.quill) {
-                composer.quill.focus();
+            if (composer.editor) {
+                composer.editor.focus();
             } else {
                 status_field().focus();
             }
@@ -125,27 +126,6 @@ export function open_more_sharing_options(link: HTMLElement): boolean {
     hide(link);
     void fade_in(by_id('more-sharing-options'));
     return false;
-}
-
-/**
- * The composer's HTML, as it is saved. Quill 2.0.3 writes every space as
- * &nbsp;, which would keep the text from wrapping, so a run of them goes
- * back to a space followed by what keeps the run from collapsing.
- */
-export function editor_html(quill: Quill): string {
-    return quill
-        .getSemanticHTML()
-        .replace(/(?:&nbsp;)+/g, (run) => ' ' + '&nbsp;'.repeat(run.length / 6 - 1));
-}
-
-/** Whether Quill's HTML holds neither text nor a picture. */
-export function is_quill_empty(value: string): boolean {
-    return (
-        value
-            .replace(/<(.|\n)*?>/g, '')
-            .replaceAll('&nbsp;', ' ')
-            .trim().length === 0 && value.indexOf('<img') === -1
-    );
 }
 
 function checked(id: string): 1 | 0 {
@@ -202,9 +182,9 @@ export function share(target: HTMLElement): boolean {
     button.disabled = true;
     let content: string;
     let isEmptyContent = false;
-    if (composer.quill) {
-        content = editor_html(composer.quill);
-        isEmptyContent = is_quill_empty(content);
+    if (composer.editor) {
+        content = composer.editor.html();
+        isEmptyContent = composer.editor.is_empty();
     } else {
         content = status_field().value;
         isEmptyContent = content.trim() === '';
@@ -219,8 +199,8 @@ export function share(target: HTMLElement): boolean {
 }
 
 function editor_clear(): void {
-    if (composer.quill) {
-        composer.quill.setContents([]);
+    if (composer.editor) {
+        composer.editor.clear();
     } else {
         status_field().value = '';
     }
@@ -253,7 +233,7 @@ export function edit_entry(control: HTMLElement, e?: Event): void {
             }
             hide_spinner();
             composer.editor_id = id;
-            (composer.quill as Quill).clipboard.dangerouslyPasteHTML(html);
+            composer.editor?.load(html);
             toggle(by_id('update'));
             toggle(by_id('post'));
             scroll_to_top();
@@ -261,37 +241,12 @@ export function edit_entry(control: HTMLElement, e?: Event): void {
     );
 }
 
-/** Replaces the plain textarea with Quill, when the page loaded it. */
-export function init_quill(): void {
-    const Editor = window.Quill;
-    if (Editor) {
+/** Replaces the plain textarea with the rich editor, when the page loaded it. */
+export function init_editor(): void {
+    const create = window.create_gls_editor;
+    if (create) {
         hide(status_field());
-        // Lines are <div>s, as in the entries the editor has always written.
-        const Block = Editor.import('blots/block') as { tagName: string };
-        Block.tagName = 'DIV';
-        Editor.register('blots/block', Block, true);
-        composer.quill = new Editor('#status-editor', {
-            modules: {
-                toolbar: {
-                    container: [
-                        [{ font: [] }, { size: [] }],
-                        ['bold', 'italic', 'underline', 'strike'],
-                        [{ color: [] }, { background: [] }],
-                        [{ header: '1' }, { header: '2' }, 'blockquote', 'code-block'],
-                        [
-                            { list: 'ordered' },
-                            { list: 'bullet' },
-                            { indent: '-1' },
-                            { indent: '+1' },
-                        ],
-                        ['direction', { align: [] }],
-                        ['link', 'image', 'video'],
-                        ['clean'],
-                    ],
-                },
-            },
-            theme: 'snow',
-        });
+        composer.editor = create(by_id('status-editor'), _);
     }
 }
 
@@ -300,23 +255,18 @@ export function init_share_target(): void {
     const parsedUrl = new URL(window.location.href);
     if (parsedUrl.pathname.endsWith('/share')) {
         open_sharing();
-        const title = parsedUrl.searchParams.get('title');
-        const text = parsedUrl.searchParams.get('text');
-        const url = parsedUrl.searchParams.get('url');
-        let body = '';
-        if (title) {
-            body += title + '<br>';
-        }
-        if (text) {
-            body += text + '<br>';
-        }
-        if (url) {
-            body += url + '<br>';
-        }
-        if (composer.quill) {
-            composer.quill.clipboard.dangerouslyPasteHTML(body);
+        const lines = ['title', 'text', 'url']
+            .map((name) => parsedUrl.searchParams.get(name))
+            .filter((line) => !!line) as string[];
+        if (composer.editor) {
+            const body = h(
+                'div',
+                null,
+                lines.map((line) => h('div', null, [line])),
+            );
+            composer.editor.load(body.innerHTML);
         } else {
-            status_field().value = body.replace(/<br>/g, '\n');
+            status_field().value = lines.map((line) => line + '\n').join('');
         }
     }
 }

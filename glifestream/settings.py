@@ -367,17 +367,17 @@ PIPELINE = {
             'output_filename': 'js/main.js',
             'extra_context': {'defer': True},
         },
-        'quill': {
-            # Quill 2, built from frontend/ with the page script.
-            'source_filenames': ('js/dist/quill.js',),
-            'output_filename': 'js/quill.js',
+        'editor': {
+            # The rich editor (Tiptap), built from frontend/ with the page script.
+            'source_filenames': ('js/dist/editor.js',),
+            'output_filename': 'js/editor.js',
             'extra_context': {'defer': True},
         },
     },
     'STYLESHEETS': {
-        'quill': {
-            'source_filenames': ('js/dist/quill.css',),
-            'output_filename': 'css/quill.css',
+        'editor': {
+            'source_filenames': ('js/dist/editor.css',),
+            'output_filename': 'css/editor.css',
         },
         'default': {
             'source_filenames': (

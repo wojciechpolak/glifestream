@@ -91,8 +91,11 @@ work, so only the significant changes are listed.
 - Improved mobile stream interactions.
 - Rewrote the page script in strict TypeScript without jQuery, built with
   esbuild from `frontend/`. Building needs Node.js; running the site does not.
-  The lightbox is now PhotoSwipe 5, and the rich editor Quill 2, both bundled
-  from npm.
+  The lightbox is now PhotoSwipe 5, and the rich editor Tiptap 3, both bundled
+  from npm. Tiptap replaces Quill, which has had no release since 2024.
+  Editing an entry Quill wrote keeps its lines, lists, alignment, pictures
+  and videos; the toolbar no longer offers font, size, colour, indent or
+  text direction.
 - `user_alter_html` in `user-scripts.js` receives either the stream element or
   an array of the entries continuous reading added, no longer a jQuery set.
   Entries that continuous reading adds no longer run the scripts in their

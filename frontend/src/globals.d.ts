@@ -15,8 +15,8 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// What the page script finds on the page before it runs: Quill for the
-// signed-in owner, and the extension points a deployment sets in
+// What the page script finds on the page before it runs: the rich editor
+// for the signed-in owner, and the extension points a deployment sets in
 // user-scripts.js. The templates' own data is JSON, read by config.ts.
 //
 // The extension points are a public contract, pinned by
@@ -72,6 +72,6 @@ interface Window {
     /** Replaces the page reload, for tests. */
     __glsReloadHandler?: () => void;
     gls?: GlsNamespace;
-    /** Quill 2, from the `quill` bundle, loaded only for the signed-in owner. */
-    Quill?: typeof import('quill').default;
+    /** The rich editor, from the `editor` bundle, loaded only for the signed-in owner. */
+    create_gls_editor?: typeof import('./editor/create').create_editor;
 }

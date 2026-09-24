@@ -25,5 +25,9 @@ export default defineConfig({
     test: {
         include: ['src/**/*.test.ts'],
         environment: 'happy-dom',
+        // No test loads a page into an iframe from the network.
+        environmentOptions: {
+            happyDOM: { settings: { disableIframePageLoading: true } },
+        },
     },
 });

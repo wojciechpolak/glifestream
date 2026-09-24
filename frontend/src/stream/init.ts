@@ -26,7 +26,7 @@ import { scroll_to_top } from '../util/scroll';
 import { init_calendar } from './calendar';
 import {
     edit_entry,
-    init_quill,
+    init_editor,
     init_share_target,
     open_more_sharing_options,
     open_sharing,
@@ -163,7 +163,7 @@ export function init_stream(): void {
         );
     }
 
-    init_quill();
+    init_editor();
 
     Object.assign(audio_embeds, window.audio_embeds);
     Object.assign(video_embeds, window.video_embeds);

@@ -23,6 +23,24 @@ def test_videolinks_supports_common_youtube_variants(_mock_save):
         assert 'thumb.jpg' in rendered
 
 
+@patch('glifestream.filters.expand.media.save_image', return_value='thumb.jpg')
+def test_videolinks_expands_a_link_to_its_own_video_address(_mock_save):
+    url = 'https://www.youtube.com/watch?v=vid123'
+    rendered = expand.videolinks(
+        f'<div><a href="{url}" rel="noopener noreferrer nofollow" '
+        f'target="_blank">{url}</a></div>'
+    )
+
+    assert rendered.startswith('<div><div data-id="youtube-vid123" class="play-video">')
+    assert rendered.endswith('</div></div>')
+    assert rendered.count('<a ') == 1
+
+
+def test_videolinks_keeps_a_named_link_to_a_video():
+    html = '<a href="https://www.youtube.com/watch?v=vid123">my video</a>'
+    assert expand.videolinks(html) == html
+
+
 def test_videolinks_ignores_unsupported_youtube_urls():
     url = 'https://www.youtube.com/channel/not-a-video'
     assert expand.videolinks(url) == url

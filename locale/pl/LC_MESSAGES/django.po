@@ -613,3 +613,63 @@ msgstr "Użytkownik"
 
 msgid "Basic password"
 msgstr "Hasło"
+
+msgid "Formatting"
+msgstr "Formatowanie"
+
+msgid "Bold"
+msgstr "Pogrubienie"
+
+msgid "Italic"
+msgstr "Kursywa"
+
+msgid "Underline"
+msgstr "Podkreślenie"
+
+msgid "Strikethrough"
+msgstr "Przekreślenie"
+
+msgid "Heading 1"
+msgstr "Nagłówek 1"
+
+msgid "Heading 2"
+msgstr "Nagłówek 2"
+
+msgid "Quote"
+msgstr "Cytat"
+
+msgid "Code block"
+msgstr "Blok kodu"
+
+msgid "Numbered list"
+msgstr "Lista numerowana"
+
+msgid "Bullet list"
+msgstr "Lista punktowana"
+
+msgid "Align left"
+msgstr "Wyrównaj do lewej"
+
+msgid "Align center"
+msgstr "Wyśrodkuj"
+
+msgid "Align right"
+msgstr "Wyrównaj do prawej"
+
+msgid "Justify"
+msgstr "Wyjustuj"
+
+msgid "Image"
+msgstr "Obraz"
+
+msgid "Video"
+msgstr "Wideo"
+
+msgid "Clear formatting"
+msgstr "Usuń formatowanie"
+
+msgid "Link address:"
+msgstr "Adres odnośnika:"
+
+msgid "Video address:"
+msgstr "Adres wideo:"

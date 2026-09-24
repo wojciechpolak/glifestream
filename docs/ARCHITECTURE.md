@@ -143,11 +143,14 @@ into `glifestream/static/js/dist/`, which is not in Git, for django-pipeline:
 - `glifestream.css` holds the stylesheets the modules import, such as
   PhotoSwipe's for the lightbox; the `default` theme bundle puts it in front
   of the theme.
-- `quill.js` and `quill.css`, from `quill.ts`, are the `quill` bundle: the
-  rich editor, which only the signed-in owner loads. It sets `window.Quill`,
-  where the composer finds it.
+- `editor.js` and `editor.css`, from `editor.ts`, are the `editor` bundle:
+  the rich editor (Tiptap, in `editor/`), which only the signed-in owner
+  loads. It sets `window.create_gls_editor`, where the composer finds it; the
+  composer sees only the `GlsEditor` interface, so the `main` bundle carries
+  none of Tiptap. `editor/html.ts` keeps what it saves in the markup Quill,
+  the editor before it, wrote, and `editor/schema.ts` reads that markup back.
 
-PhotoSwipe and Quill are npm dependencies bundled in; nothing is vendored.
+PhotoSwipe and Tiptap are npm dependencies bundled in; nothing is vendored.
 TypeScript 7 (`npm run typecheck`) only checks the types, in strict mode;
 esbuild strips them, so the build does not depend on the checker.
 

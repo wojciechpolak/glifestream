@@ -1,0 +1,131 @@
+/*
+ * The composer's rich editor. The first part is the stylesheet Tiptap would
+ * otherwise inject at run time (@tiptap/core, src/style.ts, MIT); the
+ * themes give the editor and its toolbar their colours.
+ */
+
+.ProseMirror {
+    position: relative;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    white-space: break-spaces;
+    -webkit-font-variant-ligatures: none;
+    font-variant-ligatures: none;
+    font-feature-settings: 'liga' 0;
+}
+
+.ProseMirror [contenteditable='false'] {
+    white-space: normal;
+}
+
+.ProseMirror [contenteditable='false'] [contenteditable='true'] {
+    white-space: pre-wrap;
+}
+
+.ProseMirror pre {
+    white-space: pre-wrap;
+}
+
+img.ProseMirror-separator {
+    display: inline !important;
+    border: none !important;
+    margin: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+
+.ProseMirror-gapcursor {
+    display: none;
+    pointer-events: none;
+    position: absolute;
+    margin: 0;
+}
+
+.ProseMirror-gapcursor:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -2px;
+    width: 20px;
+    border-top: 1px solid black;
+    animation: ProseMirror-cursor-blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes ProseMirror-cursor-blink {
+    to {
+        visibility: hidden;
+    }
+}
+
+.ProseMirror-hideselection *::selection {
+    background: transparent;
+}
+
+.ProseMirror-hideselection * {
+    caret-color: transparent;
+}
+
+.ProseMirror-focused .ProseMirror-gapcursor {
+    display: block;
+}
+
+/* The toolbar, and the editor under it. */
+
+.editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-bottom: 0;
+}
+
+.editor-toolbar-group {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.editor-toolbar button {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.editor-toolbar button:hover,
+.editor-toolbar button[aria-pressed='true'] {
+    background: rgba(127, 127, 127, 0.2);
+}
+
+#status-editor {
+    overflow-y: auto;
+    border: 1px solid #ccc;
+}
+
+#status-editor .ProseMirror {
+    box-sizing: border-box;
+    min-height: 100%;
+    padding: 12px 15px;
+    outline: none;
+}
+
+#status-editor .ProseMirror > * {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+#status-editor .ProseMirror img,
+#status-editor .ProseMirror iframe {
+    max-width: 100%;
+}
+
+#status-editor .ProseMirror iframe.ProseMirror-selectednode,
+#status-editor .ProseMirror img.ProseMirror-selectednode {
+    outline: 2px solid Highlight;
+}
