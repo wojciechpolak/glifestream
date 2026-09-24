@@ -15,6 +15,8 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { config } from '../config';
+
 export interface LatLon {
     lat: number;
     lon: number;
@@ -55,9 +57,9 @@ export function convertToOSMBbox(boundingBox: BoundingBox): string {
     );
 }
 
-/** The map of a point, as the markup settings.maps_engine asks for. */
+/** The map of a point, as the site's maps engine asks for. */
 export function get_map_embed(lat: string, lng: string): string {
-    if (settings.maps_engine === 'google') {
+    if (config.maps_engine === 'google') {
         return (
             '<img src="https://maps.googleapis.com/maps/api/staticmap?sensor=false&zoom=12&size=175x120&markers=' +
             lat +
@@ -128,7 +130,7 @@ export function show_map(anchor: HTMLElement): boolean {
     const [lat, lng] = coordinates(link);
     link.target = '_blank';
 
-    if (settings.maps_engine === 'google') {
+    if (config.maps_engine === 'google') {
         link.href = 'https://maps.google.com/?q=' + lat + ',' + lng;
     } else {
         link.href =

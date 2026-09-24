@@ -15,12 +15,13 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
+import { config } from '../config';
 import { calculateBoundingBox, convertToOSMBbox, get_map_embed } from './maps';
 
 afterEach(() => {
-    vi.unstubAllGlobals();
+    config.maps_engine = '';
 });
 
 describe('calculateBoundingBox', () => {
@@ -55,7 +56,7 @@ describe('convertToOSMBbox', () => {
 
 describe('get_map_embed', () => {
     it('embeds OpenStreetMap by default, with the point marked', () => {
-        vi.stubGlobal('settings', { baseurl: '/', maps_engine: 'osm', themes: [] });
+        config.maps_engine = 'osm';
         const bbox = convertToOSMBbox(calculateBoundingBox(52.23, 21.01, 10));
 
         const html = get_map_embed('52.23', '21.01');
@@ -69,8 +70,8 @@ describe('get_map_embed', () => {
         expect(html).toContain('?mlat=52.23&mlon=21.01#map=10/52.23/21.01');
     });
 
-    it('shows a Google static map when settings ask for it', () => {
-        vi.stubGlobal('settings', { baseurl: '/', maps_engine: 'google', themes: [] });
+    it('shows a Google static map when the config asks for it', () => {
+        config.maps_engine = 'google';
 
         const html = get_map_embed('52.23', '21.01');
 

@@ -15,30 +15,31 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
+import { config } from '../config';
 import { _, gettext } from './i18n';
 
 afterEach(() => {
-    vi.unstubAllGlobals();
+    config.messages = {};
 });
 
 describe('gettext', () => {
-    it('translates a message i18n.html lists', () => {
-        vi.stubGlobal('gettext_msg', { Undo: 'Cofnij' });
+    it('translates a message the page config lists', () => {
+        config.messages = { Undo: 'Cofnij' };
 
         expect(gettext('Undo')).toBe('Cofnij');
         expect(_('Undo')).toBe('Cofnij');
     });
 
     it('keeps a message without a translation', () => {
-        vi.stubGlobal('gettext_msg', { Undo: '' });
+        config.messages = { Undo: '' };
 
         expect(gettext('Undo')).toBe('Undo');
         expect(gettext('Loading...')).toBe('Loading...');
     });
 
-    it('keeps every message on a page without i18n.html', () => {
+    it('keeps every message on a page without a config', () => {
         expect(gettext('Undo')).toBe('Undo');
     });
 });

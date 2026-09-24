@@ -15,12 +15,34 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// The JSON the page script reads from the server. Only the fields it uses
-// are listed. glifestream/tests/test_frontend_contract.py checks that the
-// views send them; change both together.
+// The JSON the page script reads from the server, in responses and in the
+// json_script elements of the page. Only the fields it uses are listed.
+// glifestream/tests/test_frontend_contract.py checks that the server sends
+// them; change both together.
 //
 // The other endpoints it calls (api/getcontent, putcontent, share and
 // reshare) answer with HTML.
+
+/** #gls-config, on every page (stream/templatetags/gls_page.py). */
+export interface PageConfig {
+    baseurl: string;
+    /** 'google' for Google Maps, anything else for OpenStreetMap. */
+    maps_engine: string;
+    themes: string[];
+    /** English message to its translation, for every message _() is given. */
+    messages: Record<string, string>;
+}
+
+/** #gls-stream-data, on stream pages, for the archive calendar. */
+export interface StreamData {
+    ctx: string;
+    year_now: number;
+    /** The month on view, as YYYY/MM. */
+    view_date: string;
+    /** Every month with entries, as YYYY/MM. */
+    archives: string[];
+    month_names: string[];
+}
 
 /** api/gsc: the first selfposts service of each class. */
 export interface SelfpostsClass {

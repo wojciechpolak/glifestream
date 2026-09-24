@@ -153,9 +153,11 @@ esbuild strips them, so the build does not depend on the checker.
 
 ```
 main.ts          sets up the stream or the settings pages when ready
+config.ts        reads the page data the templates write as JSON
 stream/          entries, composer, sharing, media, maps, calendar, shortcuts
 settings/        the service form and the fetch status of the settings pages
-ui/              lightbox, effects, overlay, spinner, pull to refresh
+ui/              lightbox, effects, overlay, spinner, page controls,
+                 pull to refresh
 util/            ids, cookies, translations, DOM, events and scrolling
 http.ts          fetch with the CSRF token, and the error report
 ```
@@ -168,14 +170,28 @@ http.ts          fetch with the CSRF token, and the error report
 - What a module keeps between events is an exported state object, such as
   `stream_state` or `composer`, not a closure.
 
-- Templates hand the script its data in the globals `settings`, `stream_data`
-  and `gettext_msg`, declared in `frontend/src/globals.d.ts`. A deployment
-  customizes it through `user-scripts.js`, with the `window` globals declared
-  there and pinned by `glifestream/tests/e2e/test_js_extension_points.py`;
-  that list is the contract a rewrite keeps.
+- Templates hand the script its data as JSON, with `json_script`: the site
+  config and the translated messages in `#gls-config` on every page, and the
+  archive calendar in `#gls-stream-data` on stream pages. The tags that write
+  them are in `stream/templatetags/gls_page.py`; `MESSAGES` there lists every
+  message the script passes to `_()`. A deployment customizes the script
+  through `user-scripts.js`, with the `window` globals declared in
+  `frontend/src/globals.d.ts` and pinned by
+  `glifestream/tests/e2e/test_js_extension_points.py`; that list is the
+  contract a rewrite keeps.
 - `frontend/src/api-types.ts` declares the JSON the script reads, and
-  `glifestream/tests/test_frontend_contract.py` checks that the views send
+  `glifestream/tests/test_frontend_contract.py` checks that the server sends
   it. Change the two together.
+- The pages send a Content Security Policy (`settings_csp.py`, through
+  Django's CSP middleware) that runs scripts only from the static files, so
+  the markup has no inline script and no `on…` handler attribute: controls
+  such as the logout link are marked with data attributes and bound by the
+  script, and `glifestream/tests/test_csp.py` fails on inline code in a page.
+  Both bundles load with `defer`. An inline script a deployment adds needs
+  `nonce="{{ csp_nonce }}"`. The site only reports violations unless
+  `CONTENT_SECURITY_POLICY=enforce`; the tests always enforce the policy, and
+  the E2E page fixture fails any test during which the browser blocks
+  something.
 - Pipeline leaves a missing file out of a bundle without an error, so the
   system check `glifestream.E001` stops `runserver` and `collectstatic` when a
   bundle source, the built script included, cannot be found.

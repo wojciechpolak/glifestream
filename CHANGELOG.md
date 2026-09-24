@@ -92,6 +92,18 @@ work, so only the significant changes are listed.
   an array of the entries continuous reading added, no longer a jQuery set.
   Entries that continuous reading adds no longer run the scripts in their
   content.
+- Pages send a Content Security Policy that allows scripts only from the
+  static files. For now it only reports, in the browser console, what it would
+  block. Set `CONTENT_SECURITY_POLICY=enforce` to block it, once an inline
+  `<script>` in `user-scripts.js` or another template override carries
+  `nonce="{{ csp_nonce }}"` and no template relies on inline event handler
+  attributes. A later release will enforce it by default; `off` sends no
+  policy.
+- The templates hand the page script its data as JSON in `json_script`
+  elements, and the script loads with `defer`. The inline `settings`,
+  `stream_data` and `gettext_msg` globals, and the `i18n.html` template that
+  defined `gettext_msg`, are gone; a user script can read
+  `JSON.parse(document.getElementById('gls-config').textContent)` instead.
 
 ### Deprecated
 
@@ -111,6 +123,9 @@ work, so only the significant changes are listed.
 
 ### Fixed
 
+- The fetch status labels, the fetch messages and the year arrows of the
+  archive calendar can be translated. The page script's messages are listed in
+  one place, and a test checks the list against the script.
 - `worker.py --init-files-dirs` no longer fails on a fresh checkout whose media
   directory does not exist yet.
 - Re-importing an entry whose thumbnail is already registered no longer breaks

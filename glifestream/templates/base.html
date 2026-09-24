@@ -1,4 +1,4 @@
-{% load i18n media static pipeline %}<!DOCTYPE html>
+{% load i18n media static pipeline gls_page %}<!DOCTYPE html>
 <html lang="{{ page.lang | slice:':2' | default:'en' }}">
 
 <head>
@@ -51,7 +51,7 @@
         </a>
         <span class="vb">|</span>
       {% endif %}
-      <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
+      <a href="#" role="button" data-submit-form="logout-form">
         <i class="fas fa-right-from-bracket"></i>
         <span class="text">{% trans "Logout" %}</span>
       </a>
@@ -62,7 +62,7 @@
           <b class="email">{{ friend_email|default:'Friend' }}</b>
         </span>
         <span class="vb">|</span>
-        <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
+        <a href="#" role="button" data-submit-form="logout-form">
           <i class="fas fa-right-from-bracket"></i>
           <span class="text">{% trans "Logout" %}</span>
         </a>
@@ -87,15 +87,8 @@
   <i class="fas fa-chevron-up"></i>
 </div>
 
+{% page_config %}
 {% include "user-scripts.js" %}
-
-<script type="text/javascript">
-const settings = {
-  baseurl: '{% url "index" %}',
-  maps_engine: '{{ page.maps_engine }}',
-  themes: [{% for theme in page.themes %}'{{ theme }}'{% if not forloop.last %}, {% endif %}{% endfor %}]
-};
-{% include "i18n.html" %}</script>
 
 </div><!-- /main -->
 

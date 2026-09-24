@@ -18,22 +18,25 @@
 // The page script: every page loads it, and it sets up either the stream or
 // the settings pages once the document is ready.
 
-import { config } from './config';
+import { load_config } from './config';
 import { run_fetch_service } from './settings/fetch-status';
 import { init_settings } from './settings/init';
 import { unhide_entry } from './stream/entry-actions';
 import { init_stream } from './stream/init';
+import { init_page_controls } from './ui/controls';
 import { es } from './util/dom';
 
-// Called by inline handlers in the markup: the "Undo" link of a hidden entry
-// and "Run now" on the settings status page.
+// The "Undo" link of a hidden entry and "Run now" on the settings status
+// page, which inline handlers in the markup used to call. The page binds
+// both itself now; they stay for scripts that still call them.
 es('gls.unhide_entry', function (this: HTMLElement): boolean {
     return unhide_entry(this);
 });
 es('gls.run_fetch_service', run_fetch_service);
 
 function start(): void {
-    config.baseurl = settings.baseurl;
+    load_config();
+    init_page_controls();
 
     if (document.getElementById('settings')) {
         init_settings();
@@ -42,7 +45,8 @@ function start(): void {
     init_stream();
 }
 
-// The script loads in <head>, so it waits for the document.
+// The script is deferred, so the document is parsed when it runs; the check
+// is for a page that loads it without defer.
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', start);
 } else {

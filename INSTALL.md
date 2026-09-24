@@ -143,6 +143,16 @@ These settings matter most for a hardened deployment:
   Persistent media storage location for uploads and generated thumbnails.
 - `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`
   Keep these enabled in production. `run.settings_docker` defaults both to `True`.
+- `CONTENT_SECURITY_POLICY`
+  `report-only` (the default), `enforce` or `off`. The policy runs scripts only
+  from the static files, and from an inline script that carries the request's
+  nonce: an override in `run/templates/`, such as `user-scripts.js`, writes
+  `<script nonce="{{ csp_nonce }}">`. Inline event handler attributes do not
+  run. `report-only` lets the browser report in its console what the policy
+  would block without blocking it; once the console shows nothing, set
+  `enforce`. A later release will make `enforce` the default. A `settings_local.py` that serves static
+  files from another site sets `SECURE_CSP` again, from
+  `glifestream.settings_csp.csp_settings()`.
 - `GLIFESTREAM_LOAD_DOTENV`
   Set to `0` when the process manager, orchestrator, or container runtime injects environment variables directly.
 - `GLIFESTREAM_ENABLE_SETTINGS_LOCAL`

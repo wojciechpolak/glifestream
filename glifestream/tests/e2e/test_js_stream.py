@@ -33,6 +33,7 @@ from django.contrib.auth.models import User
 from playwright.sync_api import Dialog, Locator, Page, Request, expect
 
 from glifestream.stream.models import Entry, Favorite, Service
+from glifestream.tests.e2e.waiting import wait_for
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
 
@@ -286,7 +287,7 @@ def test_spinner_shows_while_request_is_pending(
     _menu_action(page, entry, 'favorite-control')
     expect(page.locator('#spinner')).to_have_count(1)
 
-    page.wait_for_function('true')
+    wait_for(page, 'true')
     assert len(pending) == 1
     pending[0].fulfill(status=200, body='')
     expect(page.locator('#spinner')).to_have_count(0)
@@ -1337,7 +1338,7 @@ def test_scroll_to_top_button(
     page.mouse.wheel(0, 1500)
     expect(button).to_be_visible()
     button.click()
-    page.wait_for_function('window.scrollY === 0')
+    wait_for(page, 'window.scrollY === 0')
     expect(button).to_be_hidden()
 
 

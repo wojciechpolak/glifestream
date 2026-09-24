@@ -15,8 +15,9 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
+import { config } from '../config';
 import { gen_archive_calendar } from './calendar';
 
 const MONTHS = [
@@ -35,19 +36,23 @@ const MONTHS = [
 ];
 
 beforeEach(() => {
-    document.body.innerHTML = '<div id="calendar"></div>';
-    vi.stubGlobal('settings', { baseurl: '/gls/', maps_engine: '', themes: [] });
-    vi.stubGlobal('stream_data', {
+    config.baseurl = '/gls/';
+    const data = document.createElement('script');
+    data.type = 'application/json';
+    data.id = 'gls-stream-data';
+    data.textContent = JSON.stringify({
         ctx: 'list/news',
         year_now: 2026,
         view_date: '2025/03',
         archives: ['2025/03', '2025/11'],
         month_names: MONTHS,
     });
+    document.body.replaceChildren(data);
+    document.body.insertAdjacentHTML('beforeend', '<div id="calendar"></div>');
 });
 
 afterEach(() => {
-    vi.unstubAllGlobals();
+    config.baseurl = '/';
     document.body.innerHTML = '';
 });
 

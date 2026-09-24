@@ -15,6 +15,7 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { config, stream_data } from '../config';
 import { delegate, h } from '../util/dom';
 import { _ } from '../util/i18n';
 import { pad } from '../util/format';
@@ -34,10 +35,10 @@ function nav(side: 'prev' | 'next', label?: string): HTMLSpanElement {
 
 /** Renders the archive calendar of `year`, or of the month on view. */
 export function gen_archive_calendar(year?: number | string): void {
-    if (typeof stream_data === 'undefined') {
+    const data = stream_data();
+    if (!data) {
         return;
     }
-    const data = stream_data;
     year = year || (data.view_date.split('/')[0] as string);
     const head = h('div', { className: 'calendar-head' }, [
         nav('prev', _('Previous year')),
@@ -61,7 +62,7 @@ export function gen_archive_calendar(year?: number | string): void {
             item = h(
                 'a',
                 {
-                    href: settings.baseurl + ctx + d + '/',
+                    href: config.baseurl + ctx + d + '/',
                     rel: 'nofollow',
                     className: 'month-item' + current,
                 },

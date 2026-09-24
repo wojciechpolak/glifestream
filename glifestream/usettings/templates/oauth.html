@@ -1,4 +1,4 @@
-{% load i18n media %}<!DOCTYPE html>
+{% load i18n media pipeline gls_page %}<!DOCTYPE html>
 <html>
 
 <head>
@@ -10,6 +10,7 @@
     body { background-color: white; }
     fieldset.aligned label { width: 10em !important; }
   </style>
+  {% javascript 'main' %}
 </head>
 
 <body>
@@ -22,7 +23,7 @@
     </p>
     <p>{% trans "Your callback URL:" %}
       <input type="text" value="{{ callback_url }}" readonly="readonly"
-	     size="40" onfocus="this.select()" />
+	     size="40" data-select-on-focus />
     </p>
     <form id="oauth-form" method="post">
       {% csrf_token %}
@@ -71,12 +72,13 @@
 {% endif %}
 	<div class="form-row">
 	  <input type="submit" name="reset" value="{% trans "Reset all tokens" %}" style="float:right" />
-	  {% if phase != 3 %}<input type="submit" value="{% trans "Next step" %}" style="font-weight:bold" />{% else %}<input type="button" value="{% trans "Close" %}" onclick="window.close()" />{% endif %}
+	  {% if phase != 3 %}<input type="submit" value="{% trans "Next step" %}" style="font-weight:bold" />{% else %}<input type="button" value="{% trans "Close" %}" data-close-window />{% endif %}
 	</div>
       </fieldset>
     </form>
   </section>
 
 </div><!-- /main -->
+{% page_config %}
 </body>
 </html>

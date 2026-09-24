@@ -15,7 +15,31 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** Page-wide values, set from `settings` when the page is ready. */
-export const config = {
+// What the templates give the page script, as JSON in json_script elements
+// (stream/templatetags/gls_page.py) rather than as inline script globals.
+
+import type { PageConfig, StreamData } from './api-types';
+
+/** #gls-config; a page without it keeps these defaults. */
+export const config: PageConfig = {
     baseurl: '/',
+    maps_engine: '',
+    themes: [],
+    messages: {},
 };
+
+/** The value of the json_script element with this id, or null without one. */
+function json_script(id: string): unknown {
+    const text = document.getElementById(id)?.textContent;
+    return text ? JSON.parse(text) : null;
+}
+
+/** Reads #gls-config into `config`. */
+export function load_config(): void {
+    Object.assign(config, json_script('gls-config') as Partial<PageConfig> | null);
+}
+
+/** #gls-stream-data of a stream page, or null on other pages. */
+export function stream_data(): StreamData | null {
+    return json_script('gls-stream-data') as StreamData | null;
+}

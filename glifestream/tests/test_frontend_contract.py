@@ -25,6 +25,10 @@ here, so change the two files together.
 from __future__ import annotations
 
 import datetime
+import json
+import re
+from html.parser import HTMLParser
+from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
@@ -32,6 +36,9 @@ import pytest
 from django.urls import reverse
 
 from glifestream.stream.models import Entry, Service
+from glifestream.stream.templatetags.gls_page import MESSAGES
+
+FRONTEND_SRC = Path(__file__).parents[2] / 'frontend' / 'src'
 
 NoneType = type(None)
 
@@ -51,6 +58,16 @@ FETCH_STATE = {
 }
 
 FETCH_STATUSES = {'idle', 'queued', 'running', 'succeeded', 'failed'}
+
+# PageConfig and StreamData in api-types.ts.
+PAGE_CONFIG = {'baseurl': str, 'maps_engine': str, 'themes': list, 'messages': dict}
+STREAM_DATA = {
+    'ctx': str,
+    'year_now': int,
+    'view_date': str,
+    'archives': list,
+    'month_names': list,
+}
 
 # ServiceForm and ServiceFormField in api-types.ts.
 SERVICE_FORM = {
@@ -115,6 +132,31 @@ def assert_service_form(form: dict[str, Any]) -> None:
         assert_fetch_state(form['fetch_status'])
 
 
+class _JsonScripts(HTMLParser):
+    """The json_script elements of a page, by id."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.found: dict[str, Any] = {}
+        self._id: str | None = None
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        values = dict(attrs)
+        if tag == 'script' and values.get('type') == 'application/json':
+            self._id = values.get('id')
+
+    def handle_data(self, data: str) -> None:
+        if self._id:
+            self.found[self._id] = json.loads(data)
+            self._id = None
+
+
+def json_scripts(html: str) -> dict[str, Any]:
+    parser = _JsonScripts()
+    parser.feed(html)
+    return parser.found
+
+
 def settings_api(cmd: str) -> str:
     return reverse('usettings-api-cmd', args=[cmd])
 
@@ -162,6 +204,63 @@ def test_html_pure_page_sends_entries_and_the_next_page(client, service, setting
     assert_fields(page, {'stream': str, 'next': (str, int)})
     assert 'Entry 1' in page['stream']
     assert page['next']
+
+
+@pytest.mark.django_db
+def test_every_page_sends_its_config(client, settings):
+    settings.MAPS_ENGINE = 'google'
+    settings.THEMES = ('default', 'dark')
+
+    for url in (reverse('index'), reverse('login')):
+        config = json_scripts(client.get(url).text)['gls-config']
+
+        # PageConfig
+        assert_fields(config, PAGE_CONFIG)
+        assert config['baseurl'] == reverse('index')
+        assert config['maps_engine'] == 'google'
+        assert config['themes'] == ['default', 'dark']
+        assert config['messages']['Undo'] == 'Undo'
+
+
+@pytest.mark.django_db
+def test_page_config_translates_the_messages(client):
+    config = json_scripts(client.get(reverse('index'), HTTP_ACCEPT_LANGUAGE='pl').text)
+
+    assert config['gls-config']['messages']['Undo'] == 'Cofnij'
+
+
+def test_page_config_lists_every_message_the_page_script_translates():
+    used = set()
+    for source in FRONTEND_SRC.rglob('*.ts'):
+        if not source.name.endswith('.test.ts'):
+            used |= set(
+                re.findall(r"\b(?:_|gettext)\(\s*'([^']*)'", source.read_text())
+            )
+
+    assert used == set(MESSAGES)
+
+
+@pytest.mark.django_db
+def test_stream_page_sends_its_calendar_data(client, service):
+    for day in (datetime.datetime(2025, 3, 1), datetime.datetime(2025, 11, 5)):
+        Entry.objects.create(
+            service=service,
+            title='Entry',
+            guid=f'calendar-{day:%m}',
+            link='http://example.com/',
+            date_published=day.replace(tzinfo=datetime.UTC),
+        )
+
+    response = client.get(reverse('index'))
+
+    # StreamData
+    data = json_scripts(response.text)['gls-stream-data']
+    assert_fields(data, STREAM_DATA)
+    assert data['ctx'] == ''
+    assert data['year_now'] == datetime.date.today().year
+    assert data['view_date'] == '2025/11'
+    assert data['archives'] == ['2025/11', '2025/03']
+    assert data['month_names'][0] == 'Jan' and len(data['month_names']) == 12
 
 
 @pytest.mark.django_db

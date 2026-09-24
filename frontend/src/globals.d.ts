@@ -15,38 +15,12 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-// What the page script finds on the page before it runs: the data templates
-// write into inline scripts, Quill for the signed-in owner, and the extension
-// points a deployment sets in user-scripts.js.
+// What the page script finds on the page before it runs: Quill for the
+// signed-in owner, and the extension points a deployment sets in
+// user-scripts.js. The templates' own data is JSON, read by config.ts.
 //
 // The extension points are a public contract, pinned by
 // glifestream/tests/e2e/test_js_extension_points.py.
-
-/** base.html: `const settings`. */
-interface GlsSettings {
-    baseurl: string;
-    /** 'google' for Google Maps, anything else for OpenStreetMap. */
-    maps_engine: string;
-    themes: string[];
-}
-
-/** stream.html: `const stream_data`, only on stream pages. */
-interface GlsStreamData {
-    ctx: string;
-    year_now: number;
-    /** The month on view, as YYYY/MM. */
-    view_date: string;
-    /** Every month with entries, as YYYY/MM. */
-    archives: string[];
-    month_names: string[];
-}
-
-// Declared with `const` in classic scripts, so they are global bindings but
-// not properties of window.
-declare const settings: GlsSettings;
-/** i18n.html: `const gettext_msg`, English message to translation. */
-declare const gettext_msg: Record<string, string>;
-declare const stream_data: GlsStreamData | undefined;
 
 /** What a video provider puts in the player it opens under an entry. */
 interface GlsVideoEmbed {
@@ -72,7 +46,7 @@ interface GlsSharingSite {
     icon?: string;
 }
 
-/** Functions the page markup calls from inline handlers. */
+/** Functions the markup's inline handlers used to call, kept for user scripts. */
 interface GlsNamespace {
     unhide_entry?: (this: HTMLElement) => boolean;
     run_fetch_service?: (trigger: HTMLElement) => boolean;

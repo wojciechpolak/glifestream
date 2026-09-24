@@ -15,15 +15,11 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** The translation of an English message, from i18n.html. */
+import { config } from '../config';
+
+/** The translation of an English message, from the page's #gls-config. */
 export function gettext(msg: string): string {
-    if (typeof gettext_msg !== 'undefined') {
-        const translated = gettext_msg[msg];
-        if (translated) {
-            return translated;
-        }
-    }
-    return msg;
+    return config.messages[msg] || msg;
 }
 
 export function _(msg: string): string {

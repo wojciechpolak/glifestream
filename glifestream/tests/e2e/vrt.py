@@ -29,6 +29,8 @@ import pytest
 from PIL import Image, ImageChops, ImageFilter
 from playwright.sync_api import Locator, Page
 
+from glifestream.tests.e2e.waiting import wait_for
+
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 BASELINE_ROOT = PROJECT_ROOT / '.visual-regression'
@@ -155,19 +157,17 @@ def _prepare_page_for_screenshot(page: Page) -> None:
         }
         """
     )
-    page.wait_for_function(
+    # Spinners loop forever; wait only for effects that end.
+    wait_for(
+        page,
         """
-        () => {
-            // Spinners loop forever; wait only for effects that end.
-            const running = document.getAnimations().filter(
-                (a) =>
-                    a.playState === 'running' &&
-                    a.effect &&
-                    a.effect.getComputedTiming().endTime !== Infinity
-            );
-            return running.length === 0;
-        }
-        """
+        document.getAnimations().filter(
+            (a) =>
+                a.playState === 'running' &&
+                a.effect &&
+                a.effect.getComputedTiming().endTime !== Infinity
+        ).length === 0
+        """,
     )
     page.evaluate(
         """

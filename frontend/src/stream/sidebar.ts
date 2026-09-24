@@ -34,18 +34,18 @@ export function toggle_reblogs(): boolean {
 export function change_theme(): boolean {
     const cookie_name = 'gls-theme';
     let cs = read_cookie(cookie_name);
-    let idx = settings.themes.indexOf(cs as string);
+    let idx = config.themes.indexOf(cs as string);
 
     if (!cs || idx === -1) {
         idx = 0;
-        cs = settings.themes[idx] as string;
+        cs = config.themes[idx] as string;
     }
-    if (idx < settings.themes.length - 1) {
+    if (idx < config.themes.length - 1) {
         idx++;
     } else {
         idx = 0;
     }
-    cs = settings.themes[idx] as string;
+    cs = config.themes[idx] as string;
     write_cookie(cookie_name, cs, 365, config.baseurl);
     jump_to_top();
     reload_page();

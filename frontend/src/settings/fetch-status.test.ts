@@ -15,8 +15,9 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
+import { config } from '../config';
 import {
     fetch_status,
     fetch_status_label,
@@ -25,7 +26,7 @@ import {
 } from './fetch-status';
 
 afterEach(() => {
-    vi.unstubAllGlobals();
+    config.messages = {};
     if (fetch_status.poll_timer !== null) {
         window.clearTimeout(fetch_status.poll_timer);
         fetch_status.poll_timer = null;
@@ -55,7 +56,7 @@ describe('format_fetch_timestamp', () => {
 
 describe('fetch_status_label', () => {
     it('translates the known statuses', () => {
-        vi.stubGlobal('gettext_msg', { running: 'trwa', failed: 'błąd' });
+        config.messages = { running: 'trwa', failed: 'błąd' };
 
         expect(fetch_status_label({ status: 'running' })).toBe('trwa');
         expect(fetch_status_label({ status: 'failed' })).toBe('błąd');

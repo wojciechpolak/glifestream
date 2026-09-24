@@ -20,6 +20,7 @@ from glifestream.settings_magic_sso import (
     validate_magic_sso_settings,
     validate_secret_value,
 )
+from glifestream.settings_csp import csp_settings
 from glifestream.worker.config import DEFAULT_WORKER_MAINTENANCE_JOBS
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
@@ -243,6 +244,9 @@ AUTH_PASSWORD_VALIDATORS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
+    # Below the cache middleware, so that a cached page keeps the header with
+    # the nonce its markup was rendered with.
+    'django.middleware.csp.ContentSecurityPolicyMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -270,6 +274,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.csp',
             ],
         },
     },
@@ -360,11 +365,13 @@ PIPELINE = {
             # Built from frontend/ by `npm run build`.
             'source_filenames': ('js/dist/glifestream.js',),
             'output_filename': 'js/main.js',
+            'extra_context': {'defer': True},
         },
         'quill': {
             # Quill 2, built from frontend/ with the page script.
             'source_filenames': ('js/dist/quill.js',),
             'output_filename': 'js/quill.js',
+            'extra_context': {'defer': True},
         },
     },
     'STYLESHEETS': {
@@ -456,6 +463,18 @@ WEBSUB_HTTPS_CALLBACK = get_bool(
 EMAIL2POST_CHECK = {
     'From': get_env(ENV, 'EMAIL2POST_FROM', default='John Smith') or 'John Smith',
 }
+
+# Content Security Policy: enforce, report-only (the default, until
+# deployments have added nonces to their inline scripts) or off. See
+# settings_csp.py;
+# a settings_local.py that moves STATIC_URL to another site sets SECURE_CSP
+# again.
+CONTENT_SECURITY_POLICY = (
+    get_env(ENV, 'CONTENT_SECURITY_POLICY', default='report-only') or 'report-only'
+)
+SECURE_CSP, SECURE_CSP_REPORT_ONLY = csp_settings(
+    CONTENT_SECURITY_POLICY, static_url=STATIC_URL
+)
 
 SETTINGS_LOCAL_PATH = Path(__file__).with_name('settings_local.py')
 LOAD_SETTINGS_LOCAL = get_bool(

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n gls_page %}
 
 {% block sidebar %}
 <aside id="sidebar">
@@ -142,15 +142,7 @@
 
 </section>
 
-<script type="text/javascript">
-const stream_data = {
-  'ctx': '{{ page.ctx }}',
-  'year_now': {% now "Y" %},
-  'view_date': '{{ page.updated|date:"Y/m" }}',
-  'archives': [{% for d in archives %}'{{ d|date:"Y/m" }}'{% if not forloop.last %},{% endif %}{% endfor %}],
-  'month_names': [{% for m in page.months12 %}'{{ m|date:"M"|slice:":3" }}'{% if not forloop.last %},{% endif %}{% endfor %}]
-};
-</script>
+{% stream_data %}
 {% endblock main %}
 
 {% block copyright %}

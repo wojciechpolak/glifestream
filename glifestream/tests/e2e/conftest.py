@@ -1006,6 +1006,25 @@ def page(
             })();
             """
         )
+    # The live server sends the site's Content Security Policy; anything it
+    # blocks fails the test. A binding and an init script are outside the
+    # policy, so they can report it.
+    csp_violations: list[str] = []
+
+    def _on_csp_violation(source: Any, violation: str) -> None:
+        csp_violations.append(violation)
+
+    context.expose_binding('__glsCspViolation', _on_csp_violation)
+    context.add_init_script(
+        """
+        document.addEventListener('securitypolicyviolation', (e) => {
+            window.__glsCspViolation(
+                `${e.effectiveDirective} blocked ${e.blockedURI} ` +
+                    `at ${e.sourceFile}:${e.lineNumber} on ${document.URL}`
+            );
+        });
+        """
+    )
     context.tracing.start(screenshots=True, snapshots=True)
     page = context.new_page()
     coverage = JS_COVERAGE
@@ -1025,6 +1044,9 @@ def page(
     else:
         context.tracing.stop()
     context.close()
+    assert not csp_violations, 'Blocked by the Content Security Policy:\n' + (
+        '\n'.join(csp_violations)
+    )
 
 
 @pytest.fixture

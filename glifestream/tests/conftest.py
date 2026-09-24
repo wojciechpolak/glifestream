@@ -19,6 +19,7 @@ import io
 
 import pytest
 from django.contrib.auth.models import User
+from glifestream.settings_csp import csp_settings
 from glifestream.stream.models import Service
 from glifestream.testsupport.coverage_report import (
     COVERAGE_HTML_DIR,
@@ -26,6 +27,17 @@ from glifestream.testsupport.coverage_report import (
     coverage_enabled,
     describe_narrowed_run,
 )
+
+
+@pytest.fixture(autouse=True)
+def enforce_csp(settings):
+    """Tests enforce the Content Security Policy, whatever the default.
+
+    The E2E page fixture then fails a test on anything the policy blocks.
+    """
+    settings.SECURE_CSP, settings.SECURE_CSP_REPORT_ONLY = csp_settings(
+        'enforce', static_url=settings.STATIC_URL
+    )
 
 
 @pytest.fixture

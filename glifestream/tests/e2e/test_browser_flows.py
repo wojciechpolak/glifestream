@@ -29,6 +29,7 @@ from playwright.sync_api import Locator, Page, expect
 from glifestream.gauth.models import OAuthClient
 from glifestream.stream.models import Entry, Service
 from glifestream.tests.e2e.conftest import MOCK_ATPROTO_ACCESS_JWT
+from glifestream.tests.e2e.waiting import wait_for
 
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
@@ -365,7 +366,7 @@ def test_mobile_pull_to_refresh_reloads_page(
         }
         """
     )
-    page.wait_for_function('window.__glsReloadCount === 1')
+    wait_for(page, 'window.__glsReloadCount === 1')
 
     completed = page.evaluate(
         """
