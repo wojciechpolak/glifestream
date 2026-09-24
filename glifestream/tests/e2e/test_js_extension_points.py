@@ -33,6 +33,7 @@ documented change to the contract.
 
 from __future__ import annotations
 
+import re
 from typing import Any, cast
 
 import pytest
@@ -100,8 +101,9 @@ def test_social_sharing_sites_replace_the_default_list(
     page.locator(f'#entry-{entry.pk} a.shareit').click()
     box = page.locator('#shareitbox')
     expect(box).to_be_visible()
-    for default in ('E-mail', 'Twitter', 'Facebook', 'Reddit'):
-        expect(box.locator('.item a', has_text=default)).to_have_count(0)
+    for default in ('E-mail', 'Mastodon', 'Bluesky', 'X', 'Facebook', 'Reddit'):
+        name = re.compile(rf'^\s*{default}$')
+        expect(box.locator('.item a', has_text=name)).to_have_count(0)
 
     toot = box.locator('.item a', has_text='Toot')
     href = toot.get_attribute('href') or ''

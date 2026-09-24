@@ -42,18 +42,30 @@ export const DEFAULT_SHARING_SITES: GlsSharingSite[] = [
         className: 'email',
     },
     {
-        name: 'Twitter',
-        href: 'https://twitter.com/?status={TITLE}:%20{URL}',
-        className: 'twitter',
+        name: 'Mastodon',
+        // Mastodon's own page, which asks for the reader's server and remembers it.
+        href: 'https://share.joinmastodon.org/#text={TITLE}%20{URL}',
+        className: 'mastodon',
     },
     {
+        name: 'Bluesky',
+        href: 'https://bsky.app/intent/compose?text={TITLE}%20{URL}',
+        className: 'bluesky',
+    },
+    {
+        name: 'X',
+        href: 'https://x.com/intent/tweet?text={TITLE}&url={URL}',
+        className: 'x',
+    },
+    {
+        // Facebook takes the title from the page's Open Graph tags.
         name: 'Facebook',
-        href: 'https://www.facebook.com/sharer.php?u={URL}&t={TITLE}',
+        href: 'https://www.facebook.com/sharer/sharer.php?u={URL}',
         className: 'facebook',
     },
     {
         name: 'Reddit',
-        href: 'https://reddit.com/submit?url={URL}&title={TITLE}',
+        href: 'https://www.reddit.com/submit?url={URL}&title={TITLE}',
         className: 'reddit',
     },
 ];
@@ -109,7 +121,7 @@ export function shareit_entry(link: HTMLElement): boolean {
         if (window.location.href.indexOf(url) !== -1) {
             url = window.location.href;
         } else {
-            url = 'http://' + window.location.host + url;
+            url = new URL(url, window.location.href).href;
         }
     }
     const titles = that.querySelectorAll('.entry-title');
@@ -189,11 +201,10 @@ function open(opts: ShareitboxOptions): boolean {
             'Web Share',
         );
         listen(link, 'click', function () {
-            try {
-                void navigator.share({ title: title, url: url });
-            } catch {
+            navigator.share({ title: title, url: url }).catch(() => {
                 // Not allowed here, or cancelled.
-            }
+            });
+            return false;
         });
         o.appendChild(h('div', { className: 'item' }, [link]));
     }

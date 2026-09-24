@@ -884,7 +884,9 @@ ul.files {
   .share-email { @extend .fas; @extend .fa-envelope; }
   .share-facebook { @extend .fab; @extend .fa-facebook; }
   .share-reddit { @extend .fab; @extend .fa-reddit; }
-  .share-twitter { @extend .fab; @extend .fa-twitter; }
+  .share-mastodon { @extend .fab; @extend .fa-mastodon; }
+  .share-bluesky { @extend .fab; @extend .fa-bluesky; }
+  .share-x, .share-twitter { @extend .fab; @extend .fa-x-twitter; }
   .share-webshare { @extend .fas; @extend .fa-share-nodes; }
 }
 

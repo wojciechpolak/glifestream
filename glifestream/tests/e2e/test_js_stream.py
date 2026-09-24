@@ -573,15 +573,17 @@ def test_share_box_lists_sites_with_encoded_links(
     title = long_title[:137] + '...'
     expected = {
         'E-mail': 'mailto:?subject={URL}&body={TITLE}',
-        'Twitter': 'https://twitter.com/?status={TITLE}:%20{URL}',
-        'Facebook': 'https://www.facebook.com/sharer.php?u={URL}&t={TITLE}',
-        'Reddit': 'https://reddit.com/submit?url={URL}&title={TITLE}',
+        'Mastodon': 'https://share.joinmastodon.org/#text={TITLE}%20{URL}',
+        'Bluesky': 'https://bsky.app/intent/compose?text={TITLE}%20{URL}',
+        'X': 'https://x.com/intent/tweet?text={TITLE}&url={URL}',
+        'Facebook': 'https://www.facebook.com/sharer/sharer.php?u={URL}',
+        'Reddit': 'https://www.reddit.com/submit?url={URL}&title={TITLE}',
     }
     encoded_url, encoded_title = page.evaluate(
         '([u, t]) => [encodeURIComponent(u), encodeURIComponent(t)]', [url, title]
     )
     for name, template in expected.items():
-        link = box.locator('.item a', has_text=name)
+        link = box.locator('.item a', has_text=re.compile(rf'^\s*{name}$'))
         expect(link).to_have_attribute(
             'href',
             template.replace('{URL}', encoded_url).replace('{TITLE}', encoded_title),

@@ -23,6 +23,8 @@ work, so only the significant changes are listed.
 - PixelFed support.
 - Dark Mode.
 - Progressive Web App (PWA) support and Web Share integration.
+- Mastodon and Bluesky in the share box. Mastodon goes through
+  `share.joinmastodon.org`, which asks for the reader's server.
 - Docker-based deployment: Dockerfile, Compose setup, a separate Nginx service,
   and a GitHub Actions workflow publishing container images with build
   attestations.
@@ -70,6 +72,9 @@ work, so only the significant changes are listed.
 - Switched the dependency manager to uv (previously Poetry and
   `requirements.txt`).
 - Replaced uWSGI with Gunicorn.
+- The share box shares to X (`x.com`) instead of Twitter, and uses the
+  current Facebook and Reddit share URLs. The `share-twitter` icon class now
+  shows the X logo.
 - Rewrote the default layout and switched to Font Awesome; refreshed the default
   theme.
 - Modernized the Django settings module.
@@ -126,6 +131,9 @@ work, so only the significant changes are listed.
 
 ### Fixed
 
+- The share box gives the share sites and Web Share an `https://` link to an
+  entry on a site served over HTTPS, instead of an `http://` one that worked
+  only through the redirect. Web Share no longer scrolls the page to the top.
 - Embedded YouTube videos play again. YouTube's player refuses to play
   (error 153) without a `Referer`, which the pages' `same-origin`
   Referrer-Policy withheld; the player's iframe now sends it the site's origin.

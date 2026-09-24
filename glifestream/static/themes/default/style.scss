@@ -1975,9 +1975,21 @@ ul.files {
     @extend .fa-reddit;
   }
 
+  .share-mastodon {
+    @extend .fab;
+    @extend .fa-mastodon;
+  }
+
+  .share-bluesky {
+    @extend .fab;
+    @extend .fa-bluesky;
+  }
+
+  // share-twitter is kept for social_sharing_sites set in user-scripts.js.
+  .share-x,
   .share-twitter {
     @extend .fab;
-    @extend .fa-twitter;
+    @extend .fa-x-twitter;
   }
 
   .share-webshare {
