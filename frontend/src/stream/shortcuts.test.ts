@@ -84,16 +84,41 @@ describe('kshortcuts', () => {
         ).toBe(false);
     });
 
-    it('is off while the reader types in a listed field', () => {
-        init_shortcuts('input[type=search]');
-        const search = document.querySelector('input') as HTMLInputElement;
+    it('leaves a key typed in any field to the field', () => {
+        document.body.insertAdjacentHTML(
+            'beforeend',
+            `<form><input name="username"><input type="password" name="password">
+             <textarea></textarea><select><option>j</option></select></form>
+             <div contenteditable="true"><p>text</p></div>`,
+        );
+        init_shortcuts();
+        const fields = document.querySelectorAll<HTMLElement>(
+            'input, textarea, select, [contenteditable] p',
+        );
 
-        search.dispatchEvent(new FocusEvent('focus'));
-        press('j');
+        for (const field of fields) {
+            for (const key of ['j', 'k', 'a', 'f', 'h']) {
+                const event = new KeyboardEvent('keypress', {
+                    key,
+                    bubbles: true,
+                    cancelable: true,
+                });
+                field.dispatchEvent(event);
+                expect(event.defaultPrevented, `${key} in ${field.tagName}`).toBe(
+                    false,
+                );
+            }
+        }
         expect(highlighted()).toEqual([]);
 
-        search.dispatchEvent(new FocusEvent('blur'));
-        press('j');
+        const outside = new KeyboardEvent('keypress', {
+            key: 'j',
+            bubbles: true,
+            cancelable: true,
+        });
+        document.body.dispatchEvent(outside);
         expect(highlighted()).toEqual(['entry-1']);
+        expect(outside.defaultPrevented).toBe(true);
+        document.removeEventListener('keypress', kshortcuts);
     });
 });

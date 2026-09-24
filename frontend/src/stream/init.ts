@@ -136,7 +136,7 @@ export function init_stream(): void {
     stream_state.nav_next = Array.from(
         scope.querySelectorAll<HTMLAnchorElement>('nav a.next'),
     );
-    init_shortcuts('#status, #edited-content, form input[type=search]');
+    init_shortcuts();
 
     for (const audio of scope.querySelectorAll<HTMLElement>('span.play-audio')) {
         audio.title = _('Click and Listen');

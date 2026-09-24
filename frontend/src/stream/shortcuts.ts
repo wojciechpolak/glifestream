@@ -16,22 +16,28 @@
  */
 
 import { scroll_to_element } from '../util/scroll';
-import { composer, open_sharing } from './composer';
+import { open_sharing } from './composer';
 import { favorite_entry, hide_entry, unhide_entry } from './entry-actions';
 import { stream_state } from './state';
 
-/** Off while the reader types in the composer, the raw editor or search. */
-const shortcuts = { enabled: true };
+const EDITABLE =
+    'input, textarea, select, [contenteditable=""], [contenteditable="true"]';
+
+/** Whether the key goes to a field the reader types in, such as the composer. */
+function typed_in_field(e: KeyboardEvent): boolean {
+    const target = e.target;
+    return (
+        target instanceof HTMLElement &&
+        (target.isContentEditable || target.closest(EDITABLE) !== null)
+    );
+}
 
 /**
  * Keyboard shortcuts of the stream: j and k move between entries, f
  * favorites, h hides or brings back, and a opens the composer.
  */
 export function kshortcuts(e: KeyboardEvent): void {
-    if (!shortcuts.enabled || (composer.quill && composer.quill.hasFocus())) {
-        return;
-    }
-    if (e.ctrlKey || e.metaKey || e.altKey) {
+    if (typed_in_field(e) || e.ctrlKey || e.metaKey || e.altKey) {
         return;
     }
 
@@ -95,17 +101,9 @@ export function kshortcuts(e: KeyboardEvent): void {
     e.preventDefault();
 }
 
-/** Listens for the shortcuts, except while the reader types in `fields`. */
-export function init_shortcuts(fields: string): void {
+/** Listens for the shortcuts; a key typed in a field is left to the field. */
+export function init_shortcuts(): void {
     document.addEventListener('keypress', kshortcuts);
-    for (const field of document.querySelectorAll(fields)) {
-        field.addEventListener('focus', () => {
-            shortcuts.enabled = false;
-        });
-        field.addEventListener('blur', () => {
-            shortcuts.enabled = true;
-        });
-    }
 }
 
 function highlight_article(article: HTMLElement): void {

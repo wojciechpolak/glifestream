@@ -861,6 +861,18 @@ def test_typing_in_search_is_not_a_shortcut(
     expect(_highlighted(page)).to_have_count(1)
 
 
+def test_typing_in_the_login_form_is_not_a_shortcut(page: Page, app_base_url: str):
+    # Typed key by key: fill() sets the value without the key events that
+    # the shortcuts listen to.
+    page.goto(f'{app_base_url}/login')
+
+    page.get_by_label('Username').press_sequentially('jakub-fh')
+    page.get_by_label('Password').press_sequentially('kajak')
+
+    expect(page.get_by_label('Username')).to_have_value('jakub-fh')
+    expect(page.get_by_label('Password')).to_have_value('kajak')
+
+
 def test_enter_on_a_focused_link_span_activates_it(
     page: Page, app_base_url: str, ensure_admin_session
 ):
