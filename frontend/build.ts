@@ -19,12 +19,15 @@
 // picks the result up for its `main` bundle (see PIPELINE in settings.py).
 // esbuild only strips the types; `npm run typecheck` is what checks them.
 //
-//   node frontend/build.ts            one build
-//   node frontend/build.ts --watch    rebuild on every change
+//   node frontend/build.ts               one minified build, for production
+//   node frontend/build.ts --no-minify   one readable build, which
+//                                        GLS_E2E_JS_COVERAGE=1 needs
+//   node frontend/build.ts --watch       rebuild on every change, readable
 
 import * as esbuild from 'esbuild';
 
 const watch = process.argv.includes('--watch');
+const minify = !watch && !process.argv.includes('--no-minify');
 
 const options: esbuild.BuildOptions = {
     absWorkingDir: import.meta.dirname,
@@ -40,6 +43,7 @@ const options: esbuild.BuildOptions = {
     // the bundle but not linked, except in watch mode: the development
     // server, with DEBUG on, serves this file where it is.
     sourcemap: watch ? 'linked' : 'external',
+    minify,
 };
 
 // The rich editor is a bundle of its own, which only the signed-in owner

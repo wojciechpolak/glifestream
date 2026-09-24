@@ -198,7 +198,9 @@ http.ts          fetch with the CSRF token, and the error report
 - The Playwright tests in `glifestream/tests/e2e/test_js_*.py` describe what
   the page does and sends, not how. Vitest tests sit next to the modules as
   `*.test.ts`. `GLS_E2E_JS_COVERAGE=1` reports which functions the browser
-  tests never call, traced back to `frontend/src` through the source map.
+  tests never call, traced back to `frontend/src` through the source map. It
+  reads the script `npm run build -- --no-minify` writes: a plain
+  `npm run build` minifies it, for production.
 
 ## Adding things
 

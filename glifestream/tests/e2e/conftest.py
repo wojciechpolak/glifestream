@@ -869,7 +869,21 @@ def frontend_bundle() -> Path:
             'run `npm run build` (or keep `npm run watch` running)',
             pytrace=False,
         )
+    # Coverage finds the functions by their `function` keyword in the built
+    # script, and a minified one has few of them left, all on a few lines.
+    if JS_COVERAGE is not None and _is_minified(FRONTEND_BUNDLE.read_text()):
+        pytest.fail(
+            f'{FRONTEND_BUNDLE.name} is minified, which GLS_E2E_JS_COVERAGE '
+            'cannot read: run `npm run build -- --no-minify`',
+            pytrace=False,
+        )
     return FRONTEND_BUNDLE
+
+
+def _is_minified(script: str) -> bool:
+    # esbuild writes readable code at some 30 characters a line on average,
+    # and minified code at thousands.
+    return len(script) > 200 * (script.count('\n') + 1)
 
 
 @pytest.fixture(autouse=True)
