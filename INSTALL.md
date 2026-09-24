@@ -454,21 +454,58 @@ gls.secret.address: "|/usr/local/django/glifestream/worker.py --email2post"
 Testing
 =======
 
-Install development dependencies and the Playwright browser runtime:
+Install development dependencies, the frontend tooling and the Playwright
+browser runtime:
 
 ```shell
 uv sync --group dev
+npm ci
 uv run python -m playwright install chromium
 ```
 
-Run the test and code quality checks:
+The browser tests load the built page script, and the tests that render pages
+with `DEBUG` off read the static files manifest. Build the script and collect
+the static files before running them, and again after changing anything under
+`frontend/`:
+
+```shell
+npm run build
+uv run manage.py collectstatic --no-input
+```
+
+The E2E tests stop with a message when the built script is missing or older
+than `frontend/src`.
+
+Run every check in one pass, cheapest first:
+
+```shell
+./scripts/check
+```
+
+It runs ruff, oxlint, `lint-imports`, both TypeScript and Python type
+checkers, Vitest, the frontend build and pytest. It does not stop at the
+first failure, and prints a summary at the end. Formatting is left out,
+because it rewrites files:
+
+```shell
+uv run ruff format
+npm run format
+```
+
+To run the checks one at a time:
 
 ```shell
 uv run pytest
 uv run ruff check
+uv run lint-imports
 uv run ty check
 uv run mypy .
+npm test
+npm run lint
+npm run typecheck
 ```
+
+`npm test` runs the Vitest unit tests next to the modules in `frontend/src/`.
 
 The browser E2E suite uses local mocked RSS and Atom feeds and exercises the
 real `worker.py` ingestion path before asserting the rendered UI.
