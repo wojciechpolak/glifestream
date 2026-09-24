@@ -126,6 +126,9 @@ work, so only the significant changes are listed.
 
 ### Fixed
 
+- Embedded YouTube videos play again. YouTube's player refuses to play
+  (error 153) without a `Referer`, which the pages' `same-origin`
+  Referrer-Policy withheld; the player's iframe now sends it the site's origin.
 - The fetch status labels, the fetch messages and the year arrows of the
   archive calendar can be translated. The page script's messages are listed in
   one place, and a test checks the list against the script.

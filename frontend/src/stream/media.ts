@@ -25,8 +25,10 @@ export const audio_embeds: Record<string, string> = {};
 
 /** Video providers by id prefix; user-scripts.js may add or replace them. */
 export const video_embeds: Record<string, GlsVideoProvider> = {
+    // YouTube refuses to play (error 153) without a Referer, which the page's
+    // same-origin Referrer-Policy withholds; send it the origin only.
     youtube:
-        '<iframe width="560" height="349" src="https://www.youtube.com/embed/{ID}?autoplay=1&rel=0" frameborder="0" allowfullscreen></iframe>',
+        '<iframe width="560" height="349" src="https://www.youtube.com/embed/{ID}?autoplay=1&rel=0" referrerpolicy="strict-origin-when-cross-origin" frameborder="0" allowfullscreen></iframe>',
     vimeo: '<iframe width="560" height="315" src="https://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
     dailymotion:
         '<iframe width="560" height="315" src="https://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',

@@ -121,6 +121,9 @@ describe('toggle_video', () => {
         expect(player.querySelector('iframe')?.getAttribute('src')).toBe(
             'https://www.youtube.com/embed/abc?autoplay=1&rel=0',
         );
+        expect(player.querySelector('iframe')?.getAttribute('referrerpolicy')).toBe(
+            'strict-origin-when-cross-origin',
+        );
         expect(block.querySelector('.stopbutton')).not.toBeNull();
 
         toggle_video(block);
