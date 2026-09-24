@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Stop at the first failing step: a container that skipped a migration or
+# collectstatic would otherwise start anyway and fail later, far from the cause.
+set -e
+
 export DJANGO_SETTINGS_MODULE=run.settings_docker
 
 python manage.py migrate --run-syncdb --fake-initial

@@ -104,6 +104,9 @@ work, so only the significant changes are listed.
   `stream_data` and `gettext_msg` globals, and the `i18n.html` template that
   defined `gettext_msg`, are gone; a user script can read
   `JSON.parse(document.getElementById('gls-config').textContent)` instead.
+- The Docker container stops at the first startup step that fails, such as
+  `migrate` or `collectstatic`, with that step's error. It used to start
+  anyway and fail later, for example with a worker missing a database column.
 
 ### Deprecated
 

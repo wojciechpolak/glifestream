@@ -259,6 +259,9 @@ The Docker entrypoint currently performs these steps on container start:
    - Gunicorn for the Django app
    - `python -u /app/worker.py --daemon` for background fetches and maintenance
 
+If a step fails, the container stops there with that step's error, before
+Supervisor starts.
+
 Required environment values
 ---------------------------
 

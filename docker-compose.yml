@@ -1,5 +1,3 @@
-version: "3"
-
 services:
   app:
     image: ${APP_IMAGE:-ghcr.io/wojciechpolak/glifestream:latest}
