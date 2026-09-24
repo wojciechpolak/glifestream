@@ -36,7 +36,7 @@ export const video_embeds: Record<string, GlsVideoProvider> = {
     mastodon: render_mastodon_video,
 };
 
-export function can_play_hls(video: HTMLVideoElement): boolean {
+function can_play_hls(video: HTMLVideoElement): boolean {
     return !!(
         video.canPlayType('application/vnd.apple.mpegurl') ||
         video.canPlayType('application/x-mpegURL')
@@ -201,6 +201,27 @@ export function toggle_video(block: HTMLElement): boolean {
     return stop_video(block);
 }
 
+/**
+ * The player of an audio link of provider `type`, or else what play_audio
+ * returns for the click: false for a defunct site, true to follow the link.
+ */
+function audio_player(type: string, href: string, id: string): HTMLElement | boolean {
+    const player = h('div', { className: 'player audio' });
+    if (type === 'audio') {
+        player.append(
+            h('audio', { src: href, controls: true }, [
+                _('Your browser does not support it.'),
+            ]),
+        );
+    } else if (type in audio_embeds) {
+        const embed = audio_embeds[type] as string;
+        player.innerHTML = embed.replace(/{ID}/g, type === 'mp3' ? href : id);
+    } else {
+        return type !== 'thesixtyone'; // prevent navigating to a defunct site
+    }
+    return player;
+}
+
 /** Opens or closes the player of a play-audio link. */
 export function play_audio(block: HTMLElement, e: MouseEvent): boolean {
     if (e.button !== 0) {
@@ -220,36 +241,17 @@ export function play_audio(block: HTMLElement, e: MouseEvent): boolean {
     }
 
     const href = block.querySelector('a')?.getAttribute('href') || '';
-    let embed: string | HTMLAudioElement;
-    if (type === 'audio') {
-        embed = h('audio', { src: href, controls: true }, [
-            _('Your browser does not support it.'),
-        ]);
-    } else if (type in audio_embeds) {
-        embed = audio_embeds[type] as string;
-    } else if (type === 'thesixtyone') {
-        return false; // prevent navigating to a defunct site
-    } else {
-        return true;
+    const player = audio_player(type, href, a[1] as string);
+    if (typeof player == 'boolean') {
+        return player;
     }
 
-    if (typeof embed == 'string') {
-        const id = type === 'mp3' ? href : (a[1] as string);
-        embed = embed.replace(/{ID}/g, id);
-    }
-
-    for (const player of document.querySelectorAll('.player')) {
-        player.remove();
-    }
-    const player = h('div', { className: 'player audio' });
-    if (typeof embed == 'string') {
-        player.innerHTML = embed;
-    } else {
-        player.append(embed);
+    for (const other of document.querySelectorAll('.player')) {
+        other.remove();
     }
     parent.append(player);
     if (type === 'audio') {
-        void (embed as HTMLAudioElement).play();
+        void (player.firstElementChild as HTMLAudioElement).play();
     }
     return false;
 }

@@ -36,7 +36,7 @@ interface RequestOptions {
 }
 
 /** Tells the reader a request failed; what every request does by default. */
-export function report_error(): void {
+function report_error(): void {
     alert(_('Communication Error. Try again.'));
     hide_spinner();
 }
@@ -75,7 +75,11 @@ async function request(
             headers.set('X-CSRFToken', csrftoken);
         }
     }
+    return send(url, init);
+}
 
+/** Fetches; a network error or an HTTP error status is a failed result. */
+async function send(url: string, init: RequestInit): Promise<Result<Response>> {
     let response: Response;
     try {
         response = await fetch(url, init);

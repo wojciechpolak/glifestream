@@ -75,7 +75,7 @@ export const share_state = {
 };
 
 /** Reposts an entry as a selfpost, after asking. */
-export function reshare_entry(link: HTMLElement): boolean {
+function reshare_entry(link: HTMLElement): boolean {
     if (!confirm(_('You are about to re-share this entry at your stream. Confirm?'))) {
         return false;
     }
@@ -166,73 +166,78 @@ function close_on_escape(e: KeyboardEvent): void {
     }
 }
 
+/** A site of the share box, linked to share `url` and `title` there. */
+function site_item(s: GlsSharingSite, url: string, title: string): HTMLElement {
+    let href = s.href.replace('{URL}', encodeURIComponent(url));
+    href = href.replace('{TITLE}', encodeURIComponent(title));
+
+    let icon: HTMLElement | null = null;
+    if (s.className) {
+        icon = h('span', { className: 'share-' + s.className });
+    } else if (s.icon) {
+        icon = h('img', { src: s.icon, width: 16, height: 16 });
+    }
+    const link = share_link(href, icon, s.name);
+    link.target = '_blank';
+    return h('div', { className: 'item' }, [link]);
+}
+
+/** The Web Share API's item, which hands the entry to the system's share sheet. */
+function webshare_item(url: string, title: string): HTMLElement {
+    const link = share_link(
+        '#',
+        h('span', { className: 'share-webshare' }),
+        'Web Share',
+    );
+    listen(link, 'click', function () {
+        navigator.share({ title: title, url: url }).catch(() => {
+            // Not allowed here, or cancelled.
+        });
+        return false;
+    });
+    return h('div', { className: 'item' }, [link]);
+}
+
+/** The line above the sites: a reshare link, when offered, or a heading. */
+function reshare_line(opts: ShareitboxOptions): HTMLElement {
+    if (!opts.reshareit) {
+        return h('div', { className: 'reshare' }, [_('Share or bookmark this entry')]);
+    }
+    const reshare = h('a', { id: 'reshare-' + opts.id, href: '#' }, [
+        _('Reshare it at your stream'),
+    ]);
+    listen(reshare, 'click', reshare_entry);
+    return h('div', { className: 'reshare' }, [
+        reshare,
+        ' ' + _('or elsewhere:') + ' ',
+    ]);
+}
+
+/** A CSS length: a number is in pixels. */
+function css_length(value: number | string): string {
+    return typeof value == 'number' ? value + 'px' : value;
+}
+
 function open(opts: ShareitboxOptions): boolean {
     const box = init();
-    const width = opts.width || 356;
-    const height = opts.height;
     const url = opts.url || '';
     const title = opts.title || '';
-    const reshareit = opts.reshareit || false;
 
     Overlay.enable(40);
     const o = h('div');
     // oxlint-disable-next-line typescript/no-for-in-array -- iterates as the jQuery script did
     for (const i in share_state.sites) {
-        const s = share_state.sites[i] as GlsSharingSite;
-        let href = s.href.replace('{URL}', encodeURIComponent(url));
-        href = href.replace('{TITLE}', encodeURIComponent(title));
-
-        let icon: HTMLElement | null = null;
-        if (s.className) {
-            icon = h('span', { className: 'share-' + s.className });
-        } else if (s.icon) {
-            icon = h('img', { src: s.icon, width: 16, height: 16 });
-        }
-        const link = share_link(href, icon, s.name);
-        link.target = '_blank';
-        o.appendChild(h('div', { className: 'item' }, [link]));
+        o.appendChild(site_item(share_state.sites[i] as GlsSharingSite, url, title));
     }
-
-    // Web Share API
     if ((navigator as Partial<Navigator>).share) {
-        const link = share_link(
-            '#',
-            h('span', { className: 'share-webshare' }),
-            'Web Share',
-        );
-        listen(link, 'click', function () {
-            navigator.share({ title: title, url: url }).catch(() => {
-                // Not allowed here, or cancelled.
-            });
-            return false;
-        });
-        o.appendChild(h('div', { className: 'item' }, [link]));
+        o.appendChild(webshare_item(url, title));
     }
 
-    if (reshareit) {
-        const reshare = h('a', { id: 'reshare-' + opts.id, href: '#' }, [
-            _('Reshare it at your stream'),
-        ]);
-        listen(reshare, 'click', reshare_entry);
-        box.appendChild(
-            h('div', { className: 'reshare' }, [
-                reshare,
-                ' ' + _('or elsewhere:') + ' ',
-            ]),
-        );
-    } else {
-        box.appendChild(
-            h('div', { className: 'reshare' }, [_('Share or bookmark this entry')]),
-        );
-    }
+    box.appendChild(reshare_line(opts));
     box.appendChild(o);
 
-    box.style.width = typeof width == 'number' ? width + 'px' : width;
-    if (!height) {
-        box.style.height = 'auto';
-    } else {
-        box.style.height = typeof height == 'number' ? height + 'px' : height;
-    }
+    box.style.width = css_length(opts.width || 356);
+    box.style.height = opts.height ? css_length(opts.height) : 'auto';
     box.style.position = 'absolute';
     box.style.display = 'block';
     MDOM.center(box, box.offsetWidth, box.offsetHeight);

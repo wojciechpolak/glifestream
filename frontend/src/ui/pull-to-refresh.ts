@@ -42,6 +42,21 @@ function should_ignore_target(target: EventTarget | null): boolean {
     );
 }
 
+/** Whether a touch may start a pull: one finger, at the top, not in a control. */
+function can_start_pull(event: TouchEvent): boolean {
+    return (
+        event.touches.length === 1 &&
+        is_at_top() &&
+        !is_sidebar_expanded() &&
+        !should_ignore_target(event.target)
+    );
+}
+
+/** Whether a pull turned back up, went sideways or left the top of the page. */
+function pull_broken(deltaX: number, deltaY: number): boolean {
+    return deltaY <= 0 || deltaX > 48 || !is_at_top() || is_sidebar_expanded();
+}
+
 /** On a phone-sized screen, pulling the top of the stream down reloads it. */
 export function init_pull_to_refresh(): void {
     if (
@@ -92,13 +107,7 @@ export function init_pull_to_refresh(): void {
     document.addEventListener(
         'touchstart',
         function (event) {
-            if (
-                state.refreshing ||
-                event.touches.length !== 1 ||
-                !is_at_top() ||
-                is_sidebar_expanded() ||
-                should_ignore_target(event.target)
-            ) {
+            if (state.refreshing || !can_start_pull(event)) {
                 state.active = false;
                 return;
             }
@@ -129,7 +138,7 @@ export function init_pull_to_refresh(): void {
             const touch = event.touches[0] as Touch;
             const deltaY = touch.clientY - state.startY;
             const deltaX = Math.abs(touch.clientX - state.startX);
-            if (deltaY <= 0 || deltaX > 48 || !is_at_top() || is_sidebar_expanded()) {
+            if (pull_broken(deltaX, deltaY)) {
                 reset_pull_state();
                 return;
             }

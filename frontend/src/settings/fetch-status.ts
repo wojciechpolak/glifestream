@@ -104,15 +104,17 @@ function get_fetch_diagnostics_state(serviceId: number | string): FetchState {
         return { service_id: Number(serviceId), status: shown || 'idle' };
     }
     const attr = (name: string): string => diagnostics.getAttribute(name) || '';
+    /** A timestamp attribute; an empty one is null. */
+    const time = (name: string): string | null => attr(name) || null;
     return {
         service_id: Number(serviceId),
         status: attr('data-status') || shown || 'idle',
-        requested_at: attr('data-requested-at') || null,
-        started_at: attr('data-started-at') || null,
-        finished_at: attr('data-finished-at') || null,
-        last_succeeded_at: attr('data-last-succeeded-at') || null,
-        last_failed_at: attr('data-last-failed-at') || null,
-        next_fetch_at: attr('data-next-fetch-at') || null,
+        requested_at: time('data-requested-at'),
+        started_at: time('data-started-at'),
+        finished_at: time('data-finished-at'),
+        last_succeeded_at: time('data-last-succeeded-at'),
+        last_failed_at: time('data-last-failed-at'),
+        next_fetch_at: time('data-next-fetch-at'),
         last_result: attr('data-last-result'),
         last_error: attr('data-last-error'),
         failure_note: attr('data-failure-note'),

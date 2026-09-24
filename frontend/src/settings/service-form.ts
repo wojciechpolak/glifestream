@@ -27,7 +27,7 @@ import { maybe_start_fetch_status_polling, update_fetch_status } from './fetch-s
 /** Per controlling field: the value that shows each dependent row. */
 type SettingsDeps = Record<string, [string, HTMLElement][]>;
 
-export const service_form = {
+const service_form = {
     deps: null as SettingsDeps | null,
 };
 
@@ -131,14 +131,38 @@ function field_value(f: ServiceFormField): string {
     return f.value === undefined || f.value === null ? '' : String(f.value);
 }
 
+function render_select(f: ServiceFormField): HTMLSelectElement {
+    const select = h('select', { id: f.name, name: f.name });
+    for (const [value, label] of f.options || []) {
+        const selected = value === f.value;
+        select.add(new Option(label, value, selected, selected));
+    }
+    return select;
+}
+
+/** What the link fields open when clicked, by field name. */
+const LINK_ACTIONS: Readonly<Record<string, (id: number) => void>> = {
+    oauth_conf: oauth_configure,
+    oauth2_conf: oauth2_configure,
+};
+
+function render_link(f: ServiceFormField, data: ServiceForm): HTMLAnchorElement {
+    const link = h('a', { id: f.name, href: f.href || '' }, [field_value(f)]);
+    const configure = Object.hasOwn(LINK_ACTIONS, f.name)
+        ? LINK_ACTIONS[f.name]
+        : undefined;
+    if (configure) {
+        listen(link, 'click', function () {
+            configure(data.id as number);
+            return false;
+        });
+    }
+    return link;
+}
+
 function render_field(f: ServiceFormField, data: ServiceForm): HTMLElement {
     if (f.type === 'select') {
-        const select = h('select', { id: f.name, name: f.name });
-        for (const [value, label] of f.options || []) {
-            const selected = value === f.value;
-            select.add(new Option(label, value, selected, selected));
-        }
-        return select;
+        return render_select(f);
     }
     if (f.type === 'checkbox') {
         return h('input', {
@@ -150,20 +174,7 @@ function render_field(f: ServiceFormField, data: ServiceForm): HTMLElement {
         });
     }
     if (f.type === 'link') {
-        const link = h('a', { id: f.name, href: f.href || '' }, [field_value(f)]);
-        const configure =
-            f.name === 'oauth_conf'
-                ? oauth_configure
-                : f.name === 'oauth2_conf'
-                  ? oauth2_configure
-                  : null;
-        if (configure) {
-            listen(link, 'click', function () {
-                configure(data.id as number);
-                return false;
-            });
-        }
-        return link;
+        return render_link(f, data);
     }
     return h('input', {
         type: f.type,
@@ -232,6 +243,38 @@ function get_form(): HTMLFormElement {
     return form;
 }
 
+/** A field's row: its label, hint and input; `deps` learns what shows it. */
+function render_row(
+    f: ServiceFormField,
+    data: ServiceForm,
+    deps: SettingsDeps,
+): HTMLElement {
+    const hint = f.hint ? h('span', { className: 'hint' }, [f.hint]) : null;
+    const label = h('label', { htmlFor: f.name, className: f.miss ? 'missing' : '' }, [
+        f.label,
+    ]);
+    const row = h('div', { className: 'form-row' }, [
+        label,
+        hint,
+        render_field(f, data),
+    ]);
+    for (const [name, value] of Object.entries(f.deps || {})) {
+        (deps[name] ||= []).push([value, row]);
+    }
+    return row;
+}
+
+/** Shows the dependent rows that match each controlling field, now and on change. */
+function bind_deps(fs: HTMLFieldSetElement, deps: SettingsDeps): void {
+    for (const name in deps) {
+        const field = fs.querySelector<HTMLInputElement>('#' + CSS.escape(name));
+        if (field) {
+            field.addEventListener('change', () => settings_onchange_field(field));
+            settings_onchange_field(field);
+        }
+    }
+}
+
 /** Builds the service form from the server's description of it. */
 function prepare_service_form(data: ServiceForm): HTMLFormElement {
     const form = get_form();
@@ -248,31 +291,10 @@ function prepare_service_form(data: ServiceForm): HTMLFormElement {
         fs.append(h('input', { type: 'hidden', name: 'id', value: String(data.id) }));
     }
     fs.append(h('input', { type: 'hidden', name: 'api', value: data.api }));
-
     for (const f of data.fields) {
-        const hint = f.hint ? h('span', { className: 'hint' }, [f.hint]) : null;
-        const label = h(
-            'label',
-            { htmlFor: f.name, className: f.miss ? 'missing' : '' },
-            [f.label],
-        );
-        const row = h('div', { className: 'form-row' }, [
-            label,
-            hint,
-            render_field(f, data),
-        ]);
-        for (const [name, value] of Object.entries(f.deps || {})) {
-            (deps[name] ||= []).push([value, row]);
-        }
-        fs.append(row);
+        fs.append(render_row(f, data, deps));
     }
-    for (const name in deps) {
-        const field = fs.querySelector<HTMLInputElement>('#' + CSS.escape(name));
-        if (field) {
-            field.addEventListener('change', () => settings_onchange_field(field));
-            settings_onchange_field(field);
-        }
-    }
+    bind_deps(fs, deps);
     fs.append(render_buttons(data));
 
     if (data.id && data.method === 'post') {

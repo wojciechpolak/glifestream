@@ -122,7 +122,7 @@ export function es(ns: string, p: unknown): void {
     win[t[t.length - 1] as string] = p;
 }
 
-export interface WinGeometry {
+interface WinGeometry {
     width: number;
     height: number;
     left: number;

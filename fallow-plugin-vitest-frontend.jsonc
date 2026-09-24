@@ -1,0 +1,10 @@
+// The Vitest config lives in frontend/, not at the project root, so fallow's
+// built-in Vitest plugin does not find the unit tests. They are declared here
+// as test roots, which is what fallow's estimated coverage counts from.
+{
+  "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/plugin-schema.json",
+  "name": "vitest-frontend",
+  "enablers": ["vitest"],
+  "entryPoints": ["frontend/src/**/*.test.ts"],
+  "entryPointRole": "test"
+}

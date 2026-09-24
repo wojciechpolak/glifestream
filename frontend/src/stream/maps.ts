@@ -104,7 +104,7 @@ function coordinates(link: HTMLElement): [string, string] {
 }
 
 /** Replaces an inline a.map link with the map itself. */
-export function render_map(link: HTMLAnchorElement): void {
+function render_map(link: HTMLAnchorElement): void {
     const [lat, lng] = coordinates(link);
     link.target = '_blank';
     const parent = link.parentNode as HTMLElement;

@@ -26,7 +26,7 @@ import { scroll_to_element } from '../util/scroll';
 import { scaledown_images } from './images';
 
 /** The open entry menu. */
-export const menu_state = {
+const menu_state = {
     open: null as HTMLElement | null,
 };
 
@@ -278,7 +278,7 @@ export function show_menu_controls(control: HTMLElement): boolean {
     return false;
 }
 
-export function hide_menu_controls(): void {
+function hide_menu_controls(): void {
     if (menu_state.open) {
         hide(menu_state.open);
         menu_state.open.classList.remove('menu-expanded');

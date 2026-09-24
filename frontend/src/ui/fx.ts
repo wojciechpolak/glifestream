@@ -21,8 +21,7 @@
 // reader prefers reduced motion, as the stylesheet's transitions are.
 
 /** jQuery's default, 'normal', duration. */
-export const NORMAL = 400;
-export const FAST = 200;
+const NORMAL = 400;
 
 interface Running {
     animation: Animation;

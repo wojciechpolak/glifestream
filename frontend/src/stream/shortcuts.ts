@@ -32,6 +32,65 @@ function typed_in_field(e: KeyboardEvent): boolean {
     );
 }
 
+/** j: the next entry, or the next page after the last one. */
+function next_entry(): void {
+    const articles = stream_state.articles;
+    if (stream_state.current_article + 1 === articles.length) {
+        for (const link of stream_state.nav_next) {
+            link.click();
+        }
+    } else {
+        highlight_article(articles[++stream_state.current_article] as HTMLElement);
+    }
+}
+
+/** k: the previous entry, or the previous page before the first one. */
+function previous_entry(): void {
+    if (stream_state.current_article - 1 < 0) {
+        const prev = document.querySelector('#stream a.prev');
+        if (prev) {
+            window.location.href = prev.getAttribute('href') as string;
+        }
+    } else {
+        highlight_article(
+            stream_state.articles[--stream_state.current_article] as HTMLElement,
+        );
+    }
+}
+
+/** f: favorites the highlighted entry. */
+function favorite_current(): void {
+    const ent = stream_state.articles[stream_state.current_article];
+    const c = ent?.querySelector<HTMLElement>('span.favorite-control');
+    if (c) {
+        favorite_entry(c);
+    }
+}
+
+/** h: hides the highlighted entry, or brings it back once hidden. */
+function toggle_hidden_current(): void {
+    const ent = stream_state.articles[stream_state.current_article];
+    if (!ent) {
+        return;
+    }
+    const id = ent.id.split('-')[1] as string;
+    const undo = document.querySelector<HTMLElement>('#hidden-' + id + ' a');
+    const hide = ent.querySelector<HTMLElement>('span.hide-control');
+    if (undo) {
+        unhide_entry(undo);
+    } else if (hide) {
+        hide_entry(hide);
+    }
+}
+
+const SHORTCUTS: Readonly<Record<string, () => void>> = {
+    a: open_sharing,
+    j: next_entry,
+    k: previous_entry,
+    f: favorite_current,
+    h: toggle_hidden_current,
+};
+
 /**
  * Keyboard shortcuts of the stream: j and k move between entries, f
  * favorites, h hides or brings back, and a opens the composer.
@@ -40,63 +99,11 @@ export function kshortcuts(e: KeyboardEvent): void {
     if (typed_in_field(e) || e.ctrlKey || e.metaKey || e.altKey) {
         return;
     }
-
-    const articles = stream_state.articles;
-    let ent: HTMLElement | undefined;
-    switch (e.key) {
-        case 'a':
-            open_sharing();
-            break;
-        case 'j':
-            if (stream_state.current_article + 1 === articles.length) {
-                for (const link of stream_state.nav_next) {
-                    link.click();
-                }
-            } else {
-                highlight_article(
-                    articles[++stream_state.current_article] as HTMLElement,
-                );
-            }
-            break;
-        case 'k':
-            if (stream_state.current_article - 1 < 0) {
-                const prev = document.querySelector('#stream a.prev');
-                if (prev) {
-                    window.location.href = prev.getAttribute('href') as string;
-                }
-            } else {
-                highlight_article(
-                    articles[--stream_state.current_article] as HTMLElement,
-                );
-            }
-            break;
-        case 'f':
-            ent = articles[stream_state.current_article];
-            if (ent) {
-                const c = ent.querySelector<HTMLElement>('span.favorite-control');
-                if (c) {
-                    favorite_entry(c);
-                }
-            }
-            break;
-        case 'h':
-            ent = articles[stream_state.current_article];
-            if (ent) {
-                const id = ent.id.split('-')[1] as string;
-                const undo = document.querySelector<HTMLElement>(
-                    '#hidden-' + id + ' a',
-                );
-                const hide = ent.querySelector<HTMLElement>('span.hide-control');
-                if (undo) {
-                    unhide_entry(undo);
-                } else if (hide) {
-                    hide_entry(hide);
-                }
-            }
-            break;
-        default:
-            return;
+    const action = Object.hasOwn(SHORTCUTS, e.key) ? SHORTCUTS[e.key] : undefined;
+    if (!action) {
+        return;
     }
+    action();
     // The key moved focus or the page; it must not also type there.
     e.preventDefault();
 }

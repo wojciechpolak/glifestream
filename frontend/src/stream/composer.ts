@@ -37,7 +37,7 @@ import { scaledown_images } from './images';
 import { render_maps } from './maps';
 
 /** The selfpost composer at the top of the stream. */
-export const composer = {
+const composer = {
     /** The rich editor, when the page loaded Quill. */
     quill: undefined as Quill | undefined,
     /** The selfposts classes from api/gsc, once loaded. */
