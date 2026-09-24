@@ -35,17 +35,27 @@ const options: esbuild.BuildOptions = {
     target: 'es2024',
     charset: 'utf8',
     logLevel: 'info',
-    // Pipeline appends this file to jQuery and fancyBox in js/main.js, and a
-    // browser would apply the map to that whole file, off by every line in
-    // front of ours. So the map is written next to the bundle but not linked,
-    // except in watch mode: the development server, with DEBUG on, serves
-    // this file on its own.
+    // Pipeline serves this file as js/main.js, a directory above its map,
+    // where a linked map would not be found. So the map is written next to
+    // the bundle but not linked, except in watch mode: the development
+    // server, with DEBUG on, serves this file where it is.
     sourcemap: watch ? 'linked' : 'external',
 };
 
+// The rich editor is a bundle of its own, which only the signed-in owner
+// loads. It is Quill and little else, so it is minified, as the copy of Quill
+// it replaced was.
+const quill: esbuild.BuildOptions = {
+    ...options,
+    entryPoints: { quill: 'src/quill.ts' },
+    minify: true,
+};
+
 if (watch) {
-    const context = await esbuild.context(options);
-    await context.watch();
+    for (const build of [options, quill]) {
+        const context = await esbuild.context(build);
+        await context.watch();
+    }
 } else {
-    await esbuild.build(options);
+    await Promise.all([esbuild.build(options), esbuild.build(quill)]);
 }

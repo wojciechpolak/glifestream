@@ -61,6 +61,7 @@ module = [
     "atproto_client",
     "atproto_client.*",
     "atproto_core.*",
+    "pipeline.*",
 ]
 ignore_missing_imports = true
 

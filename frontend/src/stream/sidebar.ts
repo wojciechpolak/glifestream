@@ -34,7 +34,7 @@ export function toggle_reblogs(): boolean {
 export function change_theme(): boolean {
     const cookie_name = 'gls-theme';
     let cs = read_cookie(cookie_name);
-    let idx = $.inArray(cs as string, settings.themes);
+    let idx = settings.themes.indexOf(cs as string);
 
     if (!cs || idx === -1) {
         idx = 0;

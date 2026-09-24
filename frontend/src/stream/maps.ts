@@ -95,27 +95,37 @@ export function get_map_embed(lat: string, lng: string): string {
     );
 }
 
+/** The coordinates a map link holds, as the page shows them. */
+function coordinates(link: HTMLElement): [string, string] {
+    const read = (sel: string): string => link.querySelector(sel)?.innerHTML ?? '';
+    return [read('.latitude'), read('.longitude')];
+}
+
 /** Replaces an inline a.map link with the map itself. */
-export function render_map(this: HTMLElement): void {
-    const link = this as HTMLAnchorElement;
-    const lat = $('.latitude', link).html();
-    const lng = $('.longitude', link).html();
+export function render_map(link: HTMLAnchorElement): void {
+    const [lat, lng] = coordinates(link);
     link.target = '_blank';
     const parent = link.parentNode as HTMLElement;
     parent.style.paddingLeft = '0';
     parent.style.background = 'none';
-    $(link).html(get_map_embed(lat, lng));
+    link.innerHTML = get_map_embed(lat, lng);
+}
+
+/** Renders every inline map in `ctx`. */
+export function render_maps(ctx: ParentNode | null | undefined): void {
+    for (const link of ctx?.querySelectorAll<HTMLAnchorElement>('a.map') || []) {
+        render_map(link);
+    }
 }
 
 /** Opens the map of an a.show-map link in place; a second click follows it. */
-export function show_map(this: HTMLElement): boolean {
-    const link = this as HTMLAnchorElement & { folded?: boolean };
+export function show_map(anchor: HTMLElement): boolean {
+    const link = anchor as HTMLAnchorElement & { folded?: boolean };
     link.blur();
     if (link.folded) {
         return true;
     }
-    const lat = $('.latitude', link).html();
-    const lng = $('.longitude', link).html();
+    const [lat, lng] = coordinates(link);
     link.target = '_blank';
 
     if (settings.maps_engine === 'google') {
@@ -133,8 +143,11 @@ export function show_map(this: HTMLElement): boolean {
     }
 
     const p = link.parentNode as HTMLElement;
-    $('a', p).html(get_map_embed(lat, lng));
-    $(p).css('paddingLeft', '0');
+    const embed = get_map_embed(lat, lng);
+    for (const a of p.querySelectorAll('a')) {
+        a.innerHTML = embed;
+    }
+    p.style.paddingLeft = '0';
     link.folded = true;
     return false;
 }

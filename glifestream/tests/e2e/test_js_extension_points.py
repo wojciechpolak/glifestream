@@ -27,7 +27,7 @@ documented change to the contract.
   window.video_embeds              adds or replaces video providers
   window.audio_embeds              adds audio providers
   window.continuous_reading        entries to load in place before navigating
-  window.gls.unhide_entry          used by the "Undo" link markup
+  window.gls.unhide_entry          undoes a hide, called with its Undo link
   window.gls.run_fetch_service     used by the settings status page markup
 """
 
@@ -246,3 +246,27 @@ def test_gls_namespace_exposes_markup_callbacks(
         })"""
     )
     assert kinds == {'unhide_entry': 'function', 'run_fetch_service': 'function'}
+
+
+def test_gls_unhide_entry_undoes_a_hide_from_its_link(
+    page: Page, app_base_url: str, ensure_admin_session, make_entry
+):
+    entry = make_entry('Entry To Bring Back')
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+
+    with page.expect_request('**/api/unhide') as request_info:
+        page.evaluate(
+            """(id) => {
+                const notice = document.createElement('div');
+                notice.id = 'hidden-' + id;
+                notice.innerHTML = '<a href="#">Undo</a>';
+                document.getElementById('entry-' + id).after(notice);
+                return gls.unhide_entry.call(notice.firstChild);
+            }""",
+            entry.pk,
+        )
+
+    assert request_info.value.post_data == f'entry={entry.pk}'
+    expect(page.locator(f'#hidden-{entry.pk}')).to_have_count(0)
+    expect(page.locator(f'#entry-{entry.pk}')).to_be_visible()

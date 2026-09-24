@@ -28,7 +28,7 @@ function is_at_top(): boolean {
 }
 
 function is_sidebar_expanded(): boolean {
-    return $('#sidebar').hasClass('expanded');
+    return !!document.getElementById('sidebar')?.classList.contains('expanded');
 }
 
 function should_ignore_target(target: EventTarget | null): boolean {

@@ -15,41 +15,97 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** A child for DCE(): text is set as innerHTML, false and undefined skipped. */
-export type DceContent = Node | string | number | false | undefined;
+/** A child for h(): a string becomes text; false, null and undefined are skipped. */
+export type Child = Node | string | number | false | null | undefined;
 
-/** Creates an element, sets its properties and appends its content. */
-export function DCE<K extends keyof HTMLElementTagNameMap>(
+/** The properties h() sets; `style` is merged into the element's style. */
+export type Props<K extends keyof HTMLElementTagNameMap> = Partial<
+    Omit<HTMLElementTagNameMap[K], 'style'>
+> & { style?: Partial<CSSStyleDeclaration> };
+
+/** Creates an element, sets its properties and appends its children. */
+export function h<K extends keyof HTMLElementTagNameMap>(
     name: K,
-    props?: Record<string, unknown>,
-    content_list?: DceContent[],
+    props?: Props<K> | null,
+    children?: Child[],
 ): HTMLElementTagNameMap[K] {
-    const obj = document.createElement(name);
+    const el = document.createElement(name);
     if (props) {
-        const target = obj as unknown as Record<string, unknown>;
-        for (const p in props) {
-            if (p === 'style') {
-                const style = props[p] as Record<string, string>;
-                const target_style = obj.style as unknown as Record<string, string>;
-                for (const s in style) {
-                    target_style[s] = style[s] as string;
-                }
-            } else {
-                target[p] = props[p];
-            }
+        const { style, ...rest } = props;
+        Object.assign(el, rest);
+        if (style) {
+            Object.assign(el.style, style);
         }
     }
-    if (content_list) {
-        for (let i = 0; i < content_list.length; i++) {
-            const content = content_list[i];
-            if (typeof content == 'string' || typeof content == 'number') {
-                obj.innerHTML = String(content);
-            } else if (typeof content == 'object') {
-                obj.appendChild(content);
-            }
+    for (const child of children || []) {
+        if (child === false || child === null || child === undefined) {
+            continue;
         }
+        el.append(typeof child === 'number' ? String(child) : child);
     }
-    return obj;
+    return el;
+}
+
+/**
+ * A handler of the element it listens on, or of the element a delegated
+ * event came from. As with jQuery, returning false cancels the event and
+ * stops it.
+ */
+export type Handler<T, E extends Event> = (target: T, event: E) => boolean | void;
+
+function run_handler<T, E extends Event>(
+    handler: Handler<T, E>,
+    target: T,
+    event: E,
+): void {
+    if (handler(target, event) === false) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+}
+
+/** Listens on every element `selector` finds, or on the element given. */
+export function listen<K extends keyof HTMLElementEventMap>(
+    target: string | HTMLElement | null,
+    type: K,
+    handler: Handler<HTMLElement, HTMLElementEventMap[K]>,
+): void {
+    const elements =
+        typeof target === 'string'
+            ? document.querySelectorAll<HTMLElement>(target)
+            : target
+              ? [target]
+              : [];
+    for (const el of elements) {
+        el.addEventListener(type, (event) => run_handler(handler, el, event));
+    }
+}
+
+/**
+ * Listens on `root` for events from inside elements that match `selector`;
+ * the handler gets the element, also when it was added later.
+ */
+export function delegate<K extends keyof HTMLElementEventMap>(
+    root: HTMLElement | Document,
+    type: K,
+    selector: string,
+    handler: Handler<HTMLElement, HTMLElementEventMap[K]>,
+): void {
+    root.addEventListener(type, function (event) {
+        const target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
+        const matched = target.closest<HTMLElement>(selector);
+        if (matched && root.contains(matched)) {
+            run_handler(handler, matched, event as HTMLElementEventMap[K]);
+        }
+    });
+}
+
+/** Submits a form, even one with a field named `submit` hiding the method. */
+export function submit_form(form: HTMLFormElement): void {
+    HTMLFormElement.prototype.submit.call(form);
 }
 
 /** Sets window.<ns> to `p`, creating the objects on the way. */
@@ -75,68 +131,20 @@ export interface WinGeometry {
 
 export const MDOM = {
     /** Centres an absolutely positioned element in the viewport. */
-    center: function (
-        obj: HTMLElement,
-        objWidth?: number | string,
-        objHeight?: number | string,
-    ): void {
-        let innerWidth = 0;
-        let innerHeight = 0;
-        if (!objWidth && !objHeight) {
-            objWidth = $(obj).width() as number | string | undefined;
-            objHeight = $(obj).height() as number | string | undefined;
-            if (objWidth === '0px' || objWidth === 'auto') {
-                objWidth = obj.offsetWidth + 'px';
-                objHeight = obj.offsetHeight + 'px';
-            }
-            if ((objHeight as string).indexOf('px') === -1) {
-                obj.style.display = 'block';
-                objHeight = obj.clientHeight;
-            }
-            objWidth = parseInt(objWidth as string);
-            objHeight = parseInt(objHeight as string);
-        }
-        if (window.innerWidth) {
-            innerWidth = window.innerWidth / 2;
-            innerHeight = window.innerHeight / 2;
-        } else if (document.body.clientWidth) {
-            innerWidth = ($(window).width() as number) / 2;
-            innerHeight = ($(window).height() as number) / 2;
-        }
-        let wleft = innerWidth - (objWidth as number) / 2;
-        if (wleft < 0) {
-            wleft = 0;
-        }
-        obj.style.left = wleft + 'px';
-        obj.style.top =
-            ($(document).scrollTop() as number) +
-            innerHeight -
-            (objHeight as number) / 2 +
-            'px';
-        if (parseInt(obj.style.top) < 1) {
-            obj.style.top = '1px';
-        }
+    center: function (obj: HTMLElement, width: number, height: number): void {
+        const left = Math.max(0, window.innerWidth / 2 - width / 2);
+        const top = window.scrollY + window.innerHeight / 2 - height / 2;
+        obj.style.left = left + 'px';
+        obj.style.top = Math.max(1, top) + 'px';
     },
 
     /** The geometry of a popup window centred on this one. */
     get_win_center: function (width: number, height: number): WinGeometry {
-        const screenX =
-            typeof window.screenX !== 'undefined' ? window.screenX : window.screenLeft;
-        const screenY =
-            typeof window.screenY !== 'undefined' ? window.screenY : window.screenTop;
-        const outerWidth =
-            typeof window.outerWidth !== 'undefined'
-                ? window.outerWidth
-                : document.body.clientWidth;
-        const outerHeight =
-            typeof window.outerHeight !== 'undefined'
-                ? window.outerHeight
-                : document.body.clientHeight - 22;
         return {
             width: width,
             height: height,
-            left: parseInt(String(screenX + (outerWidth - width) / 2), 10),
-            top: parseInt(String(screenY + (outerHeight - height) / 2.5), 10),
+            left: Math.trunc(window.screenX + (window.outerWidth - width) / 2),
+            top: Math.trunc(window.screenY + (window.outerHeight - height) / 2.5),
         };
     },
 };

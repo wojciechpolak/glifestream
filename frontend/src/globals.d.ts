@@ -16,8 +16,8 @@
  */
 
 // What the page script finds on the page before it runs: the data templates
-// write into inline scripts, the libraries django-pipeline loads in front of
-// it, and the extension points a deployment sets in user-scripts.js.
+// write into inline scripts, Quill for the signed-in owner, and the extension
+// points a deployment sets in user-scripts.js.
 //
 // The extension points are a public contract, pinned by
 // glifestream/tests/e2e/test_js_extension_points.py.
@@ -78,33 +78,15 @@ interface GlsNamespace {
     run_fetch_service?: (trigger: HTMLElement) => boolean;
 }
 
-/** The part of Quill 1 the composer uses. */
-interface QuillEditor {
-    root: HTMLElement;
-    clipboard: { dangerouslyPasteHTML(html: string): void };
-    focus(): void;
-    hasFocus(): boolean;
-}
-
-interface QuillStatic {
-    new (container: string, options: object): QuillEditor;
-    import(path: 'blots/block'): { tagName: string };
-    register(definition: unknown): void;
-}
-
-/** Loaded by the `quill` bundle, only for the signed-in owner. */
-declare const Quill: QuillStatic;
-
-interface JQueryStatic {
-    /** fancyBox 3, loaded after jQuery in the `main` bundle. */
-    fancybox: {
-        open(items: { src: string }[], options: object): void;
-    };
-}
+/** Stylesheets a module imports; esbuild bundles them into dist/glifestream.css. */
+declare module '*.css';
 
 interface Window {
-    /** Called with every batch of entries shown, a node or a jQuery set. */
-    user_alter_html?: (ctx: HTMLElement | JQuery) => void;
+    /**
+     * Called with every batch of entries shown: the stream, or an array of the
+     * entries continuous reading added.
+     */
+    user_alter_html?: (ctx: HTMLElement | HTMLElement[]) => void;
     /** Replaces the share box site list. */
     social_sharing_sites?: GlsSharingSite[];
     /** Adds audio providers: an embed template with {ID}. */
@@ -116,5 +98,6 @@ interface Window {
     /** Replaces the page reload, for tests. */
     __glsReloadHandler?: () => void;
     gls?: GlsNamespace;
-    Quill?: QuillStatic;
+    /** Quill 2, from the `quill` bundle, loaded only for the signed-in owner. */
+    Quill?: typeof import('quill').default;
 }

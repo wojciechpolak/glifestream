@@ -18,11 +18,11 @@
 /** What the stream page keeps between events, set up by init_stream(). */
 export const stream_state = {
     /** Every entry on the page, continuous reading included. */
-    articles: $(),
+    articles: [] as HTMLElement[],
     /** The index in `articles` of the entry j and k moved to. */
     current_article: -1,
     /** The "next page" links. */
-    nav_next: $() as JQuery<HTMLAnchorElement>,
+    nav_next: [] as HTMLAnchorElement[],
     /** How many entries to load in place before "next" navigates. */
     continuous_reading: 300,
 };

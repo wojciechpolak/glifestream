@@ -46,7 +46,9 @@ from playwright.sync_api import BrowserContext, CDPSession, Page, Request
 
 ROOT = Path(__file__).parents[3]
 BUILT = ROOT / 'glifestream' / 'static' / 'js' / 'dist' / 'glifestream.js'
-BUNDLE_PATH = re.compile(r'/js/main(\.[0-9a-f]+)?\.js$')
+# Pipeline serves the bundle as js/main.js, or on its own from js/dist/ when
+# it is the bundle's only source.
+BUNDLE_PATH = re.compile(r'/js/(main|dist/glifestream)(\.[0-9a-f]+)?\.js$')
 
 
 @dataclass(frozen=True)
@@ -121,11 +123,14 @@ class SourceMap:
 
 
 def scan_functions(built: str, source_map: SourceMap) -> list[JsFunction]:
-    """Every `function` literal in the built script, labelled from its source."""
+    """Every `function` literal of frontend/src in the built script, labelled."""
     functions = []
     # A literal is the keyword followed by an optional name and its parameter
     # list; this skips the word inside strings such as `typeof x == 'function'`.
-    for match in re.finditer(r"(?<!['\"])\bfunction\b(?=\s*[\w$]*\s*\()", built):
+    # V8 starts an async function's range at `async`, so the match does too.
+    for match in re.finditer(
+        r"(?<!['\"])\b(?:async\s+)?function\b(?=\s*[\w$]*\s*\()", built
+    ):
         offset = match.start()
         line = built.count('\n', 0, offset)
         column = offset - (built.rfind('\n', 0, offset) + 1)
@@ -133,6 +138,9 @@ def scan_functions(built: str, source_map: SourceMap) -> list[JsFunction]:
         if origin is None:
             continue
         source, source_line = origin
+        # Bundled libraries, such as PhotoSwipe, are not ours to cover.
+        if not source_map.sources[source].is_relative_to(ROOT / 'frontend' / 'src'):
+            continue
         text = source_map.contents[source].splitlines()[source_line].strip()
         declared = re.search(r'\bfunction\s+([\w$]+)', text)
         label = declared.group(1) if declared else text[:72]

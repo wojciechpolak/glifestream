@@ -9,23 +9,16 @@
         "es2024": true
     },
     "globals": {
-        "$": "readonly",
-        "Quill": "readonly",
         "gettext_msg": "readonly",
         "settings": "readonly",
         "stream_data": "readonly"
     },
     "rules": {
         "eslint/no-underscore-dangle": ["warn", { "allow": ["__glsReloadHandler"] }],
-        // The modules keep the style of the jQuery script they came from:
-        // handlers read the element from `this`, results of jQuery lookups
-        // are asserted to the element type, and on* properties are assigned
-        // so that a new handler replaces the old one. Turn these back on as
-        // jQuery goes.
-        "oxc/no-this-in-exported-function": "off",
-        "typescript/no-this-alias": "off",
-        "typescript/no-unsafe-type-assertion": "off",
-        "unicorn/prefer-add-event-listener": "off"
+        // Elements the templates render are asserted to their type where the
+        // modules look them up, not checked, as are indexes into arrays
+        // noUncheckedIndexedAccess types as possibly missing.
+        "typescript/no-unsafe-type-assertion": "off"
     },
     "overrides": [
         {

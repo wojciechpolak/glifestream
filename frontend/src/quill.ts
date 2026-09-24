@@ -1,5 +1,5 @@
 /*
- *  gLifestream Copyright (C) 2009-2026 Wojciech Polak
+ *  gLifestream Copyright (C) 2026 Wojciech Polak
  *
  *  This program is free software; you can redistribute it and/or modify it
  *  under the terms of the GNU General Public License as published by the
@@ -15,15 +15,11 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export function reload_page(): void {
-    if (typeof window.__glsReloadHandler === 'function') {
-        window.__glsReloadHandler();
-        return;
-    }
-    window.location.reload();
-}
+// The rich editor of the composer: Quill 2, which base.html loads only for
+// the signed-in owner, ahead of the page script. The page script finds it on
+// window, so the stream does not carry it for anyone else.
 
-export function follow_href(target: HTMLElement): boolean {
-    window.location.href = (target as HTMLAnchorElement).href;
-    return false;
-}
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
+
+window.Quill = Quill;

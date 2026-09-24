@@ -15,25 +15,22 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-export function scroll_to_element(t: HTMLElement | JQuery, offset?: number): void {
-    offset = offset || 16;
-    const toffset = ($(t).offset() as JQuery.Coordinates).top - offset;
-    $('html,body').animate(
-        {
-            scrollTop: toffset,
-        },
-        200,
-    );
+import { reduced_motion } from '../ui/fx';
+
+function behavior(): ScrollBehavior {
+    return reduced_motion() ? 'instant' : 'smooth';
+}
+
+/** Scrolls the page until `el` is `offset` pixels below the top. */
+export function scroll_to_element(el: Element, offset = 16): void {
+    const top = el.getBoundingClientRect().top + window.scrollY - (offset || 16);
+    window.scrollTo({ top, behavior: behavior() });
 }
 
 export function scroll_to_top(): void {
-    $('html, body').animate({ scrollTop: 0 }, 'fast');
+    window.scrollTo({ top: 0, behavior: behavior() });
 }
 
 export function jump_to_top(): void {
-    if (document.body && document.body.scrollTop) {
-        document.body.scrollTop = 0;
-    } else if (document.documentElement && document.documentElement.scrollTop) {
-        document.documentElement.scrollTop = 0;
-    }
+    window.scrollTo({ top: 0, behavior: 'instant' });
 }

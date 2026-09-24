@@ -17,12 +17,15 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { is_quill_empty } from './composer';
+import type Quill from 'quill';
+
+import { editor_html, is_quill_empty } from './composer';
 
 describe('is_quill_empty', () => {
     it('is empty with only markup and whitespace', () => {
         expect(is_quill_empty('<div><br></div>')).toBe(true);
         expect(is_quill_empty('<div>  </div>\n<p></p>')).toBe(true);
+        expect(is_quill_empty('<div> &nbsp;&nbsp;</div>')).toBe(true);
     });
 
     it('is not empty with text', () => {
@@ -31,5 +34,24 @@ describe('is_quill_empty', () => {
 
     it('is not empty with a picture and no text', () => {
         expect(is_quill_empty('<div><img src="a.png"></div>')).toBe(false);
+    });
+});
+
+/** An editor whose semantic HTML is `html`. */
+function editor(html: string): Quill {
+    return { getSemanticHTML: () => html } as Quill;
+}
+
+describe('editor_html', () => {
+    it('turns the spaces Quill writes as &nbsp; back into spaces', () => {
+        expect(editor_html(editor('<div>a&nbsp;b&nbsp;&nbsp;&nbsp;c</div>'))).toBe(
+            '<div>a b &nbsp;&nbsp;c</div>',
+        );
+    });
+
+    it('keeps markup and text without spaces as they are', () => {
+        const html = '<ul><li>one</li></ul><pre>x</pre><div><br></div>';
+
+        expect(editor_html(editor(html))).toBe(html);
     });
 });

@@ -21,7 +21,7 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import SystemCheckError
 
-from glifestream.gls_staticfiles import check_pipeline_sources
+from glifestream.gls_staticfiles import GlsSASSCompiler, check_pipeline_sources
 
 
 def _pipeline(settings, *paths: str) -> None:
@@ -35,13 +35,13 @@ def _pipeline(settings, *paths: str) -> None:
 
 
 def test_bundle_sources_that_exist_pass(settings):
-    _pipeline(settings, 'js/jquery.min.js', 'js/*.nothing')
+    _pipeline(settings, 'favicon.ico', 'js/*.nothing')
 
     assert check_pipeline_sources() == []
 
 
 def test_a_missing_built_file_asks_for_the_frontend_build(settings):
-    _pipeline(settings, 'js/jquery.min.js', 'js/dist/missing.js')
+    _pipeline(settings, 'favicon.ico', 'js/dist/missing.js')
 
     [error] = check_pipeline_sources()
 
@@ -64,3 +64,18 @@ def test_collectstatic_stops_on_a_missing_source(settings, tmp_path):
 
     with pytest.raises(SystemCheckError, match='glifestream.E001'):
         call_command('collectstatic', interactive=False, verbosity=0, skip_checks=False)
+
+
+def test_sass_compiler_writes_only_to_the_directory_it_creates(tmp_path):
+    sources = tmp_path / 'src'
+    sources.mkdir()
+    (sources / '_colors.scss').write_text('$c: red;\n')
+    (sources / 'theme.scss').write_text('@import "colors";\n.x { color: $c; }\n')
+    output = tmp_path / 'themes' / 'default' / 'style.css'
+
+    GlsSASSCompiler(verbose=False, storage=None).compile_file(
+        str(sources / 'theme.scss'), str(output)
+    )
+
+    assert 'color: red' in output.read_text()
+    assert sorted(p.name for p in sources.iterdir()) == ['_colors.scss', 'theme.scss']

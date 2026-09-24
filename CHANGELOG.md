@@ -84,6 +84,14 @@ work, so only the significant changes are listed.
   `ImportResult`, which the fetcher logs after every fetch. Stored data is
   unchanged.
 - Improved mobile stream interactions.
+- Rewrote the page script in strict TypeScript without jQuery, built with
+  esbuild from `frontend/`. Building needs Node.js; running the site does not.
+  The lightbox is now PhotoSwipe 5, and the rich editor Quill 2, both bundled
+  from npm.
+- `user_alter_html` in `user-scripts.js` receives either the stream element or
+  an array of the entries continuous reading added, no longer a jQuery set.
+  Entries that continuous reading adds no longer run the scripts in their
+  content.
 
 ### Deprecated
 
@@ -96,6 +104,10 @@ work, so only the significant changes are listed.
 - Legacy Sphinx search support.
 - The bookmarklet.
 - `requirements.txt` and the `workerpool` dependency.
+- jQuery and fancyBox. A `user-scripts.js` that uses `$` needs its own copy of
+  jQuery. A `PIPELINE` in `settings_local.py` that still lists
+  `js/jquery.min.js`, `js/jquery.fancybox.min.js`, `quill/quill.min.js` or the
+  fancyBox stylesheet stops `collectstatic` with `glifestream.E001`.
 
 ### Fixed
 

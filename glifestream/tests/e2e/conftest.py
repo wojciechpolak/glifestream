@@ -987,14 +987,7 @@ def page(
                     document.documentElement.append(style);
                 };
 
-                const disableEffects = () => {
-                    if (window.jQuery && window.jQuery.fx) {
-                        window.jQuery.fx.off = true;
-                    }
-                };
-
                 installVrtStyle();
-                disableEffects();
 
                 if (document.readyState === 'loading') {
                     document.addEventListener('DOMContentLoaded', installVrtStyle, {
@@ -1006,7 +999,6 @@ def page(
                 const timer = window.setInterval(() => {
                     attempts += 1;
                     installVrtStyle();
-                    disableEffects();
                     if (attempts > 200) {
                         window.clearInterval(timer);
                     }

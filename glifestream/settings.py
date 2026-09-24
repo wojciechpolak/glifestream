@@ -353,31 +353,29 @@ PIPELINE = {
     'DISABLE_WRAPPER': True,
     'JS_COMPRESSOR': None,
     'CSS_COMPRESSOR': None,
-    'COMPILERS': ('pipeline.compilers.sass.SASSCompiler',),
+    'COMPILERS': ('glifestream.gls_staticfiles.GlsSASSCompiler',),
     'SASS_BINARY': get_env(ENV, 'SASS_BINARY', default='pysassc') or 'pysassc',
     'JAVASCRIPT': {
         'main': {
-            'source_filenames': (
-                'js/jquery.min.js',
-                'js/jquery.fancybox.min.js',
-                # Built from frontend/ by `npm run build`.
-                'js/dist/glifestream.js',
-            ),
+            # Built from frontend/ by `npm run build`.
+            'source_filenames': ('js/dist/glifestream.js',),
             'output_filename': 'js/main.js',
         },
         'quill': {
-            'source_filenames': ('quill/quill.min.js',),
+            # Quill 2, built from frontend/ with the page script.
+            'source_filenames': ('js/dist/quill.js',),
             'output_filename': 'js/quill.js',
         },
     },
     'STYLESHEETS': {
         'quill': {
-            'source_filenames': ('quill/quill.snow.css',),
+            'source_filenames': ('js/dist/quill.css',),
             'output_filename': 'css/quill.css',
         },
         'default': {
             'source_filenames': (
-                'themes/default/jquery.fancybox.min.css',
+                # The stylesheets of frontend/, such as PhotoSwipe's.
+                'js/dist/glifestream.css',
                 'themes/default/style.scss',
             ),
             'output_filename': 'themes/default/style.css',

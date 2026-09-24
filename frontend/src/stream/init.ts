@@ -16,8 +16,10 @@
  */
 
 import { config } from '../config';
-import { Graybox } from '../ui/graybox';
+import { Lightbox } from '../ui/lightbox';
+import { fade_in, fade_out } from '../ui/fx';
 import { init_pull_to_refresh } from '../ui/pull-to-refresh';
+import { delegate, listen } from '../util/dom';
 import { _ } from '../util/i18n';
 import { follow_href } from '../util/navigation';
 import { scroll_to_top } from '../util/scroll';
@@ -40,7 +42,7 @@ import {
     show_menu_controls,
 } from './entry-actions';
 import { scaledown_images } from './images';
-import { render_map, show_map } from './maps';
+import { render_maps, show_map } from './maps';
 import {
     alter_html,
     audio_embeds,
@@ -49,115 +51,103 @@ import {
     video_embeds,
 } from './media';
 import { DEFAULT_SHARING_SITES, share_state, shareit_entry } from './share';
-import { kshortcuts } from './shortcuts';
+import { init_shortcuts } from './shortcuts';
 import { change_theme, toggle_reblogs } from './sidebar';
 import { stream_state } from './state';
 
-type SearchInput = HTMLInputElement & { PLACEHOLDER?: string | null };
-
-function focus_search(this: GlobalEventHandlers): void {
-    const input = this as SearchInput;
-    if (input.value === input.PLACEHOLDER) {
-        $(input).val('').removeClass('blur');
-    }
+/** The clicks on the entries of the stream, listened for once on it. */
+function init_entry_controls(stream: HTMLElement): void {
+    delegate(stream, 'click', 'span.favorite-control', favorite_entry);
+    delegate(stream, 'click', 'span.hide-control', hide_entry);
+    delegate(stream, 'click', 'span.edit-control', edit_entry);
+    delegate(stream, 'click', 'span.editRaw-control', edit_raw_entry);
+    delegate(stream, 'click', 'a.shareit', shareit_entry);
+    delegate(stream, 'click', 'a.show-map', show_map);
+    delegate(stream, 'click', 'a.expand-content', expand_content);
+    delegate(stream, 'click', 'span.entry-controls-switch', show_menu_controls);
+    delegate(stream, 'click', 'div.play-video,span.play-video', toggle_video);
+    delegate(stream, 'click', 'span.play-audio', play_audio);
 }
 
-function blur_search(this: GlobalEventHandlers): void {
-    const input = this as SearchInput;
-    if (input.value === '') {
-        $(input)
-            .val(input.PLACEHOLDER as string)
-            .addClass('blur');
-    }
-}
-
-/** A placeholder for browsers without the attribute. */
-function set_placeholder(inputs: JQuery, defval?: string): void {
-    const has = 'placeholder' in document.createElement('input');
-    for (let i = 0; i < inputs.length; i++) {
-        const input = inputs[i] as SearchInput;
-        input.PLACEHOLDER = defval || input.getAttribute('placeholder');
-        if (!has) {
-            input.autocomplete = 'off';
-            input.onfocus = focus_search;
-            input.onblur = blur_search;
-            if (input.value === '' || input.value === input.PLACEHOLDER) {
-                $(input)
-                    .val(input.PLACEHOLDER as string)
-                    .addClass('blur');
-            }
+function init_search(): void {
+    listen('form[name=searchform]', 'submit', function () {
+        const s = document.querySelector<HTMLInputElement>('input[name=s]');
+        return !!s && s.value !== '';
+    });
+    listen('#search-submit', 'click', function () {
+        for (const form of document.querySelectorAll<HTMLFormElement>(
+            'form[name=searchform]',
+        )) {
+            form.requestSubmit();
         }
+    });
+}
+
+function init_scroll_to_top(): void {
+    const buttons = document.querySelectorAll<HTMLElement>('.scroll-to-top');
+    window.addEventListener('scroll', function () {
+        for (const button of buttons) {
+            void (window.scrollY > 100 ? fade_in(button) : fade_out(button));
+        }
+    });
+    for (const button of buttons) {
+        listen(button, 'click', function () {
+            scroll_to_top();
+            return false;
+        });
     }
 }
 
 /** Sets up a stream page: entries, sidebar, composer and shortcuts. */
 export function init_stream(): void {
-    Graybox.scan();
-    const stream = $('#stream').get(0) as HTMLElement;
-    alter_html(stream);
+    Lightbox.scan();
+    // Pages such as the login form share the sidebar but have no stream.
+    const stream = document.getElementById('stream');
+    if (stream) {
+        alter_html(stream);
+        init_entry_controls(stream);
+        render_maps(stream);
+    }
 
-    $(stream).on('click', 'span.favorite-control', favorite_entry);
-    $(stream).on('click', 'span.hide-control', hide_entry);
-    $(stream).on('click', 'span.edit-control', edit_entry);
-    $(stream).on('click', 'span.editRaw-control', edit_raw_entry);
-    $(stream).on('click', 'a.shareit', shareit_entry);
-    $(stream).on('click', 'a.show-map', show_map);
-    $(stream).on('click', 'a.expand-content', expand_content);
-    $(stream).on('click', 'span.entry-controls-switch', show_menu_controls);
-    $(stream).on('click', 'div.play-video,span.play-video', toggle_video);
-    $(stream).on('click', 'span.play-audio', play_audio);
-
-    $('a.map', stream).each(render_map);
-
-    $('#sidebar-toggle').click(function () {
-        $('#sidebar').toggleClass('expanded');
-        $('i', this).toggleClass('fa-chevron-up fa-chevron-down');
-    });
-
-    $('#toggle-reblogs').click(toggle_reblogs);
-    $('#change-theme').click(change_theme);
-    $<HTMLSelectElement>('div.lists select').change(function () {
-        if (this.value !== '') {
-            window.location.href = config.baseurl + 'list/' + this.value + '/';
+    listen('#sidebar-toggle', 'click', function (toggle) {
+        document.getElementById('sidebar')?.classList.toggle('expanded');
+        for (const icon of toggle.querySelectorAll('i')) {
+            icon.classList.toggle('fa-chevron-up');
+            icon.classList.toggle('fa-chevron-down');
         }
     });
-    $(document).on('click', '#entry-editor input[type=button]', editor_handler);
+
+    listen('#toggle-reblogs', 'click', toggle_reblogs);
+    listen('#change-theme', 'click', change_theme);
+    listen('div.lists select', 'change', function (select) {
+        const value = (select as HTMLSelectElement).value;
+        if (value !== '') {
+            window.location.href = config.baseurl + 'list/' + value + '/';
+        }
+    });
+    delegate(document, 'click', '#entry-editor input[type=button]', editor_handler);
 
     init_calendar();
 
     scaledown_images();
 
-    stream_state.articles = $('article', stream);
-    stream_state.nav_next = $<HTMLAnchorElement>('nav a.next', stream);
-    document.onkeypress = kshortcuts;
+    const scope = stream || document;
+    stream_state.articles = Array.from(scope.querySelectorAll<HTMLElement>('article'));
+    stream_state.nav_next = Array.from(
+        scope.querySelectorAll<HTMLAnchorElement>('nav a.next'),
+    );
+    init_shortcuts('#status, #edited-content, form input[type=search]');
 
-    $('span.play-audio', stream).each(function () {
-        this.title = _('Click and Listen');
-    });
+    for (const audio of scope.querySelectorAll<HTMLElement>('span.play-audio')) {
+        audio.title = _('Click and Listen');
+    }
 
-    $('#status, #edited-content, form input[type=search]')
-        .focus(function () {
-            document.onkeypress = null;
-        })
-        .blur(function () {
-            document.onkeypress = kshortcuts;
-        });
+    init_search();
 
-    $('form[name=searchform]').submit(function () {
-        const s = $('input[name=s]').get(0) as SearchInput | undefined;
-        if (s && s.value !== '' && s.value !== s.PLACEHOLDER) {
-            return true;
-        }
-        return false;
-    });
-    $('#search-submit').click(function () {
-        $('form[name=searchform]').submit();
-    });
-    set_placeholder($('input[placeholder]'));
-
-    $('#ashare').click(open_sharing);
-    $('#expand-sharing').click(open_more_sharing_options);
-    $('#update, #post').click(share);
+    listen('#ashare', 'click', open_sharing);
+    listen('#expand-sharing', 'click', open_more_sharing_options);
+    listen('#update', 'click', share);
+    listen('#post', 'click', share);
 
     if (typeof window.continuous_reading !== 'undefined') {
         stream_state.continuous_reading = parseInt(
@@ -165,41 +155,28 @@ export function init_stream(): void {
             10,
         );
     }
-    stream_state.nav_next.click(
-        stream_state.continuous_reading ? load_entries : follow_href,
-    );
+    for (const link of stream_state.nav_next) {
+        listen(
+            link,
+            'click',
+            stream_state.continuous_reading ? load_entries : follow_href,
+        );
+    }
 
     init_quill();
 
-    if (window.audio_embeds) {
-        $.extend(audio_embeds, window.audio_embeds);
-    }
-    if (window.video_embeds) {
-        $.extend(video_embeds, window.video_embeds);
-    }
+    Object.assign(audio_embeds, window.audio_embeds);
+    Object.assign(video_embeds, window.video_embeds);
 
-    $(document).on('keypress', 'span.link', function (e) {
-        if (e.keyCode === 13) {
-            $(this).click();
+    delegate(document, 'keypress', 'span.link', function (link, e) {
+        if (e.key === 'Enter') {
+            link.click();
         }
     });
 
     share_state.sites = window.social_sharing_sites || DEFAULT_SHARING_SITES;
 
-    const $scrollToTopButton = $('.scroll-to-top');
-
-    $(window).scroll(function () {
-        if (($(this).scrollTop() as number) > 100) {
-            $scrollToTopButton.fadeIn();
-        } else {
-            $scrollToTopButton.fadeOut();
-        }
-    });
-
-    $scrollToTopButton.click(function () {
-        scroll_to_top();
-        return false;
-    });
+    init_scroll_to_top();
 
     init_pull_to_refresh();
 

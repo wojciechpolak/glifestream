@@ -208,6 +208,25 @@ def test_edit_existing_service_updates_the_list_in_place(
     expect(form).to_be_hidden()
 
 
+def test_saved_service_name_is_listed_as_text(
+    page: Page, app_base_url: str, ensure_admin_session
+):
+    name = '<img src=x onerror="window.__injected=1">Feed'
+    service = Service.objects.create(
+        api='webfeed', name='Plain Feed', url='http://127.0.0.1:9/plain.xml'
+    )
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/settings/services')
+    link = page.locator(f'#service-{service.pk}')
+    link.click()
+    page.locator('#name').fill(name)
+    page.locator('#save').click()
+
+    expect(link).to_have_text(name)
+    expect(page.locator('#edit-service img')).to_have_count(0)
+    assert page.evaluate('window.__injected') is None
+
+
 @pytest.mark.parametrize(
     ('auth', 'link', 'path'),
     [('oauth', 'oauth_conf', 'oauth'), ('oauth2', 'oauth2_conf', 'oauth2')],

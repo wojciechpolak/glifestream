@@ -135,10 +135,19 @@ publishes to the WebSub hubs, unless the share was a draft.
 
 ## The page script
 
-The browser code lives in `frontend/src/`, outside the Python layers.
-`npm run build` bundles `main.ts` with esbuild into
-`glifestream/static/js/dist/glifestream.js`, which is not in Git, and
-django-pipeline appends it to jQuery and fancyBox in its `main` bundle.
+The browser code lives in `frontend/src/`, outside the Python layers, and
+uses the DOM directly, without jQuery. `npm run build` bundles it with esbuild
+into `glifestream/static/js/dist/`, which is not in Git, for django-pipeline:
+
+- `glifestream.js`, from `main.ts`, is the `main` bundle every page loads.
+- `glifestream.css` holds the stylesheets the modules import, such as
+  PhotoSwipe's for the lightbox; the `default` theme bundle puts it in front
+  of the theme.
+- `quill.js` and `quill.css`, from `quill.ts`, are the `quill` bundle: the
+  rich editor, which only the signed-in owner loads. It sets `window.Quill`,
+  where the composer finds it.
+
+PhotoSwipe and Quill are npm dependencies bundled in; nothing is vendored.
 TypeScript 7 (`npm run typecheck`) only checks the types, in strict mode;
 esbuild strips them, so the build does not depend on the checker.
 
@@ -146,14 +155,18 @@ esbuild strips them, so the build does not depend on the checker.
 main.ts          sets up the stream or the settings pages when ready
 stream/          entries, composer, sharing, media, maps, calendar, shortcuts
 settings/        the service form and the fetch status of the settings pages
-ui/              lightbox, overlay, spinner, pull to refresh
-util/            ids, cookies, translations, DOM and scrolling helpers
-http.ts          CSRF header and error report for every jQuery request
+ui/              lightbox, effects, overlay, spinner, pull to refresh
+util/            ids, cookies, translations, DOM, events and scrolling
+http.ts          fetch with the CSRF token, and the error report
 ```
 
-The modules still use jQuery, which pipeline loads first, and handlers still
-read their element from `this`. What a module keeps between events is an
-exported state object, such as `stream_state` or `composer`, not a closure.
+- `util/dom.ts` has `h()`, which builds elements and inserts strings as text,
+  and `listen()` and `delegate()`, which pass the handler its element. As
+  with jQuery, a handler that returns false cancels the event.
+- `ui/fx.ts` shows and hides with the Web Animations API, instantly when the
+  reader prefers reduced motion. Each effect returns a promise.
+- What a module keeps between events is an exported state object, such as
+  `stream_state` or `composer`, not a closure.
 
 - Templates hand the script its data in the globals `settings`, `stream_data`
   and `gettext_msg`, declared in `frontend/src/globals.d.ts`. A deployment

@@ -15,6 +15,7 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { h } from '../util/dom';
 import { _ } from '../util/i18n';
 import { parse_id } from '../util/ids';
 import { scroll_to_element } from '../util/scroll';
@@ -40,18 +41,10 @@ export function can_play_hls(video: HTMLVideoElement): boolean {
     );
 }
 
-function cleanup_video_player(wrapper: HTMLElement): void {
-    const cleanup: unknown = $(wrapper).data('videoCleanup');
-    if (typeof cleanup == 'function') {
-        cleanup();
-        $(wrapper).removeData('videoCleanup');
-    }
-}
-
 /** The padding that keeps a player at the video's aspect ratio. */
 function aspect_style(wrapper: HTMLElement): string {
-    const width = Number($(wrapper).data('width'));
-    const height = Number($(wrapper).data('height'));
+    const width = Number(wrapper.dataset['width']);
+    const height = Number(wrapper.dataset['height']);
     let style = '';
     if (width > 0 && height > 0) {
         style = 'padding-bottom:' + ((height / width) * 100).toFixed(4) + '%';
@@ -59,71 +52,50 @@ function aspect_style(wrapper: HTMLElement): string {
     return style;
 }
 
-function render_atproto_video(wrapper: HTMLElement): GlsVideoEmbed | null {
-    const playlist: string | undefined = $(wrapper).data('playlist');
-    if (!playlist) {
-        return null;
-    }
-
-    const video = document.createElement('video');
-    video.autoplay = true;
-    video.controls = true;
-    video.preload = 'metadata';
-    video.playsInline = true;
-
-    const poster: string | undefined = $(wrapper).data('poster');
-    if (poster) {
-        video.poster = poster;
-    }
-
-    const style = aspect_style(wrapper);
-
-    if (can_play_hls(video)) {
-        video.src = playlist;
-        return {
-            node: video,
-            style: style,
-            onMount: function () {
-                video.play().catch(function () {});
-            },
-        };
-    }
-
-    return null;
-}
-
-function render_mastodon_video(wrapper: HTMLElement): GlsVideoEmbed | null {
-    const src: string | undefined = $(wrapper).data('src');
-    if (!src) {
-        return null;
-    }
-
+/** A video element that plays as soon as it is shown. */
+function autoplay_video(src: string, poster: string | undefined): HTMLVideoElement {
     const video = document.createElement('video');
     video.autoplay = true;
     video.controls = true;
     video.preload = 'metadata';
     video.playsInline = true;
     video.src = src;
-
-    const poster: string | undefined = $(wrapper).data('poster');
     if (poster) {
         video.poster = poster;
     }
+    return video;
+}
 
-    if ($(wrapper).data('mediaType') === 'gifv') {
-        video.loop = true;
-        video.muted = true;
-    }
-
-    const style = aspect_style(wrapper);
-
+function mount(video: HTMLVideoElement, wrapper: HTMLElement): GlsVideoEmbed {
     return {
         node: video,
-        style: style,
+        style: aspect_style(wrapper),
         onMount: function () {
             video.play().catch(function () {});
         },
     };
+}
+
+function render_atproto_video(wrapper: HTMLElement): GlsVideoEmbed | null {
+    const playlist = wrapper.dataset['playlist'];
+    if (!playlist) {
+        return null;
+    }
+    const video = autoplay_video(playlist, wrapper.dataset['poster']);
+    return can_play_hls(video) ? mount(video, wrapper) : null;
+}
+
+function render_mastodon_video(wrapper: HTMLElement): GlsVideoEmbed | null {
+    const src = wrapper.dataset['src'];
+    if (!src) {
+        return null;
+    }
+    const video = autoplay_video(src, wrapper.dataset['poster']);
+    if (wrapper.dataset['mediaType'] === 'gifv') {
+        video.loop = true;
+        video.muted = true;
+    }
+    return mount(video, wrapper);
 }
 
 function render_video_embed(
@@ -143,98 +115,114 @@ function render_video_embed(
     return null;
 }
 
-/** The block a video player goes after: a table cell's table, or itself. */
-function $VC(obj: HTMLElement): JQuery {
+/** The block a video player goes after: the table a cell is in, or itself. */
+function video_container(obj: HTMLElement): HTMLElement {
     if ((obj.parentNode as HTMLElement).tagName === 'TD') {
-        obj = (obj.parentNode as HTMLElement).parentNode!.parentNode!
+        return (obj.parentNode as HTMLElement).parentNode!.parentNode!
             .parentNode as HTMLElement;
-        if (obj.className === 'vc') {
-            return $(obj);
-        }
     }
-    return $(obj);
+    return obj;
 }
 
-function play_video(this: HTMLElement): boolean {
-    const a = parse_id($(this).data('id') || this.id);
+function blur_links(el: HTMLElement): void {
+    for (const a of el.querySelectorAll('a')) {
+        a.blur();
+    }
+}
+
+function swap_class(el: HTMLElement, from: string, to: string): void {
+    for (const button of el.querySelectorAll('.' + from)) {
+        button.classList.replace(from, to);
+    }
+}
+
+/** The provider and id of a player block: its data-id, or else its id. */
+function media_id(el: HTMLElement): ReturnType<typeof parse_id> {
+    return parse_id(el.dataset['id'] || el.id);
+}
+
+function play_video(el: HTMLElement): boolean {
+    const a = media_id(el);
     const type = a[0];
     const id = a[1] as string;
 
-    const embed = render_video_embed(this, type, id);
+    const embed = render_video_embed(el, type, id);
     if (!embed) {
         return true;
     }
 
-    $('.playbutton', this).removeClass('playbutton').addClass('stopbutton');
-    const $player = $('<div class="player video ' + type + '"></div>');
+    swap_class(el, 'playbutton', 'stopbutton');
+    const player = h('div', { className: 'player video ' + type });
     if (embed.style) {
-        $player.attr('style', embed.style);
+        player.setAttribute('style', embed.style);
     }
     if (embed.html) {
-        $player.html(embed.html);
+        player.innerHTML = embed.html;
     } else if (embed.node) {
-        $player.append(embed.node);
+        player.append(embed.node);
     }
-    $VC(this).after($player);
+    video_container(el).after(player);
     if (typeof embed.onMount == 'function') {
-        embed.onMount($player[0] as HTMLElement);
+        embed.onMount(player);
     }
-    $('a', this).blur();
-    scroll_to_element(this);
+    blur_links(el);
+    scroll_to_element(el);
     return false;
 }
 
-function stop_video(this: HTMLElement): boolean {
-    cleanup_video_player(this);
-    $('.player', $VC(this).parent()).remove();
-    $('.stopbutton', this).removeClass('stopbutton').addClass('playbutton');
-    $('a', this).blur();
+function stop_video(el: HTMLElement): boolean {
+    const parent = video_container(el).parentElement;
+    for (const player of parent?.querySelectorAll('.player') || []) {
+        player.remove();
+    }
+    swap_class(el, 'stopbutton', 'playbutton');
+    blur_links(el);
     return false;
 }
+
+/** The inline players that are playing. */
+const playing = new WeakSet<HTMLElement>();
 
 /** Opens or closes the player of a play-video block. */
-export function toggle_video(this: HTMLElement): boolean {
-    const $this = $(this);
-    if (!$this.hasClass('video-inline')) {
-        if ($('.playbutton', this).length) {
-            return play_video.call(this);
-        } else {
-            return stop_video.call(this);
+export function toggle_video(block: HTMLElement): boolean {
+    if (!block.classList.contains('video-inline')) {
+        if (block.querySelector('.playbutton')) {
+            return play_video(block);
         }
-    } else {
-        if (!$this.data('play')) {
-            $this.data('play', true);
-            return play_video.call(this);
-        } else {
-            $this.data('play', false);
-            return stop_video.call(this);
-        }
+        return stop_video(block);
     }
+    if (!playing.has(block)) {
+        playing.add(block);
+        return play_video(block);
+    }
+    playing.delete(block);
+    return stop_video(block);
 }
 
 /** Opens or closes the player of a play-audio link. */
-export function play_audio(this: HTMLElement, e: JQuery.TriggeredEvent): boolean {
-    if (e.which && e.which !== 1) {
+export function play_audio(block: HTMLElement, e: MouseEvent): boolean {
+    if (e.button !== 0) {
         return false;
     }
-    const a = parse_id($(this).data('id') || this.id);
+    const a = media_id(block);
     const type = a[0];
-    $('a', this).blur();
+    blur_links(block);
 
-    const parent = this.parentNode as HTMLElement;
-    if ($('.player', parent).length) {
-        $('.player', parent).remove();
+    const parent = block.parentNode as HTMLElement;
+    const open = parent.querySelectorAll('.player');
+    if (open.length) {
+        for (const player of open) {
+            player.remove();
+        }
         return false;
     }
 
-    let embed: string;
+    const href = block.querySelector('a')?.getAttribute('href') || '';
+    let embed: string | HTMLAudioElement;
     if (type === 'audio') {
-        embed =
-            '<audio src="' +
-            $('a', this).attr('href') +
-            '" controls="true">' +
-            _('Your browser does not support it.') +
-            '</audio>';
+        embed = h('audio', { src: href, controls: true }, [
+            _('Your browser does not support it.'),
+        ]);
     } else if (type in audio_embeds) {
         embed = audio_embeds[type] as string;
     } else if (type === 'thesixtyone') {
@@ -243,60 +231,71 @@ export function play_audio(this: HTMLElement, e: JQuery.TriggeredEvent): boolean
         return true;
     }
 
-    let id;
-    if (type === 'thesixtyone') {
-        const data = (a[1] as string).split('-');
-        const artist = data[0] as string;
-        id = data[1];
-        embed = embed.replace('{ARTIST}', artist);
-    } else if (type === 'mp3') {
-        id = $('a', this).attr('href');
-    } else {
-        id = a[1];
+    if (typeof embed == 'string') {
+        const id = type === 'mp3' ? href : (a[1] as string);
+        embed = embed.replace(/{ID}/g, id);
     }
 
-    embed = embed.replace(/{ID}/g, id as string);
-
-    $('.player').remove();
-    $(parent).append('<div class="player audio">' + embed + '</div>');
+    for (const player of document.querySelectorAll('.player')) {
+        player.remove();
+    }
+    const player = h('div', { className: 'player audio' });
+    if (typeof embed == 'string') {
+        player.innerHTML = embed;
+    } else {
+        player.append(embed);
+    }
+    parent.append(player);
     if (type === 'audio') {
-        const $au = $(parent).find('audio');
-        if ($au.length) {
-            void ($au[0] as HTMLAudioElement).play();
-        }
+        void (embed as HTMLAudioElement).play();
     }
     return false;
 }
 
-/** Turns video links into players and audio files into play-audio links. */
-export function alter_html(ctx: HTMLElement | JQuery): void {
-    $<HTMLAnchorElement>('.thumbnails a', ctx).each(function () {
-        let id = '';
-        try {
-            if (this.href.indexOf('https://www.youtube.com/watch') === 0) {
-                id = 'youtube-' + this.href.substr(32);
-            } else if (this.href.indexOf('https://vimeo.com/') === 0) {
-                id = 'vimeo-' + this.href.substr(18);
-            } else if (this.href.indexOf('http://www.youtube.com/watch') === 0) {
-                id = 'youtube-' + this.href.substr(31);
-            } else if (this.href.indexOf('http://vimeo.com/') === 0) {
-                id = 'vimeo-' + this.href.substr(17);
-            }
-            if (id) {
-                $(this).wrap('<div id="' + id + '" class="play-video"></div>');
-                $(this).after('<div class="playbutton"></div>');
-            }
-        } catch {
-            // Keep going with the next link.
-        }
-    });
+/** Wraps `el` in `wrapper`, where `el` was. */
+function wrap(el: Element, wrapper: HTMLElement): HTMLElement {
+    el.before(wrapper);
+    wrapper.append(el);
+    return wrapper;
+}
 
-    $('.files a[href$=".mp3"]', ctx).wrap(
-        '<span data-id="audio-x" class="play-audio"></span>',
-    );
-    $('.files a[href$=".ogg"]', ctx).wrap(
-        '<span data-id="audio-x" class="play-audio"></span>',
-    );
+/** The provider id of a video page link, or '' for other links. */
+function video_id(href: string): string {
+    if (href.indexOf('https://www.youtube.com/watch') === 0) {
+        return 'youtube-' + href.slice(32);
+    } else if (href.indexOf('https://vimeo.com/') === 0) {
+        return 'vimeo-' + href.slice(18);
+    } else if (href.indexOf('http://www.youtube.com/watch') === 0) {
+        return 'youtube-' + href.slice(31);
+    } else if (href.indexOf('http://vimeo.com/') === 0) {
+        return 'vimeo-' + href.slice(17);
+    }
+    return '';
+}
+
+/** A batch of entries shown: one element, or the entries continuous reading added. */
+export type Shown = HTMLElement | HTMLElement[];
+
+/** Turns video links into players and audio files into play-audio links. */
+export function alter_html(ctx: Shown): void {
+    const roots = Array.isArray(ctx) ? ctx : [ctx];
+    for (const root of roots) {
+        for (const link of root.querySelectorAll<HTMLAnchorElement>('.thumbnails a')) {
+            const id = video_id(link.href);
+            if (id) {
+                wrap(link, h('div', { id, className: 'play-video' }));
+                link.after(h('div', { className: 'playbutton' }));
+            }
+        }
+        const audio = root.querySelectorAll(
+            '.files a[href$=".mp3"], .files a[href$=".ogg"]',
+        );
+        for (const link of audio) {
+            const span = h('span', { className: 'play-audio' });
+            span.dataset['id'] = 'audio-x';
+            wrap(link, span);
+        }
+    }
 
     if (typeof window.user_alter_html == 'function') {
         window.user_alter_html(ctx);

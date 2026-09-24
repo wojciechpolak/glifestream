@@ -16,13 +16,15 @@
  */
 
 /** Shows the busy spinner after `el`; there is one at a time. */
-export function show_spinner(el: HTMLElement | JQuery): void {
-    if ((el as Partial<HTMLElement>).blur) {
-        (el as HTMLElement).blur();
+export function show_spinner(el: Element): void {
+    const span = document.createElement('span');
+    span.id = 'spinner';
+    if (el instanceof HTMLElement) {
+        el.blur();
     }
-    $(el).after('<span id="spinner"></span>');
+    el.after(span);
 }
 
 export function hide_spinner(): void {
-    $('#spinner').remove();
+    document.getElementById('spinner')?.remove();
 }

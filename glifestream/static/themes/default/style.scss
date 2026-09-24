@@ -1997,21 +1997,6 @@ ul.files {
   }
 }
 
-#graybox {
-  z-index: 1010;
-  background: rgba(15, 20, 26, 0.96);
-  border: 2px solid var(--overlay-border);
-  color: var(--text-inverse);
-  text-align: left;
-  border-radius: 20px;
-  box-shadow: var(--shadow-float);
-
-  .loading {
-    font-weight: 700;
-    padding: 1em;
-  }
-}
-
 #foot {
   grid-area: footer;
   color: var(--text-muted);
@@ -2488,12 +2473,9 @@ img.noborder {
   font-weight: 700;
 }
 
-.compensate-for-scrollbar {
-  margin-right: auto !important;
-}
-
-.fancybox-is-open .fancybox-bg {
-  opacity: 0.98;
+/* The lightbox, PhotoSwipe, in the grey of the fancyBox it replaced. */
+.pswp {
+  --pswp-bg: #1e1e1e;
 }
 
 #status-editor {

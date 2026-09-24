@@ -888,19 +888,6 @@ ul.files {
   .share-webshare { @extend .fas; @extend .fa-share-nodes; }
 }
 
-#graybox {
-  z-index: 1010;
-  background-color: #222;
-  border: 2px solid white;
-  color: white;
-  text-align: left;
-
-  .loading {
-    font-weight: bold;
-    padding: 1em;
-  }
-}
-
 #login {
   margin-top: 50px;
   background-color: var(--color-background-stream, white);
@@ -1343,14 +1330,6 @@ img.noborder { border: none; }
       margin-left: 0;
     }
   }
-}
-
-.compensate-for-scrollbar {
-  margin-right: auto !important;
-}
-
-.fancybox-is-open .fancybox-bg {
-  opacity: .98;
 }
 
 /* Quill */

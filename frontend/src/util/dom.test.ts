@@ -17,14 +17,14 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { DCE, es } from './dom';
+import { MDOM, es, h } from './dom';
 
-describe('DCE', () => {
-    it('sets properties and styles', () => {
-        const input = DCE('input', {
+describe('h', () => {
+    it('sets properties and merges the style', () => {
+        const input = h('input', {
             type: 'hidden',
             name: 'id',
-            value: 12,
+            value: '12',
             style: { display: 'none' },
         });
 
@@ -34,19 +34,57 @@ describe('DCE', () => {
         expect(input.style.display).toBe('none');
     });
 
-    it('appends nodes and sets text as HTML, skipping false and undefined', () => {
-        const hint = DCE('span', { className: 'hint' }, ['<b>x</b>']);
-        const row = DCE('div', { className: 'form-row' }, [hint, false, undefined]);
+    it('appends strings as text, skipping false, null and undefined', () => {
+        const hint = h('span', { className: 'hint' }, ['<b>x</b>']);
+        const row = h('div', null, [hint, ' ', 3, false, null, undefined]);
 
-        expect(row.className).toBe('form-row');
-        expect(row.children).toHaveLength(1);
-        expect(hint.innerHTML).toBe('<b>x</b>');
+        expect(hint.innerHTML).toBe('&lt;b&gt;x&lt;/b&gt;');
+        expect(row.childNodes).toHaveLength(3);
+        expect(row.textContent).toBe('<b>x</b> 3');
+    });
+});
+
+describe('MDOM', () => {
+    afterEach(() => {
+        vi.unstubAllGlobals();
     });
 
-    it('lets the last text replace the content', () => {
-        const label = DCE('label', {}, ['first', 2]);
+    it('centres an element in the scrolled viewport', () => {
+        vi.stubGlobal('innerWidth', 1000);
+        vi.stubGlobal('innerHeight', 600);
+        vi.stubGlobal('scrollY', 250);
+        const box = document.createElement('div');
 
-        expect(label.innerHTML).toBe('2');
+        MDOM.center(box, 400, 200);
+
+        expect(box.style.left).toBe('300px');
+        expect(box.style.top).toBe('450px');
+    });
+
+    it('keeps a box larger than the viewport on it', () => {
+        vi.stubGlobal('innerWidth', 300);
+        vi.stubGlobal('innerHeight', 200);
+        vi.stubGlobal('scrollY', 0);
+        const box = document.createElement('div');
+
+        MDOM.center(box, 400, 500);
+
+        expect(box.style.left).toBe('0px');
+        expect(box.style.top).toBe('1px');
+    });
+
+    it('places a popup in the middle of this window', () => {
+        vi.stubGlobal('screenX', 100);
+        vi.stubGlobal('screenY', 50);
+        vi.stubGlobal('outerWidth', 1200);
+        vi.stubGlobal('outerHeight', 900);
+
+        expect(MDOM.get_win_center(800, 480)).toEqual({
+            width: 800,
+            height: 480,
+            left: 300,
+            top: 218,
+        });
     });
 });
 

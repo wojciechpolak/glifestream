@@ -15,10 +15,12 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { FetchNowResponse, ServiceForm } from '../api-types';
+import type { FetchNowResponse, ServiceForm, ServiceFormField } from '../api-types';
 import { config } from '../config';
+import { post_json, type Params } from '../http';
+import { fade_in, fade_out, hide, show } from '../ui/fx';
 import { hide_spinner, show_spinner } from '../ui/spinner';
-import { DCE, MDOM } from '../util/dom';
+import { MDOM, h, listen } from '../util/dom';
 import { scroll_to_element } from '../util/scroll';
 import { maybe_start_fetch_status_polling, update_fetch_status } from './fetch-status';
 
@@ -30,84 +32,82 @@ export const service_form = {
 };
 
 /** Loads a service form and shows it after `dest`. */
-export function get_service_form(
+export async function get_service_form(
     params: Record<string, string | undefined>,
     dest: string | HTMLElement,
-): void {
-    $.ajax({
-        url: config.baseurl + 'settings/api/service',
-        data: $.param(params),
-        dataType: 'json',
-        type: 'POST',
-        success: function (json: ServiceForm) {
-            hide_spinner();
-            const f = prepare_service_form(json);
-            const $dest = typeof dest === 'string' ? $(dest) : $(dest);
-            $dest.after(f);
-            $(f).fadeIn('normal', function () {
-                scroll_to_element(f, 120);
-                $('input[type=text]:first', f).focus();
-            });
-        },
-    });
+): Promise<void> {
+    const json = await post_json<ServiceForm>(
+        config.baseurl + 'settings/api/service',
+        params,
+    );
+    if (!json) {
+        return;
+    }
+    hide_spinner();
+    const f = prepare_service_form(json);
+    const anchor = typeof dest === 'string' ? document.querySelector(dest) : dest;
+    anchor?.after(f);
+    await fade_in(f);
+    scroll_to_element(f, 120);
+    f.querySelector<HTMLInputElement>('input[type=text]')?.focus();
 }
 
 export function hide_settings_form(): void {
-    $('#service-form').fadeOut();
-}
-
-function submit_service_form(this: GlobalEventHandlers): boolean {
-    const that = this as HTMLFormElement;
-    let dest = $(that).next();
-    if (dest.length === 0) {
-        dest = $(that).parent();
+    const form = document.getElementById('service-form');
+    if (form) {
+        void fade_out(form);
     }
-    show_spinner($('input[type=submit]', that));
-
-    const form = $<HTMLFormElement>('#service-form');
-    const params = form.serializeArray();
-    params.push({
-        name: 'method',
-        value: 'post',
-    });
-
-    $.ajax({
-        url: form.attr('action'),
-        data: $.param(params),
-        dataType: 'json',
-        type: 'POST',
-        success: function (json: ServiceForm) {
-            hide_spinner();
-            const f = prepare_service_form(json);
-            dest.append(f);
-            $(f).show();
-        },
-    });
-    return false;
 }
 
-function render_service_list_item(data: ServiceForm): string {
-    let html = '<li data-service-id="' + data.id + '">';
-    html += '<span class="service ' + data.api + '"></span>';
-    html +=
-        '<a href="#" class="' +
-        data.api +
-        '" id="service-' +
-        data.id +
-        '">' +
-        data.name +
-        '</a>';
-    html += '</li>';
-    return html;
+/** The fields a form submits, as the browser would send them. */
+function form_fields(form: HTMLFormElement): [string, string][] {
+    const fields: [string, string][] = [];
+    for (const [name, value] of new FormData(form)) {
+        if (typeof value === 'string') {
+            fields.push([name, value]);
+        }
+    }
+    return fields;
+}
+
+async function submit_service_form(form: HTMLFormElement): Promise<void> {
+    const dest = form.nextElementSibling || form.parentElement;
+    const submit = form.querySelector('input[type=submit]');
+    if (submit) {
+        show_spinner(submit);
+    }
+    const params: Params = [...form_fields(form), ['method', 'post']];
+    const json = await post_json<ServiceForm>(
+        form.getAttribute('action') || '',
+        params,
+    );
+    if (!json) {
+        return;
+    }
+    hide_spinner();
+    const f = prepare_service_form(json);
+    dest?.append(f);
+    show(f);
+}
+
+function render_service_list_item(data: ServiceForm): HTMLLIElement {
+    const item = h('li', null, [
+        h('span', { className: 'service ' + data.api }),
+        h('a', { href: '#', className: data.api, id: 'service-' + data.id }, [
+            data.name,
+        ]),
+    ]);
+    item.setAttribute('data-service-id', String(data.id));
+    return item;
 }
 
 function upsert_service_list_item(data: ServiceForm): void {
-    const item = $('#service-' + data.id).closest('li');
-    const html = render_service_list_item(data);
-    if (item.length) {
-        item.replaceWith(html);
+    const item = document.getElementById('service-' + data.id)?.closest('li');
+    const li = render_service_list_item(data);
+    if (item) {
+        item.replaceWith(li);
     } else {
-        $('#edit-service').prepend(html);
+        document.getElementById('edit-service')?.prepend(li);
     }
     if (data.fetch_status) {
         update_fetch_status(data.fetch_status);
@@ -115,240 +115,171 @@ function upsert_service_list_item(data: ServiceForm): void {
 }
 
 /** Shows the rows that depend on this field's value and hides the others. */
-function settings_onchange_field(this: HTMLInputElement | HTMLSelectElement): void {
-    const deps_by_field = service_form.deps as SettingsDeps;
-    if (this.id in deps_by_field) {
-        const deps = deps_by_field[this.id] as [string, HTMLElement][];
-        for (let i = 0; i < deps.length; i++) {
-            const [val, row] = deps[i] as [string, HTMLElement];
-            if (this.value === val) {
-                $('input', row).removeAttr('disabled');
-                row.style.display = 'block';
-            } else {
-                $('input', row).attr('disabled', 'disabled');
-                row.style.display = 'none';
-            }
+function settings_onchange_field(field: HTMLInputElement | HTMLSelectElement): void {
+    const deps = (service_form.deps as SettingsDeps)[field.id];
+    for (const [val, row] of deps || []) {
+        const shown = field.value === val;
+        for (const input of row.querySelectorAll('input')) {
+            input.disabled = !shown;
         }
+        row.style.display = shown ? 'block' : 'none';
     }
+}
+
+/** A field's value as the input shows it; null shows nothing. */
+function field_value(f: ServiceFormField): string {
+    return f.value === undefined || f.value === null ? '' : String(f.value);
+}
+
+function render_field(f: ServiceFormField, data: ServiceForm): HTMLElement {
+    if (f.type === 'select') {
+        const select = h('select', { id: f.name, name: f.name });
+        for (const [value, label] of f.options || []) {
+            const selected = value === f.value;
+            select.add(new Option(label, value, selected, selected));
+        }
+        return select;
+    }
+    if (f.type === 'checkbox') {
+        return h('input', {
+            type: f.type,
+            id: f.name,
+            name: f.name,
+            value: '1',
+            checked: !!f.checked,
+        });
+    }
+    if (f.type === 'link') {
+        const link = h('a', { id: f.name, href: f.href || '' }, [field_value(f)]);
+        const configure =
+            f.name === 'oauth_conf'
+                ? oauth_configure
+                : f.name === 'oauth2_conf'
+                  ? oauth2_configure
+                  : null;
+        if (configure) {
+            listen(link, 'click', function () {
+                configure(data.id as number);
+                return false;
+            });
+        }
+        return link;
+    }
+    return h('input', {
+        type: f.type,
+        id: f.name,
+        name: f.name,
+        value: field_value(f),
+        size: 32,
+        placeholder: f.placeholder || '',
+        autocomplete: 'off',
+    });
+}
+
+function render_buttons(data: ServiceForm): HTMLDivElement {
+    const row = h('div', { className: 'form-row' }, [
+        data.save ? h('input', { type: 'submit', id: 'save', value: data.save }) : null,
+        h('input', { type: 'button', id: 'cancel', value: data.cancel }),
+    ]);
+    listen(row.querySelector<HTMLElement>('#cancel'), 'click', hide_settings_form);
+    if (data.delete) {
+        const link = h(
+            'a',
+            {
+                href: config.baseurl + 'admin/stream/service/' + data.id + '/delete/',
+                target: 'admin',
+            },
+            [data.delete],
+        );
+        listen(link, 'click', hide_settings_form);
+        row.append(' ', link);
+    }
+    return row;
+}
+
+async function import_service(id: number | null | undefined): Promise<void> {
+    const json = await post_json<FetchNowResponse>(
+        config.baseurl + 'settings/api/import',
+        {
+            id,
+        },
+    );
+    if (json) {
+        if (json.state) {
+            update_fetch_status(json.state);
+        }
+        maybe_start_fetch_status_polling(false);
+    }
+}
+
+const bound_forms = new WeakSet<HTMLFormElement>();
+
+/** The service form of the page, or a new one, that submits through the API. */
+function get_form(): HTMLFormElement {
+    let form = document.getElementById('service-form') as HTMLFormElement | null;
+    if (!form) {
+        form = h('form', { id: 'service-form', style: { display: 'none' } }, [
+            h('fieldset', { className: 'aligned' }),
+        ]);
+    }
+    if (!bound_forms.has(form)) {
+        bound_forms.add(form);
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            void submit_service_form(this);
+        });
+    }
+    return form;
 }
 
 /** Builds the service form from the server's description of it. */
 function prepare_service_form(data: ServiceForm): HTMLFormElement {
-    let form = document.getElementById('service-form') as HTMLFormElement | null;
-    if (!form) {
-        form = DCE(
-            'form',
-            {
-                id: 'service-form',
-                style: {
-                    display: 'none',
-                },
-            },
-            [
-                DCE('fieldset', {
-                    className: 'aligned',
-                }),
-            ],
-        );
-    }
-    $(form).hide();
+    const form = get_form();
+    hide(form);
 
-    const fs = $('fieldset:first', form);
-    fs.empty();
+    const fs = form.querySelector('fieldset') as HTMLFieldSetElement;
+    fs.replaceChildren();
     const deps: SettingsDeps = {};
     service_form.deps = deps;
 
-    if (data) {
-        form.action = data.action;
-        form.onsubmit = submit_service_form;
+    form.action = data.action;
 
-        if (data.id) {
-            fs.append(
-                DCE('input', {
-                    type: 'hidden',
-                    name: 'id',
-                    value: data.id,
-                }),
-            );
-        }
-        fs.append(
-            DCE('input', {
-                type: 'hidden',
-                name: 'api',
-                value: data.api,
-            }),
+    if (data.id) {
+        fs.append(h('input', { type: 'hidden', name: 'id', value: String(data.id) }));
+    }
+    fs.append(h('input', { type: 'hidden', name: 'api', value: data.api }));
+
+    for (const f of data.fields) {
+        const hint = f.hint ? h('span', { className: 'hint' }, [f.hint]) : null;
+        const label = h(
+            'label',
+            { htmlFor: f.name, className: f.miss ? 'missing' : '' },
+            [f.label],
         );
-
-        let obj: HTMLElement;
-
-        for (let i = 0; i < data.fields.length; i++) {
-            const f = data.fields[i] as ServiceForm['fields'][number];
-
-            if (f.type === 'select') {
-                const select = DCE('select', {
-                    id: f.name,
-                    name: f.name,
-                    value: f.value,
-                });
-                const options = f.options as [string, string][];
-                for (let j = 0; j < options.length; j++) {
-                    const opt = options[j] as [string, string];
-                    const sel = opt[0] === f.value;
-                    select.options[select.options.length] = new Option(
-                        opt[1],
-                        opt[0],
-                        sel,
-                        sel,
-                    );
-                }
-                obj = select;
-            } else if (f.type === 'checkbox') {
-                obj = DCE('input', {
-                    type: f.type,
-                    id: f.name,
-                    name: f.name,
-                    value: '1',
-                    checked: f.checked,
-                });
-            } else if (f.type === 'link') {
-                obj = DCE(
-                    'a',
-                    {
-                        id: f.name,
-                        href: f.href,
-                    },
-                    [f.value],
-                );
-                if (f.name === 'oauth_conf') {
-                    obj.onclick = function () {
-                        oauth_configure(data.id as number);
-                        return false;
-                    };
-                } else if (f.name === 'oauth2_conf') {
-                    obj.onclick = function () {
-                        oauth2_configure(data.id as number);
-                        return false;
-                    };
-                }
-            } else {
-                obj = DCE('input', {
-                    type: f.type,
-                    id: f.name,
-                    name: f.name,
-                    value: f.value,
-                    size: 32,
-                    maxlength: 80,
-                    placeholder: f.placeholder || '',
-                    autocomplete: 'off',
-                });
-            }
-
-            let hint: HTMLElement | false = false;
-            if (f.hint) {
-                hint = DCE(
-                    'span',
-                    {
-                        className: 'hint',
-                    },
-                    [f.hint],
-                );
-            }
-
-            const miss = f.miss ? 'missing' : '';
-            const row = DCE(
-                'div',
-                {
-                    className: 'form-row',
-                },
-                [
-                    DCE(
-                        'label',
-                        {
-                            htmlFor: f.name,
-                            className: miss,
-                        },
-                        [f.label],
-                    ),
-                    hint,
-                    obj,
-                    false,
-                ],
-            );
-            if (f.deps) {
-                for (const name in f.deps) {
-                    if (!deps[name]) {
-                        deps[name] = [];
-                    }
-                    deps[name].push([f.deps[name] as string, row]);
-                }
-            }
-            fs.append(row);
-        }
-        for (const name in deps) {
-            $<HTMLInputElement>('#' + name)
-                .change(settings_onchange_field)
-                .change();
-        }
-
-        const row = DCE('div', {
-            className: 'form-row',
-        });
-        if (data.save) {
-            row.appendChild(
-                DCE('input', {
-                    type: 'submit',
-                    id: 'save',
-                    value: data.save,
-                }),
-            );
-        }
-        row.appendChild(
-            DCE('input', {
-                type: 'button',
-                id: 'cancel',
-                value: data.cancel,
-                onclick: hide_settings_form,
-            }),
-        );
-        if (data['delete']) {
-            row.appendChild(document.createTextNode(' '));
-            row.appendChild(
-                DCE(
-                    'a',
-                    {
-                        href:
-                            config.baseurl +
-                            'admin/stream/service/' +
-                            data.id +
-                            '/delete/',
-                        target: 'admin',
-                        onclick: hide_settings_form,
-                    },
-                    [data['delete']],
-                ),
-            );
+        const row = h('div', { className: 'form-row' }, [
+            label,
+            hint,
+            render_field(f, data),
+        ]);
+        for (const [name, value] of Object.entries(f.deps || {})) {
+            (deps[name] ||= []).push([value, row]);
         }
         fs.append(row);
+    }
+    for (const name in deps) {
+        const field = fs.querySelector<HTMLInputElement>('#' + CSS.escape(name));
+        if (field) {
+            field.addEventListener('change', () => settings_onchange_field(field));
+            settings_onchange_field(field);
+        }
+    }
+    fs.append(render_buttons(data));
 
-        if (data.id && data.method === 'post') {
-            upsert_service_list_item(data);
-        }
-        if (data['need_import']) {
-            $.ajax({
-                url: config.baseurl + 'settings/api/import',
-                dataType: 'json',
-                type: 'POST',
-                data: {
-                    id: data.id,
-                },
-                success: function (json: FetchNowResponse) {
-                    if (json.state) {
-                        update_fetch_status(json.state);
-                    }
-                    maybe_start_fetch_status_polling(false);
-                },
-            });
-        }
+    if (data.id && data.method === 'post') {
+        upsert_service_list_item(data);
+    }
+    if (data.need_import) {
+        void import_service(data.id);
     }
     return form;
 }

@@ -15,41 +15,45 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-let visible = false;
 let ovl: HTMLDivElement | null = null;
 
+function page_height(): number {
+    const body = document.body;
+    const html = document.documentElement;
+    return Math.max(
+        body.scrollHeight,
+        html.scrollHeight,
+        body.offsetHeight,
+        html.offsetHeight,
+        html.clientHeight,
+    );
+}
+
 /** Dims the page behind a dialog; `level` is the opacity in percent. */
-function enable(level?: number | string): void {
-    if (typeof level === 'undefined') {
-        level = '80';
-    }
-    if (visible) {
+function enable(level: number = 80): void {
+    if (ovl) {
         return;
     }
     ovl = document.createElement('div');
-    if (ovl) {
-        const dh = $(document).height() as number;
-        const wh = $(window).height() as number;
-        ovl.id = 'overlay';
-        ovl.style.position = 'absolute';
-        ovl.style.width = '100%';
-        ovl.style.height = (dh > wh ? dh : wh) + 'px';
-        ovl.style.top = '0';
-        ovl.style.left = '0';
-        ovl.style.backgroundColor = 'black';
-        ovl.style.opacity = '0.' + level;
-        ovl.style.filter = 'alpha(opacity=' + level + ')';
-        ovl.style.zIndex = '1000';
-        ovl.style.display = 'block';
-        document.body.appendChild(ovl);
-        visible = true;
-    }
+    ovl.id = 'overlay';
+    Object.assign(ovl.style, {
+        position: 'absolute',
+        width: '100%',
+        height: page_height() + 'px',
+        top: '0',
+        left: '0',
+        backgroundColor: 'black',
+        opacity: String(level / 100),
+        zIndex: '1000',
+        display: 'block',
+    });
+    document.body.appendChild(ovl);
 }
 
 function disable(): void {
     if (ovl) {
-        document.body.removeChild(ovl);
-        visible = false;
+        ovl.remove();
+        ovl = null;
     }
 }
 

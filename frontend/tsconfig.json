@@ -4,7 +4,7 @@
         "lib": ["es2024", "dom"],
         "module": "preserve",
         "moduleResolution": "bundler",
-        "types": ["jquery"],
+        "types": [],
         "strict": true,
         "noUncheckedIndexedAccess": true,
         "exactOptionalPropertyTypes": true,

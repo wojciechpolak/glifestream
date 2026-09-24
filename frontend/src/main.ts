@@ -19,7 +19,6 @@
 // the settings pages once the document is ready.
 
 import { config } from './config';
-import { setup_ajax } from './http';
 import { run_fetch_service } from './settings/fetch-status';
 import { init_settings } from './settings/init';
 import { unhide_entry } from './stream/entry-actions';
@@ -28,12 +27,12 @@ import { es } from './util/dom';
 
 // Called by inline handlers in the markup: the "Undo" link of a hidden entry
 // and "Run now" on the settings status page.
-es('gls.unhide_entry', unhide_entry);
+es('gls.unhide_entry', function (this: HTMLElement): boolean {
+    return unhide_entry(this);
+});
 es('gls.run_fetch_service', run_fetch_service);
 
-setup_ajax();
-
-$(document).ready(function () {
+function start(): void {
     config.baseurl = settings.baseurl;
 
     if (document.getElementById('settings')) {
@@ -41,4 +40,11 @@ $(document).ready(function () {
         return;
     }
     init_stream();
-});
+}
+
+// The script loads in <head>, so it waits for the document.
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+} else {
+    start();
+}

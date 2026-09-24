@@ -26,7 +26,7 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote_plus
 
 import pytest
 from django.contrib.auth.models import User
@@ -502,6 +502,28 @@ def test_draft_and_friends_only_checkboxes_are_sent(
     entry = Entry.objects.get(content__contains='A draft for friends')
     assert entry.draft is True
     assert entry.friends_only is True
+
+
+def test_rich_editor_sends_plain_markup(
+    page: Page, app_base_url: str, ensure_admin_session, notes_service: Service
+):
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+    page.locator('#ashare').click()
+    expect(_quill(page)).to_be_focused()
+    page.keyboard.type('Two  spaces and words')
+    page.keyboard.press('Enter')
+    page.locator('#share .ql-toolbar button.ql-list[value=bullet]').click()
+    page.keyboard.type('first')
+    page.keyboard.press('Enter')
+    page.keyboard.type('second')
+
+    with page.expect_request(_is_api_post('share')) as request_info:
+        page.locator('#post').click()
+    content = _form(request_info.value)['content']
+    assert content == (
+        '<div>Two &nbsp;spaces and words</div><ul><li>first</li><li>second</li></ul>'
+    )
 
 
 def test_share_target_prefills_the_composer(
@@ -1000,15 +1022,18 @@ def test_audio_file_link_plays_inline(
 def _lightbox_image(page: Page) -> Locator:
     """The image shown by the lightbox.
 
-    The only selector here tied to the lightbox library (fancyBox 3). Update
-    it, and nothing else, when the library is replaced.
+    The only selector here tied to the lightbox library (PhotoSwipe 5, which
+    replaced fancyBox 3). Update it, and nothing else, when the library is
+    replaced.
     """
-    return page.locator('.fancybox-slide--current img.fancybox-image')
+    return page.locator(
+        '.pswp__item[aria-hidden="false"] img.pswp__img:not(.pswp__img--placeholder)'
+    )
 
 
 def _lightbox(page: Page) -> Locator:
     """The lightbox container; see `_lightbox_image`."""
-    return page.locator('.fancybox-container')
+    return page.locator('.pswp')
 
 
 def _serve_images(page: Page) -> None:
@@ -1280,6 +1305,23 @@ def test_empty_search_is_not_submitted(
     page.locator('#search-submit').click()
     expect(page).to_have_url(f'{app_base_url}/?s=Seeded')
     expect(page.locator('#stream article')).to_have_count(1)
+
+
+def test_search_for_the_placeholder_text_is_submitted(
+    page: Page, app_base_url: str, ensure_admin_session
+):
+    # The script no longer fills in placeholders itself, so the placeholder's
+    # own words are a search like any other.
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+    search = page.locator('input[name=s]')
+    text = search.get_attribute('placeholder')
+    assert text
+
+    search.fill(text)
+    search.press('Enter')
+
+    expect(page).to_have_url(f'{app_base_url}/?s={quote_plus(text)}')
 
 
 def test_scroll_to_top_button(

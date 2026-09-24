@@ -15,6 +15,7 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import os
 from glob import has_magic
 from typing import Any
 
@@ -22,6 +23,8 @@ from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.contrib.staticfiles.apps import StaticFilesConfig
 from django.core.checks import CheckMessage, Error, Tags, register
+from pipeline.compilers.sass import SASSCompiler
+from pipeline.conf import settings as pipeline_settings
 
 
 class GlsStaticFilesConfig(StaticFilesConfig):
@@ -34,6 +37,25 @@ class GlsStaticFilesConfig(StaticFilesConfig):
     def ready(self) -> None:
         super().ready()
         register(check_pipeline_sources, Tags.staticfiles)
+
+
+class GlsSASSCompiler(SASSCompiler):
+    """Pipeline's SASS compiler, run from the directory it writes to.
+
+    collectstatic skips *.scss, so a theme directory that holds nothing else
+    is missing from STATIC_ROOT, and sassc does not create it. Pipeline also
+    keeps the compiler's output in a temporary file in its working directory;
+    among the sources, a collectstatic running at the same time, as the next
+    browser test's does, would pick it up just before it goes.
+    """
+
+    def compile_file(
+        self, infile: str, outfile: str, outdated: bool = False, force: bool = False
+    ) -> Any:
+        output_dir = os.path.dirname(outfile)
+        os.makedirs(output_dir, exist_ok=True)
+        command = (pipeline_settings.SASS_BINARY, pipeline_settings.SASS_ARGUMENTS)
+        return self.execute_command((*command, infile, outfile), cwd=output_dir)
 
 
 def check_pipeline_sources(

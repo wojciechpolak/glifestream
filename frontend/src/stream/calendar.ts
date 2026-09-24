@@ -15,72 +15,79 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import { delegate, h } from '../util/dom';
 import { _ } from '../util/i18n';
 import { pad } from '../util/format';
+
+/** A year arrow; one without `label` is disabled. */
+function nav(side: 'prev' | 'next', label?: string): HTMLSpanElement {
+    let arrow: HTMLElement;
+    if (label) {
+        arrow = h('a', { href: '#', className: side }, ['\u00a0']);
+        arrow.setAttribute('aria-label', label);
+    } else {
+        arrow = h('span', { className: 'next-disabled' }, ['\u00a0']);
+        arrow.setAttribute('aria-hidden', 'true');
+    }
+    return h('span', { className: 'nav-' + side }, [arrow]);
+}
 
 /** Renders the archive calendar of `year`, or of the month on view. */
 export function gen_archive_calendar(year?: number | string): void {
     if (typeof stream_data === 'undefined') {
         return;
     }
-    year = year || stream_data.view_date.split('/')[0];
-    let month = 1;
-    let cal = '<div class="calendar-head">';
-    cal +=
-        '<span class="nav-prev"><a href="#" class="prev" aria-label="' +
-        _('Previous year') +
-        '">&nbsp;</a></span>';
-    cal += '<span class="nav-year"><span class="year">' + year + '</span></span>';
-    if (parseInt(String(year), 10) < stream_data.year_now) {
-        cal +=
-            '<span class="nav-next"><a href="#" class="next" aria-label="' +
-            _('Next year') +
-            '">&nbsp;</a></span>';
-    } else {
-        cal +=
-            '<span class="nav-next"><span class="next-disabled" aria-hidden="true">&nbsp;</span></span>';
-    }
-    cal += '</div><div class="calendar-grid">';
-    for (let row = 0; row < 4; row++) {
-        for (let col = 0; col < 3; col++, month++) {
-            const d = year + '/' + pad(month, 2);
-            const u = d === stream_data.view_date ? ' view-month' : '';
-            if ($.inArray(d, stream_data.archives) !== -1) {
-                const ctx = stream_data.ctx !== '' ? stream_data.ctx + '/' : '';
-                cal +=
-                    '<span class="month-cell"><a href="' +
-                    settings.baseurl +
-                    ctx +
-                    d +
-                    '/" rel="nofollow" class="month-item' +
-                    u +
-                    '"><span class="month-label">' +
-                    stream_data.month_names[month - 1] +
-                    '</span></a></span>';
-            } else {
-                cal +=
-                    '<span class="month-cell"><span class="month-item">' +
-                    '<span class="month-label">' +
-                    stream_data.month_names[month - 1] +
-                    '</span></span></span>';
-            }
+    const data = stream_data;
+    year = year || (data.view_date.split('/')[0] as string);
+    const head = h('div', { className: 'calendar-head' }, [
+        nav('prev', _('Previous year')),
+        h('span', { className: 'nav-year' }, [
+            h('span', { className: 'year' }, [year]),
+        ]),
+        parseInt(String(year), 10) < data.year_now
+            ? nav('next', _('Next year'))
+            : nav('next'),
+    ]);
+    const grid = h('div', { className: 'calendar-grid' });
+    for (let month = 1; month <= 12; month++) {
+        const d = year + '/' + pad(month, 2);
+        const label = h('span', { className: 'month-label' }, [
+            data.month_names[month - 1],
+        ]);
+        let item: HTMLElement;
+        if (data.archives.includes(d)) {
+            const ctx = data.ctx !== '' ? data.ctx + '/' : '';
+            const current = d === data.view_date ? ' view-month' : '';
+            item = h(
+                'a',
+                {
+                    href: settings.baseurl + ctx + d + '/',
+                    rel: 'nofollow',
+                    className: 'month-item' + current,
+                },
+                [label],
+            );
+        } else {
+            item = h('span', { className: 'month-item' }, [label]);
         }
+        grid.append(h('span', { className: 'month-cell' }, [item]));
     }
-    cal += '</div>';
-    $('#calendar').html(cal);
+    document.getElementById('calendar')?.replaceChildren(head, grid);
+}
+
+function shown_year(): number {
+    return parseInt(document.querySelector('#calendar .year')?.textContent || '', 10);
 }
 
 /** Draws the calendar and moves it a year on the arrows. */
 export function init_calendar(): void {
     gen_archive_calendar();
-    $(document).on('click', '#calendar a.prev', function () {
-        const year = parseInt($('#calendar .year').html(), 10);
-        gen_archive_calendar(year - 1);
+    delegate(document, 'click', '#calendar a.prev', function () {
+        gen_archive_calendar(shown_year() - 1);
         return false;
     });
-    $(document).on('click', '#calendar a.next', function () {
-        const year = parseInt($('#calendar .year').html(), 10);
-        gen_archive_calendar(year + 1);
+    delegate(document, 'click', '#calendar a.next', function () {
+        gen_archive_calendar(shown_year() + 1);
         return false;
     });
 }

@@ -15,33 +15,45 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/** Shrinks the pictures wider than the stream, now or once they load. */
-export function scaledown_images(sel?: string | JQuery): void {
-    const maxWidth = ($('#stream').width() as number) - 80;
-    const images = typeof sel === 'object' ? $(sel) : $(sel || '#stream img');
-    (images as JQuery<HTMLImageElement>).each(function () {
-        if (this.complete) {
-            if (this.width > maxWidth) {
-                this.width = maxWidth;
-                if (this.style.width) {
-                    const p = (maxWidth * 100) / parseInt(this.style.width, 10);
-                    this.style.width = maxWidth + 'px';
-                    this.style.height = (this.height * p) / 100 + 'px';
-                }
-            }
-        } else {
-            this.onload = function () {
-                const img = this as HTMLImageElement;
-                if (img.width > maxWidth) {
-                    img.width = maxWidth;
-                    if (img.style.width) {
-                        const p = (maxWidth * 100) / parseInt(img.style.width, 10);
-                        img.style.width = maxWidth + 'px';
-                        img.style.height = (img.height * p) / 100 + 'px';
-                    }
-                }
-                img.onload = null;
-            };
+/** The width of the stream's content, inside its padding and border. */
+function stream_width(): number {
+    const stream = document.getElementById('stream');
+    if (!stream) {
+        return 0;
+    }
+    const style = getComputedStyle(stream);
+    const edges = [
+        style.paddingLeft,
+        style.paddingRight,
+        style.borderLeftWidth,
+        style.borderRightWidth,
+    ].reduce((sum, value) => sum + (parseFloat(value) || 0), 0);
+    return stream.offsetWidth - edges;
+}
+
+function scaledown(img: HTMLImageElement, maxWidth: number): void {
+    if (img.width > maxWidth) {
+        img.width = maxWidth;
+        if (img.style.width) {
+            const p = (maxWidth * 100) / parseInt(img.style.width, 10);
+            img.style.width = maxWidth + 'px';
+            img.style.height = (img.height * p) / 100 + 'px';
         }
-    });
+    }
+}
+
+/** Shrinks the pictures wider than the stream, now or once they load. */
+export function scaledown_images(
+    images: Iterable<HTMLImageElement> = document.querySelectorAll('#stream img'),
+): void {
+    const maxWidth = stream_width() - 80;
+    for (const img of images) {
+        if (img.complete) {
+            scaledown(img, maxWidth);
+        } else {
+            img.addEventListener('load', () => scaledown(img, maxWidth), {
+                once: true,
+            });
+        }
+    }
 }

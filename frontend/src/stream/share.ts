@@ -16,13 +16,14 @@
  */
 
 import { config } from '../config';
+import { post_text } from '../http';
 import { Overlay } from '../ui/overlay';
 import { hide_spinner, show_spinner } from '../ui/spinner';
-import { DCE, MDOM } from '../util/dom';
+import { MDOM, h, listen } from '../util/dom';
 import { _ } from '../util/i18n';
 import { jump_to_top } from '../util/scroll';
 import { scaledown_images } from './images';
-import { render_map } from './maps';
+import { render_maps } from './maps';
 
 interface ShareitboxOptions {
     id: string;
@@ -62,83 +63,99 @@ export const share_state = {
 };
 
 /** Reposts an entry as a selfpost, after asking. */
-export function reshare_entry(this: HTMLElement): boolean {
+export function reshare_entry(link: HTMLElement): boolean {
     if (!confirm(_('You are about to re-share this entry at your stream. Confirm?'))) {
         return false;
     }
     const as_me = !confirm(_('Keep the original author?'));
-    const id = this.id.split('-')[1] as string;
-    show_spinner(this);
-    $.post(
-        config.baseurl + 'api/reshare',
-        {
-            entry: id,
-            as_me: as_me ? 1 : 0,
-        },
-        function (html: string) {
-            hide_spinner();
-            Shareitbox.close();
-            jump_to_top();
-            $('#stream').prepend(html);
-            $('#stream article:first a.map').each(render_map);
-            scaledown_images('#stream article:first img');
-        },
-    );
+    const id = link.id.split('-')[1] as string;
+    show_spinner(link);
+    void post_text(config.baseurl + 'api/reshare', {
+        entry: id,
+        as_me: as_me ? 1 : 0,
+    }).then((html) => {
+        if (html === null) {
+            return;
+        }
+        hide_spinner();
+        Shareitbox.close();
+        jump_to_top();
+        document.getElementById('stream')?.insertAdjacentHTML('afterbegin', html);
+        const first = document.querySelector('#stream article');
+        render_maps(first);
+        if (first) {
+            scaledown_images(first.querySelectorAll('img'));
+        }
+    });
     return false;
 }
 
+function text_of(elements: NodeListOf<Element>): string {
+    return Array.from(elements, (el) => el.textContent)
+        .join('')
+        .trim();
+}
+
 /** Opens the share box of the entry a share link belongs to. */
-export function shareit_entry(this: HTMLElement): boolean {
-    const that = (this.parentNode as HTMLElement).parentNode as HTMLElement;
-    const id = this.id.split('-')[1] as string;
-    const published = $('.entry-published a:eq(1)', that);
+export function shareit_entry(link: HTMLElement): boolean {
+    const that = (link.parentNode as HTMLElement).parentNode as HTMLElement;
+    const id = link.id.split('-')[1] as string;
+    const published = that.querySelectorAll('.entry-published a')[1];
     let url: string;
-    if ($(that).hasClass('private') && published.length) {
-        url = published.attr('href') as string;
+    if (that.classList.contains('private') && published) {
+        url = published.getAttribute('href') as string;
     } else {
-        url = $('a[rel=bookmark]', that).attr('href') as string;
+        url = that.querySelector('a[rel=bookmark]')?.getAttribute('href') as string;
         if (window.location.href.indexOf(url) !== -1) {
             url = window.location.href;
         } else {
             url = 'http://' + window.location.host + url;
         }
     }
-    const title_el = $('.entry-title', that);
-    let title: string;
-    if (title_el.length) {
-        title = $.trim(title_el.text());
-    } else {
-        title = $.trim($('.entry-content', that).text());
-    }
+    const titles = that.querySelectorAll('.entry-title');
+    let title = text_of(
+        titles.length ? titles : that.querySelectorAll('.entry-content'),
+    );
     if (title.length > 137) {
-        title = title.substr(0, 137) + '...';
+        title = title.slice(0, 137) + '...';
     }
     Shareitbox.open({
         id: id,
         url: url,
         title: title,
-        reshareit: $(this).hasClass('reshareit'),
+        reshareit: link.classList.contains('reshareit'),
     });
     return false;
 }
 
-let initied = false;
 let sbox: HTMLDivElement | null = null;
 
-function init(): void {
-    if (initied) {
-        return;
+function init(): HTMLDivElement {
+    sbox ||= h('div', { id: 'shareitbox', style: { display: 'none' } });
+    if (!sbox.isConnected) {
+        document.body.appendChild(sbox);
     }
-    sbox = document.createElement('div');
-    sbox.id = 'shareitbox';
-    sbox.style.display = 'none';
-    document.body.appendChild(sbox);
-    initied = true;
+    return sbox;
+}
+
+/** A site in the share box: its icon and name, linked. */
+function share_link(
+    href: string,
+    icon: HTMLElement | null,
+    name: string,
+): HTMLAnchorElement {
+    return h('a', { href }, [icon, '\u00a0', name]);
+}
+
+function close_on_escape(e: KeyboardEvent): void {
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        close();
+    }
 }
 
 function open(opts: ShareitboxOptions): boolean {
-    init();
-    const box = sbox as HTMLDivElement;
+    const box = init();
     const width = opts.width || 356;
     const height = opts.height;
     const url = opts.url || '';
@@ -146,165 +163,79 @@ function open(opts: ShareitboxOptions): boolean {
     const reshareit = opts.reshareit || false;
 
     Overlay.enable(40);
-    const o = DCE('div');
+    const o = h('div');
     // oxlint-disable-next-line typescript/no-for-in-array -- iterates as the jQuery script did
     for (const i in share_state.sites) {
         const s = share_state.sites[i] as GlsSharingSite;
         let href = s.href.replace('{URL}', encodeURIComponent(url));
         href = href.replace('{TITLE}', encodeURIComponent(title));
 
-        let img;
+        let icon: HTMLElement | null = null;
         if (s.className) {
-            img = DCE('span', {
-                className: 'share-' + s.className,
-            });
+            icon = h('span', { className: 'share-' + s.className });
         } else if (s.icon) {
-            img = DCE('img', {
-                src: s.icon,
-                width: 16,
-                height: 16,
-            });
+            icon = h('img', { src: s.icon, width: 16, height: 16 });
         }
-
-        o.appendChild(
-            DCE(
-                'div',
-                {
-                    className: 'item',
-                },
-                [
-                    DCE(
-                        'a',
-                        {
-                            href: href,
-                            target: '_blank',
-                        },
-                        [
-                            img,
-                            document.createTextNode(String.fromCharCode(160)),
-                            document.createTextNode(s.name),
-                        ],
-                    ),
-                ],
-            ),
-        );
+        const link = share_link(href, icon, s.name);
+        link.target = '_blank';
+        o.appendChild(h('div', { className: 'item' }, [link]));
     }
 
     // Web Share API
     if ((navigator as Partial<Navigator>).share) {
-        const img = DCE('span', {
-            className: 'share-webshare',
-        });
-        o.appendChild(
-            DCE(
-                'div',
-                {
-                    className: 'item',
-                },
-                [
-                    DCE(
-                        'a',
-                        {
-                            href: '#',
-                            onclick: function () {
-                                try {
-                                    void navigator.share({
-                                        title: title,
-                                        url: url,
-                                    });
-                                } catch {
-                                    // Not allowed here, or cancelled.
-                                }
-                            },
-                        },
-                        [
-                            img,
-                            document.createTextNode(String.fromCharCode(160)),
-                            document.createTextNode('Web Share'),
-                        ],
-                    ),
-                ],
-            ),
+        const link = share_link(
+            '#',
+            h('span', { className: 'share-webshare' }),
+            'Web Share',
         );
+        listen(link, 'click', function () {
+            try {
+                void navigator.share({ title: title, url: url });
+            } catch {
+                // Not allowed here, or cancelled.
+            }
+        });
+        o.appendChild(h('div', { className: 'item' }, [link]));
     }
 
     if (reshareit) {
+        const reshare = h('a', { id: 'reshare-' + opts.id, href: '#' }, [
+            _('Reshare it at your stream'),
+        ]);
+        listen(reshare, 'click', reshare_entry);
         box.appendChild(
-            DCE(
-                'div',
-                {
-                    className: 'reshare',
-                },
-                [
-                    DCE(
-                        'a',
-                        {
-                            id: 'reshare-' + opts.id,
-                            href: '#',
-                            onclick: reshare_entry,
-                        },
-                        [_('Reshare it at your stream')],
-                    ),
-                    document.createTextNode(' ' + _('or elsewhere:') + ' '),
-                ],
-            ),
+            h('div', { className: 'reshare' }, [
+                reshare,
+                ' ' + _('or elsewhere:') + ' ',
+            ]),
         );
     } else {
         box.appendChild(
-            DCE(
-                'div',
-                {
-                    className: 'reshare',
-                },
-                [_('Share or bookmark this entry')],
-            ),
+            h('div', { className: 'reshare' }, [_('Share or bookmark this entry')]),
         );
     }
     box.appendChild(o);
 
-    if (typeof width == 'number') {
-        box.style.width = width + 'px';
-    } else {
-        box.style.width = width;
-    }
+    box.style.width = typeof width == 'number' ? width + 'px' : width;
     if (!height) {
         box.style.height = 'auto';
-    } else if (typeof height == 'number') {
-        box.style.height = height + 'px';
     } else {
-        box.style.height = height;
+        box.style.height = typeof height == 'number' ? height + 'px' : height;
     }
     box.style.position = 'absolute';
     box.style.display = 'block';
-    MDOM.center(box, $(box).outerWidth(), $(box).outerHeight());
+    MDOM.center(box, box.offsetWidth, box.offsetHeight);
 
-    $('#overlay').click(close);
-    document.onkeydown = function (e) {
-        let code;
-        if (!e) {
-            e = window.event as KeyboardEvent;
-        }
-        if (e.keyCode) {
-            code = e.keyCode;
-        } else if (e.which) {
-            code = e.which;
-        }
-        if (code === 27) {
-            /* escape */
-            close();
-            return false;
-        }
-        return true;
-    };
-
+    listen(document.getElementById('overlay'), 'click', close);
+    document.addEventListener('keydown', close_on_escape);
     return false;
 }
 
 function close(): void {
-    const box = sbox as HTMLDivElement;
-    document.onkeydown = null;
+    const box = init();
+    document.removeEventListener('keydown', close_on_escape);
     box.style.display = 'none';
-    box.innerHTML = '';
+    box.replaceChildren();
     Overlay.disable();
 }
 

@@ -16,60 +16,80 @@
  */
 
 import type { StreamPage } from '../api-types';
-import { Graybox } from '../ui/graybox';
+import { get_json } from '../http';
+import { Lightbox } from '../ui/lightbox';
 import { hide_spinner, show_spinner } from '../ui/spinner';
 import { follow_href } from '../util/navigation';
 import { scroll_to_element } from '../util/scroll';
 import { scaledown_images } from './images';
-import { render_map } from './maps';
+import { render_maps } from './maps';
 import { alter_html } from './media';
 import { stream_state } from './state';
 
-type NextLink = HTMLAnchorElement & { busy?: boolean };
+/** "Next" links with a page on its way. */
+const busy = new WeakSet<HTMLAnchorElement>();
+
+/** Points a "next" link at the page after `next`, or drops it at the end. */
+function advance(link: HTMLAnchorElement, next: StreamPage['next']): void {
+    let s = link.href.indexOf('start=');
+    if (s !== -1 && next) {
+        link.href = link.href.substring(0, s + 6) + next;
+        return;
+    }
+    s = link.href.indexOf('page=');
+    if (s !== -1 && next) {
+        link.href = link.href.substring(0, s + 5) + next;
+        return;
+    }
+    link.remove();
+}
+
+function all_articles(): HTMLElement[] {
+    return Array.from(document.querySelectorAll<HTMLElement>('#stream article'));
+}
+
+async function append_page(link: HTMLAnchorElement): Promise<void> {
+    let url = link.href;
+    url += url.indexOf('?') !== -1 ? '&' : '?';
+    url += 'format=html-pure';
+    const json = await get_json<StreamPage>(url);
+    if (!json) {
+        return;
+    }
+    hide_spinner();
+    busy.delete(link);
+    const before = stream_state.articles.length;
+    stream_state.articles[before - 1]?.insertAdjacentHTML('afterend', json.stream);
+    for (const next of stream_state.nav_next) {
+        advance(next, json.next);
+    }
+    stream_state.articles = all_articles();
+    const latest = stream_state.articles.slice(before);
+    Lightbox.scan(latest);
+    alter_html(latest);
+    for (const article of latest) {
+        render_maps(article);
+        scaledown_images(article.querySelectorAll('img'));
+    }
+    if (latest[0]) {
+        scroll_to_element(latest[0], 25);
+    }
+}
 
 /**
  * "Next page": appends the next page's entries in place, until the page
  * holds `continuous_reading` entries; then follows the link.
  */
-export function load_entries(this: HTMLAnchorElement): boolean {
-    const that = this as NextLink;
-    if (that.busy) {
+export function load_entries(target: HTMLElement): boolean {
+    const link = target as HTMLAnchorElement;
+    if (busy.has(link)) {
         return false;
     }
-    that.busy = true;
+    busy.add(link);
     if (stream_state.articles.length >= stream_state.continuous_reading) {
-        return follow_href.call(this);
+        return follow_href(link);
     }
-    show_spinner(this);
-    let url = this.href;
-    url += url.indexOf('?') !== -1 ? '&' : '?';
-    url += 'format=html-pure';
-    $.getJSON(url, function (json: StreamPage) {
-        hide_spinner();
-        that.busy = false;
-        let num = stream_state.articles.length;
-        $(stream_state.articles[num - 1] as HTMLElement).after(json.stream);
-        stream_state.nav_next.each(function () {
-            let s = this.href.indexOf('start=');
-            if (s !== -1 && json.next) {
-                this.href = this.href.substring(0, s + 6) + json.next;
-            } else {
-                s = this.href.indexOf('page=');
-                if (s !== -1 && json.next) {
-                    this.href = this.href.substring(0, s + 5) + json.next;
-                } else {
-                    $(this).remove();
-                }
-            }
-        });
-        stream_state.articles = $('#stream article');
-        num = stream_state.articles.length - num;
-        const latest = $('#stream article').slice(-num);
-        Graybox.scan(latest);
-        alter_html(latest);
-        $('a.map', latest).each(render_map);
-        scaledown_images($('img', latest));
-        scroll_to_element(latest[0] as HTMLElement, 25);
-    });
+    show_spinner(link);
+    void append_page(link);
     return false;
 }

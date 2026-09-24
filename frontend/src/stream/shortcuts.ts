@@ -20,50 +20,43 @@ import { composer, open_sharing } from './composer';
 import { favorite_entry, hide_entry, unhide_entry } from './entry-actions';
 import { stream_state } from './state';
 
+/** Off while the reader types in the composer, the raw editor or search. */
+const shortcuts = { enabled: true };
+
 /**
  * Keyboard shortcuts of the stream: j and k move between entries, f
  * favorites, h hides or brings back, and a opens the composer.
  */
-export function kshortcuts(e?: KeyboardEvent): true | void {
-    if (composer.quill && composer.quill.hasFocus()) {
+export function kshortcuts(e: KeyboardEvent): void {
+    if (!shortcuts.enabled || (composer.quill && composer.quill.hasFocus())) {
         return;
     }
-    let code: number | undefined;
-    let ent: HTMLElement | undefined;
-    if (!e) {
-        e = window.event as KeyboardEvent;
-    }
-    if (e.keyCode) {
-        code = e.keyCode;
-    } else if (e.which) {
-        code = e.which;
-    }
     if (e.ctrlKey || e.metaKey || e.altKey) {
-        return true;
+        return;
     }
 
     const articles = stream_state.articles;
-    switch (code) {
-        case 97:
-            /* a */
+    let ent: HTMLElement | undefined;
+    switch (e.key) {
+        case 'a':
             open_sharing();
             break;
-        case 106:
-            /* j */
+        case 'j':
             if (stream_state.current_article + 1 === articles.length) {
-                stream_state.nav_next.trigger('click');
+                for (const link of stream_state.nav_next) {
+                    link.click();
+                }
             } else {
                 highlight_article(
                     articles[++stream_state.current_article] as HTMLElement,
                 );
             }
             break;
-        case 107:
-            /* k */
+        case 'k':
             if (stream_state.current_article - 1 < 0) {
-                const prev = $('#stream a.prev');
-                if (prev.length) {
-                    window.location.href = prev.attr('href') as string;
+                const prev = document.querySelector('#stream a.prev');
+                if (prev) {
+                    window.location.href = prev.getAttribute('href') as string;
                 }
             } else {
                 highlight_article(
@@ -71,38 +64,57 @@ export function kshortcuts(e?: KeyboardEvent): true | void {
                 );
             }
             break;
-        case 102:
-            /* f */
+        case 'f':
             ent = articles[stream_state.current_article];
             if (ent) {
-                const c = $('span.favorite-control', ent);
-                if (c.length) {
-                    favorite_entry.call(c[0] as HTMLElement);
+                const c = ent.querySelector<HTMLElement>('span.favorite-control');
+                if (c) {
+                    favorite_entry(c);
                 }
             }
             break;
-        case 104:
-            /* h */
+        case 'h':
             ent = articles[stream_state.current_article];
             if (ent) {
                 const id = ent.id.split('-')[1] as string;
-                let c = $('#hidden-' + id + ' a');
-                if (c.length) {
-                    unhide_entry.call(c[0] as HTMLElement);
-                } else {
-                    c = $('span.hide-control', ent);
-                    if (c.length) {
-                        hide_entry.call(c[0] as HTMLElement);
-                    }
+                const undo = document.querySelector<HTMLElement>(
+                    '#hidden-' + id + ' a',
+                );
+                const hide = ent.querySelector<HTMLElement>('span.hide-control');
+                if (undo) {
+                    unhide_entry(undo);
+                } else if (hide) {
+                    hide_entry(hide);
                 }
             }
             break;
+        default:
+            return;
+    }
+    // The key moved focus or the page; it must not also type there.
+    e.preventDefault();
+}
+
+/** Listens for the shortcuts, except while the reader types in `fields`. */
+export function init_shortcuts(fields: string): void {
+    document.addEventListener('keypress', kshortcuts);
+    for (const field of document.querySelectorAll(fields)) {
+        field.addEventListener('focus', () => {
+            shortcuts.enabled = false;
+        });
+        field.addEventListener('blur', () => {
+            shortcuts.enabled = true;
+        });
     }
 }
 
 function highlight_article(article: HTMLElement): void {
-    $('a:first', article).focus().blur();
-    stream_state.articles.removeClass('entry-highlight');
-    $(article).addClass('entry-highlight');
+    const first = article.querySelector('a');
+    first?.focus();
+    first?.blur();
+    for (const a of stream_state.articles) {
+        a.classList.remove('entry-highlight');
+    }
+    article.classList.add('entry-highlight');
     scroll_to_element(article, 24);
 }

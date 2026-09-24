@@ -158,10 +158,14 @@ def _prepare_page_for_screenshot(page: Page) -> None:
     page.wait_for_function(
         """
         () => {
-            if (typeof window.jQuery === 'undefined') {
-                return true;
-            }
-            return window.jQuery(':animated').length === 0;
+            // Spinners loop forever; wait only for effects that end.
+            const running = document.getAnimations().filter(
+                (a) =>
+                    a.playState === 'running' &&
+                    a.effect &&
+                    a.effect.getComputedTiming().endTime !== Infinity
+            );
+            return running.length === 0;
         }
         """
     )

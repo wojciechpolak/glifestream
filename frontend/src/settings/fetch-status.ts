@@ -22,6 +22,7 @@ import type {
     FetchStatusResponse,
 } from '../api-types';
 import { config } from '../config';
+import { get_json, try_post_json } from '../http';
 import { hide_spinner, show_spinner } from '../ui/spinner';
 import { _ } from '../util/i18n';
 
@@ -33,25 +34,43 @@ export const fetch_status = {
     request_in_flight: false,
 };
 
-function set_run_fetch_busy(serviceId: number | string, busy: boolean): void {
-    const btn = $('.run-fetch[data-service-id="' + serviceId + '"]');
-    if (!btn.length) {
-        return;
+/** Where the page stores each diagnostics field. */
+const DIAGNOSTICS = {
+    'data-requested-at': 'requested_at',
+    'data-started-at': 'started_at',
+    'data-finished-at': 'finished_at',
+    'data-last-succeeded-at': 'last_succeeded_at',
+    'data-last-failed-at': 'last_failed_at',
+    'data-next-fetch-at': 'next_fetch_at',
+    'data-last-result': 'last_result',
+    'data-last-error': 'last_error',
+    'data-failure-note': 'failure_note',
+} as const;
+
+function by_id(id: string): HTMLElement | null {
+    return document.getElementById(id);
+}
+
+function set_text(id: string, text: string): void {
+    const el = by_id(id);
+    if (el) {
+        el.textContent = text;
     }
-    btn.attr('aria-busy', busy ? 'true' : 'false');
-    if (busy) {
-        btn.addClass('busy');
-    } else {
-        btn.removeClass('busy');
+}
+
+function set_run_fetch_busy(serviceId: number | string, busy: boolean): void {
+    const buttons = document.querySelectorAll(
+        '.run-fetch[data-service-id="' + serviceId + '"]',
+    );
+    for (const btn of buttons) {
+        btn.setAttribute('aria-busy', busy ? 'true' : 'false');
+        btn.classList.toggle('busy', busy);
     }
 }
 
 function has_active_fetch_statuses(): boolean {
-    return (
-        $(
-            '.fetch-status[data-status="queued"], ' +
-                '.fetch-status[data-status="running"]',
-        ).length > 0
+    return !!document.querySelector(
+        '.fetch-status[data-status="queued"], .fetch-status[data-status="running"]',
     );
 }
 
@@ -79,76 +98,67 @@ export function format_fetch_timestamp(
 
 /** A service's state as the page shows it now, from its data attributes. */
 function get_fetch_diagnostics_state(serviceId: number | string): FetchState {
-    const diagnostics = $('#fetch-diagnostics-' + serviceId);
-    const statusEl = $('#fetch-status-' + serviceId);
-    if (!diagnostics.length) {
-        return {
-            service_id: Number(serviceId),
-            status: statusEl.attr('data-status') || 'idle',
-        };
+    const diagnostics = by_id('fetch-diagnostics-' + serviceId);
+    const shown = by_id('fetch-status-' + serviceId)?.getAttribute('data-status');
+    if (!diagnostics) {
+        return { service_id: Number(serviceId), status: shown || 'idle' };
     }
+    const attr = (name: string): string => diagnostics.getAttribute(name) || '';
     return {
         service_id: Number(serviceId),
-        status:
-            diagnostics.attr('data-status') || statusEl.attr('data-status') || 'idle',
-        requested_at: diagnostics.attr('data-requested-at') || null,
-        started_at: diagnostics.attr('data-started-at') || null,
-        finished_at: diagnostics.attr('data-finished-at') || null,
-        last_succeeded_at: diagnostics.attr('data-last-succeeded-at') || null,
-        last_failed_at: diagnostics.attr('data-last-failed-at') || null,
-        next_fetch_at: diagnostics.attr('data-next-fetch-at') || null,
-        last_result: diagnostics.attr('data-last-result') || '',
-        last_error: diagnostics.attr('data-last-error') || '',
-        failure_note: diagnostics.attr('data-failure-note') || '',
+        status: attr('data-status') || shown || 'idle',
+        requested_at: attr('data-requested-at') || null,
+        started_at: attr('data-started-at') || null,
+        finished_at: attr('data-finished-at') || null,
+        last_succeeded_at: attr('data-last-succeeded-at') || null,
+        last_failed_at: attr('data-last-failed-at') || null,
+        next_fetch_at: attr('data-next-fetch-at') || null,
+        last_result: attr('data-last-result'),
+        last_error: attr('data-last-error'),
+        failure_note: attr('data-failure-note'),
     };
 }
 
 function store_fetch_diagnostics_state(state: FetchState): void {
-    if (!state || !state.service_id) {
+    const diagnostics = by_id('fetch-diagnostics-' + state.service_id);
+    if (!diagnostics) {
         return;
     }
-    const diagnostics = $('#fetch-diagnostics-' + state.service_id);
-    if (!diagnostics.length) {
-        return;
+    diagnostics.setAttribute('data-status', state.status || '');
+    for (const [attr, field] of Object.entries(DIAGNOSTICS)) {
+        diagnostics.setAttribute(attr, state[field] || '');
     }
-    diagnostics.attr('data-status', state.status || '');
-    diagnostics.attr('data-requested-at', state.requested_at || '');
-    diagnostics.attr('data-started-at', state.started_at || '');
-    diagnostics.attr('data-finished-at', state.finished_at || '');
-    diagnostics.attr('data-last-succeeded-at', state.last_succeeded_at || '');
-    diagnostics.attr('data-last-failed-at', state.last_failed_at || '');
-    diagnostics.attr('data-next-fetch-at', state.next_fetch_at || '');
-    diagnostics.attr('data-last-result', state.last_result || '');
-    diagnostics.attr('data-last-error', state.last_error || '');
-    diagnostics.attr('data-failure-note', state.failure_note || '');
 }
 
 function render_fetch_diagnostics(state: FetchState): void {
     if (!state || !state.service_id) {
         return;
     }
+    const id = state.service_id;
     store_fetch_diagnostics_state(state);
-    $('#fetch-result-' + state.service_id).text(state.last_result || '—');
-    $('#fetch-summary-last-succeeded-' + state.service_id).text(
+    set_text('fetch-result-' + id, state.last_result || '—');
+    set_text(
+        'fetch-summary-last-succeeded-' + id,
         format_fetch_timestamp(state.last_succeeded_at, _('Never')),
     );
-    $('#fetch-summary-finished-' + state.service_id).text(
+    set_text(
+        'fetch-summary-finished-' + id,
         format_fetch_timestamp(state.finished_at, _('No completed runs')),
     );
-    const retryNote = $('#fetch-retry-note-' + state.service_id).detach();
-    $('#fetch-summary-next-fetch-' + state.service_id)
-        .text(format_fetch_timestamp(state.next_fetch_at, _('Not scheduled')))
-        .append(retryNote.text(state.failure_note || ''));
-
-    const errorWrap = $('#fetch-error-' + state.service_id);
-    const errorText = $('#fetch-error-text-' + state.service_id);
-    if (state.last_error) {
-        errorText.text(state.last_error);
-        errorWrap.removeClass('empty');
-    } else {
-        errorText.text('—');
-        errorWrap.addClass('empty');
+    // The retry note sits inside the next fetch time, which the text replaces.
+    const retryNote = by_id('fetch-retry-note-' + id);
+    retryNote?.remove();
+    set_text(
+        'fetch-summary-next-fetch-' + id,
+        format_fetch_timestamp(state.next_fetch_at, _('Not scheduled')),
+    );
+    if (retryNote) {
+        retryNote.textContent = state.failure_note || '';
+        by_id('fetch-summary-next-fetch-' + id)?.append(retryNote);
     }
+
+    set_text('fetch-error-text-' + id, state.last_error || '—');
+    by_id('fetch-error-' + id)?.classList.toggle('empty', !state.last_error);
 }
 
 function schedule_fetch_status_poll(delayMs: number): void {
@@ -157,7 +167,7 @@ function schedule_fetch_status_poll(delayMs: number): void {
     }
     fetch_status.poll_timer = window.setTimeout(function () {
         fetch_status.poll_timer = null;
-        refresh_fetch_status();
+        void refresh_fetch_status();
     }, delayMs);
 }
 
@@ -170,7 +180,7 @@ export function maybe_start_fetch_status_polling(immediate: boolean): void {
     if (immediate) {
         stop_fetch_status_polling();
         if (!fetch_status.request_in_flight) {
-            refresh_fetch_status();
+            void refresh_fetch_status();
         }
         return;
     }
@@ -178,13 +188,12 @@ export function maybe_start_fetch_status_polling(immediate: boolean): void {
 }
 
 export function initialize_fetch_diagnostics(): void {
-    $('[id^="fetch-diagnostics-"]').each(function () {
-        const serviceId = $(this).attr('data-service-id');
-        if (!serviceId) {
-            return;
+    for (const diagnostics of document.querySelectorAll('[id^="fetch-diagnostics-"]')) {
+        const serviceId = diagnostics.getAttribute('data-service-id');
+        if (serviceId) {
+            render_fetch_diagnostics(get_fetch_diagnostics_state(serviceId));
         }
-        render_fetch_diagnostics(get_fetch_diagnostics_state(serviceId));
-    });
+    }
 }
 
 /** The translated name of a fetch status. */
@@ -209,19 +218,30 @@ export function fetch_status_label(
     return state.status;
 }
 
+/** `update` over `base`, leaving out what `update` has undefined. */
+function merge_state(base: FetchState, update: FetchState): FetchState {
+    const merged: Record<string, unknown> = { ...base };
+    for (const [key, value] of Object.entries(update)) {
+        if (value !== undefined) {
+            merged[key] = value;
+        }
+    }
+    return merged as unknown as FetchState;
+}
+
 /** Shows a service's new state, merged over what the page shows now. */
 export function update_fetch_status(state: FetchState): void {
     if (!state || !state.service_id) {
         return;
     }
-    state = $.extend({}, get_fetch_diagnostics_state(state.service_id), state);
-    const el = $('#fetch-status-' + state.service_id);
-    if (!el.length) {
+    state = merge_state(get_fetch_diagnostics_state(state.service_id), state);
+    const el = by_id('fetch-status-' + state.service_id);
+    if (!el) {
         return;
     }
-    el.text(fetch_status_label(state));
-    el.attr('data-status', state.status || '');
-    el.attr('title', state.last_error || state.last_result || '');
+    el.textContent = fetch_status_label(state);
+    el.setAttribute('data-status', state.status || '');
+    el.setAttribute('title', state.last_error || state.last_result || '');
     render_fetch_diagnostics(state);
     set_run_fetch_busy(
         state.service_id,
@@ -234,31 +254,62 @@ export function update_fetch_status(state: FetchState): void {
     }
 }
 
-function refresh_fetch_status(): void {
+async function refresh_fetch_status(): Promise<void> {
     if (fetch_status.request_in_flight) {
         return;
     }
     fetch_status.request_in_flight = true;
-    $.ajax({
-        url: config.baseurl + 'settings/api/fetch-status',
-        dataType: 'json',
-        cache: false,
-        success: function (json: FetchStatusResponse) {
-            if (!json.services) {
-                return;
-            }
-            $.each(json.services, function (_serviceId, state) {
-                update_fetch_status(state);
-            });
-        },
-    }).always(function () {
-        fetch_status.request_in_flight = false;
-        if (has_active_fetch_statuses()) {
-            schedule_fetch_status_poll(fetch_status_poll_interval_ms);
-        } else {
-            stop_fetch_status_polling();
+    const json = await get_json<FetchStatusResponse>(
+        config.baseurl + 'settings/api/fetch-status',
+        true,
+    );
+    if (json && json.services) {
+        for (const state of Object.values(json.services)) {
+            update_fetch_status(state);
         }
-    });
+    }
+    fetch_status.request_in_flight = false;
+    if (has_active_fetch_statuses()) {
+        schedule_fetch_status_poll(fetch_status_poll_interval_ms);
+    } else {
+        stop_fetch_status_polling();
+    }
+}
+
+/** The message a refused fetch-now sent, or a general one. */
+async function error_message(response: Response | null): Promise<string> {
+    try {
+        const body = (await response?.json()) as FetchNowError | undefined;
+        if (body && body.error) {
+            return body.error;
+        }
+    } catch {
+        // Not JSON, or already read.
+    }
+    return _('Unable to queue fetch.');
+}
+
+async function queue_fetch(serviceId: string): Promise<void> {
+    const result = await try_post_json<FetchNowResponse>(
+        config.baseurl + 'settings/api/fetch-now',
+        { id: serviceId },
+    );
+    if (result.ok) {
+        if (result.data.state) {
+            update_fetch_status(result.data.state);
+        }
+        void refresh_fetch_status();
+    } else {
+        const message = await error_message(result.response);
+        update_fetch_status({
+            service_id: Number(serviceId),
+            status: 'failed',
+            last_result: message,
+            last_error: message,
+        });
+    }
+    hide_spinner();
+    maybe_start_fetch_status_polling(false);
 }
 
 /** "Run now" on the status page: queues a fetch and follows it. */
@@ -275,32 +326,6 @@ export function run_fetch_service(trigger: HTMLElement): boolean {
         last_result: _('Fetch queued.'),
     });
     maybe_start_fetch_status_polling(true);
-    $.ajax({
-        url: config.baseurl + 'settings/api/fetch-now',
-        data: $.param({ id: serviceId }),
-        dataType: 'json',
-        type: 'POST',
-        success: function (json: FetchNowResponse) {
-            if (json.state) {
-                update_fetch_status(json.state);
-            }
-            refresh_fetch_status();
-        },
-        error: function (xhr) {
-            const body = xhr.responseJSON as FetchNowError | undefined;
-            const message =
-                body && body.error ? body.error : _('Unable to queue fetch.');
-            update_fetch_status({
-                service_id: Number(serviceId),
-                status: 'failed',
-                last_result: message,
-                last_error: message,
-            });
-        },
-        complete: function () {
-            hide_spinner();
-            maybe_start_fetch_status_polling(false);
-        },
-    });
+    void queue_fetch(serviceId);
     return false;
 }
