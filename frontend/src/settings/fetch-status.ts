@@ -32,6 +32,10 @@ const fetch_status_poll_interval_ms = 3000;
 export const fetch_status = {
     poll_timer: null as number | null,
     request_in_flight: false,
+    /** How many status requests the page has sent. */
+    requests_sent: 0,
+    /** Per service, the last status request sent before a refused fetch-now. */
+    refused_after: new Map<number, number>(),
 };
 
 /** Where the page stores each diagnostics field. */
@@ -261,13 +265,18 @@ async function refresh_fetch_status(): Promise<void> {
         return;
     }
     fetch_status.request_in_flight = true;
+    const request = ++fetch_status.requests_sent;
     const json = await get_json<FetchStatusResponse>(
         config.baseurl + 'settings/api/fetch-status',
         true,
     );
     if (json && json.services) {
         for (const state of Object.values(json.services)) {
-            update_fetch_status(state);
+            // A reply asked for before a refused fetch-now would hide the refusal.
+            const refused_after = fetch_status.refused_after.get(state.service_id) ?? 0;
+            if (request > refused_after) {
+                update_fetch_status(state);
+            }
         }
     }
     fetch_status.request_in_flight = false;
@@ -303,6 +312,7 @@ async function queue_fetch(serviceId: string): Promise<void> {
         void refresh_fetch_status();
     } else {
         const message = await error_message(result.response);
+        fetch_status.refused_after.set(Number(serviceId), fetch_status.requests_sent);
         update_fetch_status({
             service_id: Number(serviceId),
             status: 'failed',

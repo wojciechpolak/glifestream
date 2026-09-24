@@ -15,18 +15,21 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { config } from '../config';
 import {
     fetch_status,
     fetch_status_label,
     format_fetch_timestamp,
+    run_fetch_service,
     update_fetch_status,
 } from './fetch-status';
 
 afterEach(() => {
+    vi.unstubAllGlobals();
     config.messages = {};
+    fetch_status.refused_after.clear();
     if (fetch_status.poll_timer !== null) {
         window.clearTimeout(fetch_status.poll_timer);
         fetch_status.poll_timer = null;
@@ -137,5 +140,33 @@ describe('update_fetch_status', () => {
 
         expect(run.getAttribute('aria-busy')).toBe('false');
         expect(fetch_status.poll_timer).toBeNull();
+    });
+});
+
+describe('run_fetch_service', () => {
+    it('keeps a refused fetch failed when an earlier status reply comes after', async () => {
+        status_rows();
+        const status_reply = Promise.withResolvers<Response>();
+        vi.stubGlobal(
+            'fetch',
+            vi.fn<typeof fetch>(async (url) =>
+                url === config.baseurl + 'settings/api/fetch-now'
+                    ? Response.json(
+                          { error: 'This service cannot be fetched.' },
+                          { status: 400 },
+                      )
+                    : status_reply.promise,
+            ),
+        );
+
+        run_fetch_service(document.querySelector('.run-fetch') as HTMLElement);
+        await vi.waitFor(() => expect(text('fetch-status-7')).toBe('failed'));
+        status_reply.resolve(
+            Response.json({ services: { '7': { service_id: 7, status: 'idle' } } }),
+        );
+        await vi.waitFor(() => expect(fetch_status.request_in_flight).toBe(false));
+
+        expect(text('fetch-status-7')).toBe('failed');
+        expect(text('fetch-error-text-7')).toBe('This service cannot be fetched.');
     });
 });
