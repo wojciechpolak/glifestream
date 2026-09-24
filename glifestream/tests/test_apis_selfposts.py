@@ -37,11 +37,14 @@ def test_selfposts_share_no_markdown_fallback(service):
 
     with patch('glifestream.apis.selfposts.markdown', None):
         api = SelfpostsService(service)
-        content = 'Line 1\nLine 2'
+        content = 'Line 1\r\n<b>Line 2</b>\nhttps://example.com/page'
         entry = api.share({'content': content})
-        # The content is escaped during processing in SelfpostsService
         assert entry is not None
-        assert 'Line 1&lt;br/&gt;Line 2' in entry.content
+        assert entry.content == (
+            'Line 1<br/>\n<b>Line 2</b><br/>\n'
+            '<a href="https://example.com/page" rel="nofollow">'
+            'https://example.com/page</a>'
+        )
 
 
 @pytest.mark.django_db
@@ -361,6 +364,31 @@ def test_reshare_of_a_video_service_titles_the_entry(selfposts):
 
     assert entry is not None
     assert entry.content.startswith('<p>A Vimeo Clip</p>')
+
+
+@pytest.mark.django_db
+def test_reshare_keeps_the_html_of_the_original(selfposts):
+    mastodon = Service.objects.create(
+        name='Mastodon', api='mastodon', url='someone', public=True
+    )
+    content = (
+        '<p>Live!</p><p><a href="https://example.com/podcast/" rel="nofollow">'
+        'example.com/podcast</a></p>'
+        '<img src="https://example.com/cover.png" alt="Cover" />'
+    )
+    source = Entry.objects.create(
+        service=mastodon,
+        title='Live!',
+        guid='reshare-html',
+        link='https://example.com/@someone/1',
+        content=content,
+        date_published=datetime.datetime(2026, 3, 22, 17, 0, tzinfo=UTC),
+    )
+
+    entry = selfposts.reshare(source, {})
+
+    assert entry is not None
+    assert entry.content == content
 
 
 @pytest.mark.django_db

@@ -22,13 +22,13 @@ from typing import Any
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.core.files.uploadedfile import UploadedFile
-from django.template.defaultfilters import urlizetrunc, title as df_title
+from django.template.defaultfilters import title as df_title
 from django.utils.html import strip_tags
 from django.utils.datastructures import MultiValueDict
 
 from glifestream.apis.base import BaseService
 from glifestream.utils.time import utcnow
-from glifestream.utils.html import strip_script, bytes_to_human
+from glifestream.utils.html import strip_script, bytes_to_human, urlize
 from glifestream.stream.models import Service, Entry, Media
 from glifestream.stream import media
 from glifestream.filters import expand, truncate
@@ -79,7 +79,10 @@ def _render_body(content: str, editor_syntax: str) -> str:
     """Turn the editor's raw input into the entry's HTML."""
     if editor_syntax == 'markdown' and markdown:
         return expand.run_all(markdown.markdown(content))
-    return urlizetrunc(expand.run_all(content.replace('\n', '<br/>')), 45)
+    # Like Markdown, plain text keeps the author's own HTML. The newline
+    # stays after each <br/> so that a URL opening a line is its own word.
+    lines = content.replace('\r\n', '\n').replace('\n', '<br/>\n')
+    return urlize(expand.run_all(lines), trim_url_limit=45, nofollow=True)
 
 
 def _render_remote_thumbs(images: list[str], link: str) -> str:
@@ -311,7 +314,9 @@ class SelfpostsService(BaseService):
         elif entry.service.api in ('youtube', 'vimeo'):
             e.content = '<p>%s</p>%s' % (df_title(e.title), entry.content)
         else:
-            e.content = urlizetrunc(entry.content, 45)
+            # Stored content is already HTML with its links in place;
+            # urlizing it again would escape the markup.
+            e.content = entry.content
 
         try:
             media.transform_to_local(e)

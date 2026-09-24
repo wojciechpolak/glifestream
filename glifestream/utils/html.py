@@ -146,7 +146,12 @@ def _resolve_link(middle: str, nofollow: bool) -> tuple[str | None, str, bool]:
     return None, nofollow_attr, False
 
 
-def urlize(text, trim_url_limit=None, nofollow=False, autoescape=False):
+def urlize(
+    text: str,
+    trim_url_limit: int | None = None,
+    nofollow: bool = False,
+    autoescape: bool | None = False,
+) -> str:
     """
     Converts any URLs in text into clickable links.
 
