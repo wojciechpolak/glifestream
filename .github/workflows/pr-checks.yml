@@ -58,6 +58,12 @@ jobs:
           mkdir -p run/db run/templates run/static media static
           uv run manage.py collectstatic --no-input
 
+      - name: Compile translations
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gettext
+          uv run manage.py compilemessages --ignore .venv
+
       - name: Install Playwright Chromium
         run: uv run python -m playwright install --with-deps chromium
 
