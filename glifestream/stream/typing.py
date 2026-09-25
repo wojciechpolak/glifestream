@@ -20,6 +20,7 @@ from typing import TypedDict, Any
 
 class Page(TypedDict, total=False):
     after: int
+    apple_touch_icon: str
     author_name: str
     author_uri: str | bool
     backtime: bool

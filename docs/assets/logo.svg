@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- gLifestream mark: several streams merging into one. scripts/make-icons renders the icons from it. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b58a4c"/>
+      <stop offset="1" stop-color="#7a5a24"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="30" fill="url(#tile)"/>
+  <g fill="none" stroke="#fbf5ea" stroke-linecap="round">
+    <path d="M24 32 C52 32 50 60 76 60" stroke-width="7" stroke-opacity="0.72"/>
+    <path d="M24 88 C52 88 50 60 76 60" stroke-width="7" stroke-opacity="0.72"/>
+    <path d="M24 60 H76" stroke-width="7" stroke-opacity="0.72"/>
+    <path d="M66 60 H90" stroke-width="12"/>
+  </g>
+  <circle cx="92" cy="60" r="11" fill="#fbf5ea"/>
+</svg>

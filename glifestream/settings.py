@@ -399,9 +399,10 @@ PWA_APP_SHORT_NAME = 'GLS'
 PWA_APP_DESCRIPTION = 'Personal Lifestream'
 PWA_APP_DISPLAY = 'standalone'
 PWA_APP_ICONS = [
-    {'src': '/static/themes/default/icons/rss.png', 'sizes': '512x512'},
+    {'src': STATIC_URL + 'icon-192.png', 'sizes': '192x192'},
+    {'src': STATIC_URL + 'icon-512.png', 'sizes': '512x512'},
     {
-        'src': '/static/themes/default/icons/rss_maskable.png',
+        'src': STATIC_URL + 'icon-maskable-512.png',
         'sizes': '512x512',
         'purpose': 'maskable',
     },
@@ -409,6 +410,9 @@ PWA_APP_ICONS = [
 
 # A shortcut icon URL (favicon).
 FAVICON = STATIC_URL + 'favicon.ico'
+
+# The icon iOS shows for a page added to the home screen.
+APPLE_TOUCH_ICON = STATIC_URL + 'apple-touch-icon.png'
 
 THEMES = ('default',)
 

@@ -44,6 +44,7 @@ def build_settings_page(
         'base_url': settings.BASE_URL,
         'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'favicon': settings.FAVICON,
+        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
         'theme': utils_common.get_theme(request),
         'title': title,
     }

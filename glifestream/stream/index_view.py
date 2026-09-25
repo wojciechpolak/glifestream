@@ -155,6 +155,7 @@ def build_index_page(state: IndexRequestState) -> Page:
         'base_url': settings.BASE_URL,
         'login_url': settings.LOGIN_URL,
         'favicon': settings.FAVICON,
+        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
         'author_name': settings.FEED_AUTHOR_NAME,
         'author_uri': getattr(settings, 'FEED_AUTHOR_URI', False),
         'taguri': settings.FEED_TAGURI,

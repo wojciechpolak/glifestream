@@ -16,7 +16,7 @@ run/
 run-*/
 venv*/
 media/
-static/
+/static/
 settings.py*
 !glifestream/settings.py
 glifestream/settings_local.py

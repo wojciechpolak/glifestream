@@ -87,6 +87,7 @@ def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponseNo
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
+        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
         'theme': common.get_theme(request),
     }
     t = render(request, '404.html', {'page': page})
@@ -98,6 +99,7 @@ def page_internal_error(request: HttpRequest) -> HttpResponseNotFound:
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
         'favicon': settings.FAVICON,
+        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
         'theme': 'default',
     }
     t = render(request, '500.html', {'page': page})

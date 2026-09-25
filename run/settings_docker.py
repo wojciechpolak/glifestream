@@ -70,6 +70,16 @@ LOGIN_URL = BASE_URL + '/login'
 MEDIA_URL = path_prefix + 'media/'
 STATIC_URL = path_prefix + 'static/'
 FAVICON = STATIC_URL + 'favicon.ico'
+APPLE_TOUCH_ICON = STATIC_URL + 'apple-touch-icon.png'
+PWA_APP_ICONS = [
+    {'src': STATIC_URL + 'icon-192.png', 'sizes': '192x192'},
+    {'src': STATIC_URL + 'icon-512.png', 'sizes': '512x512'},
+    {
+        'src': STATIC_URL + 'icon-maskable-512.png',
+        'sizes': '512x512',
+        'purpose': 'maskable',
+    },
+]
 
 WORKER_SOCKET = (
     get_env(ENV, 'WORKER_SOCKET', default=WORKER_SOCKET)  # noqa: F405

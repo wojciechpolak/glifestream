@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  gLifestream social preview (GitHub: Settings > Social preview).
+  1280x640; everything that matters stays inside a 40px safe border.
+  scripts/make-icons.sh renders it to social-preview.png.
+  Fonts: Palatino (display) and Trebuchet MS (UI), as in the default theme.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8f3ea"/>
+      <stop offset="1" stop-color="#ebe2d1"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.22" cy="0.2" r="0.6">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="warm" cx="0.9" cy="0.95" r="0.55">
+      <stop offset="0" stop-color="#b0874f" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#b0874f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b58a4c"/>
+      <stop offset="1" stop-color="#7a5a24"/>
+    </linearGradient>
+    <linearGradient id="photo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9fbcd0"/>
+      <stop offset="1" stop-color="#e9d6b4"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#5a4020" flood-opacity="0.16"/>
+    </filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#5a4020" flood-opacity="0.18"/>
+    </filter>
+
+    <!-- The mark: several streams merging into one. -->
+    <symbol id="mark" viewBox="0 0 120 120">
+      <rect width="120" height="120" rx="30" fill="url(#tile)"/>
+      <g fill="none" stroke="#fbf5ea" stroke-linecap="round">
+        <path d="M24 32 C52 32 50 60 76 60" stroke-width="7" stroke-opacity="0.72"/>
+        <path d="M24 88 C52 88 50 60 76 60" stroke-width="7" stroke-opacity="0.72"/>
+        <path d="M24 60 H76" stroke-width="7" stroke-opacity="0.72"/>
+        <path d="M66 60 H90" stroke-width="12"/>
+      </g>
+      <circle cx="92" cy="60" r="11" fill="#fbf5ea"/>
+    </symbol>
+  </defs>
+
+  <!-- Paper -->
+  <rect width="1280" height="640" fill="url(#paper)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+  <rect width="1280" height="640" fill="url(#warm)"/>
+
+  <!-- Streams flowing into the card -->
+  <g fill="none" stroke-width="7" stroke-linecap="round" stroke-opacity="0.85">
+    <path d="M744 150 C790 150 770 300 830 312" stroke="#566d98"/>
+    <path d="M744 218 C790 218 770 306 830 316" stroke="#9b6c20"/>
+    <path d="M744 286 C790 286 780 314 830 318" stroke="#7a4a8f"/>
+    <path d="M744 354 C790 354 780 326 830 322" stroke="#2f7377"/>
+    <path d="M744 422 C790 422 770 334 830 324" stroke="#8f4d41"/>
+    <path d="M744 490 C790 490 770 340 830 328" stroke="#365f93"/>
+  </g>
+  <g>
+    <circle cx="744" cy="150" r="9" fill="#566d98"/>
+    <circle cx="744" cy="218" r="9" fill="#9b6c20"/>
+    <circle cx="744" cy="286" r="9" fill="#7a4a8f"/>
+    <circle cx="744" cy="354" r="9" fill="#2f7377"/>
+    <circle cx="744" cy="422" r="9" fill="#8f4d41"/>
+    <circle cx="744" cy="490" r="9" fill="#365f93"/>
+  </g>
+
+  <!-- The stream card -->
+  <g filter="url(#shadow)">
+    <rect x="820" y="88" width="372" height="464" rx="30" fill="#fdfaf4" stroke="#d9c7a6" stroke-width="1.5"/>
+  </g>
+  <rect x="820" y="150" width="7" height="340" rx="3.5" fill="#9b6c20"/>
+
+  <!-- Entry 1: post -->
+  <g transform="translate(852 118)">
+    <rect width="60" height="60" rx="16" fill="#dfe5ef" filter="url(#soft)"/>
+    <path d="M17 20 h26 a6 6 0 0 1 6 6 v10 a6 6 0 0 1 -6 6 h-14 l-8 7 v-7 h-4 a6 6 0 0 1 -6 -6 v-10 a6 6 0 0 1 6 -6z" fill="#3f5b8c"/>
+    <rect x="84" y="10" width="220" height="12" rx="6" fill="#d9ccb6"/>
+    <rect x="84" y="32" width="180" height="12" rx="6" fill="#e6dccb"/>
+  </g>
+  <line x1="852" y1="210" x2="1160" y2="210" stroke="#e2d5bf" stroke-width="1.5"/>
+
+  <!-- Entry 2: photo -->
+  <g transform="translate(852 232)">
+    <rect width="60" height="60" rx="16" fill="#d5ebe6" filter="url(#soft)"/>
+    <rect x="15" y="22" width="30" height="21" rx="5" fill="#2f7377"/>
+    <rect x="23" y="17" width="14" height="7" rx="2" fill="#2f7377"/>
+    <circle cx="30" cy="32.5" r="6" fill="#d5ebe6"/>
+    <rect x="84" y="4" width="200" height="12" rx="6" fill="#d9ccb6"/>
+    <g transform="translate(84 28)">
+      <rect width="150" height="92" rx="12" fill="url(#photo)"/>
+      <path d="M0 80 L44 40 L74 66 L100 48 L150 86 V80 a12 12 0 0 1 -12 12 H12 A12 12 0 0 1 0 80z" fill="#7a8f6a"/>
+      <circle cx="116" cy="26" r="11" fill="#fbf1d8"/>
+    </g>
+  </g>
+  <line x1="852" y1="370" x2="1160" y2="370" stroke="#e2d5bf" stroke-width="1.5"/>
+
+  <!-- Entry 3: music -->
+  <g transform="translate(852 392)">
+    <rect width="60" height="60" rx="16" fill="#eddcf0" filter="url(#soft)"/>
+    <path d="M26 16 L44 12 V38" fill="none" stroke="#7a4a8f" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M26 16 V42" fill="none" stroke="#7a4a8f" stroke-width="5"/>
+    <ellipse cx="21" cy="43" rx="7" ry="5.5" fill="#7a4a8f"/>
+    <ellipse cx="39" cy="39" rx="7" ry="5.5" fill="#7a4a8f"/>
+    <rect x="84" y="10" width="230" height="12" rx="6" fill="#d9ccb6"/>
+    <rect x="84" y="32" width="140" height="12" rx="6" fill="#e6dccb"/>
+  </g>
+  <line x1="852" y1="484" x2="1160" y2="484" stroke="#e2d5bf" stroke-width="1.5"/>
+  <g transform="translate(852 504)">
+    <rect x="84" y="0" width="190" height="12" rx="6" fill="#e6dccb"/>
+  </g>
+
+  <!-- Wordmark -->
+  <use href="#mark" x="96" y="156" width="112" height="112"/>
+  <text x="90" y="396" font-family="Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, serif" font-weight="700" font-size="96" letter-spacing="-1.5" fill="#2b2419"><tspan fill="#8a6420">g</tspan>Lifestream</text>
+  <text x="94" y="470" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="35.6" fill="#4e4231">Your own self-hosted lifestream</text>
+</svg>
