@@ -1,0 +1,31 @@
+[
+    {
+        "model": "stream.entry",
+        "pk": 1,
+        "fields": {
+            "service": 3,
+            "title": "Hello, World!",
+            "link": "",
+            "link_image": "",
+            "content": "<p>Welcome to <strong>gLifestream</strong>, your own self-hosted lifestream. This first entry is a selfpost: something written here rather than imported from elsewhere.</p><p>A few things to try:</p><ul><li><strong>Sign in</strong> as admin / admin and choose a new password.</li><li><strong>Add your services</strong> under Settings → Services: RSS and Atom feeds, Mastodon, Bluesky, PixelFed, Flickr, YouTube, Vimeo. You can also import an OPML file. The background worker brings their entries into this stream.</li><li><strong>Write your own posts</strong> with Add content at the top of the stream: text, links, photos and videos.</li><li><strong>Organize</strong>: group services into lists, mark favorite entries, keep a service private or a post visible only to friends.</li><li><strong>Share</strong> the stream as a web page, an Atom feed or JSON. WebSub sends new entries to subscribers.</li></ul><p>Paste a YouTube or Vimeo link into a post and it becomes a player, like <em>Caminandes 3: Llamigos</em> from the Blender Studio below. Click it to play.</p><div data-id=\"youtube-SkVqJ1SGeL0\" class=\"play-video\"><a href=\"https://www.youtube.com/watch?v=SkVqJ1SGeL0\" rel=\"nofollow\"><img src=\"https://i.ytimg.com/vi/SkVqJ1SGeL0/mqdefault.jpg\" width=\"320\" height=\"180\" alt=\"YouTube Video\" /></a><div class=\"playbutton\"></div></div><p>Edit this entry to make it your own, or hide it once you no longer need it.</p>",
+            "date_published": "2026-01-01T00:00:00.000Z",
+            "date_updated": "2026-01-01T00:00:00.000Z",
+            "date_inserted": "2026-01-01T00:00:00.000Z",
+            "guid": "tag:gls,2026:stream/entry/2026-01-01T00:00:00Z",
+            "author_name": "",
+            "author_email": "",
+            "author_uri": "",
+            "geolat": null,
+            "geolng": null,
+            "idata": "",
+            "protected": false,
+            "active": true,
+            "draft": false,
+            "friends_only": false,
+            "reblog": false,
+            "reblog_by": "",
+            "reblog_uri": "",
+            "mblob": null
+        }
+    }
+]

@@ -54,6 +54,12 @@ prints how to start the site and the worker. Every step is safe to repeat, so
 you can run it again after pulling changes. It never overwrites an existing
 `.env`.
 
+On an empty database it also loads the starting data: six services for your
+own posts (SMS, Links, Blog, Music, Photos, Videos) and a welcome entry that
+shows what to try first. A database that already has a service is left as it
+is. For a stream without the welcome entry, so that your first own entry gets
+ID 1, run `./scripts/bootstrap --no-welcome`.
+
 To do the same by hand:
 
 1. Change into the project directory.
@@ -61,11 +67,13 @@ To do the same by hand:
 3. Copy `.env.example` to `.env`.
 4. Edit `.env` for your local environment.
 5. Run migrations.
-6. Compile translations if `gettext` is available.
-7. Create the runtime directories used for uploads and thumbnails.
-8. Create the initial admin user.
-9. Start the Django development server.
-10. Start the background worker in a second terminal.
+6. Load the starting services and the welcome entry (`--no-welcome` skips the
+   entry).
+7. Compile translations if `gettext` is available.
+8. Create the runtime directories used for uploads and thumbnails.
+9. Create the initial admin user.
+10. Start the Django development server.
+11. Start the background worker in a second terminal.
 
 Commands:
 
@@ -74,6 +82,7 @@ npm ci
 npm run build
 cp .env.example .env
 uv run manage.py migrate --run-syncdb
+uv run manage.py load_initial_data
 uv run manage.py compilemessages
 uv run worker.py --init-files-dirs
 uv run manage.py create_initial_user
@@ -251,7 +260,8 @@ What the container startup does
 The Docker entrypoint currently performs these steps on container start:
 
 1. `python manage.py migrate --run-syncdb --fake-initial`
-2. Load `glifestream/stream/fixtures/initial_data.json` if no `Service` rows exist
+2. `python manage.py load_initial_data`: if no `Service` rows exist, load the
+   starting services (`initial_data.json`) and the welcome entry (`welcome.json`)
 3. `python manage.py collectstatic --no-input`
 4. `python worker.py --init-files-dirs`
 5. `python manage.py create_initial_user`

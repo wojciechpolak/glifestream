@@ -20,10 +20,14 @@ Take a fresh checkout to a running development instance in one command.
 
 It installs the Python and Node dependencies, builds the page script from
 frontend/, writes a `.env` with random secrets, migrates the database,
+loads the starting services and a welcome entry into an empty one,
 compiles translations, creates the media directories and the initial
 admin/admin user. Every step is safe to repeat, so running it again
 after a pull brings an existing checkout up to date. An existing `.env` is
-never touched.
+never touched, and neither is a database that has any service.
+
+With `--no-welcome`, only the services are loaded, so that your first own
+entry gets ID 1.
 
 Unlike `scripts/check`, this stops at the first failure: each step needs the
 ones before it.
@@ -31,6 +35,7 @@ ones before it.
 
 from __future__ import annotations
 
+import argparse
 import re
 import secrets
 import shutil
@@ -77,6 +82,16 @@ def manage(*args: str) -> None:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser(
+        description='Set up a development instance from a fresh checkout.'
+    )
+    parser.add_argument(
+        '--no-welcome',
+        action='store_true',
+        help='load the starting services without the welcome entry',
+    )
+    args = parser.parse_args()
+
     if shutil.which('uv') is None:
         print(
             'uv: not found -- install it from https://docs.astral.sh/uv/',
@@ -96,6 +111,7 @@ def main() -> int:
     run(['npm', 'run', 'build'])
     write_env()
     manage('migrate', '--run-syncdb')
+    manage('load_initial_data', *(['--no-welcome'] if args.no_welcome else []))
     if shutil.which('msgfmt'):
         manage('compilemessages', '--ignore', '.venv')
     else:

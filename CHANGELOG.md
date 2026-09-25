@@ -55,6 +55,10 @@ work, so only the significant changes are listed.
   dependencies, writes a `.env` with random secrets, migrates the database,
   compiles translations, creates the media directories and the initial admin
   user. It is safe to run again and never overwrites an existing `.env`.
+- A welcome entry for new installations, with first steps and a video player,
+  instead of a bare "Hello, World!". `manage.py load_initial_data` loads it with
+  the starting services into an empty database, both in Docker and in
+  `./scripts/bootstrap`; `--no-welcome` leaves the entry out.
 - Test infrastructure: pytest suite, Playwright E2E coverage (including OAuth
   and Bluesky service flows), optional visual regression testing, and coverage
   reporting.

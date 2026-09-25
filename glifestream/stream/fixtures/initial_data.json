@@ -106,34 +106,5 @@
             "last_modified": null,
             "creds": ""
         }
-    },
-    {
-        "model": "stream.entry",
-        "pk": 1,
-        "fields": {
-            "service": 1,
-            "title": "Hello, World!",
-            "link": "",
-            "link_image": "",
-            "content": "<p>Hello, World!</p>",
-            "date_published": "2023-01-01T00:00:00.000Z",
-            "date_updated": "2023-01-01T00:00:00.000Z",
-            "date_inserted": "2023-01-01T00:00:00.000Z",
-            "guid": "tag:gls,2023:stream/entry/2023-01-01T00:00:00Z",
-            "author_name": "",
-            "author_email": "",
-            "author_uri": "",
-            "geolat": null,
-            "geolng": null,
-            "idata": "",
-            "protected": false,
-            "active": true,
-            "draft": false,
-            "friends_only": false,
-            "reblog": false,
-            "reblog_by": "",
-            "reblog_uri": "",
-            "mblob": null
-        }
     }
 ]

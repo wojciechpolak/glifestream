@@ -138,8 +138,10 @@ them together. The Playwright tests in `tests/e2e/test_js_*.py` pin what the
 page does from the reader's side; if you change one of them while
 rewriting the code under it, explain why in the commit.
 
-**App fixtures.** `glifestream/stream/fixtures/initial_data.json` is the
-starting data a new Docker installation loads. It is not test data.
+**App fixtures.** `glifestream/stream/fixtures/initial_data.json` (the
+starting services) and `welcome.json` (the welcome entry) are the starting
+data `manage.py load_initial_data` puts into an empty database, for Docker and
+`./scripts/bootstrap` alike. They are not test data.
 
 **Visual regression.** Screenshot baselines are committed under
 `.visual-regression/` and are compared in Docker, so they do not depend on
