@@ -549,6 +549,43 @@ button {
   }
 }
 
+input[type="file"] {
+  max-width: 100%;
+  color: var(--text-soft);
+  font-size: 0.94rem;
+  cursor: pointer;
+
+  &::file-selector-button {
+    margin-right: 10px;
+    padding: 9px 15px;
+    font: inherit;
+    color: var(--text-main);
+    background: var(--surface-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition:
+      border-color 0.18s ease,
+      background-color 0.18s ease;
+  }
+
+  &:hover::file-selector-button {
+    background:
+      linear-gradient(var(--accent-soft), var(--accent-soft)),
+      var(--surface-input);
+    border-color: var(--border-strong);
+  }
+
+  &:focus-visible {
+    outline: none;
+
+    &::file-selector-button {
+      outline: 2px solid var(--accent-strong);
+      outline-offset: 2px;
+    }
+  }
+}
+
 input[placeholder].blur,
 ::-moz-placeholder,
 ::-webkit-input-placeholder {
@@ -2162,6 +2199,17 @@ ul.files {
 
   #id_services {
     min-width: 20em;
+  }
+
+  #opml-form {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin-top: 18px;
+    padding: 14px;
+    background: var(--surface-fieldset);
+    border-radius: 20px;
   }
 }
 
