@@ -33,6 +33,8 @@ See [INSTALL](INSTALL.md) for the full setup and deployment guide.
 - For production, `INSTALL.md` covers both the shipped Docker/Compose path and
   non-Docker deployments, including the key environment variables and hardening
   expectations.
+- To work on gLifestream itself, see [CONTRIBUTING](CONTRIBUTING.md) for the
+  checks, test conventions and what a pull request needs.
 
 Supported services (out of the box)
 -----------------------------------
