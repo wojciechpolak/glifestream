@@ -4,6 +4,11 @@ gLifestream
 gLifestream is a free lifestream platform and social activity reader.
 It is licensed under GPLv3.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/stream-dark.webp">
+  <img src="docs/screenshots/stream-light.webp" alt="The gLifestream home page of a new installation, showing the welcome entry with a video player, and a sidebar with service icons, the archives and search">
+</picture>
+
 Introduction
 ------------
 

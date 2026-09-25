@@ -155,6 +155,18 @@ the fonts of your machine:
 Record a new baseline only for an intended visual change, and commit it with
 that change.
 
+**README screenshots.** `docs/screenshots/stream-light.webp` and
+`stream-dark.webp` show the home page of a fresh installation with the
+welcome entry. Take them again after a visible change to that page:
+
+```shell
+./scripts/screenshots
+```
+
+It serves a throwaway instance from a temporary directory, so your own `.env`
+and data stay out of the pictures. It needs the network, for the video
+thumbnail from YouTube, and Playwright's Chromium.
+
 
 Conventions
 -----------
