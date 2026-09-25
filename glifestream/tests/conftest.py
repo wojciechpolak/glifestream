@@ -29,6 +29,15 @@ from glifestream.testsupport.coverage_report import (
 )
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    del config
+    from django.conf import settings
+
+    # The default PBKDF2 hasher takes some 0.3 s a password by design. A browser
+    # test hashes one to seed the admin, one to log in and more to change it.
+    settings.PASSWORD_HASHERS = ['django.contrib.auth.hashers.MD5PasswordHasher']
+
+
 @pytest.fixture(autouse=True)
 def enforce_csp(settings):
     """Tests enforce the Content Security Policy, whatever the default.

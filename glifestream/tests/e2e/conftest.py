@@ -39,12 +39,19 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pytest
 from django.conf import settings as django_settings
+from django.contrib.auth.models import User
 from django.core.servers.basehttp import ThreadedWSGIServer, WSGIServer
 from django.db import connections
 from django.db.backends.base.base import BaseDatabaseWrapper
+from django.test import Client
 from django.test.testcases import LiveServerThread
 from django.core.management import call_command
-from django.test.utils import modify_settings, setup_databases, teardown_databases
+from django.test.utils import (
+    modify_settings,
+    override_settings,
+    setup_databases,
+    teardown_databases,
+)
 from pytest_django.fixtures import _get_databases_for_setup
 
 from playwright.sync_api import (
@@ -56,6 +63,7 @@ from playwright.sync_api import (
 )
 
 from glifestream.fetching import FetchWorker
+from glifestream.gauth.models import UserProfile
 from glifestream.stream.models import Entry, Service
 from glifestream.tests.e2e.js_coverage import JsCoverage
 from glifestream.tests.e2e.vrt import VisualRegressionSession
@@ -886,16 +894,33 @@ def _is_minified(script: str) -> bool:
     return len(script) > 200 * (script.count('\n') + 1)
 
 
+@pytest.fixture(scope='session')
+def collected_static(
+    frontend_bundle: Path, tmp_path_factory: pytest.TempPathFactory
+) -> Path:
+    """A STATIC_ROOT collected once for the session.
+
+    Nothing a test does changes the sources, and collecting them takes a
+    third of a second, which every test would otherwise pay.
+    """
+    del frontend_bundle
+    static_root = tmp_path_factory.mktemp('e2e-static')
+    with override_settings(STATIC_ROOT=str(static_root)):
+        call_command('collectstatic', interactive=False, verbosity=0, clear=True)
+    return static_root
+
+
 @pytest.fixture(autouse=True)
-def e2e_runtime_settings(settings, tmp_path: Path) -> Generator[Any, None, None]:
+def e2e_runtime_settings(
+    settings, tmp_path: Path, collected_static: Path
+) -> Generator[Any, None, None]:
     media_root = tmp_path / 'media'
     upload_root = media_root / 'upload'
     thumbs_root = media_root / 'thumbs'
     session_root = tmp_path / 'sessions'
-    static_root = tmp_path / 'static'
     old_insecure_transport = os.environ.get('OAUTHLIB_INSECURE_TRANSPORT')
 
-    for path in (upload_root, session_root, static_root):
+    for path in (upload_root, session_root):
         path.mkdir(parents=True, exist_ok=True)
     for part in '0123456789abcdef':
         (thumbs_root / part).mkdir(parents=True, exist_ok=True)
@@ -912,9 +937,8 @@ def e2e_runtime_settings(settings, tmp_path: Path) -> Generator[Any, None, None]
     settings.MEDIA_URL = '/media/'
     settings.SESSION_ENGINE = 'django.contrib.sessions.backends.file'
     settings.SESSION_FILE_PATH = str(session_root)
-    settings.STATIC_ROOT = str(static_root)
+    settings.STATIC_ROOT = str(collected_static)
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-    call_command('collectstatic', interactive=False, verbosity=0, clear=True)
 
     yield settings
 
@@ -1200,17 +1224,27 @@ def finish_forced_password_change(page: Page, admin_credentials):
 
 @pytest.fixture
 def ensure_admin_session(
-    login_as_initial_admin,
-    finish_forced_password_change,
-    page: Page,
-    app_base_url: str,
+    page: Page, app_base_url: str, seeded_e2e_state, admin_credentials
 ):
+    """Log the seeded admin in by cookie, past the forced password change.
+
+    The state is the one the login and change-password forms leave behind,
+    which test_browser_flows walks through. Every other test needs only the
+    session, and the forms would cost it five page loads.
+    """
+
     def _ensure() -> None:
-        login_as_initial_admin()
-        if '/change-password' in page.url:
-            finish_forced_password_change()
-        if not page.url.startswith(app_base_url):
-            page.goto(f'{app_base_url}/')
+        user = User.objects.get(username=admin_credentials['username'])
+        user.set_password(admin_credentials['new_password'])
+        user.save()
+        UserProfile.objects.filter(user=user).update(must_change_password=False)
+        client = Client()
+        client.force_login(user)
+        session = client.cookies[django_settings.SESSION_COOKIE_NAME]
+        page.context.add_cookies(
+            [{'name': session.key, 'value': session.value, 'url': app_base_url}]
+        )
+        page.goto(f'{app_base_url}/')
 
     return _ensure
 
