@@ -2,10 +2,12 @@
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "entry": [
     "frontend/src/main.ts",
-    "frontend/src/editor.ts"
+    "frontend/src/editor.ts",
+    "glifestream/static/themes/**/*.scss"
   ],
   "ignorePatterns": [
-    "glifestream/**/templates/**"
+    "glifestream/**/templates/**",
+    "glifestream/static/fontawesome/**"
   ],
   "ignoreDependencies": [
     "@tiptap/pm"
