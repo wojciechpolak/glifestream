@@ -177,8 +177,9 @@ work, so only the significant changes are listed.
 - A Bluesky/ATProto feed containing a post with an image gallery
   (`app.bsky.embed.gallery`) no longer fails to import. The AT Protocol SDK is
   upgraded to 0.0.72, which parses galleries and reads an embed type released
-  after it without rejecting the whole feed. Gallery images render as
-  thumbnails, like an image embed.
+  after it without rejecting the whole feed. A gallery is laid out as a grid
+  of square thumbnails, while photos attached as an image embed keep their
+  row.
 - A Mastodon or PixelFed fetch that gets a non-JSON response no longer records
   the service as checked.
 - Resharing a post now registers its local thumbnails. The reshare used to

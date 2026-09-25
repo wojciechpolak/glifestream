@@ -1649,6 +1649,48 @@ div.player {
   }
 }
 
+// A Bluesky gallery: a grid of square crops instead of a row of thumbnails.
+.thumbnails.atproto-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 600px;
+
+  // Five pictures and more fit three to a row.
+  &:has(> a:nth-child(5)) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  > a {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+  }
+
+  // Of three pictures, the first is as tall as the other two, as on Bluesky.
+  &:has(> a:nth-child(3)):not(:has(> a:nth-child(4))) > a:first-child {
+    grid-row: span 2;
+    aspect-ratio: auto;
+  }
+
+  > a:only-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 4 / 3;
+  }
+
+  // Out of the flow, so a picture never stretches its row.
+  img {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    object-fit: cover;
+  }
+}
+
 ul.files {
   margin: 0;
   padding: 0;

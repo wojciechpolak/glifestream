@@ -162,7 +162,9 @@ class AtProtoService(BaseService):
         )
         content += _render_record_embed_card(_extract_record_embed(post_embed))
         content += _render_image_thumbnails(
-            _extract_embed_images(post_embed), self.service.public
+            _extract_embed_images(post_embed),
+            self.service.public,
+            gallery=_is_gallery_embed(post_embed),
         )
         if video_embed:
             content += _render_video_thumbnail(
@@ -458,6 +460,16 @@ def _extract_embed_images(embed: Any) -> list[Any]:
     return []
 
 
+def _is_gallery_embed(embed: Any) -> bool:
+    """Whether the post's media is a gallery rather than a set of images."""
+    if not embed:
+        return False
+    return any(
+        getattr(candidate, 'py_type', None) == 'app.bsky.embed.gallery#view'
+        for candidate in (getattr(embed, 'media', None), embed)
+    )
+
+
 def _extract_video_embed(embed: Any) -> dict[str, Any] | None:
     if not embed:
         return None
@@ -669,11 +681,17 @@ def _normalize_embedded_record_text(record: Any) -> str:
     return _render_text_fallback(text)
 
 
-def _render_image_thumbnails(images: list[Any], is_public: bool) -> str:
+def _render_image_thumbnails(
+    images: list[Any], is_public: bool, *, gallery: bool = False
+) -> str:
     if not images:
         return ''
 
-    content = ' <p class="thumbnails">'
+    # A gallery is laid out as a grid; photos attached the usual way stay a row.
+    if gallery:
+        content = ' <p class="thumbnails atproto-gallery">'
+    else:
+        content = ' <p class="thumbnails">'
     for view_image in images:
         # An images#view item names its thumbnail "thumb", a gallery item "thumbnail".
         image_url = (

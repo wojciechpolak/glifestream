@@ -288,6 +288,8 @@ def test_atproto_process_image_embed_still_renders_thumbnails(service):
         assert 'src="https://cdn.bsky.app/thumb.jpg"' in entry.content
         assert 'data-imgurl="https://cdn.bsky.app/full.jpg"' in entry.content
         assert 'width="640" height="480"' in entry.content
+        assert '<p class="thumbnails">' in entry.content
+        assert 'atproto-gallery' not in entry.content
         assert 'class="play-video"' not in entry.content
         assert entry.mblob is None
 
@@ -820,12 +822,55 @@ def test_atproto_run_imports_a_gallery_post(service):
         AtProtoService(service).run()
 
     entry = Entry.objects.get(guid='gallery-cid')
+    assert '<p class="thumbnails atproto-gallery">' in entry.content
     assert 'src="https://cdn.bsky.app/thumb-1.jpg"' in entry.content
     assert 'data-imgurl="https://cdn.bsky.app/full-1.jpg"' in entry.content
     assert 'width="640" height="480"' in entry.content
     assert 'src="https://cdn.bsky.app/thumb-2.jpg"' in entry.content
     assert 'data-imgurl="https://cdn.bsky.app/full-2.jpg"' in entry.content
     assert entry.mblob is None
+
+
+@pytest.mark.django_db
+def test_atproto_process_lays_out_a_gallery_with_a_quoted_post_as_a_grid(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+
+        mock_post = _make_post(
+            'gallery-with-record-cid',
+            'Gallery with a quoted post',
+            embed=SimpleNamespace(
+                py_type='app.bsky.embed.recordWithMedia#view',
+                media=SimpleNamespace(
+                    py_type='app.bsky.embed.gallery#view',
+                    items=[
+                        SimpleNamespace(
+                            py_type='app.bsky.embed.gallery#viewImage',
+                            thumbnail='https://cdn.bsky.app/thumb-%d.jpg' % n,
+                            fullsize='https://cdn.bsky.app/full-%d.jpg' % n,
+                            aspect_ratio=SimpleNamespace(width=640, height=480),
+                        )
+                        for n in (1, 2, 3)
+                    ],
+                ),
+                record=SimpleNamespace(
+                    py_type='app.bsky.embed.record#view',
+                    record=_make_record_view(
+                        'at://did:plc:quoted/app.bsky.feed.post/quoted-rkey',
+                        'Attached quoted record',
+                    ),
+                ),
+            ),
+        )
+        api.process([_make_feed_view_post(mock_post)])
+
+        entry = Entry.objects.get(guid='gallery-with-record-cid')
+        assert '<p class="thumbnails atproto-gallery">' in entry.content
+        assert entry.content.count('data-imgurl=') == 3
+        assert 'Attached quoted record' in entry.content
 
 
 @pytest.mark.django_db
