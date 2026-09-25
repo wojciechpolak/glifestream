@@ -14,13 +14,17 @@ are publicly visible and which are not.  Public streams are visible
 for anybody.  The rest of the streams are visible only for logged-in
 users.
 
-The gLifestream software requires an HTTP server capable of running
-Django applications and a database supported by it.  Data from the
-configured streams is automatically pulled from the remote services
-associated with them and stored in the database.  This mode of
-operation ensures the user that his data (messages, links, photos,
-etc.) will remain intact even if the external service they came from
-ceases to exist.
+gLifestream is a Django application.  It needs a web server that can
+run Django, a database supported by Django (SQLite is enough for a
+single owner), and a background worker process that fetches the
+configured streams.  The worker stores what it fetches in the database
+and keeps local copies of the images, so your messages, links and
+photos remain intact even if the service they came from ceases to
+exist.
+
+You can see gLifestream running at <https://wojciechpolak.org/stream/>,
+the author's own stream. It shows the public view; the private streams,
+favorites and settings need a sign-in.
 
 Getting started
 ---------------
@@ -46,18 +50,22 @@ gLifestream supports the following services by default:
 - Bluesky
 - Flickr
 - PixelFed
-- Twitter
 - Vimeo
 - YouTube
 
-You can extend gLifestream by writing custom APIs
-to support additional services.
+Twitter entries imported in the past are still shown, but new ones can
+no longer be fetched: the Twitter API v1.1 that gLifestream used is gone.
+
+To support another service, write a provider module; see
+[Adding things](docs/ARCHITECTURE.md#adding-things) in the architecture
+document.
 
 Features
 --------
 
-- Free, self-hosted web application
-- Automatic imports of external streams
+- Free, self-hosted web application, with a Docker image and Compose setup
+- Automatic imports of external streams, with per-service status and
+  retries when a fetch fails
 - Public and Private views
 - Friends-only posts via [Magic Link SSO](https://github.com/magic-link-sso/magic-sso)
 - User views: Favorite entries, Archives, custom stream lists
@@ -68,6 +76,8 @@ Features
 - WebSub support (publisher and subscriber)
 - OAuth 1.0 and 2.0 support
 - Write posts by web or e-mail (including media attachments)
+- Share entries to Mastodon, Bluesky and X, or through Web Share
+- Installable as a Progressive Web App
 - Keyboard shortcuts for navigation
-- Customizable themes
+- Customizable themes, including a dark mode
 - Localization
