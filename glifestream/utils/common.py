@@ -18,6 +18,7 @@
 from __future__ import annotations
 from django.conf import settings
 from django.http import HttpRequest
+from django.templatetags.static import static
 
 
 def get_theme(request: HttpRequest) -> str:
@@ -25,3 +26,10 @@ def get_theme(request: HttpRequest) -> str:
     if theme not in settings.THEMES:
         theme = settings.THEMES[0]
     return theme
+
+
+def static_url(path: str) -> str:
+    """The URL of a static file, or ``path`` itself when it already is one."""
+    if path.startswith('/') or '://' in path:
+        return path
+    return static(path)

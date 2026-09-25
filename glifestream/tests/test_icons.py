@@ -20,9 +20,12 @@ from __future__ import annotations
 import pytest
 from django.conf import settings
 from django.contrib.staticfiles import finders
+from django.templatetags.static import static
+
+from glifestream.utils.common import static_url
 
 
-def _icon_urls() -> list[str]:
+def _icon_files() -> list[str]:
     return [
         settings.FAVICON,
         settings.APPLE_TOUCH_ICON,
@@ -30,22 +33,45 @@ def _icon_urls() -> list[str]:
     ]
 
 
-@pytest.mark.parametrize('url', _icon_urls())
-def test_every_configured_icon_is_a_static_file(url):
-    assert url.startswith(settings.STATIC_URL)
-    assert finders.find(url.removeprefix(settings.STATIC_URL)), url
+@pytest.mark.parametrize('path', _icon_files())
+def test_every_configured_icon_is_a_static_file(path):
+    assert finders.find(path), path
 
 
 @pytest.mark.django_db
 def test_the_page_links_the_favicon_and_the_apple_touch_icon(client):
     html = client.get('/').content.decode()
 
-    assert f'<link rel="icon" href="{settings.FAVICON}">' in html
-    assert f'<link rel="apple-touch-icon" href="{settings.APPLE_TOUCH_ICON}">' in html
+    assert f'<link rel="icon" href="{static(settings.FAVICON)}">' in html
+    assert (
+        f'<link rel="apple-touch-icon" href="{static(settings.APPLE_TOUCH_ICON)}">'
+        in html
+    )
 
 
 def test_the_web_manifest_offers_a_maskable_icon(client):
     icons = client.get('/manifest.webmanifest').json()['icons']
 
-    assert icons == settings.PWA_APP_ICONS
+    assert [icon['src'] for icon in icons] == [
+        static(icon['src']) for icon in settings.PWA_APP_ICONS
+    ]
     assert any(icon.get('purpose') == 'maskable' for icon in icons)
+
+
+@pytest.mark.django_db
+def test_the_icons_follow_a_static_url_set_after_the_base_settings(client, settings):
+    # A settings module that imports glifestream.settings and then serves
+    # the site under a path prefix, as a Docker deployment does.
+    settings.STATIC_URL = '/stream/static/'
+
+    html = client.get('/').content.decode()
+    icons = client.get('/manifest.webmanifest').json()['icons']
+
+    assert 'href="/stream/static/apple-touch-icon' in html
+    assert 'href="/stream/static/favicon' in html
+    assert all(icon['src'].startswith('/stream/static/') for icon in icons)
+
+
+@pytest.mark.parametrize('url', ['/favicon.ico', 'https://cdn.example.org/favicon.ico'])
+def test_an_icon_set_as_a_url_is_used_as_it_is(url):
+    assert static_url(url) == url

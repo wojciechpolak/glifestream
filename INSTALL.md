@@ -241,7 +241,7 @@ gLifestream is typically served behind a reverse proxy. Keep these rules in mind
 - Set `BASE_URL` to the public URL that browsers use to reach the site.
 - Use an `https://` `BASE_URL` when TLS terminates before the Django process.
 - In Docker, `run.settings_docker` derives path-prefix-aware URLs from `FORCE_SCRIPT_NAME` or `VIRTUAL_PATH`.
-- When `VIRTUAL_PATH` is not `/`, Docker rewrites `STATIC_URL`, `MEDIA_URL`, `FAVICON`, `APPLE_TOUCH_ICON`, `PWA_APP_ICONS`, and `LOGIN_URL` to include that prefix.
+- When `VIRTUAL_PATH` is not `/`, Docker rewrites `STATIC_URL`, `MEDIA_URL`, and `LOGIN_URL` to include that prefix. `FAVICON`, `APPLE_TOUCH_ICON` and `PWA_APP_ICONS` name static files relative to `STATIC_URL`, so they follow it.
 - The current Docker `HEALTHCHECK` only performs `curl -f http://localhost/`.
   It confirms that the container serves the root path successfully, but it does
   not verify deeper application readiness, worker health, database migrations,

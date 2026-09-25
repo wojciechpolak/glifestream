@@ -86,8 +86,8 @@ def page_not_found(request: HttpRequest, exception: Exception) -> HttpResponseNo
     page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
-        'favicon': settings.FAVICON,
-        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
+        'favicon': common.static_url(settings.FAVICON),
+        'apple_touch_icon': common.static_url(settings.APPLE_TOUCH_ICON),
         'theme': common.get_theme(request),
     }
     t = render(request, '404.html', {'page': page})
@@ -98,8 +98,8 @@ def page_internal_error(request: HttpRequest) -> HttpResponseNotFound:
     page: Page = {
         'robots': 'noindex',
         'base_url': settings.BASE_URL,
-        'favicon': settings.FAVICON,
-        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
+        'favicon': common.static_url(settings.FAVICON),
+        'apple_touch_icon': common.static_url(settings.APPLE_TOUCH_ICON),
         'theme': 'default',
     }
     t = render(request, '500.html', {'page': page})
@@ -115,7 +115,10 @@ def webmanifest(request: HttpRequest) -> JsonResponse:
         'display': settings.PWA_APP_DISPLAY,
         'scope': reverse('index'),
         'start_url': reverse('index'),
-        'icons': settings.PWA_APP_ICONS,
+        'icons': [
+            {**icon, 'src': common.static_url(icon['src'])}
+            for icon in settings.PWA_APP_ICONS
+        ],
         'share_target': {
             'action': reverse('share'),
             'method': 'GET',

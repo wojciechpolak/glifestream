@@ -88,8 +88,8 @@ def login(
 
     page = {
         'robots': 'noindex,nofollow',
-        'favicon': settings.FAVICON,
-        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
+        'favicon': common.static_url(settings.FAVICON),
+        'apple_touch_icon': common.static_url(settings.APPLE_TOUCH_ICON),
         'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'theme': common.get_theme(request),
     }
@@ -136,8 +136,8 @@ def change_password(request: HttpRequest):
 
     page = {
         'robots': 'noindex,nofollow',
-        'favicon': settings.FAVICON,
-        'apple_touch_icon': settings.APPLE_TOUCH_ICON,
+        'favicon': common.static_url(settings.FAVICON),
+        'apple_touch_icon': common.static_url(settings.APPLE_TOUCH_ICON),
         'pwa': getattr(settings, 'PWA_APP_NAME', None),
         'theme': common.get_theme(request),
     }

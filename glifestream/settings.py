@@ -398,21 +398,25 @@ PWA_APP_NAME = 'gLifestream'
 PWA_APP_SHORT_NAME = 'GLS'
 PWA_APP_DESCRIPTION = 'Personal Lifestream'
 PWA_APP_DISPLAY = 'standalone'
+# The icons below are static files, named relative to STATIC_URL and
+# resolved when a page is rendered, so they follow a STATIC_URL that
+# settings_local.py or another settings module sets later. An absolute path
+# or a full URL is used as it is.
 PWA_APP_ICONS = [
-    {'src': STATIC_URL + 'icon-192.png', 'sizes': '192x192'},
-    {'src': STATIC_URL + 'icon-512.png', 'sizes': '512x512'},
+    {'src': 'icon-192.png', 'sizes': '192x192'},
+    {'src': 'icon-512.png', 'sizes': '512x512'},
     {
-        'src': STATIC_URL + 'icon-maskable-512.png',
+        'src': 'icon-maskable-512.png',
         'sizes': '512x512',
         'purpose': 'maskable',
     },
 ]
 
-# A shortcut icon URL (favicon).
-FAVICON = STATIC_URL + 'favicon.ico'
+# A shortcut icon (favicon).
+FAVICON = 'favicon.ico'
 
 # The icon iOS shows for a page added to the home screen.
-APPLE_TOUCH_ICON = STATIC_URL + 'apple-touch-icon.png'
+APPLE_TOUCH_ICON = 'apple-touch-icon.png'
 
 THEMES = ('default',)
 
