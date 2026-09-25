@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from unittest.mock import patch, MagicMock, call
 
 import pytest
@@ -374,7 +375,7 @@ def test_is_public_address_accepts_global_addresses(address):
 
 
 @pytest.fixture
-def loopback_image_server():
+def loopback_image_server() -> Iterator[tuple[str, list[str]]]:
     """A server on 127.0.0.1 that answers every GET with a PNG signature and
     records the paths it was asked for."""
     import threading
