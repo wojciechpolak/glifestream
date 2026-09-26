@@ -105,6 +105,31 @@ def test_usettings_status_shows_the_failure_streak(logged_in_client):
 
 
 @pytest.mark.django_db
+def test_usettings_status_translates_the_worker_messages(logged_in_client):
+    service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+    ServiceFetchState.objects.create(
+        service=service,
+        status=ServiceFetchState.STATUS_FAILED,
+        last_result='Remote request timed out.',
+        last_error='HTTP 504 from http://s1.com',
+    )
+
+    response = logged_in_client.get(
+        reverse('usettings-status'), HTTP_ACCEPT_LANGUAGE='pl'
+    )
+    body = response.content.decode()
+    state = logged_in_client.get(
+        reverse('usettings-api-cmd', args=['fetch-status']), HTTP_ACCEPT_LANGUAGE='pl'
+    ).json()['services'][str(service.pk)]
+
+    assert '>\n              błąd\n            </span>' in body
+    assert 'Upłynął limit czasu żądania do zdalnego serwera.' in body
+    assert state['last_result'] == 'Upłynął limit czasu żądania do zdalnego serwera.'
+    # A raw error has no translation and reads as it is.
+    assert state['last_error'] == 'HTTP 504 from http://s1.com'
+
+
+@pytest.mark.django_db
 def test_usettings_status_hides_non_fetchable_services(logged_in_client):
     Service.objects.create(name='Notes', api='selfposts')
 

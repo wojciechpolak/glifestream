@@ -27,6 +27,7 @@ from django.template.defaultfilters import date as ddate
 from django.urls import reverse
 from django.utils.translation import ngettext
 from django.utils.translation import gettext as _
+from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django import template
 
@@ -93,7 +94,7 @@ def gls_title(_, entry: Entry):
 
 
 @register.filter
-def gls_content(_, entry: Entry):
+def gls_content(value, entry: Entry):
     if entry.friends_only:
         friends_login_url = getattr(entry, 'friends_login_url', None)
         if friends_login_url is None and getattr(settings, 'MAGICSSO_ENABLED', False):
@@ -102,12 +103,13 @@ def gls_content(_, entry: Entry):
         login_link = ''
         if friends_login_url:
             login_link = (
-                f' <a href="{friends_login_url}" rel="nofollow">Friends Login</a>.'
+                f' <a href="{friends_login_url}" rel="nofollow">'
+                f'{escape(_("Friends Login"))}</a>.'
             )
 
         return mark_safe(
             '<div class="friends-only-entry">'
-            'The content of this entry is available only to my friends.'
+            f'{escape(_("The content of this entry is available only to my friends."))}'
             f'{login_link}'
             '</div>'
         )
@@ -119,7 +121,7 @@ def gls_content(_, entry: Entry):
                 s += (
                     '<div class="geo"><a href="#" class="show-map"><span class="latitude">%.10f</span> '
                     '<span class="longitude">%.10f</span>%s</a></div>'
-                    % (entry.geolat, entry.geolng, ('show map'))
+                    % (entry.geolat, entry.geolng, escape(_('show map')))
                 )
             return mark_safe(gls_media(s))
     except Exception as exc:

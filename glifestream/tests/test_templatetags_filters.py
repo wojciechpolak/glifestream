@@ -1,4 +1,6 @@
 import datetime
+from typing import Any, cast
+
 import pytest
 from django.utils.safestring import SafeString
 from glifestream.stream.templatetags.gls_filters import (
@@ -143,6 +145,29 @@ def test_gls_content_friends_only(service):
     content = gls_content(None, e)
     assert 'friends-only-entry' in content
     assert 'Private' not in content
+
+
+@pytest.mark.django_db
+def test_gls_content_translates_the_friends_only_notice(service):
+    from django.utils import translation
+
+    from glifestream.stream.models import Entry
+
+    e = Entry.objects.create(
+        service=service,
+        title='Test',
+        guid='t1',
+        friends_only=True,
+        content='Private',
+        date_published=datetime.datetime.now(UTC),
+    )
+    cast(Any, e).friends_login_url = '/login'
+
+    with translation.override('pl'):
+        content = gls_content(None, e)
+
+    assert 'tylko dla moich przyjaciół' in content
+    assert '>Logowanie dla przyjaciół</a>' in content
 
 
 @pytest.mark.parametrize(

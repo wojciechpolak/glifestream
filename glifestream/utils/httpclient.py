@@ -32,6 +32,7 @@ from urllib3.connectionpool import HTTPConnectionPool, HTTPSConnectionPool
 from urllib3.exceptions import NewConnectionError
 
 from django.conf import settings
+from django.utils.translation import gettext_noop
 
 
 HEADERS = {
@@ -202,16 +203,18 @@ def _build_http_error_detail(response: Response) -> str:
 
 def _get_category_user_message(category: str) -> str:
     messages = {
-        'timeout': 'Remote request timed out.',
-        'connection': 'Remote host could not be reached.',
-        'rate_limited': 'Remote service rate-limited the request.',
-        'remote_4xx': 'Remote service rejected the request.',
-        'remote_5xx': 'Remote service returned a temporary server error.',
-        'auth': 'Stored credentials were rejected by the remote service.',
-        'invalid_response': 'Remote service returned an invalid or unsupported response.',
-        'parse_error': 'Remote response could not be parsed.',
-        'blocked_address': 'Remote address is not allowed.',
-        'unexpected': 'Unexpected fetch error.',
+        'timeout': gettext_noop('Remote request timed out.'),
+        'connection': gettext_noop('Remote host could not be reached.'),
+        'rate_limited': gettext_noop('Remote service rate-limited the request.'),
+        'remote_4xx': gettext_noop('Remote service rejected the request.'),
+        'remote_5xx': gettext_noop('Remote service returned a temporary server error.'),
+        'auth': gettext_noop('Stored credentials were rejected by the remote service.'),
+        'invalid_response': gettext_noop(
+            'Remote service returned an invalid or unsupported response.'
+        ),
+        'parse_error': gettext_noop('Remote response could not be parsed.'),
+        'blocked_address': gettext_noop('Remote address is not allowed.'),
+        'unexpected': gettext_noop('Unexpected fetch error.'),
     }
     return messages.get(category, messages['unexpected'])
 

@@ -36,7 +36,7 @@ from django.contrib.auth.models import User
 from django.db import DatabaseError, close_old_connections, connections, transaction
 from django.db.models import F, Q
 from django.utils import timezone
-from django.utils.translation import ngettext
+from django.utils.translation import gettext, gettext_noop, ngettext
 
 from glifestream.apis.factory import ServiceFactory
 from glifestream.stream import websub
@@ -270,8 +270,8 @@ def recover_abandoned_fetch_states(*, now: Any | None = None) -> None:
         status=ServiceFetchState.STATUS_FAILED,
         finished_at=now,
         last_failed_at=now,
-        last_result='Fetch interrupted.',
-        last_error='Worker stopped before fetch completed.',
+        last_result=gettext_noop('Fetch interrupted.'),
+        last_error=gettext_noop('Worker stopped before fetch completed.'),
         consecutive_failures=F('consecutive_failures') + 1,
         failure_kind=ServiceFetchState.FAILURE_RETRYABLE,
         failure_category='interrupted',
@@ -356,8 +356,14 @@ def serialize_fetch_state(
     payload.update(
         (name, _isoformat(getattr(state, name, None))) for name in _STATE_TIMESTAMPS
     )
-    payload['last_result'] = state.last_result if state else ''
-    payload['last_error'] = state.last_error if state else ''
+    # The worker stores its own messages in English; a raw error has no
+    # translation and reads as it is.
+    payload['last_result'] = (
+        gettext(state.last_result) if state and state.last_result else ''
+    )
+    payload['last_error'] = (
+        gettext(state.last_error) if state and state.last_error else ''
+    )
     payload['consecutive_failures'] = state.consecutive_failures if state else 0
     payload['failure_kind'] = state.failure_kind if state else ''
     payload['failure_category'] = state.failure_category if state else ''
@@ -424,7 +430,7 @@ def _update_state_success(
         status=ServiceFetchState.STATUS_SUCCEEDED,
         finished_at=finished_at,
         last_succeeded_at=finished_at,
-        last_result='Fetch completed.',
+        last_result=gettext_noop('Fetch completed.'),
         last_error='',
         consecutive_failures=0,
         failure_kind='',
@@ -493,8 +499,8 @@ def _record_outcome(state_id: int | None, worker_token: str, **fields: Any) -> b
 def _describe_fetch_failure(error: Exception) -> tuple[str, str]:
     if isinstance(error, httpclient.FetchError):
         return error.user_message, error.detail
-    detail = str(error) or 'Unexpected fetch error.'
-    return 'Unexpected fetch error.', detail
+    detail = str(error) or gettext_noop('Unexpected fetch error.')
+    return gettext_noop('Unexpected fetch error.'), detail
 
 
 def run_service_fetch(
