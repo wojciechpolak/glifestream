@@ -2762,6 +2762,24 @@ img.noborder {
   --pswp-bg: #1e1e1e;
 }
 
+/*
+ * PhotoSwipe draws its own icons on bare buttons, so keep the look of the
+ * page's buttons, which a theme may give to `body.style-* button`, off them.
+ */
+.pswp .pswp__button {
+  &,
+  &:hover,
+  &:active,
+  &:focus {
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    text-shadow: none;
+    transform: none;
+  }
+}
+
 #status-editor {
   height: 150px;
 }
