@@ -15,7 +15,8 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from django.forms import ModelForm
+from django.forms import CheckboxSelectMultiple, ModelForm
+from django.utils.translation import gettext_lazy as _
 
 from glifestream.stream.models import List
 
@@ -24,3 +25,5 @@ class ListForm(ModelForm):
     class Meta:
         model = List
         exclude = ('user',)
+        labels = {'services': _('Services')}
+        widgets = {'services': CheckboxSelectMultiple}

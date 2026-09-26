@@ -2244,6 +2244,98 @@ ul.files {
     min-width: 20em;
   }
 
+  #list-picker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+  }
+
+  #list-form {
+    .form-row {
+      display: grid;
+      grid-template-columns: 8em minmax(0, 1fr);
+      align-items: baseline;
+      gap: 8px 12px;
+
+      &:hover {
+        background: none;
+      }
+    }
+
+    #id_name {
+      width: 24em;
+      max-width: 100%;
+    }
+
+    .form-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 14px;
+
+      button.delete {
+        margin-left: auto;
+        color: var(--danger);
+        background: transparent;
+        border-color: var(--danger);
+        box-shadow: none;
+
+        &:hover {
+          color: var(--button-text);
+          background: var(--danger);
+          box-shadow: var(--shadow-button);
+        }
+      }
+    }
+  }
+
+  #list-services {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13em, 1fr));
+    gap: 6px;
+    margin: 0;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--surface-input);
+      cursor: pointer;
+      transition:
+        border-color 0.18s ease,
+        background-color 0.18s ease;
+
+      &:hover {
+        border-color: var(--border-input);
+      }
+
+      &:has(input:checked) {
+        background: var(--accent-soft);
+        border-color: var(--border-input);
+      }
+    }
+
+    input {
+      margin: 0;
+    }
+
+    span.service {
+      font-size: 1.1rem;
+      margin: 0;
+    }
+
+    .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
   #opml-form {
     display: flex;
     align-items: center;
@@ -3258,6 +3350,14 @@ img.noborder {
 
     ul.tabs li {
       margin-left: 0;
+    }
+
+    #list-form .form-row {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    #list-services {
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 

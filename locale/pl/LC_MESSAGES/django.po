@@ -427,8 +427,8 @@ msgstr "Edycja listy:"
 msgid "new"
 msgstr "nowa"
 
-msgid "delete"
-msgstr "skasuj"
+msgid "Delete"
+msgstr "Skasuj"
 
 msgid "Read more about this implementation:"
 msgstr "Dowiedz się więcej o tej implementacji:"

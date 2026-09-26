@@ -421,7 +421,7 @@ def test_list_delete_can_be_cancelled(
     page.goto(f'{app_base_url}/settings/lists/seeded-list')
     dialogs = _record_dialogs(page, accept=False)
 
-    page.locator('#list-form a', has_text='delete').click()
+    page.locator('#list-form button.delete').click()
     page.wait_for_timeout(300)
     assert dialogs == ['Are you sure?']
     expect(page).to_have_url(f'{app_base_url}/settings/lists/seeded-list')
@@ -438,7 +438,7 @@ def test_list_delete_posts_the_form_with_a_delete_flag(
     with page.expect_request(
         lambda r: r.method == 'POST' and '/settings/lists' in r.url
     ) as request_info:
-        page.locator('#list-form a', has_text='delete').click()
+        page.locator('#list-form button.delete').click()
     assert _form(request_info.value)['delete'] == ['1']
     expect(page).to_have_url(re.compile(r'/settings/lists/?$'))
 

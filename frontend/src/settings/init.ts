@@ -62,7 +62,10 @@ export function init_settings(): void {
         }
     });
     listen('#settings input[name=cancel]', 'click', hide_settings_form);
-    listen('#list-form a', 'click', function () {
+    listen('#list-form input[name=cancel]', 'click', function (button) {
+        (button as HTMLInputElement).form?.reset();
+    });
+    listen('#list-form button.delete', 'click', function () {
         if (confirm(_('Are you sure?'))) {
             submit_with('list-form', 'delete', '1');
         }

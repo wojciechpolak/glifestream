@@ -2,28 +2,44 @@
 {% load i18n %}
 
 {% block settings %}
-  <p>
-    <span class="bold">{% trans "Editing list:" %}</span>&nbsp;
+  <p id="list-picker">
+    <label for="select-list" class="bold">{% trans "Editing list:" %}</label>
     <select id="select-list">
       <option value="">-- {% trans "new" %} --</option>
       {% for l in lists %}
       <option value="{{ l.slug }}"{% if curlist == l.slug %} selected="selected"{% endif %}>{{ l.name }}</option>{% endfor %}
-    </select>&nbsp;
+    </select>
   </p>
 
   {% if form %}
   <form id="list-form" method="post">
     {% csrf_token %}
-    <fieldset class="aligned">
-      {% for field in form %}
-      <div class="form-row">{{ field.errors }}
-        {{ field.label_tag }} {{ field }}
-      </div>
-      {% endfor %}
+    <fieldset>
       <div class="form-row">
-	<input type="submit" name="save" value="{% trans "Save" %}" />
-	<input type="button" name="cancel" value="{% trans "Cancel" %}" />
-	{% if curlist %}<a href="#">{% trans "delete" %}</a>{% endif %}
+        {{ form.name.label_tag }}
+        <div>{{ form.name.errors }}{{ form.name }}</div>
+      </div>
+      <div class="form-row" role="group" aria-labelledby="list-services-label">
+        <span id="list-services-label" class="label">{{ form.services.label }}:</span>
+        <div>
+          {{ form.services.errors }}
+          <ul id="list-services">
+            {% for cb in form.services %}
+            <li>
+              <label for="{{ cb.id_for_label }}">
+                {{ cb.tag }}
+                <span class="service {{ cb.data.value.instance.api }}"></span>
+                <span class="name">{{ cb.choice_label }}</span>
+              </label>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div class="form-actions">
+        <input type="submit" name="save" value="{% trans "Save" %}" />
+        <input type="button" name="cancel" value="{% trans "Cancel" %}" />
+        {% if curlist %}<button type="button" class="delete">{% trans "Delete" %}</button>{% endif %}
       </div>
     </fieldset>
   </form>

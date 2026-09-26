@@ -748,14 +748,14 @@ def test_settings_services_lists_and_websub(
 
     page.goto(f'{app_base_url}/settings/lists')
     page.locator('#id_name').fill('Playwright List')
-    page.locator('#id_services').select_option(label='Playwright Service Updated')
+    page.locator('#list-services').get_by_label('Playwright Service Updated').check()
     page.get_by_role('button', name='Save').click()
 
     expect(page).to_have_url(re.compile(r'/settings/lists/playwright-list/?$'))
     expect(page.locator('#select-list')).to_contain_text('Playwright List')
 
     page.locator('#id_name').fill('Playwright List Updated')
-    page.locator('#id_services').select_option(label='Playwright Service Updated')
+    page.locator('#list-services').get_by_label('Playwright Service Updated').check()
     page.get_by_role('button', name='Save').click()
 
     expect(page).to_have_url(re.compile(r'/settings/lists/playwright-list-updated/?$'))
@@ -763,7 +763,7 @@ def test_settings_services_lists_and_websub(
     vrt.screenshot(page.locator('#settings'), 'settings-lists.png')
 
     page.on('dialog', lambda dialog: dialog.accept())
-    page.locator('#list-form a', has_text='delete').click()
+    page.locator('#list-form button.delete').click()
 
     expect(page).to_have_url(re.compile(r'/settings/lists/?$'))
     expect(page.locator('#select-list')).not_to_contain_text('Playwright List Updated')
