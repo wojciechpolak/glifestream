@@ -32,7 +32,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import json_script
 from django.utils.safestring import SafeString
-from django.utils.translation import gettext, gettext_noop
+from django.utils.translation import get_language, gettext, gettext_noop
 
 register = Library()
 
@@ -97,6 +97,7 @@ def page_config() -> dict[str, Any]:
         'baseurl': reverse('index'),
         'maps_engine': settings.MAPS_ENGINE,
         'themes': list(settings.THEMES),
+        'lang': get_language() or settings.LANGUAGE_CODE,
         'messages': {message: gettext(message) for message in MESSAGES},
     }
 

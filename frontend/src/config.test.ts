@@ -40,6 +40,7 @@ describe('load_config', () => {
             baseurl: '/gls/',
             maps_engine: 'google',
             themes: ['default', 'dark'],
+            lang: 'pl',
             messages: { Undo: 'Cofnij' },
         };
         json_script('gls-config', page);
@@ -56,6 +57,7 @@ describe('load_config', () => {
             baseurl: '/',
             maps_engine: '',
             themes: [],
+            lang: '',
             messages: {},
         });
     });

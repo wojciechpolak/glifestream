@@ -21,7 +21,8 @@ import { config } from '../config';
 import {
     fetch_status,
     fetch_status_label,
-    format_fetch_timestamp,
+    fetch_timestamp,
+    refresh_relative_times,
     run_fetch_service,
     update_fetch_status,
 } from './fetch-status';
@@ -35,25 +36,71 @@ afterEach(() => {
         fetch_status.poll_timer = null;
     }
     document.body.innerHTML = '';
+    config.lang = '';
 });
 
-describe('format_fetch_timestamp', () => {
+describe('fetch_timestamp', () => {
+    const now = new Date('2026-09-23T10:20:00+00:00');
+
     it('shows the empty label without a timestamp', () => {
-        expect(format_fetch_timestamp(null, 'Never')).toBe('Never');
-        expect(format_fetch_timestamp('', 'Never')).toBe('Never');
-        expect(format_fetch_timestamp(undefined, 'Never')).toBe('Never');
+        expect(fetch_timestamp(null, 'Never', true, now)).toBe('Never');
+        expect(fetch_timestamp('', 'Never', true, now)).toBe('Never');
+        expect(fetch_timestamp(undefined, 'Never', true, now)).toBe('Never');
     });
 
-    it('shows a timestamp in the reader locale', () => {
+    it('reads relative to now, with the absolute time in its tooltip', () => {
+        config.lang = 'en';
         const value = '2026-09-23T10:15:00+00:00';
 
-        expect(format_fetch_timestamp(value, 'Never')).toBe(
-            new Date(value).toLocaleString(),
-        );
+        const time = fetch_timestamp(value, 'Never', true, now) as HTMLTimeElement;
+
+        expect(time.tagName).toBe('TIME');
+        expect(time.className).toBe('fetch-time');
+        expect(time.dateTime).toBe(value);
+        expect(time.textContent).toBe('5 minutes ago');
+        expect(time.dataset['tooltip']).toBe(new Date(value).toLocaleString('en'));
+        expect(time.hasAttribute('data-past')).toBe(true);
+        expect(time.tabIndex).toBe(0);
+        expect(time.title).toBe('');
+    });
+
+    it('reads in the page language', () => {
+        config.lang = 'pl';
+
+        const time = fetch_timestamp(
+            '2026-09-23T10:23:00+00:00',
+            'Nigdy',
+            false,
+            now,
+        ) as HTMLTimeElement;
+
+        expect(time.textContent).toBe('za 3 minuty');
+        expect(time.hasAttribute('data-past')).toBe(false);
     });
 
     it('keeps a value it cannot read as a date', () => {
-        expect(format_fetch_timestamp('soon', 'Never')).toBe('soon');
+        expect(fetch_timestamp('soon', 'Never', true, now)).toBe('soon');
+    });
+});
+
+describe('refresh_relative_times', () => {
+    it('brings the relative times up to now', () => {
+        config.lang = 'en';
+        const cell = document.createElement('td');
+        document.body.append(cell);
+        cell.append(
+            fetch_timestamp(
+                '2026-09-23T10:15:00+00:00',
+                'Never',
+                true,
+                new Date('2026-09-23T10:15:10+00:00'),
+            ),
+        );
+        expect(cell.textContent).toBe('10 seconds ago');
+
+        refresh_relative_times(new Date('2026-09-23T10:16:05+00:00'));
+
+        expect(cell.textContent).toBe('1 minute ago');
     });
 });
 
@@ -101,6 +148,31 @@ function text(id: string): string {
 }
 
 describe('update_fetch_status', () => {
+    it('shows the import times as relative <time> elements', () => {
+        status_rows();
+        const value = '2026-03-01T10:00:00+00:00';
+
+        update_fetch_status({
+            service_id: 7,
+            status: 'succeeded',
+            last_succeeded_at: value,
+            next_fetch_at: value,
+            failure_note: 'Retrying soon',
+        });
+
+        const cell = document.getElementById('fetch-summary-last-succeeded-7');
+        const time = cell?.querySelector('time.fetch-time') as HTMLTimeElement;
+        expect(time.dateTime).toBe(value);
+        expect(time.dataset['tooltip']).toBe(new Date(value).toLocaleString());
+        expect(time.textContent).toMatch(/ ago$/);
+        expect(text('fetch-summary-finished-7')).toBe('No completed runs');
+        const next = document.getElementById('fetch-summary-next-fetch-7');
+        expect(next?.querySelector('time.fetch-time')?.nextElementSibling?.id).toBe(
+            'fetch-retry-note-7',
+        );
+        expect(text('fetch-retry-note-7')).toBe('Retrying soon');
+    });
+
     it('shows a failure with its error, and keeps the retry note', () => {
         status_rows();
 

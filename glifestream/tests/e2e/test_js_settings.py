@@ -326,6 +326,15 @@ def test_run_now_polls_until_the_fetch_finishes(
         expect(row.locator(f'#fetch-summary-{cell}-{service.pk}')).not_to_have_text(
             re.compile(r'Never|No completed runs')
         )
+    time = row.locator(
+        f'#fetch-summary-last-succeeded-{service.pk} '
+        'time.fetch-time[datetime="2026-03-01T10:00:00+00:00"]'
+    )
+    expect(time).to_have_text(re.compile(r' ago$'))
+    expect(time).to_have_attribute('data-tooltip', re.compile(r'2026'))
+    time.hover()
+    tooltip = time.evaluate("el => getComputedStyle(el, '::after').content")
+    assert '2026' in tooltip
     expect(row.locator(f'#fetch-error-text-{service.pk}')).to_have_text('—')
 
     page.clock.run_for(15000)

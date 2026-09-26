@@ -24,6 +24,8 @@ import type {
 import { config } from '../config';
 import { get_json, try_post_json } from '../http';
 import { hide_spinner, show_spinner } from '../ui/spinner';
+import { h } from '../util/dom';
+import { format_relative_time } from '../util/format';
 import { _ } from '../util/i18n';
 
 const fetch_status_poll_interval_ms = 3000;
@@ -85,11 +87,22 @@ function stop_fetch_status_polling(): void {
     }
 }
 
-/** An ISO timestamp in the reader's locale, or `emptyLabel` without one. */
-export function format_fetch_timestamp(
+/** The language the page is translated into; unset, the browser's. */
+function page_locale(): string | undefined {
+    return config.lang || undefined;
+}
+
+/**
+ * An ISO timestamp as a <time> that reads relative to now ("5 minutes ago"),
+ * with the absolute time in its tooltip; `emptyLabel` without a timestamp, and
+ * the value as it is when it is not a date. `past` times never read as future.
+ */
+export function fetch_timestamp(
     value: string | null | undefined,
     emptyLabel: string,
-): string {
+    past: boolean,
+    now: Date = new Date(),
+): Node | string {
     if (!value) {
         return emptyLabel;
     }
@@ -97,7 +110,54 @@ export function format_fetch_timestamp(
     if (Number.isNaN(parsed.getTime())) {
         return value;
     }
-    return parsed.toLocaleString();
+    const locale = page_locale();
+    const time = h('time', { className: 'fetch-time', dateTime: value, tabIndex: 0 }, [
+        format_relative_time(parsed, now, locale, { past }),
+    ]);
+    time.dataset['tooltip'] = parsed.toLocaleString(locale);
+    if (past) {
+        time.dataset['past'] = '';
+    }
+    return time;
+}
+
+/** Shows a timestamp in a cell, keeping the cell's retry note after it. */
+function render_fetch_timestamp(
+    id: string,
+    value: string | null | undefined,
+    emptyLabel: string,
+    past: boolean,
+): void {
+    const cell = by_id(id);
+    if (!cell) {
+        return;
+    }
+    const retryNote = cell.querySelector('.retry-note');
+    cell.replaceChildren(fetch_timestamp(value, emptyLabel, past));
+    if (retryNote) {
+        cell.append(retryNote);
+    }
+}
+
+/** Brings every relative time on the page up to `now`. */
+export function refresh_relative_times(now: Date = new Date()): void {
+    const locale = page_locale();
+    for (const time of document.querySelectorAll<HTMLTimeElement>('time.fetch-time')) {
+        const parsed = new Date(time.dateTime);
+        if (Number.isNaN(parsed.getTime())) {
+            continue;
+        }
+        const past = time.hasAttribute('data-past');
+        const text = format_relative_time(parsed, now, locale, { past });
+        if (time.textContent !== text) {
+            time.textContent = text;
+        }
+    }
+}
+
+/** Keeps the relative times current, once a second. */
+export function start_relative_time_ticker(): void {
+    window.setInterval(() => refresh_relative_times(), 1000);
 }
 
 /** A service's state as the page shows it now, from its data attributes. */
@@ -143,26 +203,25 @@ function render_fetch_diagnostics(state: FetchState): void {
     const id = state.service_id;
     store_fetch_diagnostics_state(state);
     set_text('fetch-result-' + id, state.last_result || '—');
-    set_text(
+    render_fetch_timestamp(
         'fetch-summary-last-succeeded-' + id,
-        format_fetch_timestamp(state.last_succeeded_at, _('Never')),
+        state.last_succeeded_at,
+        _('Never'),
+        true,
     );
-    set_text(
+    render_fetch_timestamp(
         'fetch-summary-finished-' + id,
-        format_fetch_timestamp(state.finished_at, _('No completed runs')),
+        state.finished_at,
+        _('No completed runs'),
+        true,
     );
-    // The retry note sits inside the next fetch time, which the text replaces.
-    const retryNote = by_id('fetch-retry-note-' + id);
-    retryNote?.remove();
-    set_text(
+    render_fetch_timestamp(
         'fetch-summary-next-fetch-' + id,
-        format_fetch_timestamp(state.next_fetch_at, _('Not scheduled')),
+        state.next_fetch_at,
+        _('Not scheduled'),
+        false,
     );
-    if (retryNote) {
-        retryNote.textContent = state.failure_note || '';
-        by_id('fetch-summary-next-fetch-' + id)?.append(retryNote);
-    }
-
+    set_text('fetch-retry-note-' + id, state.failure_note || '');
     set_text('fetch-error-text-' + id, state.last_error || '—');
     by_id('fetch-error-' + id)?.classList.toggle('empty', !state.last_error);
 }

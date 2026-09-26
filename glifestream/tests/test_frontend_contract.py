@@ -60,7 +60,13 @@ FETCH_STATE = {
 FETCH_STATUSES = {'idle', 'queued', 'running', 'succeeded', 'failed'}
 
 # PageConfig and StreamData in api-types.ts.
-PAGE_CONFIG = {'baseurl': str, 'maps_engine': str, 'themes': list, 'messages': dict}
+PAGE_CONFIG = {
+    'baseurl': str,
+    'maps_engine': str,
+    'themes': list,
+    'lang': str,
+    'messages': dict,
+}
 STREAM_DATA = {
     'ctx': str,
     'year_now': int,
@@ -227,6 +233,14 @@ def test_page_config_translates_the_messages(client):
     config = json_scripts(client.get(reverse('index'), HTTP_ACCEPT_LANGUAGE='pl').text)
 
     assert config['gls-config']['messages']['Undo'] == 'Cofnij'
+    assert config['gls-config']['lang'] == 'pl'
+
+
+@pytest.mark.django_db
+def test_settings_pages_send_the_translation_language(admin_client):
+    response = admin_client.get(reverse('usettings-status'), HTTP_ACCEPT_LANGUAGE='pl')
+
+    assert json_scripts(response.text)['gls-config']['lang'] == 'pl'
 
 
 def test_page_config_lists_every_message_the_page_script_translates():

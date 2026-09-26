@@ -25,6 +25,7 @@ import {
     initialize_fetch_diagnostics,
     maybe_start_fetch_status_polling,
     run_fetch_service,
+    start_relative_time_ticker,
 } from './fetch-status';
 import { get_service_form, hide_settings_form } from './service-form';
 
@@ -82,5 +83,6 @@ export function init_settings(): void {
     listen('#change-theme', 'click', change_theme);
     delegate(document, 'click', 'a.run-fetch', run_fetch_service);
     initialize_fetch_diagnostics();
+    start_relative_time_ticker();
     maybe_start_fetch_status_polling(true);
 }

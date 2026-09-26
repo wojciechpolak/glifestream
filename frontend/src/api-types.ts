@@ -29,6 +29,8 @@ export interface PageConfig {
     /** 'google' for Google Maps, anything else for OpenStreetMap. */
     maps_engine: string;
     themes: string[];
+    /** The language the messages are translated into, as a BCP 47 tag. */
+    lang: string;
     /** English message to its translation, for every message _() is given. */
     messages: Record<string, string>;
 }

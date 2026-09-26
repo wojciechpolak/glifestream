@@ -25,6 +25,7 @@ export const config: PageConfig = {
     baseurl: '/',
     maps_engine: '',
     themes: [],
+    lang: '',
     messages: {},
 };
 
