@@ -784,6 +784,39 @@ def test_j_and_k_move_between_entries(
     expect(_highlighted(page)).to_have_id(f'entry-{first.pk}')
 
 
+def test_k_scrolls_up_to_the_entry_without_passing_it(
+    page: Page, app_base_url: str, ensure_admin_session, make_entry
+):
+    tall = ''.join(f'<p>Line {i}</p>' for i in range(80))
+    make_entry('Tall Entry One', tall)
+    make_entry('Tall Entry Two', tall)
+    make_entry('Tall Entry Three', tall)
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+    settled = """() => {
+        const h = document.querySelector('#stream article.entry-highlight');
+        return h !== null && Math.abs(h.getBoundingClientRect().top - 24) < 2;
+    }"""
+
+    for _ in range(3):
+        page.keyboard.press('j')
+    expect(_highlighted(page)).to_contain_text('Tall Entry Three')
+    page.wait_for_function(settled)
+
+    page.evaluate("""() => {
+        window.lowestScrollY = window.scrollY;
+        addEventListener('scroll', () => {
+            window.lowestScrollY = Math.min(window.lowestScrollY, window.scrollY);
+        });
+    }""")
+    page.keyboard.press('k')
+    expect(_highlighted(page)).to_contain_text('Tall Entry Two')
+    page.wait_for_function(settled)
+
+    # The page went straight up to the entry, not past it and back down.
+    assert page.evaluate('window.lowestScrollY') >= page.evaluate('window.scrollY') - 2
+
+
 def test_j_past_the_last_entry_loads_more(
     page: Page, app_base_url: str, ensure_admin_session, make_entry, settings
 ):

@@ -114,8 +114,10 @@ export function init_shortcuts(): void {
 }
 
 function highlight_article(article: HTMLElement): void {
+    // Moves where Tab starts from; the scroll below places the entry, and a
+    // focus that scrolled too would first jump past it when going up.
     const first = article.querySelector('a');
-    first?.focus();
+    first?.focus({ preventScroll: true });
     first?.blur();
     for (const a of stream_state.articles) {
         a.classList.remove('entry-highlight');

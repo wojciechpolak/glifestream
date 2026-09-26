@@ -63,6 +63,15 @@ describe('kshortcuts', () => {
         expect(highlighted()).toEqual(['entry-1']);
     });
 
+    it('moves focus to the entry without scrolling it into view', () => {
+        const focus = vi.spyOn(HTMLElement.prototype, 'focus');
+
+        press('j');
+
+        expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+        focus.mockRestore();
+    });
+
     it('clicks "next" when j moves past the last entry', () => {
         const next = vi.fn((e: Event) => e.preventDefault());
         stream_state.nav_next[0]?.addEventListener('click', next);
