@@ -16,12 +16,12 @@
       <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
     </radialGradient>
     <radialGradient id="warm" cx="0.9" cy="0.95" r="0.55">
-      <stop offset="0" stop-color="#b0874f" stop-opacity="0.22"/>
-      <stop offset="1" stop-color="#b0874f" stop-opacity="0"/>
+      <stop offset="0" stop-color="#e0a040" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#e0a040" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#b58a4c"/>
-      <stop offset="1" stop-color="#7a5a24"/>
+      <stop offset="0" stop-color="#eeb044"/>
+      <stop offset="1" stop-color="#c46a14"/>
     </linearGradient>
     <linearGradient id="photo" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#9fbcd0"/>
@@ -117,6 +117,6 @@
 
   <!-- Wordmark -->
   <use href="#mark" x="96" y="156" width="112" height="112"/>
-  <text x="90" y="396" font-family="Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, serif" font-weight="700" font-size="96" letter-spacing="-1.5" fill="#2b2419"><tspan fill="#8a6420">g</tspan>Lifestream</text>
+  <text x="90" y="396" font-family="Palatino, 'Palatino Linotype', 'Book Antiqua', Georgia, serif" font-weight="700" font-size="96" letter-spacing="-1.5" fill="#2b2419"><tspan fill="#b3610f">g</tspan>Lifestream</text>
   <text x="94" y="470" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="35.6" fill="#4e4231">Your own self-hosted lifestream</text>
 </svg>
