@@ -963,6 +963,9 @@ msgstr "OAuth 2.0 - Ustawienia"
 msgid "Status - Settings"
 msgstr "Status - Ustawienia"
 
+msgid "delete"
+msgstr "skasuj"
+
 msgid "Tag name"
 msgstr "Nazwa tagu"
 
