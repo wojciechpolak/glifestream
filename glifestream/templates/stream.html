@@ -8,7 +8,7 @@
     <span class="label">{% trans "Menu" %}</span>
   </button>
   <section id="about">
-    <h4>{% trans "About" %}</h4>
+    <h2>{% trans "About" %}</h2>
 {% include "user-about.html" %}
   </section>
   <nav>
@@ -31,7 +31,7 @@
     </ul>
 {% if lists %}
     <div class="lists">
-      <h4>{% trans "Lists" %}</h4>
+      <h2>{% trans "Lists" %}</h2>
       <select>
 	<option value="">{% if page.list %}{% trans "All entries" %}{% else %}{% trans "Select List" %}{% endif %}</option>
 {% for list in lists %}        <option value="{{ list.slug }}"{% if list.slug == page.list %} selected="selected"{% endif %}>{{ list.name }}</option>
@@ -41,7 +41,7 @@
 {% endif %}
 {% endif %}
     <div class="archives">
-      <h4>{% trans "Archives" %}</h4>
+      <h2>{% trans "Archives" %}</h2>
       <div id="calendar"></div>
     </div>
     {% if has_search %}<search class="search">
@@ -63,7 +63,7 @@
 
 {% block mainClass %}stream{% endblock mainClass %}
 {% block main %}
-<section id="stream" class="hfeed">
+<main id="stream" class="hfeed">
 
 {% if authed %}
 <aside id="share" class="share-collapsed">
@@ -142,7 +142,7 @@
 {% endif %}
 {% endif %}
 
-</section>
+</main>
 
 <dialog id="shortcuts-help" aria-labelledby="shortcuts-help-title">
   <div class="shortcuts-help-body">

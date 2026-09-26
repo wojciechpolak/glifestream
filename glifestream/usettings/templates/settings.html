@@ -3,7 +3,7 @@
 
 {% block mainClass %}settings{% endblock mainClass %}
 {% block main %}
-<section id="settings">
+<main id="settings">
   <ul class="tabs">
     <li><a href="{% url 'usettings-services' %}"{% if page.menu == "services" %} class="active"{% endif %}>{% trans "Services" %}</a></li>
     <li><a href="{% url 'usettings-status' %}"{% if page.menu == "status" %} class="active"{% endif %}>{% trans "Status" %}</a></li>
@@ -11,5 +11,5 @@
     <li><a href="{% url 'usettings-websub' %}"{% if page.menu == "websub" %} class="active"{% endif %}>{% trans "WebSub" %}</a></li>
   </ul>
   {% block settings %}{% endblock %}
-</section>
+</main>
 {% endblock main %}

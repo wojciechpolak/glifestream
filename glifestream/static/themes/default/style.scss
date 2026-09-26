@@ -774,9 +774,13 @@ input[placeholder].blur,
     margin-bottom: 18px;
   }
 
-  h4 {
+  // An h2, next in the outline after the page's h1, drawn like an h4.
+  h2 {
     margin: 0 0 14px;
+    font-family: var(--font-ui);
     font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     color: var(--text-muted);
   }
 
@@ -894,9 +898,9 @@ input[placeholder].blur,
   margin-top: 18px;
 }
 
-.lists h4,
-.archives h4,
-.search h4 {
+.lists h2,
+.archives h2,
+.search h2 {
   margin-bottom: 10px;
 }
 

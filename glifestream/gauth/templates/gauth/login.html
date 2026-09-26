@@ -3,7 +3,7 @@
 
 {% block mainClass %}login{% endblock mainClass %}
 {% block main %}
-<section id="login">
+<main id="login">
 
 <div id="loginbox">
 {% if form.errors %}<p class="error">{% trans "Invalid username or password" %}</p>{% endif %}
@@ -31,6 +31,6 @@
 </form>
 </div>
 
-</section><!-- /login -->
+</main><!-- /login -->
 
 {% endblock main %}

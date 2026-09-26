@@ -2,12 +2,12 @@
 {% for entry in entries %}
   <article id="entry-{{ entry.id }}" class="hentry e-{% firstof entry.service.cls entry.service.api %}{% if not entry.service.public %} private{% endif %}">
   {% spaceless %}
-    <a href="{{ ""|gls_link:entry }}" rel="nofollow">
+    <a href="{{ ""|gls_link:entry }}" title="{% if entry.service.public %}{% firstof entry.service.cls|capfirst entry.service.api|capfirst %}{% else %}{% firstof entry.author_name entry.service.name %}{% endif %}" rel="nofollow">
       {% if entry.service.public %}
         <div class="entry-icon"></div>
       {% else %}
         {% if entry.link_image %}
-        <img class="entry-icon" src="{{ entry.link_image|gls_media }}" alt="[icon]" />
+        <img class="entry-icon" src="{{ entry.link_image|gls_media }}" alt="" />
         {% else %}
         <div class="entry-icon"></div>
         {% endif %}
