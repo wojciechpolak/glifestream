@@ -1305,6 +1305,21 @@ def test_list_selector_navigates_to_list(
     expect(page).to_have_url(f'{app_base_url}/list/seeded-list/')
 
 
+def test_list_can_be_left_from_the_selector_and_the_subtitle(
+    page: Page, app_base_url: str, ensure_admin_session
+):
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/list/seeded-list/')
+
+    expect(page.locator('div.lists select')).to_have_value('seeded-list')
+    page.locator('div.lists select').select_option('')
+    expect(page).to_have_url(f'{app_base_url}/')
+
+    page.goto(f'{app_base_url}/list/seeded-list/')
+    page.locator('p.subtitle a.show-all').click()
+    expect(page).to_have_url(f'{app_base_url}/')
+
+
 def test_empty_search_is_not_submitted(
     page: Page, app_base_url: str, ensure_admin_session
 ):

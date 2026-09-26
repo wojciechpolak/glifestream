@@ -382,6 +382,12 @@ msgstr "Ulubione wpisy"
 msgid "Select List"
 msgstr "Wybierz listę"
 
+msgid "All entries"
+msgstr "Wszystkie wpisy"
+
+msgid "Show all entries"
+msgstr "Pokaż wszystkie wpisy"
+
 msgid "Archives"
 msgstr "Archiwum"
 

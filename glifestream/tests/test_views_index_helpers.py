@@ -104,7 +104,8 @@ def test_apply_context_filters_sets_list_scope(request_factory, user, service):
     assert 'service__home' not in query.filters
     assert list(query.filters['service__id__in']) == [{'id': service.id}]
     assert query.page['ctx'] == f'list/{stream_list.slug}'
-    assert query.page['title'] == stream_list.slug
+    assert query.page['list'] == stream_list.slug
+    assert query.page['title'] == stream_list.name
 
 
 @pytest.mark.django_db

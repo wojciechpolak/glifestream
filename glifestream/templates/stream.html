@@ -32,8 +32,8 @@
     <div class="lists">
       <h4>{% trans "Lists" %}</h4>
       <select>
-	<option value="">{% trans "Select List" %}</option>
-{% for list in lists %}        <option value="{{ list.name|slugify }}">{{ list.name }}</option>
+	<option value="">{% if page.list %}{% trans "All entries" %}{% else %}{% trans "Select List" %}{% endif %}</option>
+{% for list in lists %}        <option value="{{ list.slug }}"{% if list.slug == page.list %} selected="selected"{% endif %}>{{ list.name }}</option>
 {% endfor %}
       </select>
     </div>
@@ -109,7 +109,8 @@
 {% endif %}
 
 {% if page.subtitle %}
-  <p class="subtitle">{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% if page.ctx == "public" %}{% url 'public' %}{% else %}{% if page.favorites %}{% url 'favorites' %}{% else %}{% url 'index' %}{% endif %}{% endif %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</p>
+  <p class="subtitle"><span>{{ page.subtitle|safe }}{% if page.month_next %} <a href="{% if page.ctx == "public" %}{% url 'public' %}{% else %}{% if page.favorites %}{% url 'favorites' %}{% else %}{% url 'index' %}{% endif %}{% endif %}{{ page.month_next }}/" class="next" title="{% trans "next month" %}" rel="nofollow">&nbsp;</a>{% endif %}</span>
+    <a href="{% if page.ctx == "public" %}{% url 'public' %}{% else %}{% url 'index' %}{% endif %}" class="show-all">{% trans "Show all entries" %}</a></p>
 {% endif %}
 {% if page.after %}
   <nav class="pagination-top">

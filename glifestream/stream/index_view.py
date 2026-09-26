@@ -234,16 +234,15 @@ def apply_context_filters(
         query.filters['id__in'] = favs.values('entry')
     elif 'list' in state.args:
         try:
-            services = List.objects.get(
-                user=state.user, slug=state.args['list']
-            ).services
+            stream_list = List.objects.get(user=state.user, slug=state.args['list'])
             del query.filters['service__home']
-            query.filters['service__id__in'] = services.values('id')
-            query.page['ctx'] = 'list/' + state.args['list']
-            query.page['title'] = state.args['list']
+            query.filters['service__id__in'] = stream_list.services.values('id')
+            query.page['ctx'] = 'list/' + stream_list.slug
+            query.page['list'] = stream_list.slug
+            query.page['title'] = stream_list.name
             query.page['subtitle'] = _(
                 'You are currently browsing entries from %s list only.'
-            ) % ('<b>' + state.args['list'] + '</b>')
+            ) % ('<b>' + escape(stream_list.name) + '</b>')
         except List.DoesNotExist:
             if state.authed:
                 raise Http404

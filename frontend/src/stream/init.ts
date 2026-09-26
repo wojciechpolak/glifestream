@@ -121,9 +121,8 @@ export function init_stream(): void {
     listen('#change-theme', 'click', change_theme);
     listen('div.lists select', 'change', function (select) {
         const value = (select as HTMLSelectElement).value;
-        if (value !== '') {
-            window.location.href = config.baseurl + 'list/' + value + '/';
-        }
+        window.location.href =
+            config.baseurl + (value !== '' ? 'list/' + value + '/' : '');
     });
     delegate(document, 'click', '#entry-editor input[type=button]', editor_handler);
 

@@ -1128,9 +1128,39 @@ p.subtitle {
   font-family: var(--font-display);
   font-size: 1.08rem;
   color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
 
   a:hover {
     text-decoration: none;
+  }
+
+  a.show-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 6px 13px;
+    font-family: var(--font-ui);
+    font-size: 0.86rem;
+    white-space: nowrap;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: var(--surface-input);
+    box-shadow: var(--sheen-soft);
+
+    &::before {
+      @extend .fas;
+      @extend .fa-xmark;
+      line-height: 1;
+    }
+
+    &:hover,
+    &:focus-visible {
+      border-color: var(--border-strong);
+    }
   }
 
   a.next {

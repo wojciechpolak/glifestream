@@ -34,6 +34,7 @@ class Page(TypedDict, total=False):
     favorites: bool
     icon: str
     lang: str
+    list: str
     login_url: str
     maps_engine: str
     month_nav: bool
