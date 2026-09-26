@@ -110,11 +110,10 @@ export function init_stream(): void {
     }
 
     listen('#sidebar-toggle', 'click', function (toggle) {
-        document.getElementById('sidebar')?.classList.toggle('expanded');
-        for (const icon of toggle.querySelectorAll('i')) {
-            icon.classList.toggle('fa-chevron-up');
-            icon.classList.toggle('fa-chevron-down');
-        }
+        const expanded = !!document
+            .getElementById('sidebar')
+            ?.classList.toggle('expanded');
+        toggle.setAttribute('aria-expanded', String(expanded));
     });
 
     listen('#toggle-reblogs', 'click', toggle_reblogs);

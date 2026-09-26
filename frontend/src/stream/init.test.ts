@@ -27,7 +27,7 @@ const fetch_mock = vi.fn<typeof fetch>();
 function stream_page(): void {
     document.body.innerHTML = `
         <aside id="sidebar">
-          <a id="sidebar-toggle"><i class="fa-chevron-down"></i></a>
+          <button id="sidebar-toggle" aria-expanded="false">Menu</button>
           <form name="searchform"><input name="s" value=""></form>
         </aside>
         <section id="stream">
@@ -98,9 +98,18 @@ describe('init_stream', () => {
         expect(document.getElementById('sidebar')?.classList.contains('expanded')).toBe(
             true,
         );
-        expect(document.querySelector('#sidebar-toggle i')?.className).toBe(
-            'fa-chevron-up',
+        expect(
+            document.getElementById('sidebar-toggle')?.getAttribute('aria-expanded'),
+        ).toBe('true');
+
+        document.getElementById('sidebar-toggle')?.click();
+
+        expect(document.getElementById('sidebar')?.classList.contains('expanded')).toBe(
+            false,
         );
+        expect(
+            document.getElementById('sidebar-toggle')?.getAttribute('aria-expanded'),
+        ).toBe('false');
     });
 
     it('does not search for nothing', () => {
