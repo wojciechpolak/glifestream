@@ -77,5 +77,5 @@ def test_sass_compiler_writes_only_to_the_directory_it_creates(tmp_path):
         str(sources / 'theme.scss'), str(output)
     )
 
-    assert 'color: red' in output.read_text()
+    assert '.x{color:red}' in output.read_text()
     assert sorted(p.name for p in sources.iterdir()) == ['_colors.scss', 'theme.scss']

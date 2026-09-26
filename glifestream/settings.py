@@ -360,6 +360,9 @@ PIPELINE = {
     'CSS_COMPRESSOR': None,
     'COMPILERS': ('glifestream.gls_staticfiles.GlsSASSCompiler',),
     'SASS_BINARY': get_env(ENV, 'SASS_BINARY', default='pysassc') or 'pysassc',
+    # Minified, as the frontend build's own stylesheet is. Both pysassc and
+    # Dart Sass take this form of the option.
+    'SASS_ARGUMENTS': '--style=compressed',
     'JAVASCRIPT': {
         'main': {
             # Built from frontend/ by `npm run build`.
