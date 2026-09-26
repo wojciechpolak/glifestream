@@ -160,6 +160,10 @@ USE_TZ = True
 LANGUAGE_CODE = get_env(ENV, 'LANGUAGE_CODE', default='en-us') or 'en-us'
 USE_I18N = True
 
+# Interface languages with translations. A user can pick one in Settings;
+# otherwise the browser's Accept-Language header chooses among them.
+LANGUAGES = [('en', 'English'), ('pl', 'Polski')]
+
 # Directories where Django looks for translation files.
 LOCALE_PATHS = (os.path.join(PROJECT_ROOT, 'locale'),)
 
@@ -254,6 +258,9 @@ MIDDLEWARE = [
     'glifestream.gauth.middleware.ForcePasswordChangeMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.locale.LocaleMiddleware',
+    # After LocaleMiddleware, to override its choice with the user's own, and
+    # before FetchFromCacheMiddleware, whose cache key holds the language.
+    'glifestream.gauth.middleware.UserLanguageMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',

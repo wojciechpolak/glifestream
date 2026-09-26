@@ -19,7 +19,18 @@
 
 from glifestream.usettings.list_settings import lists
 from glifestream.usettings.oauth_settings import oauth, oauth2
+from glifestream.usettings.preferences_settings import preferences
 from glifestream.usettings.service_settings import api, opml, services, status
 from glifestream.usettings.websub_settings import websub
 
-__all__ = ['api', 'lists', 'oauth', 'oauth2', 'opml', 'services', 'status', 'websub']
+__all__ = [
+    'api',
+    'lists',
+    'oauth',
+    'oauth2',
+    'opml',
+    'preferences',
+    'services',
+    'status',
+    'websub',
+]

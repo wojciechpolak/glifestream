@@ -15,9 +15,14 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from django.forms import CheckboxSelectMultiple, ModelForm
+from typing import Any
+
+from django.conf import settings
+from django.forms import CheckboxSelectMultiple, ChoiceField, ModelForm
+from django.utils.translation import get_language_info
 from django.utils.translation import gettext_lazy as _
 
+from glifestream.gauth.models import UserProfile
 from glifestream.stream.models import List
 
 
@@ -27,3 +32,21 @@ class ListForm(ModelForm):
         exclude = ('user',)
         labels = {'services': _('Services')}
         widgets = {'services': CheckboxSelectMultiple}
+
+
+def _language_choices() -> list[tuple[str, Any]]:
+    # Each language names itself, so it can be found whatever the current one.
+    return [('', _('Browser default'))] + [
+        (code, get_language_info(code)['name_local'])
+        for code, _name in settings.LANGUAGES
+    ]
+
+
+class PreferencesForm(ModelForm):
+    language = ChoiceField(
+        label=_('Language'), required=False, choices=_language_choices
+    )
+
+    class Meta:
+        model = UserProfile
+        fields = ('language',)

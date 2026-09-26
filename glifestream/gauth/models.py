@@ -35,6 +35,13 @@ class UserProfile(models.Model):
             'If set, the user will be forced to change their password on next login.'
         ),
     )
+    language = models.CharField(
+        _('Language'),
+        max_length=10,
+        blank=True,
+        default='',
+        help_text=_('Interface language. Empty means the browser decides.'),
+    )
 
     class Meta:
         verbose_name = _('User Profile')

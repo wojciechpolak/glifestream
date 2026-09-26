@@ -1,0 +1,19 @@
+{% extends "settings.html" %}
+{% load i18n %}
+
+{% block settings %}
+  {% if page.msg %}<p class="msg" role="status">{{ page.msg }}</p>{% endif %}
+
+  <form id="preferences-form" method="post" action="{% url 'usettings-preferences' %}">
+    {% csrf_token %}
+    <fieldset>
+      <div class="form-row">
+        {{ form.language.label_tag }}
+        <div>{{ form.language.errors }}{{ form.language }}</div>
+      </div>
+      <div class="form-actions">
+        <input type="submit" name="save" value="{% trans "Save" %}" />
+      </div>
+    </fieldset>
+  </form>
+{% endblock settings %}

@@ -15,8 +15,10 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from django.conf import settings
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.urls import reverse
+from django.utils import translation
 
 
 class ForcePasswordChangeMiddleware:
@@ -43,6 +45,27 @@ class ForcePasswordChangeMiddleware:
                         return HttpResponseRedirect(change_password_url)
             except AttributeError:
                 pass
+
+        response: HttpResponse = self.get_response(request)
+        return response
+
+
+class UserLanguageMiddleware:
+    """Activate the interface language the user picked in Settings.
+
+    Without a choice, the language LocaleMiddleware took from the browser stays.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        if request.user.is_authenticated:
+            profile = getattr(request.user, 'userprofile', None)
+            language = getattr(profile, 'language', '')
+            if language and language in dict(settings.LANGUAGES):
+                translation.activate(language)
+                request.LANGUAGE_CODE = language
 
         response: HttpResponse = self.get_response(request)
         return response

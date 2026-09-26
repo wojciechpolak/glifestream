@@ -22,6 +22,7 @@ from typing import Any, cast
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.http import HttpRequest, HttpResponseForbidden
+from django.utils.translation import get_language
 from glifestream.utils import common as utils_common
 
 
@@ -47,6 +48,7 @@ def build_settings_page(
         'apple_touch_icon': utils_common.static_url(settings.APPLE_TOUCH_ICON),
         'theme': utils_common.get_theme(request),
         'title': title,
+        'lang': get_language(),
     }
     if menu is not None:
         page.update(

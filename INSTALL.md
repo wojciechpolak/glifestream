@@ -383,6 +383,11 @@ uv run manage.py migrate --run-syncdb
 uv run manage.py compilemessages
 ```
 
+The interface comes in English and Polish (`LANGUAGES` in
+`glifestream/settings.py`). The browser's language picks between them, unless
+the signed-in user chose one under Settings → Preferences. Other languages,
+the Django admin's included, fall back to English.
+
 8. Collect static files:
 
 ```shell

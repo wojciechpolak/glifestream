@@ -38,6 +38,7 @@ from django.template.defaultfilters import truncatewords
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import escape, strip_spaces_between_tags
+from django.utils.translation import get_language
 from django.utils.translation import gettext as _
 
 from glifestream import REVISION, VERSION
@@ -596,7 +597,7 @@ def build_full_html_context(
     lists = List.objects.filter(user_id=cast(int, state.user.pk)).order_by('name')
     archives = build_archive_dates(query)
     page['months12'] = [datetime.date(2010, month, 1) for month in range(1, 13)]
-    page['lang'] = get_preferred_language(state.request)
+    page['lang'] = get_language()
 
     return {
         'classes': build_available_classes(state, page),
@@ -645,10 +646,3 @@ def build_available_classes(
         if cls_key not in classes:
             classes[cls_key] = {'api': item['api'], 'cls': item['cls']}
     return list(classes.values())
-
-
-def get_preferred_language(request: HttpRequest) -> str:
-    accepted = request.META.get('HTTP_ACCEPT_LANGUAGE', '').split(',')
-    for index, lang in enumerate(accepted):
-        accepted[index] = lang.split(';')[0]
-    return cast(str, accepted[0])

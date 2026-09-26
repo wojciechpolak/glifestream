@@ -1064,3 +1064,21 @@ msgstr "Nie udało się przetworzyć odpowiedzi zdalnego serwisu."
 
 msgid "Remote address is not allowed."
 msgstr "Ten zdalny adres jest niedozwolony."
+
+msgid "Preferences"
+msgstr "Preferencje"
+
+msgid "Preferences - Settings"
+msgstr "Preferencje - Ustawienia"
+
+msgid "Preferences saved."
+msgstr "Zapisano preferencje."
+
+msgid "Language"
+msgstr "Język"
+
+msgid "Browser default"
+msgstr "Jak w przeglądarce"
+
+msgid "Interface language. Empty means the browser decides."
+msgstr "Język interfejsu. Pusty oznacza wybór przeglądarki."

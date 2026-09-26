@@ -9,6 +9,7 @@ from django.http import JsonResponse
 from django.test import RequestFactory
 from django.utils import timezone
 
+from glifestream.gauth.models import UserProfile
 from glifestream.stream.models import Service, List, ServiceFetchState
 from glifestream.usettings import service_settings
 
@@ -631,3 +632,78 @@ def test_normalize_imported_service_swallows_a_bad_row():
         service_settings.normalize_imported_service('http://example.com/rss', 'Feed')
 
     assert not Service.objects.exists()
+
+
+@pytest.mark.django_db
+def test_usettings_preferences_is_for_staff_only(client):
+    User.objects.create_user(username='user', password='password', is_staff=False)
+    client.login(username='user', password='password')
+    response = client.get(reverse('usettings-preferences'))
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_usettings_preferences_offers_each_language_by_its_own_name(
+    logged_in_client,
+):
+    response = logged_in_client.get(
+        reverse('usettings-preferences'), HTTP_ACCEPT_LANGUAGE='en'
+    )
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert 'name="language"' in content
+    assert '<option value="" selected>Browser default</option>' in content
+    assert '<option value="en">English</option>' in content
+    assert '<option value="pl">polski</option>' in content
+
+
+@pytest.mark.django_db
+def test_usettings_preferences_saves_the_language_and_answers_in_it(
+    logged_in_client, staff_user
+):
+    assert not UserProfile.objects.filter(user=staff_user).exists()
+
+    response = logged_in_client.post(
+        reverse('usettings-preferences'),
+        {'language': 'pl'},
+        HTTP_ACCEPT_LANGUAGE='en',
+    )
+
+    assert response.status_code == 200
+    assert UserProfile.objects.get(user=staff_user).language == 'pl'
+    assert response['Content-Language'] == 'pl'
+    content = response.content.decode()
+    assert '<html lang="pl">' in content
+    assert 'Zapisano preferencje.' in content
+
+
+@pytest.mark.django_db
+def test_usettings_preferences_rejects_a_language_without_translations(
+    logged_in_client, staff_user
+):
+    UserProfile.objects.create(user=staff_user, language='pl')
+
+    response = logged_in_client.post(
+        reverse('usettings-preferences'), {'language': 'de'}
+    )
+
+    assert response.status_code == 200
+    assert UserProfile.objects.get(user=staff_user).language == 'pl'
+    assert 'Zapisano preferencje.' not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_usettings_preferences_back_to_the_browser_language(
+    logged_in_client, staff_user
+):
+    UserProfile.objects.create(user=staff_user, language='pl')
+
+    response = logged_in_client.post(
+        reverse('usettings-preferences'),
+        {'language': ''},
+        HTTP_ACCEPT_LANGUAGE='en',
+    )
+
+    assert UserProfile.objects.get(user=staff_user).language == ''
+    assert response['Content-Language'] == 'en'
+    assert 'Preferences saved.' in response.content.decode()
