@@ -93,6 +93,32 @@ describe('kshortcuts', () => {
         ).toBe(false);
     });
 
+    it('shows the list of shortcuts with ?, and takes no other key under it', () => {
+        document.body.insertAdjacentHTML(
+            'beforeend',
+            `<dialog id="shortcuts-help"><div><button>Close</button></div></dialog>`,
+        );
+        const help = document.getElementById('shortcuts-help') as HTMLDialogElement;
+        init_shortcuts();
+
+        expect(press('?').defaultPrevented).toBe(true);
+        expect(help.open).toBe(true);
+
+        const j = press('j');
+        expect(j.defaultPrevented).toBe(false);
+        expect(highlighted()).toEqual([]);
+
+        press('?');
+        expect(help.open).toBe(false);
+
+        help.showModal();
+        help.querySelector('div')?.click();
+        expect(help.open).toBe(true);
+        help.click();
+        expect(help.open).toBe(false);
+        document.removeEventListener('keypress', kshortcuts);
+    });
+
     it('leaves a key typed in any field to the field', () => {
         document.body.insertAdjacentHTML(
             'beforeend',

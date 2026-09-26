@@ -83,20 +83,40 @@ function toggle_hidden_current(): void {
     }
 }
 
+function help_dialog(): HTMLDialogElement | null {
+    const help = document.getElementById('shortcuts-help');
+    return help instanceof HTMLDialogElement ? help : null;
+}
+
+/** ?: shows the list of shortcuts, or hides it again. */
+function toggle_help(): void {
+    const help = help_dialog();
+    if (help?.open) {
+        help.close();
+    } else {
+        help?.showModal();
+    }
+}
+
 const SHORTCUTS: Readonly<Record<string, () => void>> = {
     a: open_sharing,
     j: next_entry,
     k: previous_entry,
     f: favorite_current,
     h: toggle_hidden_current,
+    '?': toggle_help,
 };
 
 /**
  * Keyboard shortcuts of the stream: j and k move between entries, f
- * favorites, h hides or brings back, and a opens the composer.
+ * favorites, h hides or brings back, a opens the composer, and ? lists them.
  */
 export function kshortcuts(e: KeyboardEvent): void {
     if (typed_in_field(e) || e.ctrlKey || e.metaKey || e.altKey) {
+        return;
+    }
+    // While the list is open, the page behind it takes no keys.
+    if (help_dialog()?.open && e.key !== '?') {
         return;
     }
     const action = Object.hasOwn(SHORTCUTS, e.key) ? SHORTCUTS[e.key] : undefined;
@@ -111,6 +131,13 @@ export function kshortcuts(e: KeyboardEvent): void {
 /** Listens for the shortcuts; a key typed in a field is left to the field. */
 export function init_shortcuts(): void {
     document.addEventListener('keypress', kshortcuts);
+    const help = help_dialog();
+    // A click outside the list's body lands on the dialog itself, the backdrop.
+    help?.addEventListener('click', function (e) {
+        if (e.target === help) {
+            help.close();
+        }
+    });
 }
 
 function highlight_article(article: HTMLElement): void {

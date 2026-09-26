@@ -143,6 +143,23 @@
 
 </section>
 
+<dialog id="shortcuts-help" aria-labelledby="shortcuts-help-title">
+  <div class="shortcuts-help-body">
+    <h2 id="shortcuts-help-title">{% trans "Keyboard shortcuts" %}</h2>
+    <dl>
+      <dt><kbd>j</kbd></dt><dd>{% trans "Next entry" %}</dd>
+      <dt><kbd>k</kbd></dt><dd>{% trans "Previous entry" %}</dd>
+{% if authed %}
+      <dt><kbd>f</kbd></dt><dd>{% trans "Favorite or unfavorite the highlighted entry" %}</dd>
+      <dt><kbd>h</kbd></dt><dd>{% trans "Hide the highlighted entry, or bring it back" %}</dd>
+      <dt><kbd>a</kbd></dt><dd>{% trans "Add content" %}</dd>
+{% endif %}
+      <dt><kbd>?</kbd></dt><dd>{% trans "Show or hide this list" %}</dd>
+    </dl>
+    <form method="dialog"><button>{% trans "Close" %}</button></form>
+  </div>
+</dialog>
+
 {% stream_data %}
 {% endblock main %}
 

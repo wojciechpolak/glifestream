@@ -2119,6 +2119,65 @@ ul.files {
   }
 }
 
+#shortcuts-help {
+  // The body carries the padding, so that a click on the dialog itself is
+  // one on the backdrop.
+  padding: 0;
+  width: calc(100vw - 28px);
+  max-width: 420px;
+  color: var(--text-main);
+  background: var(--surface-shareitbox);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-float);
+  font-family: var(--font-ui);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.35);
+  }
+
+  .shortcuts-help-body {
+    padding: 20px 22px;
+  }
+
+  h2 {
+    margin: 0 0 14px;
+    color: var(--text-strong);
+    font-size: 1.1rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 10px 14px;
+    align-items: center;
+    margin: 0 0 18px;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 1.6em;
+    padding: 2px 7px;
+    color: var(--text-strong);
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  form {
+    text-align: right;
+  }
+}
+
 #foot {
   grid-area: footer;
   color: var(--text-muted);

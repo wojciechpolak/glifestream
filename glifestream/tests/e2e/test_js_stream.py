@@ -817,6 +817,40 @@ def test_k_scrolls_up_to_the_entry_without_passing_it(
     assert page.evaluate('window.lowestScrollY') >= page.evaluate('window.scrollY') - 2
 
 
+def test_question_mark_lists_the_shortcuts(
+    page: Page, app_base_url: str, ensure_admin_session, make_entry
+):
+    make_entry('Help Key Entry')
+    help_dialog = page.locator('#shortcuts-help')
+
+    page.goto(f'{app_base_url}/')
+    page.keyboard.press('?')
+    expect(help_dialog.locator('kbd')).to_have_text(['j', 'k', '?'])
+    page.keyboard.press('Escape')
+
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+    expect(help_dialog).to_be_hidden()
+    page.keyboard.press('?')
+    expect(help_dialog).to_be_visible()
+    expect(help_dialog.locator('kbd')).to_have_text(['j', 'k', 'f', 'h', 'a', '?'])
+    page.keyboard.press('j')
+    expect(_highlighted(page)).to_have_count(0)
+    page.keyboard.press('?')
+    expect(help_dialog).to_be_hidden()
+
+    page.keyboard.press('?')
+    help_dialog.get_by_role('button').click()
+    expect(help_dialog).to_be_hidden()
+
+    page.keyboard.press('?')
+    page.mouse.click(5, 5)
+    expect(help_dialog).to_be_hidden()
+
+    page.keyboard.press('j')
+    expect(_highlighted(page)).to_have_count(1)
+
+
 def test_j_past_the_last_entry_loads_more(
     page: Page, app_base_url: str, ensure_admin_session, make_entry, settings
 ):

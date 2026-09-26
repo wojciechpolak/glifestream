@@ -397,6 +397,24 @@ msgstr "Wyszukaj na tej stronie"
 msgid "Search"
 msgstr "Szukaj"
 
+msgid "Keyboard shortcuts"
+msgstr "Skróty klawiszowe"
+
+msgid "Next entry"
+msgstr "Następny wpis"
+
+msgid "Previous entry"
+msgstr "Poprzedni wpis"
+
+msgid "Favorite or unfavorite the highlighted entry"
+msgstr "Dodaj zaznaczony wpis do ulubionych lub go z nich usuń"
+
+msgid "Hide the highlighted entry, or bring it back"
+msgstr "Ukryj zaznaczony wpis lub przywróć go"
+
+msgid "Show or hide this list"
+msgstr "Pokaż lub ukryj tę listę"
+
 msgid "Add content"
 msgstr "Dodaj wpis"
 
