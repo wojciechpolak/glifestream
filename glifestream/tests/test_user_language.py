@@ -1,6 +1,8 @@
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.urls import reverse
+from django.utils import translation
 
 from glifestream.gauth.models import UserProfile
 
@@ -55,7 +57,30 @@ def test_an_anonymous_visitor_follows_the_browser(client):
 
 @pytest.mark.django_db
 def test_a_stored_language_without_translations_is_ignored(client, user):
-    UserProfile.objects.create(user=user, language='de')
+    UserProfile.objects.create(user=user, language='cs')
     client.login(username='staff', password='password')
 
     assert _get_index(client, 'en')['Content-Language'] == 'en'
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    'language', [code for code, _name in settings.LANGUAGES if code != 'en']
+)
+def test_every_offered_language_translates_the_interface(client, language):
+    response = _get_index(client, language)
+
+    assert response['Content-Language'] == language
+    with translation.override(language):
+        search = translation.gettext('Search this site')
+    assert search != 'Search this site'
+    content = response.content.decode()
+    assert f'<html lang="{language}">' in content
+    assert search in content
+
+
+@pytest.mark.django_db
+def test_a_generic_browser_language_finds_its_regional_translation(client):
+    response = _get_index(client, 'pt')
+
+    assert response['Content-Language'] == 'pt-br'

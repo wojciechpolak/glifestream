@@ -1,0 +1,1058 @@
+# Japanese translations for gLifestream package.
+# Copyright (C) 2026 Wojciech Polak
+# This file is distributed under the same license as the gLifestream package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glifestream 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 22:43+0200\n"
+"PO-Revision-Date: 2026-09-26 23:00+0200\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Replying to"
+msgstr "返信先"
+
+msgid "Replied-to post unavailable."
+msgstr "返信先の投稿は表示できません。"
+
+#, python-format
+msgid "%s reblogged"
+msgstr "%sがブースト"
+
+msgid "Link preview"
+msgstr "リンクのプレビュー"
+
+msgid "Quoted post"
+msgstr "引用された投稿"
+
+msgid "Quoted post unavailable."
+msgstr "引用された投稿は表示できません。"
+
+msgid "No text content."
+msgstr "テキストはありません。"
+
+msgid "Posted Photos"
+msgstr "写真"
+
+msgid "Posted a Photo"
+msgstr "写真"
+
+msgid "Quoted post pending approval."
+msgstr "引用された投稿は承認待ちです。"
+
+msgid "Reblogged"
+msgstr "ブースト"
+
+#, python-format
+msgid "Liked %s"
+msgstr "いいね: %s"
+
+#, python-format
+msgid "Published %s"
+msgstr "公開: %s"
+
+#, python-format
+msgid "Favorited %s"
+msgstr "お気に入り: %s"
+
+#, python-format
+msgid ""
+"Failed %(count)d time in a row. The error does not look temporary, so fetches"
+" are slowed down."
+msgid_plural ""
+"Failed %(count)d times in a row. The error does not look temporary, so "
+"fetches are slowed down."
+msgstr[0] "%(count)d回連続で失敗しました。一時的なエラーではないようなので、取得の間隔を広げています。"
+
+#, python-format
+msgid "Failed %(count)d time in a row. Retrying sooner than usual."
+msgid_plural "Failed %(count)d times in a row. Retrying sooner than usual."
+msgstr[0] "%(count)d回連続で失敗しました。通常より早く再試行します。"
+
+msgid "Fetch interrupted."
+msgstr "取得が中断されました。"
+
+msgid "Worker stopped before fetch completed."
+msgstr "取得の完了前にワーカーが停止しました。"
+
+msgid "Fetch completed."
+msgstr "取得が完了しました。"
+
+msgid "Unexpected fetch error."
+msgstr "取得中に予期しないエラーが発生しました。"
+
+msgid "Remember Me"
+msgstr "ログインしたままにする"
+
+msgid "Request token URL not set."
+msgstr "Request token URLが設定されていません。"
+
+msgid "Invalid OAuth response. No tokens found."
+msgstr "OAuthの応答が不正です。トークンが見つかりません。"
+
+msgid "Authorize URL not set."
+msgstr "Authorize URLが設定されていません。"
+
+msgid "Access token URL not set."
+msgstr "Access token URLが設定されていません。"
+
+msgid "Token URL not set."
+msgstr "Token URLが設定されていません。"
+
+msgid "Invalid OAuth 2.0 response. No access token found."
+msgstr "OAuth 2.0の応答が不正です。アクセストークンが見つかりません。"
+
+msgid "User"
+msgstr "ユーザー"
+
+msgid "Must change password"
+msgstr "パスワードの変更が必要"
+
+msgid "If set, the user will be forced to change their password on next login."
+msgstr "オンにすると、ユーザーは次回ログイン時にパスワードの変更を求められます。"
+
+msgid "Language"
+msgstr "言語"
+
+msgid "Interface language. Empty means the browser decides."
+msgstr "インターフェースの言語。空欄の場合はブラウザーの設定に従います。"
+
+msgid "User Profile"
+msgstr "ユーザープロフィール"
+
+msgid "User Profiles"
+msgstr "ユーザープロフィール"
+
+msgid "Service"
+msgstr "サービス"
+
+msgid "Change Your Password"
+msgstr "パスワードの変更"
+
+msgid "You must change your password before continuing."
+msgstr "続行するにはパスワードを変更してください。"
+
+msgid "New Password"
+msgstr "新しいパスワード"
+
+msgid "Confirm New Password"
+msgstr "新しいパスワード（確認）"
+
+msgid "Change Password"
+msgstr "パスワードを変更"
+
+msgid "Invalid username or password"
+msgstr "ユーザー名またはパスワードが正しくありません"
+
+msgid "Username"
+msgstr "ユーザー名"
+
+msgid "Password"
+msgstr "パスワード"
+
+msgid "Log In"
+msgstr "ログイン"
+
+msgid "Please fill in both password fields."
+msgstr "両方のパスワード欄を入力してください。"
+
+msgid "Passwords do not match."
+msgstr "パスワードが一致しません。"
+
+msgid "The new password must differ from the current one."
+msgstr "新しいパスワードは現在のものと異なる必要があります。"
+
+msgid "Activate item"
+msgstr "項目を有効にする"
+
+msgid "Deactivate item"
+msgstr "項目を無効にする"
+
+msgid "Set as reblogged"
+msgstr "ブーストとして設定"
+
+msgid "Unset as reblogged"
+msgstr "ブーストの設定を解除"
+
+msgid "Additional, optional fields"
+msgstr "追加の任意項目"
+
+msgid "Fields updated automatically by gLifestream"
+msgstr "gLifestreamが自動的に更新する項目"
+
+#, python-format
+msgid "You are currently browsing the archive for %s"
+msgstr "%sのアーカイブを表示しています"
+
+msgid "Favorites"
+msgstr "お気に入り"
+
+msgid "You are currently browsing your favorite entries"
+msgstr "お気に入りのエントリーを表示しています"
+
+#, python-format
+msgid "You are currently browsing entries from %s list only."
+msgstr "リスト「%s」のエントリーのみを表示しています。"
+
+#, python-format
+msgid "You are currently browsing %s entries only."
+msgstr "%sのみを表示しています。"
+
+#, python-format
+msgid "You are currently browsing entries from %s service only."
+msgstr "サービス「%s」のエントリーのみを表示しています。"
+
+#, python-format
+msgid "Your search for %s returned the following results."
+msgstr "%sの検索結果は次のとおりです。"
+
+msgid "API"
+msgstr "API"
+
+msgid "Custom CSS Class"
+msgstr "カスタムCSSクラス"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "User ID"
+msgstr "ユーザーID"
+
+msgid "Optional User ID"
+msgstr "ユーザーID（任意）"
+
+msgid "Credentials"
+msgstr "認証情報"
+
+msgid "Short name"
+msgstr "短い名前"
+
+msgid "WWW Link"
+msgstr "Webリンク"
+
+msgid "Last modified"
+msgstr "最終更新"
+
+msgid "Last checked"
+msgstr "最終確認"
+
+msgid "Fetch interval (seconds)"
+msgstr "取得間隔（秒）"
+
+msgid "Optional override for scheduled fetch interval in seconds."
+msgstr "定期取得の間隔を秒単位で個別に指定できます（任意）。"
+
+msgid "Next fetch at"
+msgstr "次回の取得"
+
+msgid "Title and Contents"
+msgstr "タイトルと本文"
+
+msgid "Contents only"
+msgstr "本文のみ"
+
+msgid "Title only"
+msgstr "タイトルのみ"
+
+msgid "Display entries'"
+msgstr "エントリーの表示"
+
+msgid "Public"
+msgstr "公開"
+
+msgid "Public services are visible to anyone."
+msgstr "公開サービスは誰でも見ることができます。"
+
+msgid "Active"
+msgstr "有効"
+
+msgid "If not active, this service will not be further updated."
+msgstr "無効にすると、このサービスは更新されなくなります。"
+
+msgid "Home visible"
+msgstr "ホームに表示"
+
+msgid ""
+"If unchecked, this stream will be still active, but hidden and thus visible "
+"only via custom lists."
+msgstr "オフにしても、このストリームは有効なままですが非表示になり、カスタムリストからのみ見られます。"
+
+msgid "Skip reblogs"
+msgstr "ブーストをスキップ"
+
+msgid "Skip importing reblogged posts."
+msgstr "ブーストされた投稿をインポートしません。"
+
+msgid "Services"
+msgstr "サービス"
+
+msgid "Title"
+msgstr "タイトル"
+
+msgid "Link"
+msgstr "リンク"
+
+msgid "Image Link"
+msgstr "画像リンク"
+
+msgid "Contents"
+msgstr "本文"
+
+msgid "Date published"
+msgstr "公開日"
+
+msgid "Date updated"
+msgstr "更新日"
+
+msgid "Author's Name"
+msgstr "作成者名"
+
+msgid "Author's Email"
+msgstr "作成者のメールアドレス"
+
+msgid "Author's URI"
+msgstr "作成者のURI"
+
+msgid "Geo Latitude"
+msgstr "緯度"
+
+msgid "Geo Longitude"
+msgstr "経度"
+
+msgid "Protected"
+msgstr "保護"
+
+msgid "Protect from possible overwriting by next update."
+msgstr "次回の更新で上書きされないように保護します。"
+
+msgid "If not active, this entry will not be shown."
+msgstr "無効にすると、このエントリーは表示されません。"
+
+msgid "Draft"
+msgstr "下書き"
+
+msgid "A draft is a post that is in progress. Only you will be able to see it."
+msgstr "下書きは作成途中の投稿です。あなただけが見ることができます。"
+
+msgid "Friends-only"
+msgstr "友達のみ"
+
+msgid "Entry will only be visible to you and your friends."
+msgstr "このエントリーはあなたと友達だけが見ることができます。"
+
+msgid "Reblog"
+msgstr "ブースト"
+
+msgid "Reblogged post."
+msgstr "ブーストされた投稿。"
+
+msgid "Reblogged by"
+msgstr "ブーストした人"
+
+msgid "Reblogged URI"
+msgstr "ブースト元のURI"
+
+msgid "Entry"
+msgstr "エントリー"
+
+msgid "Entries"
+msgstr "エントリー"
+
+msgid "Media"
+msgstr "メディア"
+
+msgid "Favorite"
+msgstr "お気に入り"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Slug"
+msgstr "スラッグ"
+
+msgid "List"
+msgstr "リスト"
+
+msgid "Lists"
+msgstr "リスト"
+
+msgid "Idle"
+msgstr "待機中"
+
+msgid "Queued"
+msgstr "キュー待ち"
+
+msgid "Running"
+msgstr "実行中"
+
+msgid "Succeeded"
+msgstr "成功"
+
+msgid "Failed"
+msgstr "失敗"
+
+msgid "Retryable"
+msgstr "再試行可能"
+
+msgid "Terminal"
+msgstr "恒久的"
+
+msgid "Manual"
+msgstr "手動"
+
+msgid "Schedule"
+msgstr "スケジュール"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Trigger"
+msgstr "きっかけ"
+
+msgid "Requested at"
+msgstr "要求日時"
+
+msgid "Started at"
+msgstr "開始日時"
+
+msgid "Finished at"
+msgstr "終了日時"
+
+msgid "Last succeeded at"
+msgstr "最終成功日時"
+
+msgid "Last failed at"
+msgstr "最終失敗日時"
+
+msgid "Last result"
+msgstr "最後の結果"
+
+msgid "Last error"
+msgstr "最後のエラー"
+
+msgid "Consecutive failures"
+msgstr "連続失敗回数"
+
+msgid "Failure kind"
+msgstr "失敗の種類"
+
+msgid "Failure category"
+msgstr "失敗のカテゴリー"
+
+msgid "Triggered by user"
+msgstr "ユーザーによる実行"
+
+msgid "Worker token"
+msgstr "ワーカートークン"
+
+msgid "Service fetch state"
+msgstr "サービスの取得状態"
+
+msgid "Service fetch states"
+msgstr "サービスの取得状態"
+
+msgid "Friends Login"
+msgstr "友達用ログイン"
+
+msgid "The content of this entry is available only to my friends."
+msgstr "このエントリーの内容は友達にのみ公開されています。"
+
+msgid "show map"
+msgstr "地図を表示"
+
+msgid "Yesterday"
+msgstr "昨日"
+
+#, python-format
+msgid "%d days ago"
+msgstr "%d日前"
+
+#, python-format
+msgid "%(count)d hour ago"
+msgid_plural "%(count)d hours ago"
+msgstr[0] "%(count)d時間前"
+
+#, python-format
+msgid "%(count)d minute ago"
+msgid_plural "%(count)d minutes ago"
+msgstr[0] "%(count)d分前"
+
+msgid "Align center"
+msgstr "中央揃え"
+
+msgid "Align left"
+msgstr "左揃え"
+
+msgid "Align right"
+msgstr "右揃え"
+
+msgid "Are you sure?"
+msgstr "よろしいですか？"
+
+msgid "Bold"
+msgstr "太字"
+
+msgid "Bullet list"
+msgstr "箇条書き"
+
+msgid "Clear formatting"
+msgstr "書式をクリア"
+
+msgid "Click and Listen"
+msgstr "クリックして再生"
+
+msgid "Code block"
+msgstr "コードブロック"
+
+msgid "Communication Error. Try again."
+msgstr "通信エラーです。もう一度お試しください。"
+
+msgid "Entry hidden"
+msgstr "エントリーを非表示にしました"
+
+msgid "Fetch queued."
+msgstr "取得をキューに追加しました。"
+
+msgid "Formatting"
+msgstr "書式"
+
+msgid "Heading 1"
+msgstr "見出し1"
+
+msgid "Heading 2"
+msgstr "見出し2"
+
+msgid "Image"
+msgstr "画像"
+
+msgid "Italic"
+msgstr "斜体"
+
+msgid "Justify"
+msgstr "両端揃え"
+
+msgid "Keep the original author?"
+msgstr "元の作成者を残しますか？"
+
+msgid "Link address:"
+msgstr "リンク先:"
+
+msgid "Never"
+msgstr "なし"
+
+msgid "Next year"
+msgstr "翌年"
+
+msgid "No completed runs"
+msgstr "完了した取得はありません"
+
+msgid "Not scheduled"
+msgstr "予定なし"
+
+msgid "Numbered list"
+msgstr "番号付きリスト"
+
+msgid "Previous year"
+msgstr "前年"
+
+msgid "Pull to refresh"
+msgstr "引っ張って更新"
+
+msgid "Quote"
+msgstr "引用"
+
+msgid "Refreshing..."
+msgstr "更新中..."
+
+msgid "Release to refresh"
+msgstr "離して更新"
+
+msgid "Reshare it at your stream"
+msgstr "自分のストリームで再共有"
+
+msgid "Share or bookmark this entry"
+msgstr "このエントリーを共有またはブックマーク"
+
+msgid "Strikethrough"
+msgstr "取り消し線"
+
+msgid "Unable to queue fetch."
+msgstr "取得をキューに追加できませんでした。"
+
+msgid "Underline"
+msgstr "下線"
+
+msgid "Undo"
+msgstr "元に戻す"
+
+msgid "Unfavorite"
+msgstr "お気に入りから削除"
+
+msgid "Unfavorite this entry before hiding it."
+msgstr "非表示にする前に、このエントリーをお気に入りから削除してください。"
+
+msgid "Video"
+msgstr "動画"
+
+msgid "Video address:"
+msgstr "動画のアドレス:"
+
+msgid "You are about to re-share this entry at your stream. Confirm?"
+msgstr "このエントリーを自分のストリームで再共有します。よろしいですか？"
+
+msgid "Your browser does not support it."
+msgstr "お使いのブラウザーは対応していません。"
+
+msgid "failed"
+msgstr "失敗"
+
+msgid "idle"
+msgstr "待機中"
+
+msgid "or elsewhere:"
+msgstr "またはほかの場所で:"
+
+msgid "queued"
+msgstr "キュー待ち"
+
+msgid "running"
+msgstr "実行中"
+
+msgid "succeeded"
+msgstr "成功"
+
+msgid "Hello"
+msgstr "こんにちは"
+
+msgid "My private stream"
+msgstr "自分の非公開ストリーム"
+
+msgid "Home"
+msgstr "ホーム"
+
+msgid "My publicly visible stream"
+msgstr "自分の公開ストリーム"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Logout"
+msgstr "ログアウト"
+
+msgid "Login"
+msgstr "ログイン"
+
+msgid "The Stream"
+msgstr "ストリーム"
+
+msgid "Expand content"
+msgstr "内容を展開"
+
+msgid "Menu"
+msgstr "メニュー"
+
+msgid "Reply"
+msgstr "返信"
+
+msgid "Hide"
+msgstr "非表示"
+
+msgid "Edit"
+msgstr "編集"
+
+msgid "Raw Edit"
+msgstr "ソースを編集"
+
+msgid "Admin"
+msgstr "管理"
+
+msgid "Share"
+msgstr "共有"
+
+msgid "by"
+msgstr "作成者:"
+
+msgid "from"
+msgstr "出典:"
+
+msgid "About"
+msgstr "このサイトについて"
+
+msgid "Favorite entries"
+msgstr "お気に入りのエントリー"
+
+msgid "Hide reblogs"
+msgstr "ブーストを非表示"
+
+msgid "Show reblogs"
+msgstr "ブーストを表示"
+
+msgid "All entries"
+msgstr "すべてのエントリー"
+
+msgid "Select List"
+msgstr "リストを選択"
+
+msgid "Archives"
+msgstr "アーカイブ"
+
+msgid "Search this site"
+msgstr "このサイトを検索"
+
+msgid "Search"
+msgstr "検索"
+
+msgid "Change theme"
+msgstr "テーマを変更"
+
+msgid "Powered by"
+msgstr "Powered by"
+
+msgid "A free and open source lifestream platform and social activity reader"
+msgstr "自由でオープンソースのライフストリーム・プラットフォーム兼ソーシャルアクティビティ・リーダー"
+
+msgid "Add content"
+msgstr "コンテンツを追加"
+
+msgid "Quick post, draft, or upload."
+msgstr "すばやい投稿、下書き、アップロード。"
+
+msgid "What's up?"
+msgstr "いまどうしてる？"
+
+msgid "Class:"
+msgstr "クラス:"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Post"
+msgstr "投稿"
+
+msgid "more options"
+msgstr "その他のオプション"
+
+msgid "Mark as draft"
+msgstr "下書きにする"
+
+msgid "Only visible to friends"
+msgstr "友達にのみ表示"
+
+msgid "Add files:"
+msgstr "ファイルを追加:"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "next month"
+msgstr "翌月"
+
+msgid "Show all entries"
+msgstr "すべてのエントリーを表示"
+
+msgid "newer entries"
+msgstr "新しいエントリー"
+
+msgid "older entries"
+msgstr "古いエントリー"
+
+msgid "previous page"
+msgstr "前のページ"
+
+msgid "next page"
+msgstr "次のページ"
+
+msgid "Keyboard shortcuts"
+msgstr "キーボードショートカット"
+
+msgid "Next entry"
+msgstr "次のエントリー"
+
+msgid "Previous entry"
+msgstr "前のエントリー"
+
+msgid "Favorite or unfavorite the highlighted entry"
+msgstr "選択中のエントリーをお気に入りに追加または削除"
+
+msgid "Hide the highlighted entry, or bring it back"
+msgstr "選択中のエントリーを非表示にする、または元に戻す"
+
+msgid "Show or hide this list"
+msgstr "この一覧を表示または非表示"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "Browser default"
+msgstr "ブラウザーの設定に従う"
+
+msgid "Lists - Settings"
+msgstr "リスト - 設定"
+
+msgid "OAuth - Settings"
+msgstr "OAuth - 設定"
+
+msgid ""
+"The authorization response does not match the request. Reset the tokens and "
+"try again."
+msgstr "認可の応答がリクエストと一致しません。トークンをリセットして、もう一度お試しください。"
+
+msgid "OAuth 2.0 - Settings"
+msgstr "OAuth 2.0 - 設定"
+
+msgid "Preferences - Settings"
+msgstr "個人設定 - 設定"
+
+msgid "Preferences saved."
+msgstr "個人設定を保存しました。"
+
+msgid "Services - Settings"
+msgstr "サービス - 設定"
+
+msgid "Status - Settings"
+msgstr "状態 - 設定"
+
+msgid "delete"
+msgstr "削除"
+
+msgid "Class name"
+msgstr "クラス名"
+
+msgid "Any name for the service classification; a category."
+msgstr "サービスを分類するための任意の名前（カテゴリー）。"
+
+msgid "User timeline"
+msgstr "ユーザーのタイムライン"
+
+msgid "Home timeline"
+msgstr "ホームタイムライン"
+
+msgid "Timeline"
+msgstr "タイムライン"
+
+msgid "Tag name"
+msgstr "タグ名"
+
+msgid "Optional tag name."
+msgstr "タグ名（任意）。"
+
+msgid "ID/Username"
+msgstr "ID/ユーザー名"
+
+msgid "Leave empty to use the service default refresh interval."
+msgstr "空欄にすると、サービスの既定の更新間隔を使います。"
+
+msgid "none"
+msgstr "なし"
+
+msgid "Basic"
+msgstr "Basic"
+
+msgid "OAuth 1.0"
+msgstr "OAuth 1.0"
+
+msgid "OAuth 2.0"
+msgstr "OAuth 2.0"
+
+msgid "Authorization"
+msgstr "認可"
+
+msgid "configure access"
+msgstr "アクセスを設定"
+
+msgid "Basic username"
+msgstr "ユーザー名"
+
+msgid "Basic password"
+msgstr "パスワード"
+
+msgid "This service cannot be fetched."
+msgstr "このサービスは取得できません。"
+
+msgid "Service not found."
+msgstr "サービスが見つかりません。"
+
+msgid "Editing list:"
+msgstr "リストを編集中:"
+
+msgid "new"
+msgstr "新規"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Read more about this implementation:"
+msgstr "この実装について詳しく:"
+
+msgid "Your callback URL:"
+msgstr "コールバックURL:"
+
+msgid "Consumer Key"
+msgstr "Consumer Key"
+
+msgid "Consumer Secret"
+msgstr "Consumer Secret"
+
+msgid "Request token URL"
+msgstr "Request token URL"
+
+msgid "Authorize URL"
+msgstr "Authorize URL"
+
+msgid "Access token URL"
+msgstr "Access token URL"
+
+msgid "Got Request token! Click \"Next step\" to authorize this application."
+msgstr "Request tokenを取得しました。「次のステップ」をクリックして、このアプリケーションを認可してください。"
+
+msgid "Your OAuth access setup is completed."
+msgstr "OAuthによるアクセスの設定が完了しました。"
+
+msgid "Reset all tokens"
+msgstr "すべてのトークンをリセット"
+
+msgid "Next step"
+msgstr "次のステップ"
+
+msgid "Your Redirect URI:"
+msgstr "リダイレクトURI:"
+
+msgid "Base URL"
+msgstr "ベースURL"
+
+msgid "Client ID"
+msgstr "クライアントID"
+
+msgid "Client Secret"
+msgstr "クライアントシークレット"
+
+msgid "or"
+msgstr "または"
+
+msgid "Access Token"
+msgstr "アクセストークン"
+
+msgid "Your OAuth 2.0 access setup is completed."
+msgstr "OAuth 2.0によるアクセスの設定が完了しました。"
+
+msgid "Add a service:"
+msgstr "サービスを追加:"
+
+msgid "Connected services:"
+msgstr "接続済みのサービス:"
+
+msgid "Import OPML"
+msgstr "OPMLをインポート"
+
+msgid "Export OPML"
+msgstr "OPMLをエクスポート"
+
+msgid "WebSub"
+msgstr "WebSub"
+
+msgid "Preferences"
+msgstr "個人設定"
+
+msgid "Service fetch status:"
+msgstr "サービスの取得状態:"
+
+msgid "Type"
+msgstr "種類"
+
+msgid "Action"
+msgstr "操作"
+
+msgid "Last successful import"
+msgstr "最後に成功したインポート"
+
+msgid "Last completed attempt"
+msgstr "最後に完了した試行"
+
+msgid "Next scheduled fetch"
+msgstr "次回の定期取得"
+
+msgid "Run now"
+msgstr "今すぐ実行"
+
+msgid "No fetchable services are connected yet."
+msgstr "取得できるサービスはまだ接続されていません。"
+
+msgid "WebSub subscriptions"
+msgstr "WebSubの購読"
+
+msgid "Verified"
+msgstr "確認済み"
+
+msgid "Expire"
+msgstr "有効期限"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "unsubscribe"
+msgstr "購読解除"
+
+msgid "service"
+msgstr "サービス"
+
+msgid "subscribe"
+msgstr "購読"
+
+msgid "Hub not found."
+msgstr "ハブが見つかりません。"
+
+#, python-format
+msgid "Hub %s: Accepted for verification."
+msgstr "ハブ %s: 確認のため受け付けられました。"
+
+#, python-format
+msgid "Hub %s: Subscription verified."
+msgstr "ハブ %s: 購読が確認されました。"
+
+msgid "No subscription found."
+msgstr "購読が見つかりません。"
+
+#, python-format
+msgid "Hub %s: Unsubscribed."
+msgstr "ハブ %s: 購読を解除しました。"
+
+msgid "WebSub - Settings"
+msgstr "WebSub - 設定"
+
+msgid "Remote request timed out."
+msgstr "リモートへのリクエストがタイムアウトしました。"
+
+msgid "Remote host could not be reached."
+msgstr "リモートホストに接続できませんでした。"
+
+msgid "Remote service rate-limited the request."
+msgstr "リモートサービスによりリクエストが制限されました。"
+
+msgid "Remote service rejected the request."
+msgstr "リモートサービスがリクエストを拒否しました。"
+
+msgid "Remote service returned a temporary server error."
+msgstr "リモートサービスが一時的なサーバーエラーを返しました。"
+
+msgid "Stored credentials were rejected by the remote service."
+msgstr "保存された認証情報がリモートサービスに拒否されました。"
+
+msgid "Remote service returned an invalid or unsupported response."
+msgstr "リモートサービスが不正な、または対応していない応答を返しました。"
+
+msgid "Remote response could not be parsed."
+msgstr "リモートからの応答を解析できませんでした。"
+
+msgid "Remote address is not allowed."
+msgstr "このリモートアドレスは許可されていません。"

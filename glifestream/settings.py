@@ -162,7 +162,15 @@ USE_I18N = True
 
 # Interface languages with translations. A user can pick one in Settings;
 # otherwise the browser's Accept-Language header chooses among them.
-LANGUAGES = [('en', 'English'), ('pl', 'Polski')]
+LANGUAGES = [
+    ('en', 'English'),
+    ('de', 'Deutsch'),
+    ('es', 'Español'),
+    ('fr', 'Français'),
+    ('ja', '日本語'),
+    ('pl', 'Polski'),
+    ('pt-br', 'Português (Brasil)'),
+]
 
 # Directories where Django looks for translation files.
 LOCALE_PATHS = (os.path.join(PROJECT_ROOT, 'locale'),)

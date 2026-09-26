@@ -1,0 +1,1075 @@
+# Brazilian Portuguese translations for gLifestream package.
+# Copyright (C) 2026 Wojciech Polak
+# This file is distributed under the same license as the gLifestream package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glifestream 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 22:43+0200\n"
+"PO-Revision-Date: 2026-09-26 23:00+0200\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "Replying to"
+msgstr "Em resposta a"
+
+msgid "Replied-to post unavailable."
+msgstr "A publicação respondida não está disponível."
+
+#, python-format
+msgid "%s reblogged"
+msgstr "Impulsionado por %s"
+
+msgid "Link preview"
+msgstr "Prévia do link"
+
+msgid "Quoted post"
+msgstr "Publicação citada"
+
+msgid "Quoted post unavailable."
+msgstr "A publicação citada não está disponível."
+
+msgid "No text content."
+msgstr "Sem conteúdo de texto."
+
+msgid "Posted Photos"
+msgstr "Fotos"
+
+msgid "Posted a Photo"
+msgstr "Foto"
+
+msgid "Quoted post pending approval."
+msgstr "A publicação citada aguarda aprovação."
+
+msgid "Reblogged"
+msgstr "Impulsionado"
+
+#, python-format
+msgid "Liked %s"
+msgstr "Curtiu %s"
+
+#, python-format
+msgid "Published %s"
+msgstr "Publicou %s"
+
+#, python-format
+msgid "Favorited %s"
+msgstr "Favoritou %s"
+
+#, python-format
+msgid ""
+"Failed %(count)d time in a row. The error does not look temporary, so fetches"
+" are slowed down."
+msgid_plural ""
+"Failed %(count)d times in a row. The error does not look temporary, so "
+"fetches are slowed down."
+msgstr[0] ""
+"%(count)d falha seguida. O erro não parece temporário, então as buscas "
+"ficaram mais espaçadas."
+msgstr[1] ""
+"%(count)d falhas seguidas. O erro não parece temporário, então as buscas "
+"ficaram mais espaçadas."
+
+#, python-format
+msgid "Failed %(count)d time in a row. Retrying sooner than usual."
+msgid_plural "Failed %(count)d times in a row. Retrying sooner than usual."
+msgstr[0] "%(count)d falha seguida. A próxima tentativa será antes do normal."
+msgstr[1] ""
+"%(count)d falhas seguidas. A próxima tentativa será antes do normal."
+
+msgid "Fetch interrupted."
+msgstr "Busca interrompida."
+
+msgid "Worker stopped before fetch completed."
+msgstr "O processo em segundo plano parou antes de concluir a busca."
+
+msgid "Fetch completed."
+msgstr "Busca concluída."
+
+msgid "Unexpected fetch error."
+msgstr "Erro inesperado na busca."
+
+msgid "Remember Me"
+msgstr "Lembrar de mim"
+
+msgid "Request token URL not set."
+msgstr "A URL de Request token não foi definida."
+
+msgid "Invalid OAuth response. No tokens found."
+msgstr "Resposta OAuth inválida. Nenhum token encontrado."
+
+msgid "Authorize URL not set."
+msgstr "A URL de autorização não foi definida."
+
+msgid "Access token URL not set."
+msgstr "A URL de Access token não foi definida."
+
+msgid "Token URL not set."
+msgstr "A URL do token não foi definida."
+
+msgid "Invalid OAuth 2.0 response. No access token found."
+msgstr "Resposta OAuth 2.0 inválida. Nenhum token de acesso encontrado."
+
+msgid "User"
+msgstr "Usuário"
+
+msgid "Must change password"
+msgstr "Deve trocar a senha"
+
+msgid "If set, the user will be forced to change their password on next login."
+msgstr "Se marcado, o usuário terá de trocar a senha no próximo login."
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Interface language. Empty means the browser decides."
+msgstr "Idioma da interface. Vazio significa que o navegador decide."
+
+msgid "User Profile"
+msgstr "Perfil de usuário"
+
+msgid "User Profiles"
+msgstr "Perfis de usuário"
+
+msgid "Service"
+msgstr "Serviço"
+
+msgid "Change Your Password"
+msgstr "Troque sua senha"
+
+msgid "You must change your password before continuing."
+msgstr "Você precisa trocar sua senha antes de continuar."
+
+msgid "New Password"
+msgstr "Nova senha"
+
+msgid "Confirm New Password"
+msgstr "Confirme a nova senha"
+
+msgid "Change Password"
+msgstr "Trocar senha"
+
+msgid "Invalid username or password"
+msgstr "Nome de usuário ou senha inválidos"
+
+msgid "Username"
+msgstr "Nome de usuário"
+
+msgid "Password"
+msgstr "Senha"
+
+msgid "Log In"
+msgstr "Entrar"
+
+msgid "Please fill in both password fields."
+msgstr "Preencha os dois campos de senha."
+
+msgid "Passwords do not match."
+msgstr "As senhas não coincidem."
+
+msgid "The new password must differ from the current one."
+msgstr "A nova senha deve ser diferente da atual."
+
+msgid "Activate item"
+msgstr "Ativar item"
+
+msgid "Deactivate item"
+msgstr "Desativar item"
+
+msgid "Set as reblogged"
+msgstr "Marcar como impulsionado"
+
+msgid "Unset as reblogged"
+msgstr "Desmarcar como impulsionado"
+
+msgid "Additional, optional fields"
+msgstr "Campos adicionais opcionais"
+
+msgid "Fields updated automatically by gLifestream"
+msgstr "Campos atualizados automaticamente pelo gLifestream"
+
+#, python-format
+msgid "You are currently browsing the archive for %s"
+msgstr "Você está vendo o arquivo de %s"
+
+msgid "Favorites"
+msgstr "Favoritos"
+
+msgid "You are currently browsing your favorite entries"
+msgstr "Você está vendo suas entradas favoritas"
+
+#, python-format
+msgid "You are currently browsing entries from %s list only."
+msgstr "Você está vendo apenas as entradas da lista %s."
+
+#, python-format
+msgid "You are currently browsing %s entries only."
+msgstr "Você está vendo apenas %s."
+
+#, python-format
+msgid "You are currently browsing entries from %s service only."
+msgstr "Você está vendo apenas as entradas do serviço %s."
+
+#, python-format
+msgid "Your search for %s returned the following results."
+msgstr "Sua busca por %s retornou os seguintes resultados."
+
+msgid "API"
+msgstr "API"
+
+msgid "Custom CSS Class"
+msgstr "Classe CSS personalizada"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "User ID"
+msgstr "ID de usuário"
+
+msgid "Optional User ID"
+msgstr "ID de usuário opcional"
+
+msgid "Credentials"
+msgstr "Credenciais"
+
+msgid "Short name"
+msgstr "Nome curto"
+
+msgid "WWW Link"
+msgstr "Link da web"
+
+msgid "Last modified"
+msgstr "Última modificação"
+
+msgid "Last checked"
+msgstr "Última verificação"
+
+msgid "Fetch interval (seconds)"
+msgstr "Intervalo de busca (segundos)"
+
+msgid "Optional override for scheduled fetch interval in seconds."
+msgstr "Intervalo próprio opcional entre buscas agendadas, em segundos."
+
+msgid "Next fetch at"
+msgstr "Próxima busca"
+
+msgid "Title and Contents"
+msgstr "Título e conteúdo"
+
+msgid "Contents only"
+msgstr "Somente o conteúdo"
+
+msgid "Title only"
+msgstr "Somente o título"
+
+msgid "Display entries'"
+msgstr "Exibição das entradas"
+
+msgid "Public"
+msgstr "Público"
+
+msgid "Public services are visible to anyone."
+msgstr "Serviços públicos ficam visíveis para todos."
+
+msgid "Active"
+msgstr "Ativo"
+
+msgid "If not active, this service will not be further updated."
+msgstr "Se não estiver ativo, este serviço deixará de ser atualizado."
+
+msgid "Home visible"
+msgstr "Visível na página inicial"
+
+msgid ""
+"If unchecked, this stream will be still active, but hidden and thus visible "
+"only via custom lists."
+msgstr ""
+"Se desmarcado, este fluxo continua ativo, mas oculto, e só fica visível por "
+"meio de listas personalizadas."
+
+msgid "Skip reblogs"
+msgstr "Ignorar impulsos"
+
+msgid "Skip importing reblogged posts."
+msgstr "Não importar publicações impulsionadas."
+
+msgid "Services"
+msgstr "Serviços"
+
+msgid "Title"
+msgstr "Título"
+
+msgid "Link"
+msgstr "Link"
+
+msgid "Image Link"
+msgstr "Link da imagem"
+
+msgid "Contents"
+msgstr "Conteúdo"
+
+msgid "Date published"
+msgstr "Data de publicação"
+
+msgid "Date updated"
+msgstr "Data de atualização"
+
+msgid "Author's Name"
+msgstr "Nome do autor"
+
+msgid "Author's Email"
+msgstr "E-mail do autor"
+
+msgid "Author's URI"
+msgstr "URI do autor"
+
+msgid "Geo Latitude"
+msgstr "Latitude"
+
+msgid "Geo Longitude"
+msgstr "Longitude"
+
+msgid "Protected"
+msgstr "Protegido"
+
+msgid "Protect from possible overwriting by next update."
+msgstr "Proteger contra uma possível sobrescrita na próxima atualização."
+
+msgid "If not active, this entry will not be shown."
+msgstr "Se não estiver ativa, esta entrada não será exibida."
+
+msgid "Draft"
+msgstr "Rascunho"
+
+msgid "A draft is a post that is in progress. Only you will be able to see it."
+msgstr "Um rascunho é uma publicação em andamento. Só você poderá vê-la."
+
+msgid "Friends-only"
+msgstr "Só para amigos"
+
+msgid "Entry will only be visible to you and your friends."
+msgstr "A entrada ficará visível apenas para você e seus amigos."
+
+msgid "Reblog"
+msgstr "Impulso"
+
+msgid "Reblogged post."
+msgstr "Publicação impulsionada."
+
+msgid "Reblogged by"
+msgstr "Impulsionado por"
+
+msgid "Reblogged URI"
+msgstr "URI da publicação impulsionada"
+
+msgid "Entry"
+msgstr "Entrada"
+
+msgid "Entries"
+msgstr "Entradas"
+
+msgid "Media"
+msgstr "Mídia"
+
+msgid "Favorite"
+msgstr "Favorito"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Slug"
+msgstr "Slug"
+
+msgid "List"
+msgstr "Lista"
+
+msgid "Lists"
+msgstr "Listas"
+
+msgid "Idle"
+msgstr "Ocioso"
+
+msgid "Queued"
+msgstr "Na fila"
+
+msgid "Running"
+msgstr "Em execução"
+
+msgid "Succeeded"
+msgstr "Concluído"
+
+msgid "Failed"
+msgstr "Falhou"
+
+msgid "Retryable"
+msgstr "Pode ser repetido"
+
+msgid "Terminal"
+msgstr "Definitivo"
+
+msgid "Manual"
+msgstr "Manual"
+
+msgid "Schedule"
+msgstr "Agendado"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Trigger"
+msgstr "Origem"
+
+msgid "Requested at"
+msgstr "Solicitado em"
+
+msgid "Started at"
+msgstr "Iniciado em"
+
+msgid "Finished at"
+msgstr "Concluído em"
+
+msgid "Last succeeded at"
+msgstr "Último sucesso"
+
+msgid "Last failed at"
+msgstr "Última falha"
+
+msgid "Last result"
+msgstr "Último resultado"
+
+msgid "Last error"
+msgstr "Último erro"
+
+msgid "Consecutive failures"
+msgstr "Falhas consecutivas"
+
+msgid "Failure kind"
+msgstr "Tipo de falha"
+
+msgid "Failure category"
+msgstr "Categoria da falha"
+
+msgid "Triggered by user"
+msgstr "Iniciado pelo usuário"
+
+msgid "Worker token"
+msgstr "Token do processo em segundo plano"
+
+msgid "Service fetch state"
+msgstr "Estado de busca do serviço"
+
+msgid "Service fetch states"
+msgstr "Estados de busca dos serviços"
+
+msgid "Friends Login"
+msgstr "Login de amigos"
+
+msgid "The content of this entry is available only to my friends."
+msgstr "O conteúdo desta entrada está disponível só para meus amigos."
+
+msgid "show map"
+msgstr "mostrar mapa"
+
+msgid "Yesterday"
+msgstr "Ontem"
+
+#, python-format
+msgid "%d days ago"
+msgstr "há %d dias"
+
+#, python-format
+msgid "%(count)d hour ago"
+msgid_plural "%(count)d hours ago"
+msgstr[0] "há %(count)d hora"
+msgstr[1] "há %(count)d horas"
+
+#, python-format
+msgid "%(count)d minute ago"
+msgid_plural "%(count)d minutes ago"
+msgstr[0] "há %(count)d minuto"
+msgstr[1] "há %(count)d minutos"
+
+msgid "Align center"
+msgstr "Centralizar"
+
+msgid "Align left"
+msgstr "Alinhar à esquerda"
+
+msgid "Align right"
+msgstr "Alinhar à direita"
+
+msgid "Are you sure?"
+msgstr "Tem certeza?"
+
+msgid "Bold"
+msgstr "Negrito"
+
+msgid "Bullet list"
+msgstr "Lista com marcadores"
+
+msgid "Clear formatting"
+msgstr "Limpar formatação"
+
+msgid "Click and Listen"
+msgstr "Clique e ouça"
+
+msgid "Code block"
+msgstr "Bloco de código"
+
+msgid "Communication Error. Try again."
+msgstr "Erro de comunicação. Tente novamente."
+
+msgid "Entry hidden"
+msgstr "Entrada oculta"
+
+msgid "Fetch queued."
+msgstr "Busca colocada na fila."
+
+msgid "Formatting"
+msgstr "Formatação"
+
+msgid "Heading 1"
+msgstr "Título 1"
+
+msgid "Heading 2"
+msgstr "Título 2"
+
+msgid "Image"
+msgstr "Imagem"
+
+msgid "Italic"
+msgstr "Itálico"
+
+msgid "Justify"
+msgstr "Justificar"
+
+msgid "Keep the original author?"
+msgstr "Manter o autor original?"
+
+msgid "Link address:"
+msgstr "Endereço do link:"
+
+msgid "Never"
+msgstr "Nunca"
+
+msgid "Next year"
+msgstr "Próximo ano"
+
+msgid "No completed runs"
+msgstr "Nenhuma busca concluída"
+
+msgid "Not scheduled"
+msgstr "Não agendada"
+
+msgid "Numbered list"
+msgstr "Lista numerada"
+
+msgid "Previous year"
+msgstr "Ano anterior"
+
+msgid "Pull to refresh"
+msgstr "Puxe para atualizar"
+
+msgid "Quote"
+msgstr "Citação"
+
+msgid "Refreshing..."
+msgstr "Atualizando..."
+
+msgid "Release to refresh"
+msgstr "Solte para atualizar"
+
+msgid "Reshare it at your stream"
+msgstr "Compartilhe de novo no seu fluxo"
+
+msgid "Share or bookmark this entry"
+msgstr "Compartilhe esta entrada ou salve nos favoritos do navegador"
+
+msgid "Strikethrough"
+msgstr "Tachado"
+
+msgid "Unable to queue fetch."
+msgstr "Não foi possível colocar a busca na fila."
+
+msgid "Underline"
+msgstr "Sublinhado"
+
+msgid "Undo"
+msgstr "Desfazer"
+
+msgid "Unfavorite"
+msgstr "Desfavoritar"
+
+msgid "Unfavorite this entry before hiding it."
+msgstr "Desfavorite esta entrada antes de ocultá-la."
+
+msgid "Video"
+msgstr "Vídeo"
+
+msgid "Video address:"
+msgstr "Endereço do vídeo:"
+
+msgid "You are about to re-share this entry at your stream. Confirm?"
+msgstr "Você vai compartilhar esta entrada de novo no seu fluxo. Confirma?"
+
+msgid "Your browser does not support it."
+msgstr "Seu navegador não oferece suporte a isso."
+
+msgid "failed"
+msgstr "falhou"
+
+msgid "idle"
+msgstr "ocioso"
+
+msgid "or elsewhere:"
+msgstr "ou em outro lugar:"
+
+msgid "queued"
+msgstr "na fila"
+
+msgid "running"
+msgstr "em execução"
+
+msgid "succeeded"
+msgstr "concluído"
+
+msgid "Hello"
+msgstr "Olá"
+
+msgid "My private stream"
+msgstr "Meu fluxo privado"
+
+msgid "Home"
+msgstr "Início"
+
+msgid "My publicly visible stream"
+msgstr "Meu fluxo público"
+
+msgid "Settings"
+msgstr "Configurações"
+
+msgid "Logout"
+msgstr "Sair"
+
+msgid "Login"
+msgstr "Entrar"
+
+msgid "The Stream"
+msgstr "O fluxo"
+
+msgid "Expand content"
+msgstr "Expandir conteúdo"
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Reply"
+msgstr "Responder"
+
+msgid "Hide"
+msgstr "Ocultar"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Raw Edit"
+msgstr "Editar código-fonte"
+
+msgid "Admin"
+msgstr "Administração"
+
+msgid "Share"
+msgstr "Compartilhar"
+
+msgid "by"
+msgstr "por"
+
+msgid "from"
+msgstr "de"
+
+msgid "About"
+msgstr "Sobre"
+
+msgid "Favorite entries"
+msgstr "Entradas favoritas"
+
+msgid "Hide reblogs"
+msgstr "Ocultar impulsos"
+
+msgid "Show reblogs"
+msgstr "Mostrar impulsos"
+
+msgid "All entries"
+msgstr "Todas as entradas"
+
+msgid "Select List"
+msgstr "Escolher lista"
+
+msgid "Archives"
+msgstr "Arquivo"
+
+msgid "Search this site"
+msgstr "Buscar neste site"
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "Change theme"
+msgstr "Mudar tema"
+
+msgid "Powered by"
+msgstr "Feito com"
+
+msgid "A free and open source lifestream platform and social activity reader"
+msgstr ""
+"Uma plataforma de lifestream livre e de código aberto e um leitor de "
+"atividade social"
+
+msgid "Add content"
+msgstr "Adicionar conteúdo"
+
+msgid "Quick post, draft, or upload."
+msgstr "Publicação rápida, rascunho ou arquivo."
+
+msgid "What's up?"
+msgstr "O que há de novo?"
+
+msgid "Class:"
+msgstr "Classe:"
+
+msgid "Update"
+msgstr "Atualizar"
+
+msgid "Post"
+msgstr "Publicar"
+
+msgid "more options"
+msgstr "mais opções"
+
+msgid "Mark as draft"
+msgstr "Marcar como rascunho"
+
+msgid "Only visible to friends"
+msgstr "Visível só para amigos"
+
+msgid "Add files:"
+msgstr "Adicionar arquivos:"
+
+msgid "Save"
+msgstr "Salvar"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "next month"
+msgstr "próximo mês"
+
+msgid "Show all entries"
+msgstr "Mostrar todas as entradas"
+
+msgid "newer entries"
+msgstr "entradas mais recentes"
+
+msgid "older entries"
+msgstr "entradas mais antigas"
+
+msgid "previous page"
+msgstr "página anterior"
+
+msgid "next page"
+msgstr "próxima página"
+
+msgid "Keyboard shortcuts"
+msgstr "Atalhos de teclado"
+
+msgid "Next entry"
+msgstr "Próxima entrada"
+
+msgid "Previous entry"
+msgstr "Entrada anterior"
+
+msgid "Favorite or unfavorite the highlighted entry"
+msgstr "Favoritar ou desfavoritar a entrada destacada"
+
+msgid "Hide the highlighted entry, or bring it back"
+msgstr "Ocultar a entrada destacada ou trazê-la de volta"
+
+msgid "Show or hide this list"
+msgstr "Mostrar ou ocultar esta lista"
+
+msgid "Close"
+msgstr "Fechar"
+
+msgid "Browser default"
+msgstr "Padrão do navegador"
+
+msgid "Lists - Settings"
+msgstr "Listas - Configurações"
+
+msgid "OAuth - Settings"
+msgstr "OAuth - Configurações"
+
+msgid ""
+"The authorization response does not match the request. Reset the tokens and "
+"try again."
+msgstr ""
+"A resposta de autorização não corresponde à solicitação. Redefina os tokens e"
+" tente novamente."
+
+msgid "OAuth 2.0 - Settings"
+msgstr "OAuth 2.0 - Configurações"
+
+msgid "Preferences - Settings"
+msgstr "Preferências - Configurações"
+
+msgid "Preferences saved."
+msgstr "Preferências salvas."
+
+msgid "Services - Settings"
+msgstr "Serviços - Configurações"
+
+msgid "Status - Settings"
+msgstr "Status - Configurações"
+
+msgid "delete"
+msgstr "excluir"
+
+msgid "Class name"
+msgstr "Nome da classe"
+
+msgid "Any name for the service classification; a category."
+msgstr "Qualquer nome para classificar o serviço; uma categoria."
+
+msgid "User timeline"
+msgstr "Linha do tempo do usuário"
+
+msgid "Home timeline"
+msgstr "Página inicial"
+
+msgid "Timeline"
+msgstr "Linha do tempo"
+
+msgid "Tag name"
+msgstr "Nome da tag"
+
+msgid "Optional tag name."
+msgstr "Nome de tag opcional."
+
+msgid "ID/Username"
+msgstr "ID/Nome de usuário"
+
+msgid "Leave empty to use the service default refresh interval."
+msgstr "Deixe vazio para usar o intervalo de atualização padrão do serviço."
+
+msgid "none"
+msgstr "nenhuma"
+
+msgid "Basic"
+msgstr "Basic"
+
+msgid "OAuth 1.0"
+msgstr "OAuth 1.0"
+
+msgid "OAuth 2.0"
+msgstr "OAuth 2.0"
+
+msgid "Authorization"
+msgstr "Autorização"
+
+msgid "configure access"
+msgstr "configurar acesso"
+
+msgid "Basic username"
+msgstr "Usuário"
+
+msgid "Basic password"
+msgstr "Senha"
+
+msgid "This service cannot be fetched."
+msgstr "Não é possível buscar este serviço."
+
+msgid "Service not found."
+msgstr "Serviço não encontrado."
+
+msgid "Editing list:"
+msgstr "Editando a lista:"
+
+msgid "new"
+msgstr "nova"
+
+msgid "Delete"
+msgstr "Excluir"
+
+msgid "Read more about this implementation:"
+msgstr "Saiba mais sobre esta implementação:"
+
+msgid "Your callback URL:"
+msgstr "Sua URL de retorno (callback URL):"
+
+msgid "Consumer Key"
+msgstr "Consumer Key"
+
+msgid "Consumer Secret"
+msgstr "Consumer Secret"
+
+msgid "Request token URL"
+msgstr "URL de Request token"
+
+msgid "Authorize URL"
+msgstr "URL de autorização"
+
+msgid "Access token URL"
+msgstr "URL de Access token"
+
+msgid "Got Request token! Click \"Next step\" to authorize this application."
+msgstr ""
+"Request token obtido! Clique em “Próximo passo” para autorizar este "
+"aplicativo."
+
+msgid "Your OAuth access setup is completed."
+msgstr "O acesso OAuth está configurado."
+
+msgid "Reset all tokens"
+msgstr "Redefinir todos os tokens"
+
+msgid "Next step"
+msgstr "Próximo passo"
+
+msgid "Your Redirect URI:"
+msgstr "Sua URI de redirecionamento (Redirect URI):"
+
+msgid "Base URL"
+msgstr "URL base"
+
+msgid "Client ID"
+msgstr "ID do cliente"
+
+msgid "Client Secret"
+msgstr "Segredo do cliente"
+
+msgid "or"
+msgstr "ou"
+
+msgid "Access Token"
+msgstr "Token de acesso"
+
+msgid "Your OAuth 2.0 access setup is completed."
+msgstr "O acesso OAuth 2.0 está configurado."
+
+msgid "Add a service:"
+msgstr "Adicionar um serviço:"
+
+msgid "Connected services:"
+msgstr "Serviços conectados:"
+
+msgid "Import OPML"
+msgstr "Importar OPML"
+
+msgid "Export OPML"
+msgstr "Exportar OPML"
+
+msgid "WebSub"
+msgstr "WebSub"
+
+msgid "Preferences"
+msgstr "Preferências"
+
+msgid "Service fetch status:"
+msgstr "Estado de busca dos serviços:"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Action"
+msgstr "Ação"
+
+msgid "Last successful import"
+msgstr "Última importação bem-sucedida"
+
+msgid "Last completed attempt"
+msgstr "Última tentativa concluída"
+
+msgid "Next scheduled fetch"
+msgstr "Próxima busca agendada"
+
+msgid "Run now"
+msgstr "Executar agora"
+
+msgid "No fetchable services are connected yet."
+msgstr "Ainda não há nenhum serviço conectado que possa ser buscado."
+
+msgid "WebSub subscriptions"
+msgstr "Assinaturas WebSub"
+
+msgid "Verified"
+msgstr "Verificada"
+
+msgid "Expire"
+msgstr "Expira"
+
+msgid "Yes"
+msgstr "Sim"
+
+msgid "No"
+msgstr "Não"
+
+msgid "unsubscribe"
+msgstr "cancelar assinatura"
+
+msgid "service"
+msgstr "serviço"
+
+msgid "subscribe"
+msgstr "assinar"
+
+msgid "Hub not found."
+msgstr "Hub não encontrado."
+
+#, python-format
+msgid "Hub %s: Accepted for verification."
+msgstr "Hub %s: aceito para verificação."
+
+#, python-format
+msgid "Hub %s: Subscription verified."
+msgstr "Hub %s: assinatura verificada."
+
+msgid "No subscription found."
+msgstr "Nenhuma assinatura encontrada."
+
+#, python-format
+msgid "Hub %s: Unsubscribed."
+msgstr "Hub %s: assinatura cancelada."
+
+msgid "WebSub - Settings"
+msgstr "WebSub - Configurações"
+
+msgid "Remote request timed out."
+msgstr "A solicitação remota excedeu o tempo limite."
+
+msgid "Remote host could not be reached."
+msgstr "Não foi possível alcançar o servidor remoto."
+
+msgid "Remote service rate-limited the request."
+msgstr "O serviço remoto limitou a taxa de solicitações."
+
+msgid "Remote service rejected the request."
+msgstr "O serviço remoto recusou a solicitação."
+
+msgid "Remote service returned a temporary server error."
+msgstr "O serviço remoto retornou um erro temporário de servidor."
+
+msgid "Stored credentials were rejected by the remote service."
+msgstr "O serviço remoto recusou as credenciais salvas."
+
+msgid "Remote service returned an invalid or unsupported response."
+msgstr "O serviço remoto retornou uma resposta inválida ou sem suporte."
+
+msgid "Remote response could not be parsed."
+msgstr "Não foi possível processar a resposta do serviço remoto."
+
+msgid "Remote address is not allowed."
+msgstr "Este endereço remoto não é permitido."

@@ -684,7 +684,7 @@ def test_usettings_preferences_rejects_a_language_without_translations(
     UserProfile.objects.create(user=staff_user, language='pl')
 
     response = logged_in_client.post(
-        reverse('usettings-preferences'), {'language': 'de'}
+        reverse('usettings-preferences'), {'language': 'cs'}
     )
 
     assert response.status_code == 200

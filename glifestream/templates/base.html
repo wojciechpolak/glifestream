@@ -1,5 +1,5 @@
 {% load i18n media static pipeline gls_page %}<!DOCTYPE html>
-<html lang="{{ page.lang | slice:':2' | default:'en' }}">
+<html lang="{{ page.lang | default:'en' }}">
 
 <head>
   <title>{% firstof page.title "Lifestream" %}</title>
