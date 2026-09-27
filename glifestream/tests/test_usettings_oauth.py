@@ -21,7 +21,7 @@ from unittest.mock import MagicMock, patch
 from django.contrib.auth.models import User
 from django.urls import reverse
 
-from glifestream.stream.models import Service
+from glifestream.stream.models import Service, ServiceFetchState
 from glifestream.usettings import oauth_settings
 
 
@@ -295,6 +295,9 @@ def test_oauth2_accepts_a_callback_carrying_the_issued_state(
     assert 'oauth2-state-%s' % oauth2_service.pk not in staff_client.session
     oauth2_service.refresh_from_db()
     assert oauth2_service.creds == 'oauth2'
+    # A fetch before the token failed; one with it runs now.
+    assert oauth2_service.fetch_state.status == ServiceFetchState.STATUS_QUEUED
+    assert oauth2_service.fetch_state.trigger == ServiceFetchState.TRIGGER_MANUAL
 
 
 @pytest.mark.django_db

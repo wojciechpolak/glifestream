@@ -70,7 +70,14 @@ function form_fields(form: HTMLFormElement): [string, string][] {
     return fields;
 }
 
-async function submit_service_form(form: HTMLFormElement): Promise<void> {
+/**
+ * Saves the form and shows the answer: the saved service, or the form
+ * again with what is missing. `fetch_new` fetches a new service right away.
+ */
+async function submit_service_form(
+    form: HTMLFormElement,
+    fetch_new = true,
+): Promise<ServiceForm | null> {
     const dest = form.nextElementSibling || form.parentElement;
     const submit = form.querySelector('input[type=submit]');
     if (submit) {
@@ -82,12 +89,13 @@ async function submit_service_form(form: HTMLFormElement): Promise<void> {
         params,
     );
     if (!json) {
-        return;
+        return null;
     }
     hide_spinner();
-    const f = prepare_service_form(json);
+    const f = prepare_service_form(json, fetch_new);
     dest?.append(f);
     show(f);
+    return json;
 }
 
 function render_service_list_item(data: ServiceForm): HTMLLIElement {
@@ -140,24 +148,50 @@ function render_select(f: ServiceFormField): HTMLSelectElement {
     return select;
 }
 
-/** What the link fields open when clicked, by field name. */
-const LINK_ACTIONS: Readonly<Record<string, (id: number) => void>> = {
-    oauth_conf: oauth_configure,
-    oauth2_conf: oauth2_configure,
+/** The popup each link field opens, by field name: its page and its name. */
+const LINK_POPUPS: Readonly<Record<string, string>> = {
+    oauth_conf: 'oauth',
+    oauth2_conf: 'oauth2',
 };
 
 function render_link(f: ServiceFormField, data: ServiceForm): HTMLAnchorElement {
     const link = h('a', { id: f.name, href: f.href || '' }, [field_value(f)]);
-    const configure = Object.hasOwn(LINK_ACTIONS, f.name)
-        ? LINK_ACTIONS[f.name]
-        : undefined;
-    if (configure) {
+    const popup = Object.hasOwn(LINK_POPUPS, f.name) ? LINK_POPUPS[f.name] : undefined;
+    if (popup) {
         listen(link, 'click', function () {
-            configure(data.id as number);
+            void configure_access(link, popup, data.id);
             return false;
         });
     }
     return link;
+}
+
+/**
+ * Opens the page that gives the service its access. A service not saved
+ * yet has no page, so the form is saved first; the popup opens at once,
+ * while the click still allows it, and gets its page when the save is done.
+ */
+async function configure_access(
+    link: HTMLElement,
+    name: string,
+    id: number | null | undefined,
+): Promise<void> {
+    const features = popup_features(800, 480);
+    const page = (service_id: number): string =>
+        new URL(name + '/' + service_id, document.baseURI).href;
+    if (id) {
+        window.open(page(id), name, features);
+        return;
+    }
+    const popup = window.open('', name, features);
+    const form = link.closest('form');
+    // Its fetch waits for the access, which the popup is about to give.
+    const saved = form ? await submit_service_form(form, false) : null;
+    if (popup && saved?.id && saved.method === 'post') {
+        popup.location.href = page(saved.id);
+    } else {
+        popup?.close();
+    }
 }
 
 function render_field(f: ServiceFormField, data: ServiceForm): HTMLElement {
@@ -276,7 +310,7 @@ function bind_deps(fs: HTMLFieldSetElement, deps: SettingsDeps): void {
 }
 
 /** Builds the service form from the server's description of it. */
-function prepare_service_form(data: ServiceForm): HTMLFormElement {
+function prepare_service_form(data: ServiceForm, fetch_new = true): HTMLFormElement {
     const form = get_form();
     hide(form);
 
@@ -303,7 +337,7 @@ function prepare_service_form(data: ServiceForm): HTMLFormElement {
     if (data.id && data.method === 'post') {
         upsert_service_list_item(data);
     }
-    if (data.need_import) {
+    if (data.need_import && fetch_new) {
         void import_service(data.id);
     }
     return form;
@@ -323,12 +357,4 @@ function popup_features(width: number, height: number): string {
         ',toolbar=no,status=yes,location=no,resizable=yes' +
         ',scrollbars=yes'
     );
-}
-
-function oauth_configure(id: number): void {
-    window.open('oauth/' + id, 'oauth', popup_features(800, 480));
-}
-
-function oauth2_configure(id: number): void {
-    window.open('oauth2/' + id, 'oauth2', popup_features(800, 480));
 }

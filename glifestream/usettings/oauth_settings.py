@@ -17,10 +17,11 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 import os
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import (
     HttpRequest,
     HttpResponse,
@@ -34,6 +35,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.cache import never_cache
 
 from glifestream.apis.factory import ServiceFactory
+from glifestream.fetching import enqueue_manual_fetch, is_service_fetchable
 from glifestream.gauth import gls_oauth, gls_oauth2
 from glifestream.stream.models import Service
 from glifestream.usettings.common import (
@@ -53,13 +55,17 @@ OAUTH1_APIS_HELP = {
 OAUTH1_DEFAULT_HELP = 'http://oauth.net/documentation/getting-started/'
 
 
-def _sign_in_with(id_service: Any, method: str) -> None:
-    """Makes the service use the token it just got.
+def _sign_in_with(request: HttpRequest, id_service: Any, method: str) -> None:
+    """Makes the service use the token it just got, and fetches it with it.
 
     The token is set in a popup, so the service form behind it may never be
-    saved; the service must not stay without authorization then.
+    saved; the service must not stay without authorization then. A fetch
+    that ran before there was a token failed, and would wait a day.
     """
     Service.objects.filter(id=id_service).exclude(creds=method).update(creds=method)
+    service = Service.objects.filter(id=id_service, active=True).first()
+    if service and is_service_fetchable(service):
+        enqueue_manual_fetch(service, triggered_by_user=cast(User, request.user))
 
 
 def _collect_custom_urls(
@@ -112,7 +118,7 @@ def _handle_oauth_get(
         try:
             c.get_access_token()
             c.save()
-            _sign_in_with(id_service, 'oauth')
+            _sign_in_with(request, id_service, 'oauth')
             return HttpResponseRedirect(reverse('usettings-oauth', args=[id_service]))
         except Exception as e:
             page['msg'] = e
@@ -206,7 +212,7 @@ def _handle_oauth2_callback(
         try:
             c.get_access_token(code)
             c.save()
-            _sign_in_with(id_service, 'oauth2')
+            _sign_in_with(request, id_service, 'oauth2')
             return HttpResponseRedirect(reverse('usettings-oauth2', args=[id_service]))
         except Exception as e:
             page['msg'] = e
@@ -259,7 +265,7 @@ def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
             c.set_access_token(access_token)
             c.db.phase = gls_oauth2.PHASE_3
             c.save()
-            _sign_in_with(id_service, 'oauth2')
+            _sign_in_with(request, id_service, 'oauth2')
         elif c.db.phase == gls_oauth2.PHASE_0:
             auth_url = c.get_authorize_url()
             request.session[_oauth2_state_key(id_service)] = c.state

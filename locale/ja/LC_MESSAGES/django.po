@@ -1120,8 +1120,8 @@ msgstr "プッシュをインポート"
 msgid "Includes releases published by automation."
 msgstr "自動で公開されたリリースも含みます。"
 
-msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
-msgstr "OAuth 2.0 の場合は、サービスを保存してからアクセスを設定してください。OAuth アプリを認可するか、個人用アクセストークンを貼り付けます。"
+msgid "For OAuth 2.0, configure access: authorize an OAuth app or paste a personal access token."
+msgstr "OAuth 2.0 の場合はアクセスを設定してください。OAuth アプリを認可するか、個人用アクセストークンを貼り付けます。"
 
 msgid "Full release notes"
 msgstr "リリースノート全文"

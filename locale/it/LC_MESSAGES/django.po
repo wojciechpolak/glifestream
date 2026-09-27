@@ -1144,8 +1144,8 @@ msgstr "Importa push"
 msgid "Includes releases published by automation."
 msgstr "Include anche le release pubblicate automaticamente."
 
-msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
-msgstr "Per OAuth 2.0, salva il servizio e poi configura l’accesso: autorizza un’app OAuth o incolla un token di accesso personale."
+msgid "For OAuth 2.0, configure access: authorize an OAuth app or paste a personal access token."
+msgstr "Per OAuth 2.0, configura l’accesso: autorizza un’app OAuth o incolla un token di accesso personale."
 
 msgid "Full release notes"
 msgstr "Note di rilascio complete"

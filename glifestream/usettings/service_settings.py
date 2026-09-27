@@ -509,8 +509,8 @@ def build_service_form_response(
         }
         if methods == ('none', 'oauth2'):
             auth_field['hint'] = _(
-                'For OAuth 2.0, save the service, then configure access: '
-                'authorize an OAuth app or paste a personal access token.'
+                'For OAuth 2.0, configure access: authorize an OAuth app or '
+                'paste a personal access token.'
             )
         s['fields'].append(auth_field)
 

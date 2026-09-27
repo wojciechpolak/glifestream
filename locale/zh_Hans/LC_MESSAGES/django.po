@@ -1120,8 +1120,8 @@ msgstr "导入推送"
 msgid "Includes releases published by automation."
 msgstr "包括自动发布的版本。"
 
-msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
-msgstr "使用 OAuth 2.0 时，请先保存服务，再配置访问：授权 OAuth 应用，或粘贴个人访问令牌。"
+msgid "For OAuth 2.0, configure access: authorize an OAuth app or paste a personal access token."
+msgstr "使用 OAuth 2.0 时，请配置访问：授权 OAuth 应用，或粘贴个人访问令牌。"
 
 msgid "Full release notes"
 msgstr "完整发布说明"

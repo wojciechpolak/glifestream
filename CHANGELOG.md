@@ -212,6 +212,8 @@ work, so only the significant changes are listed.
   does not offer it.
 - Saving a service works behind a proxy that ends TLS. The form posted to an
   `http://` URL, which the browser sent without the CSRF cookie.
+- "Configure access" works for a service not saved yet: it saves the service
+  first. A token, once saved, fetches the service right away.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
 

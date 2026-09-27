@@ -201,10 +201,67 @@ describe('get_service_form', () => {
 
         expect(field('oauth_conf').textContent).toBe('Configure');
         expect(open_mock.mock.calls.map((call) => call.slice(0, 2))).toEqual([
-            ['oauth/7', 'oauth'],
-            ['oauth2/7', 'oauth2'],
+            [new URL('oauth/7', document.baseURI).href, 'oauth'],
+            [new URL('oauth2/7', document.baseURI).href, 'oauth2'],
         ]);
         expect(field('other').getAttribute('href')).toBe('/x');
+    });
+
+    it('saves a new service before configuring its access', async () => {
+        const oauth2_field = {
+            type: 'link' as const,
+            name: 'oauth2_conf',
+            label: '',
+            value: 'configure access',
+        };
+        answer(form_data({ fields: [oauth2_field] }));
+        const popup = { location: { href: '' }, close: vi.fn() };
+        open_mock.mockReturnValue(popup);
+        await get_service_form({ method: 'get', api: 'feed' }, '#add-service');
+        answer(
+            form_data({
+                id: 7,
+                method: 'post',
+                need_import: true,
+                fields: [oauth2_field],
+            }),
+        );
+
+        field('oauth2_conf').click();
+
+        // The popup opens during the click, and learns its page after the save.
+        expect(open_mock.mock.calls[0]?.slice(0, 2)).toEqual(['', 'oauth2']);
+        await vi.waitFor(() =>
+            expect(popup.location.href).toBe(
+                new URL('oauth2/7', document.baseURI).href,
+            ),
+        );
+        const body = fetch_mock.mock.calls[1]?.[1]?.body as URLSearchParams;
+        expect(body.get('method')).toBe('post');
+        expect(document.querySelector('#edit-service a#service-7')).not.toBeNull();
+        // Its first fetch waits for the access the popup gives.
+        expect(fetch_mock).toHaveBeenCalledTimes(2);
+        expect(popup.close).not.toHaveBeenCalled();
+    });
+
+    it('closes the popup when the new service cannot be saved yet', async () => {
+        const oauth2_field = {
+            type: 'link' as const,
+            name: 'oauth2_conf',
+            label: '',
+            value: 'configure access',
+        };
+        answer(form_data({ fields: [oauth2_field] }));
+        const popup = { location: { href: '' }, close: vi.fn() };
+        open_mock.mockReturnValue(popup);
+        await get_service_form({ method: 'get', api: 'feed' }, '#add-service');
+        // The name is missing, so the form comes back to be fixed.
+        answer(form_data({ fields: [{ ...oauth2_field }] }));
+
+        field('oauth2_conf').click();
+
+        await vi.waitFor(() => expect(popup.close).toHaveBeenCalled());
+        expect(popup.location.href).toBe('');
     });
 
     it('adds a saved service to the list and fetches a new one', async () => {
