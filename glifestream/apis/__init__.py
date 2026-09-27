@@ -19,6 +19,7 @@ __all__ = (
     'atproto',
     'flickr',
     'friendfeed',
+    'github',
     'mail',
     'mastodon',
     'pixelfed',

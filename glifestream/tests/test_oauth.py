@@ -1,6 +1,7 @@
 from typing import Any, cast
 import pytest
 from unittest.mock import MagicMock, patch
+from glifestream.apis.github import GitHubService
 from glifestream.gauth.gls_oauth import OAuth1Client
 from glifestream.gauth.gls_oauth2 import OAuth2Client, PHASE_0, PHASE_2, PHASE_3
 
@@ -41,6 +42,7 @@ def test_oauth2_client_init_with_identifier_and_secret(service):
     mock_api.get_base_url.return_value = 'https://example.social'
     mock_api.get_authorize_url.return_value = 'https://example.social/oauth/authorize'
     mock_api.get_token_url.return_value = 'https://example.social/oauth/token'
+    mock_api.get_oauth_scopes.return_value = ['read']
 
     with patch(
         'glifestream.gauth.gls_oauth2.OAuth2Session', return_value=mock_consumer
@@ -79,6 +81,7 @@ def test_oauth2_get_authorize_url(service):
     mock_api.get_base_url.return_value = 'https://example.social'
     mock_api.get_authorize_url.return_value = 'https://example.social/oauth/authorize'
     mock_api.get_token_url.return_value = 'https://example.social/oauth/token'
+    mock_api.get_oauth_scopes.return_value = ['read']
 
     with patch(
         'glifestream.gauth.gls_oauth2.OAuth2Session', return_value=mock_consumer
@@ -110,6 +113,7 @@ def test_oauth2_get_access_token_sets_phase_and_token(service):
     mock_api.get_base_url.return_value = 'https://example.social'
     mock_api.get_authorize_url.return_value = 'https://example.social/oauth/authorize'
     mock_api.get_token_url.return_value = 'https://example.social/oauth/token'
+    mock_api.get_oauth_scopes.return_value = ['read']
 
     with patch(
         'glifestream.gauth.gls_oauth2.OAuth2Session', return_value=mock_consumer
@@ -144,6 +148,7 @@ def test_oauth2_get_access_token_requires_access_token_in_response(service):
     mock_api.get_base_url.return_value = 'https://example.social'
     mock_api.get_authorize_url.return_value = 'https://example.social/oauth/authorize'
     mock_api.get_token_url.return_value = 'https://example.social/oauth/token'
+    mock_api.get_oauth_scopes.return_value = ['read']
 
     with patch(
         'glifestream.gauth.gls_oauth2.OAuth2Session', return_value=mock_consumer
@@ -262,3 +267,17 @@ def test_oauth1_reset_forgets_tokens(service):
         None,
         None,
     )
+
+
+@pytest.mark.django_db
+def test_oauth2_client_asks_for_the_scopes_of_the_provider(service):
+    with patch('glifestream.gauth.gls_oauth2.OAuth2Session') as mock_session:
+        OAuth2Client(
+            service,
+            GitHubService(service),
+            identifier='client-id',
+            secret='client-secret',
+            callback_url='https://app.example.test/callback',
+        )
+
+    assert mock_session.call_args.kwargs['scope'] == []

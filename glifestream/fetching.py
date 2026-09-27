@@ -531,7 +531,22 @@ def run_service_fetch(
         if after and before != after:
             websub.publish(verbose=verbose)
     except Exception as exc:
-        logger.exception('Fetch failed for service %s (%s).', service.pk, service.api)
+        if isinstance(exc, httpclient.FetchError):
+            # The remote said no in a way the error names; no traceback helps.
+            logger.warning(
+                'Fetch failed for service %s (%s): %s: %s%s',
+                service.pk,
+                service.api,
+                exc.category,
+                exc.detail,
+                '; retry after %d s' % exc.retry_after_sec
+                if exc.retry_after_sec is not None
+                else '',
+            )
+        else:
+            logger.exception(
+                'Fetch failed for service %s (%s).', service.pk, service.api
+            )
         service.refresh_from_db()
         finished_at = timezone.now()
         _update_state_failure(
@@ -553,10 +568,15 @@ def run_services(
     force_overwrite: bool = False,
     verbose: int = 0,
     max_workers: int = 10,
-) -> None:
+) -> list[tuple[Service, BaseException]]:
+    """Fetches the services `filters` selects, all of them even if some fail.
+
+    Returns the ones that failed, with why; run_service_fetch has logged
+    and recorded each failure already.
+    """
     services = list(Service.objects.filter(**filters))
     if not services:
-        return
+        return []
 
     def _should_run(service: Service) -> bool:
         if force_check:
@@ -572,7 +592,7 @@ def run_services(
         if is_service_fetchable(service) and _should_run(service)
     ]
     if not runnable:
-        return
+        return []
 
     with ThreadPoolExecutor(max_workers=min(max_workers, len(runnable))) as executor:
         futures = [
@@ -586,8 +606,12 @@ def run_services(
             for service in runnable
         ]
         wait(futures)
-        for future in futures:
-            future.result()
+    failures = []
+    for service, future in zip(runnable, futures):
+        error = future.exception()
+        if error is not None:
+            failures.append((service, error))
+    return failures
 
 
 def get_fetch_status_payload(service_ids: list[int] | None = None) -> dict[str, Any]:

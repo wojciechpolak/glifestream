@@ -66,6 +66,7 @@ PAGE_CONFIG = {
     'themes': list,
     'lang': str,
     'messages': dict,
+    'fold_lines': int,
 }
 STREAM_DATA = {
     'ctx': str,
@@ -89,6 +90,7 @@ SERVICE_FORM_OPTIONAL = {
     'id': (int, NoneType),
     'delete': str,
     'need_import': bool,
+    'notice': str,
     'fetch_status': dict,
 }
 FIELD = {'type': str, 'name': str, 'label': str}

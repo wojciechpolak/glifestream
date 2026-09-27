@@ -135,6 +135,44 @@ def test_get_401_is_not_retried(mock_get, mock_sleep):
     mock_sleep.assert_not_called()
 
 
+@patch('glifestream.utils.httpclient.time.time', return_value=1000)
+@patch('glifestream.utils.httpclient.time.sleep')
+@patch('requests.get')
+def test_get_403_with_an_exhausted_rate_limit_waits_for_the_reset(
+    mock_get, mock_sleep, mock_time
+):
+    # GitHub answers an exhausted rate limit with 403, not 429.
+    mock_get.return_value = _make_response(
+        403,
+        reason='rate limit exceeded',
+        headers={'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1600'},
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get('example.com')
+
+    assert excinfo.value.category == 'rate_limited'
+    assert excinfo.value.retryable is True
+    assert excinfo.value.retry_after_sec == 600
+    assert mock_get.call_count == 1
+    mock_sleep.assert_not_called()
+
+
+@patch('glifestream.utils.httpclient.time.sleep')
+@patch('requests.get')
+def test_get_403_with_rate_limit_left_is_an_auth_failure(mock_get, mock_sleep):
+    mock_get.return_value = _make_response(
+        403, reason='Forbidden', headers={'X-RateLimit-Remaining': '59'}
+    )
+
+    with pytest.raises(httpclient.FetchError) as excinfo:
+        httpclient.get('example.com')
+
+    assert excinfo.value.category == 'auth'
+    assert excinfo.value.retryable is False
+    assert mock_get.call_count == 1
+
+
 @patch('glifestream.utils.httpclient.time.sleep')
 @patch('requests.get')
 def test_get_404_is_not_retried(mock_get, mock_sleep):

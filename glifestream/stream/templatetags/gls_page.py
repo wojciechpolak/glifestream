@@ -72,6 +72,8 @@ MESSAGES = (
     gettext_noop('Release to refresh'),
     gettext_noop('Reshare it at your stream'),
     gettext_noop('Share or bookmark this entry'),
+    gettext_noop('Show less'),
+    gettext_noop('Show more'),
     gettext_noop('Strikethrough'),
     gettext_noop('Unable to queue fetch.'),
     gettext_noop('Underline'),
@@ -91,7 +93,14 @@ MESSAGES = (
 )
 
 
-def page_config() -> dict[str, Any]:
+def fold_lines(user: Any) -> int:
+    """How many lines of an entry the timeline shows `user` before folding."""
+    profile = getattr(user, 'userprofile', None) if user else None
+    chosen = getattr(profile, 'fold_lines', None)
+    return settings.FOLD_LINES if chosen is None else chosen
+
+
+def page_config(user: Any = None) -> dict[str, Any]:
     """PageConfig in api-types.ts."""
     return {
         'baseurl': reverse('index'),
@@ -99,6 +108,7 @@ def page_config() -> dict[str, Any]:
         'themes': list(settings.THEMES),
         'lang': get_language() or settings.LANGUAGE_CODE,
         'messages': {message: gettext(message) for message in MESSAGES},
+        'fold_lines': fold_lines(user),
     }
 
 
@@ -121,10 +131,12 @@ def stream_data(context: Context) -> dict[str, Any]:
     }
 
 
-@register.simple_tag(name='page_config')
-def page_config_tag() -> SafeString:
+@register.simple_tag(name='page_config', takes_context=True)
+def page_config_tag(context: Context) -> SafeString:
     """The #gls-config script every page has."""
-    return json_script(page_config(), 'gls-config')
+    request = context.get('request')
+    user = getattr(request, 'user', None)
+    return json_script(page_config(user), 'gls-config')
 
 
 @register.simple_tag(name='stream_data', takes_context=True)

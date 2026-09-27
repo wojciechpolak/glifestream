@@ -21,6 +21,7 @@ import { Lightbox } from '../ui/lightbox';
 import { hide_spinner, show_spinner } from '../ui/spinner';
 import { follow_href } from '../util/navigation';
 import { scroll_to_element } from '../util/scroll';
+import { fold_long_contents } from './folding';
 import { scaledown_images } from './images';
 import { render_maps } from './maps';
 import { alter_html } from './media';
@@ -70,6 +71,7 @@ async function append_page(link: HTMLAnchorElement): Promise<void> {
     for (const article of latest) {
         render_maps(article);
         scaledown_images(article.querySelectorAll('img'));
+        fold_long_contents(article);
     }
     if (latest[0]) {
         scroll_to_element(latest[0], 25);

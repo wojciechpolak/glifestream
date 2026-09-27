@@ -54,6 +54,7 @@ gLifestream supports the following services by default:
 - Mastodon
 - Bluesky
 - Flickr
+- GitHub
 - PixelFed
 - Vimeo
 - YouTube

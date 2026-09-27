@@ -33,8 +33,10 @@ from django.http import (
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.cache import never_cache
 
+from glifestream.apis import github
 from glifestream.apis.factory import ServiceFactory
 from glifestream.fetching import (
     enqueue_manual_fetch,
@@ -43,7 +45,7 @@ from glifestream.fetching import (
     serialize_fetch_state,
     sync_service_schedule,
 )
-from glifestream.stream.models import API_LIST, Service
+from glifestream.stream.models import API_LIST, Service, default_class
 from glifestream.usettings.common import (
     build_settings_page,
     get_staff_settings_user,
@@ -124,7 +126,8 @@ def _build_service_payload(request: HttpRequest, id_service: Any) -> dict[str, A
         'url': request.POST.get('url', ''),
         'user_id': request.POST.get('user_id', ''),
         'fetch_interval_sec': fetch_interval_raw,
-        'display': request.POST.get('display', 'content'),
+        # None keeps what is stored, when the form has no such field.
+        'display': request.POST.get('display'),
         'public': bool(request.POST.get('public', False)),
         'home': bool(request.POST.get('home', False)),
         'active': bool(request.POST.get('active', False)),
@@ -193,8 +196,18 @@ def persist_service_payload(
         except Service.DoesNotExist:
             srv = Service()
         for k, v in payload.items():
-            if k != 'id':
+            if k != 'id' and not (k == 'display' and v is None):
                 setattr(srv, k, v)
+        if payload['display'] is None and not srv.pk:
+            srv.display = 'content'
+        github_before = None
+        if srv.api == 'github':
+            if srv.pk:
+                github_before = github.enabled_events(srv)
+            srv.options = {
+                **(srv.options or {}),
+                github.OPTIONS_KEY: _posted_github_events(request),
+            }
     except Exception as exc:
         print(exc)
         return None, payload.get('id')
@@ -205,6 +218,8 @@ def persist_service_payload(
         is_new_service = not srv.pk
 
         auth = request.POST.get('auth', 'none')
+        if auth not in AUTH_METHODS.get(srv.api, DEFAULT_AUTH_METHODS):
+            auth = 'none'
         if auth == 'basic' and basic_user and basic_pass:
             srv.creds = basic_user + ':' + basic_pass
         elif auth == 'oauth' or auth == 'oauth2':
@@ -216,10 +231,94 @@ def persist_service_payload(
         srv.fetch_interval_sec = fetch_interval
         srv.save()
         sync_service_schedule(srv)
+        if github_before is not None:
+            notice = _github_visibility_notice(
+                *github.show_enabled_entries(srv, github_before)
+            )
+            if notice:
+                payload['notice'] = notice
         return srv, srv.pk
     except Exception as exc:
         print(exc)
         return srv, payload.get('id')
+
+
+# The ways a service can sign in, as offered by the Authorization select.
+DEFAULT_AUTH_METHODS = ('none', 'basic', 'oauth', 'oauth2')
+AUTH_METHODS: dict[str, tuple[str, ...]] = {
+    # These take a token only: from an OAuth app, or pasted.
+    'github': ('none', 'oauth2'),
+    'mastodon': ('none', 'oauth2'),
+    'pixelfed': ('none', 'oauth2'),
+}
+
+
+def _github_event_labels() -> dict[str, str]:
+    return {
+        'repo': _('Import new repositories'),
+        'release': _('Import releases'),
+        'star': _('Import stars'),
+        'fork': _('Import forks'),
+        'pr': _('Import pull requests'),
+        'issue': _('Import issues'),
+        'push': _('Import pushes'),
+    }
+
+
+def _github_visibility_notice(hidden: int, shown: int) -> str:
+    notices = []
+    if hidden:
+        notices.append(
+            ngettext(
+                '%(count)d entry of the unchecked kinds is now hidden.',
+                '%(count)d entries of the unchecked kinds are now hidden.',
+                hidden,
+            )
+            % {'count': hidden}
+        )
+    if shown:
+        notices.append(
+            ngettext(
+                '%(count)d entry of the checked kinds is shown again.',
+                '%(count)d entries of the checked kinds are shown again.',
+                shown,
+            )
+            % {'count': shown}
+        )
+    return ' '.join(notices)
+
+
+def _posted_github_events(request: HttpRequest) -> list[str]:
+    return [
+        category
+        for category in github.EVENT_CATEGORIES
+        if request.POST.get('github_event_' + category)
+    ]
+
+
+def _github_event_fields(request: HttpRequest, id_service: Any) -> list[dict[str, Any]]:
+    """One checkbox per kind of GitHub activity the service can import."""
+    chosen: tuple[str, ...] | list[str]
+    if request.POST.get('method') == 'post':
+        # What was just saved, or sent back to fix a missing field.
+        chosen = _posted_github_events(request)
+    elif id_service:
+        chosen = github.enabled_events(Service.objects.get(id=id_service))
+    else:
+        chosen = github.DEFAULT_EVENTS
+    labels = _github_event_labels()
+    fields: list[dict[str, Any]] = []
+    for category in github.EVENT_CATEGORIES:
+        field: dict[str, Any] = {
+            'type': 'checkbox',
+            'name': 'github_event_' + category,
+            'checked': category in chosen,
+            'label': labels[category],
+        }
+        if category == 'release':
+            field['hint'] = _('Includes releases published by automation.')
+        fields.append(field)
+    return fields
 
 
 def load_service_payload_state(
@@ -281,6 +380,7 @@ def build_service_form_response(
             'type': 'text',
             'name': 'cls',
             'value': s['cls'],
+            'placeholder': default_class(s['api']),
             'label': _('Class name'),
             'hint': _('Any name for the service classification; a category.'),
         },
@@ -301,6 +401,7 @@ def build_service_form_response(
         'atproto',
         'fb',
         'friendfeed',
+        'github',
         'mastodon',
         'pixelfed',
         'twitter',
@@ -375,6 +476,7 @@ def build_service_form_response(
         'webfeed',
         'atproto',
         'friendfeed',
+        'github',
         'mastodon',
         'pixelfed',
         'pocket',
@@ -391,61 +493,70 @@ def build_service_form_response(
         else:
             v = 'none'
 
-        s['fields'].append(
-            {
-                'type': 'select',
-                'name': 'auth',
-                'options': (
-                    ('none', _('none')),
-                    ('basic', _('Basic')),
-                    ('oauth', _('OAuth 1.0')),
-                    ('oauth2', _('OAuth 2.0')),
-                ),
-                'value': v,
-                'label': _('Authorization'),
-            }
-        )
+        methods = AUTH_METHODS.get(s['api'], DEFAULT_AUTH_METHODS)
+        labels = {
+            'none': _('none'),
+            'basic': _('Basic'),
+            'oauth': _('OAuth 1.0'),
+            'oauth2': _('OAuth 2.0'),
+        }
+        auth_field: dict[str, Any] = {
+            'type': 'select',
+            'name': 'auth',
+            'options': tuple((m, labels[m]) for m in methods),
+            'value': v if v in methods else 'none',
+            'label': _('Authorization'),
+        }
+        if methods == ('none', 'oauth2'):
+            auth_field['hint'] = _(
+                'For OAuth 2.0, save the service, then configure access: '
+                'authorize an OAuth app or paste a personal access token.'
+            )
+        s['fields'].append(auth_field)
 
         if 'id' in s:
-            s['fields'].append(
-                {
-                    'type': 'link',
-                    'name': 'oauth_conf',
-                    'value': _('configure access'),
-                    'href': '#',
-                    'label': '',
-                    'deps': {'auth': 'oauth'},
-                }
-            )
-            s['fields'].append(
-                {
-                    'type': 'link',
-                    'name': 'oauth2_conf',
-                    'value': _('configure access'),
-                    'href': '#',
-                    'label': '',
-                    'deps': {'auth': 'oauth2'},
-                }
-            )
+            if 'oauth' in methods:
+                s['fields'].append(
+                    {
+                        'type': 'link',
+                        'name': 'oauth_conf',
+                        'value': _('configure access'),
+                        'href': '#',
+                        'label': '',
+                        'deps': {'auth': 'oauth'},
+                    }
+                )
+            if 'oauth2' in methods:
+                s['fields'].append(
+                    {
+                        'type': 'link',
+                        'name': 'oauth2_conf',
+                        'value': _('configure access'),
+                        'href': '#',
+                        'label': '',
+                        'deps': {'auth': 'oauth2'},
+                    }
+                )
 
-        s['fields'].append(
-            {
-                'type': 'text',
-                'name': 'basic_user',
-                'value': basic_user,
-                'label': _('Basic username'),
-                'deps': {'auth': 'basic'},
-            }
-        )
-        s['fields'].append(
-            {
-                'type': 'password',
-                'name': 'basic_pass',
-                'value': '',
-                'label': _('Basic password'),
-                'deps': {'auth': 'basic'},
-            }
-        )
+        if 'basic' in methods:
+            s['fields'].append(
+                {
+                    'type': 'text',
+                    'name': 'basic_user',
+                    'value': basic_user,
+                    'label': _('Basic username'),
+                    'deps': {'auth': 'basic'},
+                }
+            )
+            s['fields'].append(
+                {
+                    'type': 'password',
+                    'name': 'basic_pass',
+                    'value': '',
+                    'label': _('Basic password'),
+                    'deps': {'auth': 'basic'},
+                }
+            )
 
     if s['api'] in ('webfeed', 'flickr', 'pocket', 'youtube', 'vimeo'):
         s['fields'].append(
@@ -457,10 +568,13 @@ def build_service_form_response(
                     ('content', _('Contents only')),
                     ('title', _('Title only')),
                 ),
-                'value': s['display'],
+                'value': s['display'] or 'content',
                 'label': _("Display entries'"),
             }
         )
+
+    if s['api'] == 'github':
+        s['fields'].extend(_github_event_fields(request, id_service))
 
     s['fields'].append(
         {

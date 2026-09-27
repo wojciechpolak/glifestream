@@ -255,6 +255,48 @@ def test_title_only_entry_loads_content_once_and_toggles(
     assert len(getcontent) == 1
 
 
+def _height(locator: Locator) -> float:
+    box = locator.bounding_box()
+    assert box is not None
+    return box['height']
+
+
+def test_long_entry_folds_behind_show_more(
+    page: Page, app_base_url: str, ensure_admin_session, make_entry
+):
+    body = ''.join('<p>Line %d of a long entry.</p>' % i for i in range(80))
+    long_entry = make_entry('Long Entry', body)
+    short_entry = make_entry('Short Entry', '<p>Just one line.</p>')
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+
+    long_article = _article(page, long_entry)
+    toggle = long_article.locator('button.show-more')
+    content = long_article.locator('div.entry-content')
+    expect(toggle).to_have_text('Show more')
+    expect(toggle).to_have_attribute('aria-expanded', 'false')
+    folded_height = _height(content)
+    expect(_article(page, short_entry).locator('button.show-more')).to_have_count(0)
+
+    toggle.click()
+    expect(toggle).to_have_text('Show less')
+    expect(toggle).to_have_attribute('aria-expanded', 'true')
+    assert _height(content) > folded_height
+
+    toggle.click()
+    expect(toggle).to_have_text('Show more')
+    assert _height(content) == folded_height
+
+    # On its own page the entry shows whole.
+    page.goto(f'{app_base_url}/entry/{long_entry.pk}')
+    single = _article(page, long_entry)
+    expect(single.locator('div.entry-content')).to_contain_text(
+        'Line 79 of a long entry.'
+    )
+    expect(single.locator('button.show-more')).to_have_count(0)
+    assert _height(single.locator('div.entry-content')) > folded_height * 2
+
+
 # --- Errors -----------------------------------------------------------------
 
 

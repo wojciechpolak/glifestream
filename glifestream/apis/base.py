@@ -87,6 +87,9 @@ class BaseService(ABC):
     def get_token_url(self) -> str | None:
         return None
 
+    def get_oauth_scopes(self) -> list[str]:
+        return ['read']
+
 
 def post_title(html: str) -> str:
     """A short plain-text title for a microblog post's HTML body."""

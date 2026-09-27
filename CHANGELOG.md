@@ -21,6 +21,11 @@ work, so only the significant changes are listed.
   timeline, context cards with reply hydration, and improved linkification and
   media expansion.
 - PixelFed support.
+- GitHub support, for a user's public activity or, with an OAuth 2.0 token or
+  a personal access token, the activity they follow. Settings picks what to
+  import: new repositories and releases by default, and stars, forks, pull
+  requests, issues and pushes on request. Unchecking a kind hides its entries
+  already imported. Releases published by automation are included.
 - Dark Mode.
 - Progressive Web App (PWA) support and Web Share integration.
 - Mastodon and Bluesky in the share box. Mastodon goes through
@@ -68,6 +73,8 @@ work, so only the significant changes are listed.
   Dependabot.
 - Support for additional image formats and a reworked thumbnail pipeline.
 - Reblog filtering and an entry link shortcut in the admin view.
+- Long entries fold behind "Show more" on the timeline. Preferences sets the
+  height in lines; `FOLD_LINES` sets the default.
 
 ### Changed
 
@@ -119,6 +126,12 @@ work, so only the significant changes are listed.
 - The Docker container stops at the first startup step that fails, such as
   `migrate` or `collectstatic`, with that step's error. It used to start
   anyway and fail later, for example with a worker missing a database column.
+- The Authorization select offers only the methods a service supports.
+- A service saved without a class gets one the themes have an icon for:
+  `sms`, `photos`, `videos` or `code`, depending on its API.
+- A fetch that fails for a known reason, such as a rate limit, logs one line
+  instead of a traceback. `worker.py` still fetches the other services and
+  exits with 1.
 
 ### Deprecated
 
@@ -193,6 +206,10 @@ work, so only the significant changes are listed.
 - `--thumbs-delete-orphans` no longer stops at a file that disappears while it
   runs, and it deletes a thumbnail from the directory it was found in rather
   than from the one its name implies.
+- Saving a token in "configure access" signs the service in without saving
+  the service form as well.
+- Saving the service form no longer resets "Display entries" when the form
+  does not offer it.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
 

@@ -1083,3 +1083,120 @@ msgstr "Не вдалося обробити відповідь віддален
 
 msgid "Remote address is not allowed."
 msgstr "Ця віддалена адреса не дозволена."
+
+msgid "Options"
+msgstr "Параметри"
+
+#, python-format
+msgid "Created repository %s"
+msgstr "Створено репозиторій %s"
+
+#, python-format
+msgid "Made %s public"
+msgstr "%s зроблено публічним"
+
+#, python-format
+msgid "Released %(repo)s %(release)s"
+msgstr "Випущено %(repo)s %(release)s"
+
+#, python-format
+msgid "Starred %s"
+msgstr "Додано зірку %s"
+
+#, python-format
+msgid "Forked %s"
+msgstr "Створено форк %s"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s"
+msgstr "Відкрито pull request #%(number)s у %(repo)s"
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s"
+msgstr "Злито pull request #%(number)s у %(repo)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s"
+msgstr "Відкрито issue #%(number)s у %(repo)s"
+
+#, python-format
+msgid "Pushed to %(branch)s in %(repo)s"
+msgstr "Надіслано зміни в %(branch)s у %(repo)s"
+
+msgid "Import new repositories"
+msgstr "Імпортувати нові репозиторії"
+
+msgid "Import releases"
+msgstr "Імпортувати випуски"
+
+msgid "Import stars"
+msgstr "Імпортувати зірки"
+
+msgid "Import forks"
+msgstr "Імпортувати форки"
+
+msgid "Import pull requests"
+msgstr "Імпортувати pull requests"
+
+msgid "Import issues"
+msgstr "Імпортувати issues"
+
+msgid "Import pushes"
+msgstr "Імпортувати push"
+
+msgid "Includes releases published by automation."
+msgstr "Включно з випусками, опублікованими автоматично."
+
+msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
+msgstr "Для OAuth 2.0 збережіть сервіс, а потім налаштуйте доступ: авторизуйте застосунок OAuth або вставте персональний токен доступу."
+
+msgid "Full release notes"
+msgstr "Повні примітки до випуску"
+
+msgid "Show more"
+msgstr "Показати більше"
+
+msgid "Show less"
+msgstr "Показати менше"
+
+msgid "Fold long entries"
+msgstr "Згортати довгі записи"
+
+msgid "Lines of an entry the timeline shows before \"Show more\". 0 never folds. Empty uses the site default."
+msgstr "Скільки рядків запису показує стрічка перед \"Показати більше\". 0 — ніколи не згортати. Порожнє поле — типове значення сайту."
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "Злито pull request #%(number)s у %(repo)s: %(title)s"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "Відкрито pull request #%(number)s у %(repo)s: %(title)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s: %(title)s"
+msgstr "Відкрито issue #%(number)s у %(repo)s: %(title)s"
+
+#, python-format
+msgid "Pushed %(count)d commit to %(branch)s in %(repo)s"
+msgid_plural "Pushed %(count)d commits to %(branch)s in %(repo)s"
+msgstr[0] "Надіслано %(count)d коміт у %(branch)s у %(repo)s"
+msgstr[1] "Надіслано %(count)d коміти у %(branch)s у %(repo)s"
+msgstr[2] "Надіслано %(count)d комітів у %(branch)s у %(repo)s"
+
+msgid "See all changes"
+msgstr "Переглянути всі зміни"
+
+#, python-format
+msgid "%(count)d entry of the unchecked kinds is now hidden."
+msgid_plural "%(count)d entries of the unchecked kinds are now hidden."
+msgstr[0] "%(count)d запис знятих типів тепер приховано."
+msgstr[1] "%(count)d записи знятих типів тепер приховано."
+msgstr[2] "%(count)d записів знятих типів тепер приховано."
+
+#, python-format
+msgid "%(count)d entry of the checked kinds is shown again."
+msgid_plural "%(count)d entries of the checked kinds are shown again."
+msgstr[0] "%(count)d запис вибраних типів знову показано."
+msgstr[1] "%(count)d записи вибраних типів знову показано."
+msgstr[2] "%(count)d записів вибраних типів знову показано."

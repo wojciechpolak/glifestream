@@ -1080,3 +1080,117 @@ msgstr "Het antwoord van de externe dienst kon niet worden verwerkt."
 
 msgid "Remote address is not allowed."
 msgstr "Dit externe adres is niet toegestaan."
+
+msgid "Options"
+msgstr "Opties"
+
+#, python-format
+msgid "Created repository %s"
+msgstr "Repository %s aangemaakt"
+
+#, python-format
+msgid "Made %s public"
+msgstr "%s openbaar gemaakt"
+
+#, python-format
+msgid "Released %(repo)s %(release)s"
+msgstr "%(repo)s %(release)s uitgebracht"
+
+#, python-format
+msgid "Starred %s"
+msgstr "%s een ster gegeven"
+
+#, python-format
+msgid "Forked %s"
+msgstr "%s geforkt"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s"
+msgstr "Pull request #%(number)s geopend in %(repo)s"
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s"
+msgstr "Pull request #%(number)s samengevoegd in %(repo)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s"
+msgstr "Issue #%(number)s geopend in %(repo)s"
+
+#, python-format
+msgid "Pushed to %(branch)s in %(repo)s"
+msgstr "Gepusht naar %(branch)s in %(repo)s"
+
+msgid "Import new repositories"
+msgstr "Nieuwe repository's importeren"
+
+msgid "Import releases"
+msgstr "Releases importeren"
+
+msgid "Import stars"
+msgstr "Sterren importeren"
+
+msgid "Import forks"
+msgstr "Forks importeren"
+
+msgid "Import pull requests"
+msgstr "Pull requests importeren"
+
+msgid "Import issues"
+msgstr "Issues importeren"
+
+msgid "Import pushes"
+msgstr "Pushes importeren"
+
+msgid "Includes releases published by automation."
+msgstr "Inclusief automatisch gepubliceerde releases."
+
+msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
+msgstr "Voor OAuth 2.0: sla de dienst op en stel daarna de toegang in: autoriseer een OAuth-app of plak een persoonlijk toegangstoken."
+
+msgid "Full release notes"
+msgstr "Volledige release-opmerkingen"
+
+msgid "Show more"
+msgstr "Meer tonen"
+
+msgid "Show less"
+msgstr "Minder tonen"
+
+msgid "Fold long entries"
+msgstr "Lange berichten inklappen"
+
+msgid "Lines of an entry the timeline shows before \"Show more\". 0 never folds. Empty uses the site default."
+msgstr "Aantal regels van een bericht dat de tijdlijn toont vóór \"Meer tonen\". 0 klapt nooit in. Leeg gebruikt de standaard van de site."
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "Pull request #%(number)s samengevoegd in %(repo)s: %(title)s"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "Pull request #%(number)s geopend in %(repo)s: %(title)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s: %(title)s"
+msgstr "Issue #%(number)s geopend in %(repo)s: %(title)s"
+
+#, python-format
+msgid "Pushed %(count)d commit to %(branch)s in %(repo)s"
+msgid_plural "Pushed %(count)d commits to %(branch)s in %(repo)s"
+msgstr[0] "%(count)d commit gepusht naar %(branch)s in %(repo)s"
+msgstr[1] "%(count)d commits gepusht naar %(branch)s in %(repo)s"
+
+msgid "See all changes"
+msgstr "Alle wijzigingen bekijken"
+
+#, python-format
+msgid "%(count)d entry of the unchecked kinds is now hidden."
+msgid_plural "%(count)d entries of the unchecked kinds are now hidden."
+msgstr[0] "%(count)d bericht van de uitgevinkte soorten is nu verborgen."
+msgstr[1] "%(count)d berichten van de uitgevinkte soorten zijn nu verborgen."
+
+#, python-format
+msgid "%(count)d entry of the checked kinds is shown again."
+msgid_plural "%(count)d entries of the checked kinds are shown again."
+msgstr[0] "%(count)d bericht van de aangevinkte soorten wordt weer getoond."
+msgstr[1] "%(count)d berichten van de aangevinkte soorten worden weer getoond."

@@ -49,4 +49,18 @@ class PreferencesForm(ModelForm):
 
     class Meta:
         model = UserProfile
-        fields = ('language',)
+        fields = ('language', 'fold_lines')
+        labels = {'fold_lines': _('Fold long entries')}
+        help_texts = {
+            'fold_lines': _(
+                'Lines of an entry the timeline shows before "Show more". '
+                '0 never folds. Empty uses the site default.'
+            )
+        }
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        fold_lines = self.fields['fold_lines']
+        fold_lines.widget.attrs.update(
+            {'min': 0, 'placeholder': str(settings.FOLD_LINES)}
+        )

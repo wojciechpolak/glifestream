@@ -34,6 +34,7 @@ FEED_PROVIDERS = {
     'flickr': {'url': '12345@N00'},
 }
 JSON_PROVIDERS = {
+    'github': {'user_id': 'octocat'},
     'mastodon': {'url': 'https://remote.example', 'user_id': '1'},
     'pixelfed': {'url': 'https://remote.example', 'user_id': '1'},
     'youtube': {'url': 'https://remote.example/playlist'},

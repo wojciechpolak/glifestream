@@ -1266,8 +1266,43 @@ img.entry-icon {
 #stream .entry-title,
 #stream .entry-content,
 #stream .entry-info,
+#stream .show-more,
 #entry-editor {
   margin-left: 84px;
+}
+
+// On the timeline a long entry folds to --fold-lines lines (the user's
+// preference), fading out, until "Show more" unfolds it. An entry on its own
+// page never folds: the page script folds only what this rule would hide.
+#stream:not(.single-entry) .entry-content.folded {
+  max-height: calc(var(--fold-lines, 20) * 1.8em);
+  max-height: calc(var(--fold-lines, 20) * 1lh);
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+
+#stream .show-more {
+  display: block;
+  margin-top: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  // Wins over the theme's button and its hover state.
+  background: none;
+  box-shadow: none;
+  transform: none;
+  transition: color 0.18s ease;
+  color: var(--link);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--link-hover);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.16em;
+  }
 }
 
 #stream .entry-title {
@@ -2507,6 +2542,12 @@ fieldset .hint {
   display: none;
 }
 
+fieldset .form-notice {
+  margin: 10px 14px;
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
 #settings fieldset input,
 #settings fieldset textarea,
 #settings fieldset select {
@@ -2600,6 +2641,12 @@ span.flickr {
   @extend .fa-brands;
   @extend .fa-flickr;
   color: #ff0084;
+}
+
+span.github {
+  @extend .fa-brands;
+  @extend .fa-github;
+  color: var(--text-strong);
 }
 
 span.mastodon {
@@ -2882,6 +2929,17 @@ img.noborder {
     @extend .fa-pencil;
   }
 
+  .services .e-code,
+  .e-code div.entry-icon {
+    color: #3f4a5c;
+    background: linear-gradient(180deg, rgba(238, 241, 246, 0.96), rgba(128, 141, 163, 0.26));
+  }
+
+  .services .e-code,
+  .e-code div.entry-icon {
+    @extend .fa-code;
+  }
+
   .services .e-links,
   .e-links div.entry-icon {
     color: #365f93;
@@ -2970,6 +3028,11 @@ img.noborder {
     .services .e-blog,
     .e-blog div.entry-icon {
       background: linear-gradient(180deg, rgba(82, 63, 33, 0.96), rgba(128, 98, 49, 0.46));
+    }
+
+    .services .e-code,
+    .e-code div.entry-icon {
+      background: linear-gradient(180deg, rgba(47, 53, 66, 0.96), rgba(78, 88, 108, 0.46));
     }
 
     .services .e-links,
@@ -3282,6 +3345,7 @@ img.noborder {
   #stream .entry-title,
   #stream .entry-content,
   #stream .entry-info,
+  #stream .show-more,
   #entry-editor {
     margin-left: 56px;
   }

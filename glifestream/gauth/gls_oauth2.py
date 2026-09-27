@@ -46,6 +46,8 @@ class OAuth2Endpoints(Protocol):
 
     def get_token_url(self) -> str | None: ...
 
+    def get_oauth_scopes(self) -> list[str]: ...
+
 
 class OAuth2Client:
     def __init__(
@@ -75,12 +77,13 @@ class OAuth2Client:
         self.base_url = api.get_base_url()
         self.authorize_url = api.get_authorize_url()
         self.token_url = api.get_token_url()
+        scope = api.get_oauth_scopes()
 
         if self.db.identifier:
             self.consumer = OAuth2Session(
                 client_id=self.db.identifier,
                 redirect_uri=self.callback_url,
-                scope=['read'],
+                scope=scope,
                 token={'access_token': self.db.token, 'token_type': 'Bearer'}
                 if self.db.token
                 else None,
@@ -90,7 +93,7 @@ class OAuth2Client:
             self.consumer = OAuth2Session(
                 client_id='None',
                 redirect_uri=self.callback_url,
-                scope=['read'],
+                scope=scope,
                 token={'access_token': self.db.token, 'token_type': 'Bearer'},
             )
             self.consumer.headers['User-Agent'] = AGENT

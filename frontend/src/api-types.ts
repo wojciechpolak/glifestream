@@ -33,6 +33,8 @@ export interface PageConfig {
     lang: string;
     /** English message to its translation, for every message _() is given. */
     messages: Record<string, string>;
+    /** Lines of an entry the timeline shows before "Show more"; 0 never folds. */
+    fold_lines: number;
 }
 
 /** #gls-stream-data, on stream pages, for the archive calendar. */
@@ -126,5 +128,7 @@ export interface ServiceForm {
     delete?: string;
     /** A new service to fetch right away. */
     need_import?: boolean;
+    /** What saving did besides saving, such as hiding entries. */
+    notice?: string;
     fetch_status?: FetchState;
 }

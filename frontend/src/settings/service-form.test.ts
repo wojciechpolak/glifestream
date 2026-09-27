@@ -225,6 +225,16 @@ describe('get_service_form', () => {
         expect(fetch_mock.mock.calls[1]?.[0]).toBe('/settings/api/import');
     });
 
+    it('says what saving did besides saving', async () => {
+        answer(form_data({ id: 7, method: 'post', notice: '76 entries hidden.' }));
+
+        await get_service_form({ method: 'get', id: '7' }, '#add-service');
+
+        const notice = form().querySelector('.form-notice');
+        expect(notice?.textContent).toBe('76 entries hidden.');
+        expect(notice?.getAttribute('role')).toBe('status');
+    });
+
     it('replaces the list item of a service already listed', async () => {
         document.getElementById('edit-service')!.innerHTML =
             '<li><a id="service-7">Old</a></li>';

@@ -37,6 +37,9 @@
 # - mastodon and pixelfed: the status URL. A reblog uses the original status
 #   URL, so reblogging a post already imported updates that entry.
 # - atproto: the post CID. A repost uses the original post's CID.
+# - github: `tag:github.com,2008:{event type}/{event id}`, the id GitHub's own
+#   Atom feed uses. A release uses its page URL instead, as it can come from
+#   an event or from the repository's list of releases.
 # - youtube: the video id, or the playlist item id for a favorite.
 # - vimeo: the clip id plus the date of the like or upload. Liking a clip
 #   again on a different day creates a second entry.

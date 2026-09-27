@@ -27,6 +27,7 @@ export const config: PageConfig = {
     themes: [],
     lang: '',
     messages: {},
+    fold_lines: 20,
 };
 
 /** The value of the json_script element with this id, or null without one. */

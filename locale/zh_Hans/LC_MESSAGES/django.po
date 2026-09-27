@@ -1056,3 +1056,114 @@ msgstr "无法解析远程响应。"
 
 msgid "Remote address is not allowed."
 msgstr "不允许访问此远程地址。"
+
+msgid "Options"
+msgstr "选项"
+
+#, python-format
+msgid "Created repository %s"
+msgstr "创建了仓库 %s"
+
+#, python-format
+msgid "Made %s public"
+msgstr "将 %s 设为公开"
+
+#, python-format
+msgid "Released %(repo)s %(release)s"
+msgstr "发布了 %(repo)s %(release)s"
+
+#, python-format
+msgid "Starred %s"
+msgstr "为 %s 加了星标"
+
+#, python-format
+msgid "Forked %s"
+msgstr "复刻了 %s"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s"
+msgstr "在 %(repo)s 中创建了拉取请求 #%(number)s"
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s"
+msgstr "在 %(repo)s 中合并了拉取请求 #%(number)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s"
+msgstr "在 %(repo)s 中创建了议题 #%(number)s"
+
+#, python-format
+msgid "Pushed to %(branch)s in %(repo)s"
+msgstr "推送到 %(repo)s 的 %(branch)s"
+
+msgid "Import new repositories"
+msgstr "导入新仓库"
+
+msgid "Import releases"
+msgstr "导入发布"
+
+msgid "Import stars"
+msgstr "导入星标"
+
+msgid "Import forks"
+msgstr "导入复刻"
+
+msgid "Import pull requests"
+msgstr "导入拉取请求"
+
+msgid "Import issues"
+msgstr "导入议题"
+
+msgid "Import pushes"
+msgstr "导入推送"
+
+msgid "Includes releases published by automation."
+msgstr "包括自动发布的版本。"
+
+msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
+msgstr "使用 OAuth 2.0 时，请先保存服务，再配置访问：授权 OAuth 应用，或粘贴个人访问令牌。"
+
+msgid "Full release notes"
+msgstr "完整发布说明"
+
+msgid "Show more"
+msgstr "显示更多"
+
+msgid "Show less"
+msgstr "收起"
+
+msgid "Fold long entries"
+msgstr "折叠长条目"
+
+msgid "Lines of an entry the timeline shows before \"Show more\". 0 never folds. Empty uses the site default."
+msgstr "时间线在“显示更多”之前显示的条目行数。0 表示从不折叠。留空则使用站点默认值。"
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "在 %(repo)s 中合并了拉取请求 #%(number)s：%(title)s"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "在 %(repo)s 中创建了拉取请求 #%(number)s：%(title)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s: %(title)s"
+msgstr "在 %(repo)s 中创建了议题 #%(number)s：%(title)s"
+
+#, python-format
+msgid "Pushed %(count)d commit to %(branch)s in %(repo)s"
+msgid_plural "Pushed %(count)d commits to %(branch)s in %(repo)s"
+msgstr[0] "向 %(repo)s 的 %(branch)s 推送了 %(count)d 个提交"
+
+msgid "See all changes"
+msgstr "查看所有更改"
+
+#, python-format
+msgid "%(count)d entry of the unchecked kinds is now hidden."
+msgid_plural "%(count)d entries of the unchecked kinds are now hidden."
+msgstr[0] "已隐藏未勾选类型的 %(count)d 条内容。"
+
+#, python-format
+msgid "%(count)d entry of the checked kinds is shown again."
+msgid_plural "%(count)d entries of the checked kinds are shown again."
+msgstr[0] "已重新显示勾选类型的 %(count)d 条内容。"

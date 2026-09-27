@@ -339,13 +339,14 @@ def handle_fetch(command: WorkerCommand) -> int:
         if sel != 'Y':
             return 0
 
-    run_services(
+    failures = run_services(
         command.filters,
         force_check=command.force_check,
         force_overwrite=command.force_overwrite,
         verbose=command.verbose,
     )
-    return 0
+    # Each failure is in the log already, with why.
+    return 1 if failures else 0
 
 
 def handle_cleanup(command: WorkerCommand) -> int:

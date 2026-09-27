@@ -16,6 +16,7 @@
 """
 
 from django.conf import settings
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
 from glifestream.stream.models import Service
@@ -42,6 +43,16 @@ class UserProfile(models.Model):
         default='',
         help_text=_('Interface language. Empty means the browser decides.'),
     )
+    fold_lines = models.PositiveSmallIntegerField(
+        _('Fold long entries'),
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(500)],
+        help_text=_(
+            'Lines of an entry the timeline shows before "Show more". '
+            '0 never folds. Empty uses the site default.'
+        ),
+    )
 
     class Meta:
         verbose_name = _('User Profile')
@@ -63,7 +74,8 @@ class OAuthClient(models.Model):
     identifier = models.CharField('Identifier', max_length=64, null=False, blank=False)
     secret = models.CharField('Secret', max_length=128, null=False, blank=False)
     phase = models.PositiveSmallIntegerField('Phase', default=0)
-    token = models.CharField('Token', max_length=64, null=True, blank=True)
+    # Room for a fine-grained GitHub token (93 characters).
+    token = models.CharField('Token', max_length=255, null=True, blank=True)
     token_secret = models.CharField(
         'Token secret', max_length=128, null=True, blank=True
     )

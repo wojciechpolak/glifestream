@@ -454,6 +454,10 @@ STREAM_DESCRIPTION = (
 # How many entries to display on one page.
 ENTRIES_ON_PAGE = get_int(ENV, 'ENTRIES_ON_PAGE', default=30)
 
+# How many lines of an entry the timeline shows before "Show more"; 0 never
+# folds. A user can pick another number in Preferences.
+FOLD_LINES = get_int(ENV, 'FOLD_LINES', default=20)
+
 # Thumbnails format: JPEG, WEBP
 APP_THUMBNAIL_FORMAT = get_env(ENV, 'APP_THUMBNAIL_FORMAT', default='WEBP') or 'WEBP'
 

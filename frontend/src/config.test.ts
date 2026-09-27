@@ -42,6 +42,7 @@ describe('load_config', () => {
             themes: ['default', 'dark'],
             lang: 'pl',
             messages: { Undo: 'Cofnij' },
+            fold_lines: 8,
         };
         json_script('gls-config', page);
 
@@ -59,6 +60,7 @@ describe('load_config', () => {
             themes: [],
             lang: '',
             messages: {},
+            fold_lines: 20,
         });
     });
 });

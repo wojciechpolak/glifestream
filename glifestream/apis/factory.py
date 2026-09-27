@@ -19,6 +19,7 @@ from glifestream.apis.atproto import AtProtoService
 from glifestream.apis.base import BaseService
 from glifestream.apis.flickr import FlickrService
 from glifestream.apis.friendfeed import FriendFeedService
+from glifestream.apis.github import GitHubService
 from glifestream.apis.mastodon import MastodonService
 from glifestream.apis.pixelfed import PixelFedService
 from glifestream.apis.pocket import PocketService
@@ -33,6 +34,7 @@ SERVICE_CLASSES = {
     'atproto': AtProtoService,
     'flickr': FlickrService,
     'friendfeed': FriendFeedService,
+    'github': GitHubService,
     'mastodon': MastodonService,
     'pixelfed': PixelFedService,
     'pocket': PocketService,

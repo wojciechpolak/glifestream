@@ -200,6 +200,9 @@ def test_oauth_get_accepts_the_providers_callback(
     assert response['Location'] == oauth_url(oauth_service)
     patched_client.consumer.parse_authorization_response.assert_called_once()
     assert patched_client.verifier == 'v1'
+    # Signed in, even if the service form behind the popup is never saved.
+    oauth_service.refresh_from_db()
+    assert oauth_service.creds == 'oauth'
 
 
 @pytest.mark.django_db
@@ -290,6 +293,8 @@ def test_oauth2_accepts_a_callback_carrying_the_issued_state(
     assert response.status_code == 302
     patched_oauth2_client.get_access_token.assert_called_once_with('good-code')
     assert 'oauth2-state-%s' % oauth2_service.pk not in staff_client.session
+    oauth2_service.refresh_from_db()
+    assert oauth2_service.creds == 'oauth2'
 
 
 @pytest.mark.django_db
@@ -305,6 +310,8 @@ def test_oauth2_refuses_a_callback_without_the_issued_state(
     assert 'does not match' in str(response.context['page']['msg'])
     patched_oauth2_client.get_access_token.assert_not_called()
     assert patched_oauth2_client.db.phase == 1
+    oauth2_service.refresh_from_db()
+    assert oauth2_service.creds is None
 
 
 @pytest.mark.django_db
@@ -337,3 +344,18 @@ def test_oauth2_page_revisited_mid_flow_just_renders(
 def test_help_table_covers_twitter():
     assert 'twitter' in oauth_settings.OAUTH1_APIS_HELP
     assert oauth_settings.OAUTH1_DEFAULT_HELP.startswith('http')
+
+
+@pytest.mark.django_db
+def test_oauth2_pasted_token_signs_the_service_in(
+    staff_client, oauth2_service, patched_oauth2_client
+):
+    response = staff_client.post(
+        oauth2_url(oauth2_service), {'access_token': 'github_pat_x'}
+    )
+
+    assert response.status_code == 200
+    patched_oauth2_client.set_access_token.assert_called_once_with('github_pat_x')
+    assert patched_oauth2_client.db.phase == 3
+    oauth2_service.refresh_from_db()
+    assert oauth2_service.creds == 'oauth2'

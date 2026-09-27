@@ -41,6 +41,7 @@ import {
     hide_entry,
     show_menu_controls,
 } from './entry-actions';
+import { init_folding } from './folding';
 import { scaledown_images } from './images';
 import { render_maps, show_map } from './maps';
 import {
@@ -107,6 +108,7 @@ export function init_stream(): void {
         alter_html(stream);
         init_entry_controls(stream);
         render_maps(stream);
+        init_folding(stream);
     }
 
     listen('#sidebar-toggle', 'click', function (toggle) {

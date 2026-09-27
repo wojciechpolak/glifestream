@@ -1082,3 +1082,117 @@ msgstr "Die Antwort des entfernten Dienstes konnte nicht verarbeitet werden."
 
 msgid "Remote address is not allowed."
 msgstr "Diese entfernte Adresse ist nicht erlaubt."
+
+msgid "Options"
+msgstr "Optionen"
+
+#, python-format
+msgid "Created repository %s"
+msgstr "Repository %s erstellt"
+
+#, python-format
+msgid "Made %s public"
+msgstr "%s öffentlich gemacht"
+
+#, python-format
+msgid "Released %(repo)s %(release)s"
+msgstr "%(repo)s %(release)s veröffentlicht"
+
+#, python-format
+msgid "Starred %s"
+msgstr "%s mit Stern markiert"
+
+#, python-format
+msgid "Forked %s"
+msgstr "%s geforkt"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s"
+msgstr "Pull-Request #%(number)s in %(repo)s eröffnet"
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s"
+msgstr "Pull-Request #%(number)s in %(repo)s zusammengeführt"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s"
+msgstr "Issue #%(number)s in %(repo)s eröffnet"
+
+#, python-format
+msgid "Pushed to %(branch)s in %(repo)s"
+msgstr "Nach %(branch)s in %(repo)s gepusht"
+
+msgid "Import new repositories"
+msgstr "Neue Repositorys importieren"
+
+msgid "Import releases"
+msgstr "Releases importieren"
+
+msgid "Import stars"
+msgstr "Sterne importieren"
+
+msgid "Import forks"
+msgstr "Forks importieren"
+
+msgid "Import pull requests"
+msgstr "Pull-Requests importieren"
+
+msgid "Import issues"
+msgstr "Issues importieren"
+
+msgid "Import pushes"
+msgstr "Pushes importieren"
+
+msgid "Includes releases published by automation."
+msgstr "Umfasst auch automatisch veröffentlichte Releases."
+
+msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
+msgstr "Für OAuth 2.0 den Dienst speichern und dann den Zugriff einrichten: eine OAuth-App autorisieren oder ein persönliches Zugriffstoken einfügen."
+
+msgid "Full release notes"
+msgstr "Vollständige Versionshinweise"
+
+msgid "Show more"
+msgstr "Mehr anzeigen"
+
+msgid "Show less"
+msgstr "Weniger anzeigen"
+
+msgid "Fold long entries"
+msgstr "Lange Einträge einklappen"
+
+msgid "Lines of an entry the timeline shows before \"Show more\". 0 never folds. Empty uses the site default."
+msgstr "So viele Zeilen eines Eintrags zeigt die Zeitleiste vor \"Mehr anzeigen\". 0 klappt nie ein. Leer nutzt den Standard der Website."
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "Pull-Request #%(number)s in %(repo)s zusammengeführt: %(title)s"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "Pull-Request #%(number)s in %(repo)s eröffnet: %(title)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s: %(title)s"
+msgstr "Issue #%(number)s in %(repo)s eröffnet: %(title)s"
+
+#, python-format
+msgid "Pushed %(count)d commit to %(branch)s in %(repo)s"
+msgid_plural "Pushed %(count)d commits to %(branch)s in %(repo)s"
+msgstr[0] "%(count)d Commit nach %(branch)s in %(repo)s gepusht"
+msgstr[1] "%(count)d Commits nach %(branch)s in %(repo)s gepusht"
+
+msgid "See all changes"
+msgstr "Alle Änderungen ansehen"
+
+#, python-format
+msgid "%(count)d entry of the unchecked kinds is now hidden."
+msgid_plural "%(count)d entries of the unchecked kinds are now hidden."
+msgstr[0] "%(count)d Eintrag der abgewählten Arten ist jetzt ausgeblendet."
+msgstr[1] "%(count)d Einträge der abgewählten Arten sind jetzt ausgeblendet."
+
+#, python-format
+msgid "%(count)d entry of the checked kinds is shown again."
+msgid_plural "%(count)d entries of the checked kinds are shown again."
+msgstr[0] "%(count)d Eintrag der ausgewählten Arten wird wieder angezeigt."
+msgstr[1] "%(count)d Einträge der ausgewählten Arten werden wieder angezeigt."

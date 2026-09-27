@@ -295,6 +295,9 @@ function prepare_service_form(data: ServiceForm): HTMLFormElement {
         fs.append(render_row(f, data, deps));
     }
     bind_deps(fs, deps);
+    if (data.notice) {
+        fs.append(h('p', { className: 'form-notice', role: 'status' }, [data.notice]));
+    }
     fs.append(render_buttons(data));
 
     if (data.id && data.method === 'post') {

@@ -258,14 +258,34 @@ def classify_status_code(status_code: int) -> tuple[str, bool]:
 def _classify_response_error(response: Response) -> FetchError:
     status_code = response.status_code
     category, retryable = classify_status_code(status_code)
+    retry_after_sec = _get_retry_after_sec(response)
+    if status_code == 403 and _is_rate_limit_exhausted(response):
+        category, retryable = 'rate_limited', True
+        if retry_after_sec is None:
+            retry_after_sec = _get_rate_limit_reset_sec(response)
     return build_fetch_error(
         category=category,
         detail=_build_http_error_detail(response),
         retryable=retryable,
         status_code=status_code,
         url=response.url,
-        retry_after_sec=_get_retry_after_sec(response),
+        retry_after_sec=retry_after_sec,
     )
+
+
+def _is_rate_limit_exhausted(response: Response) -> bool:
+    # GitHub answers an exhausted rate limit with 403, not 429.
+    return response.headers.get('X-RateLimit-Remaining', '').strip() == '0'
+
+
+def _get_rate_limit_reset_sec(response: Response) -> int | None:
+    """Seconds until the rate limit resets, from X-RateLimit-Reset."""
+    reset = response.headers.get('X-RateLimit-Reset', '').strip()
+    try:
+        seconds = int(reset) - int(time.time())
+    except ValueError:
+        return None
+    return max(0, min(seconds, MAX_SCHEDULED_RETRY_AFTER_SEC))
 
 
 def _classify_request_exception(

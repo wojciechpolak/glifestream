@@ -53,6 +53,15 @@ OAUTH1_APIS_HELP = {
 OAUTH1_DEFAULT_HELP = 'http://oauth.net/documentation/getting-started/'
 
 
+def _sign_in_with(id_service: Any, method: str) -> None:
+    """Makes the service use the token it just got.
+
+    The token is set in a popup, so the service form behind it may never be
+    saved; the service must not stay without authorization then.
+    """
+    Service.objects.filter(id=id_service).exclude(creds=method).update(creds=method)
+
+
 def _collect_custom_urls(
     request: HttpRequest, c: Any, page: dict[str, Any]
 ) -> dict[str, Any]:
@@ -103,6 +112,7 @@ def _handle_oauth_get(
         try:
             c.get_access_token()
             c.save()
+            _sign_in_with(id_service, 'oauth')
             return HttpResponseRedirect(reverse('usettings-oauth', args=[id_service]))
         except Exception as e:
             page['msg'] = e
@@ -196,6 +206,7 @@ def _handle_oauth2_callback(
         try:
             c.get_access_token(code)
             c.save()
+            _sign_in_with(id_service, 'oauth2')
             return HttpResponseRedirect(reverse('usettings-oauth2', args=[id_service]))
         except Exception as e:
             page['msg'] = e
@@ -213,6 +224,7 @@ def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
 
     page = _build_oauth_page(request, _('OAuth 2.0 - Settings'))
     apis_help = {
+        'github': 'https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps',
         'mastodon': 'https://docs.joinmastodon.org/spec/oauth/',
     }
     v: dict[str, Any] = {}
@@ -247,6 +259,7 @@ def oauth2(request: HttpRequest, **args: Any) -> HttpResponse:
             c.set_access_token(access_token)
             c.db.phase = gls_oauth2.PHASE_3
             c.save()
+            _sign_in_with(id_service, 'oauth2')
         elif c.db.phase == gls_oauth2.PHASE_0:
             auth_url = c.get_authorize_url()
             request.session[_oauth2_state_key(id_service)] = c.state

@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from typing import Any, cast
 import pytest
@@ -6,11 +7,11 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.http import JsonResponse
-from django.test import RequestFactory
+from django.test import Client, RequestFactory
 from django.utils import timezone
 
 from glifestream.gauth.models import UserProfile
-from glifestream.stream.models import Service, List, ServiceFetchState
+from glifestream.stream.models import Entry, Service, List, ServiceFetchState
 from glifestream.usettings import service_settings
 
 
@@ -228,6 +229,234 @@ def test_usettings_service_api_sets_need_import_only_for_new_fetchable_services(
 
     assert response.status_code == 200
     assert response.json()['need_import'] is False
+
+
+def _github_event_checks(form: dict[str, Any]) -> dict[str, bool]:
+    prefix = 'github_event_'
+    return {
+        field['name'].removeprefix(prefix): field['checked']
+        for field in form['fields']
+        if field['name'].startswith(prefix)
+    }
+
+
+@pytest.mark.django_db
+def test_usettings_github_form_starts_with_the_default_events(logged_in_client):
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {'api': 'github', 'method': 'get'},
+    )
+
+    checks = _github_event_checks(response.json())
+    assert list(checks) == ['repo', 'release', 'star', 'fork', 'pr', 'issue', 'push']
+    assert [name for name, checked in checks.items() if checked] == [
+        'repo',
+        'release',
+    ]
+
+
+@pytest.mark.django_db
+def test_usettings_github_saves_the_chosen_events(logged_in_client):
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'github',
+            'name': 'GitHub',
+            'timeline': 'user',
+            'user_id': 'me',
+            'github_event_release': '1',
+            'github_event_star': '1',
+            'method': 'post',
+        },
+    )
+
+    form = response.json()
+    service = Service.objects.get(id=form['id'])
+    assert service.options == {'github_events': ['release', 'star']}
+    checks = _github_event_checks(form)
+    assert [name for name, checked in checks.items() if checked] == [
+        'release',
+        'star',
+    ]
+
+    # Reopening the form shows what was stored, and saving keeps other options.
+    service.options['other'] = True
+    service.save()
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {'api': 'github', 'id': service.pk, 'method': 'get'},
+    )
+    checks = _github_event_checks(response.json())
+    assert [name for name, checked in checks.items() if checked] == [
+        'release',
+        'star',
+    ]
+
+    logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'github',
+            'id': service.pk,
+            'name': 'GitHub',
+            'timeline': 'user',
+            'user_id': 'me',
+            'method': 'post',
+        },
+    )
+    service.refresh_from_db()
+    assert service.options == {'github_events': [], 'other': True}
+
+
+@pytest.mark.django_db
+def test_usettings_github_hides_the_entries_of_unchecked_kinds(logged_in_client):
+    service = Service.objects.create(
+        api='github',
+        name='GitHub',
+        user_id='me',
+        options={'github_events': ['release', 'push']},
+    )
+    now = timezone.now()
+    for guid in (
+        'tag:github.com,2008:PushEvent/1',
+        'tag:github.com,2008:PushEvent/2',
+        'https://github.com/me/app/releases/tag/v1',
+    ):
+        Entry.objects.create(
+            service=service, guid=guid, title=guid, date_published=now, date_updated=now
+        )
+
+    def save(*events: str) -> dict[str, Any]:
+        post = {
+            'api': 'github',
+            'id': service.pk,
+            'name': 'GitHub',
+            'timeline': 'user',
+            'user_id': 'me',
+            'method': 'post',
+        }
+        post.update({'github_event_' + event: '1' for event in events})
+        response = logged_in_client.post(
+            reverse('usettings-api-cmd', args=['service']), post
+        )
+        return cast(dict[str, Any], response.json())
+
+    def active() -> list[bool]:
+        return list(
+            Entry.objects.filter(service=service)
+            .order_by('guid')
+            .values_list('active', flat=True)
+        )
+
+    form = save('release')
+    assert form['notice'] == '2 entries of the unchecked kinds are now hidden.'
+    assert active() == [True, False, False]
+
+    assert 'notice' not in save('release')
+
+    form = save('release', 'push')
+    assert form['notice'] == '2 entries of the checked kinds are shown again.'
+    assert active() == [True, True, True]
+
+
+@pytest.mark.django_db
+def test_usettings_saving_keeps_a_display_the_form_does_not_offer(logged_in_client):
+    service = Service.objects.create(
+        api='github', name='GitHub', user_id='me', display='title'
+    )
+
+    logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'github',
+            'id': service.pk,
+            'name': 'GitHub',
+            'timeline': 'user',
+            'user_id': 'me',
+            'method': 'post',
+        },
+    )
+
+    service.refresh_from_db()
+    assert service.display == 'title'
+
+
+@pytest.mark.django_db
+def test_usettings_an_empty_class_takes_the_default_of_the_api(logged_in_client):
+    def save(api: str, cls: str) -> dict[str, Any]:
+        response = logged_in_client.post(
+            reverse('usettings-api-cmd', args=['service']),
+            {
+                'api': api,
+                'name': api + cls,
+                'cls': cls,
+                'timeline': 'user',
+                'user_id': 'me',
+                'url': 'https://example.org/feed',
+                'method': 'post',
+            },
+        )
+        return cast(dict[str, Any], response.json())
+
+    form = save('github', '')
+    fields = {field['name']: field for field in form['fields']}
+    assert fields['cls']['placeholder'] == 'code'
+    assert Service.objects.get(id=form['id']).cls == 'code'
+
+    form = save('github', 'projects')
+    assert Service.objects.get(id=form['id']).cls == 'projects'
+
+    # Any other API is its own class.
+    form = save('webfeed', '')
+    fields = {field['name']: field for field in form['fields']}
+    assert fields['cls']['placeholder'] == 'webfeed'
+    assert Service.objects.get(id=form['id']).cls == 'webfeed'
+
+
+@pytest.mark.django_db
+def test_usettings_github_offers_only_token_authorization(logged_in_client):
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'github',
+            'name': 'GitHub',
+            'timeline': 'user',
+            'user_id': 'me',
+            'auth': 'basic',
+            'basic_user': 'me',
+            'basic_pass': 'secret',
+            'method': 'post',
+        },
+    )
+
+    form = response.json()
+    fields = {field['name']: field for field in form['fields']}
+    assert [value for value, _ in fields['auth']['options']] == ['none', 'oauth2']
+    assert 'oauth2_conf' in fields
+    assert not {'oauth_conf', 'basic_user', 'basic_pass'} & fields.keys()
+    # A method GitHub cannot use is not stored either.
+    assert Service.objects.get(id=form['id']).creds == ''
+
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {'api': 'webfeed', 'method': 'get'},
+    )
+    fields = {field['name']: field for field in response.json()['fields']}
+    assert [value for value, _ in fields['auth']['options']] == [
+        'none',
+        'basic',
+        'oauth',
+        'oauth2',
+    ]
+    for api in ('mastodon', 'pixelfed'):
+        response = logged_in_client.post(
+            reverse('usettings-api-cmd', args=['service']),
+            {'api': api, 'method': 'get'},
+        )
+        fields = {field['name']: field for field in response.json()['fields']}
+        assert [value for value, _ in fields['auth']['options']] == [
+            'none',
+            'oauth2',
+        ]
 
 
 @pytest.mark.django_db
@@ -707,3 +936,54 @@ def test_usettings_preferences_back_to_the_browser_language(
     assert UserProfile.objects.get(user=staff_user).language == ''
     assert response['Content-Language'] == 'en'
     assert 'Preferences saved.' in response.content.decode()
+
+
+def _page_fold_lines(client: Any) -> int:
+    html = client.get(reverse('index')).content.decode()
+    start = html.index('<script id="gls-config" type="application/json">')
+    end = html.index('</script>', start)
+    config = json.loads(html[html.index('>', start) + 1 : end])
+    return int(config['fold_lines'])
+
+
+@pytest.mark.django_db
+def test_usettings_preferences_saves_how_many_lines_fold(
+    logged_in_client, staff_user, settings
+):
+    settings.FOLD_LINES = 20
+    client = Client()
+    # Visitors, and users who chose nothing, get the site's number.
+    assert _page_fold_lines(client) == 20
+    assert _page_fold_lines(logged_in_client) == 20
+
+    response = logged_in_client.post(
+        reverse('usettings-preferences'), {'language': '', 'fold_lines': '8'}
+    )
+
+    assert 'Preferences saved.' in response.content.decode()
+    assert UserProfile.objects.get(user=staff_user).fold_lines == 8
+    assert _page_fold_lines(logged_in_client) == 8
+    assert _page_fold_lines(client) == 20
+
+    logged_in_client.post(
+        reverse('usettings-preferences'), {'language': '', 'fold_lines': '0'}
+    )
+    assert _page_fold_lines(logged_in_client) == 0
+
+    logged_in_client.post(
+        reverse('usettings-preferences'), {'language': '', 'fold_lines': ''}
+    )
+    assert UserProfile.objects.get(user=staff_user).fold_lines is None
+    assert _page_fold_lines(logged_in_client) == 20
+
+
+@pytest.mark.django_db
+def test_usettings_preferences_rejects_a_negative_number_of_lines(
+    logged_in_client, staff_user
+):
+    response = logged_in_client.post(
+        reverse('usettings-preferences'), {'language': '', 'fold_lines': '-3'}
+    )
+
+    assert 'Preferences saved.' not in response.content.decode()
+    assert UserProfile.objects.get(user=staff_user).fold_lines is None

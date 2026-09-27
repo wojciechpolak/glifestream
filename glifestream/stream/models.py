@@ -40,11 +40,30 @@ API_LIST = (
     ('mastodon', 'Mastodon'),
     ('atproto', 'AT Protocol'),
     ('pixelfed', 'PixelFed'),
+    ('github', 'GitHub'),
     ('flickr', 'Flickr'),
     ('twitter', 'Twitter'),
     ('vimeo', 'Vimeo'),
     ('youtube', 'YouTube'),
 )
+
+# The class of a service given none, when it is not the name of its API.
+# The themes have an icon for each.
+DEFAULT_CLASSES = {
+    'atproto': 'sms',
+    'flickr': 'photos',
+    'github': 'code',
+    'mastodon': 'sms',
+    'pixelfed': 'photos',
+    'twitter': 'sms',
+    'vimeo': 'videos',
+    'youtube': 'videos',
+}
+
+
+def default_class(api: str) -> str:
+    """The class a service of `api` gets when none is given."""
+    return DEFAULT_CLASSES.get(api, api)
 
 
 def _normalize_dt(value: object) -> datetime.datetime | None:
@@ -136,6 +155,8 @@ class Service(models.Model):
     skip_reblogs = models.BooleanField(
         _('Skip reblogs'), default=False, help_text=_('Skip importing reblogged posts.')
     )
+    # Settings only one provider reads, keyed by that provider's name.
+    options = models.JSONField(_('Options'), default=dict, blank=True)
 
     class Meta:
         verbose_name = _('Service')
@@ -148,7 +169,7 @@ class Service(models.Model):
 
     def save(self, *args: Any, **kwargs: Any) -> None:
         if not self.cls:
-            self.cls = self.api
+            self.cls = default_class(self.api)
         self.last_modified = _normalize_dt(self.last_modified)
         self.last_checked = _normalize_dt(self.last_checked)
         self.next_fetch_at = _normalize_dt(self.next_fetch_at)

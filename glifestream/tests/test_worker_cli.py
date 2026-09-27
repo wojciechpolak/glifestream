@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import sys
 from typing import cast
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -319,11 +319,19 @@ def test_handle_fetch_runs_a_confirmed_force_overwrite():
 
     with (
         patch('builtins.input', return_value='Y'),
-        patch('glifestream.worker.cli.run_services') as run_services,
+        patch('glifestream.worker.cli.run_services', return_value=[]) as run_services,
     ):
         assert cli.handle_fetch(command) == 0
 
     run_services.assert_called_once()
+
+
+def test_handle_fetch_exits_with_1_when_a_service_fails():
+    command = cli.WorkerCommand(kind=cli.WorkerCommandKind.FETCH, filters={'id': 1})
+    failure = (Mock(), RuntimeError('boom'))
+
+    with patch('glifestream.worker.cli.run_services', return_value=[failure]):
+        assert cli.handle_fetch(command) == 1
 
 
 @pytest.mark.django_db

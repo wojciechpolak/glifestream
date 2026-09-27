@@ -1056,3 +1056,114 @@ msgstr "リモートからの応答を解析できませんでした。"
 
 msgid "Remote address is not allowed."
 msgstr "このリモートアドレスは許可されていません。"
+
+msgid "Options"
+msgstr "オプション"
+
+#, python-format
+msgid "Created repository %s"
+msgstr "リポジトリ %s を作成しました"
+
+#, python-format
+msgid "Made %s public"
+msgstr "%s を公開しました"
+
+#, python-format
+msgid "Released %(repo)s %(release)s"
+msgstr "%(repo)s %(release)s をリリースしました"
+
+#, python-format
+msgid "Starred %s"
+msgstr "%s にスターを付けました"
+
+#, python-format
+msgid "Forked %s"
+msgstr "%s をフォークしました"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s"
+msgstr "%(repo)s でプルリクエスト #%(number)s を作成しました"
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s"
+msgstr "%(repo)s でプルリクエスト #%(number)s をマージしました"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s"
+msgstr "%(repo)s で Issue #%(number)s を作成しました"
+
+#, python-format
+msgid "Pushed to %(branch)s in %(repo)s"
+msgstr "%(repo)s の %(branch)s にプッシュしました"
+
+msgid "Import new repositories"
+msgstr "新しいリポジトリをインポート"
+
+msgid "Import releases"
+msgstr "リリースをインポート"
+
+msgid "Import stars"
+msgstr "スターをインポート"
+
+msgid "Import forks"
+msgstr "フォークをインポート"
+
+msgid "Import pull requests"
+msgstr "プルリクエストをインポート"
+
+msgid "Import issues"
+msgstr "Issue をインポート"
+
+msgid "Import pushes"
+msgstr "プッシュをインポート"
+
+msgid "Includes releases published by automation."
+msgstr "自動で公開されたリリースも含みます。"
+
+msgid "For OAuth 2.0, save the service, then configure access: authorize an OAuth app or paste a personal access token."
+msgstr "OAuth 2.0 の場合は、サービスを保存してからアクセスを設定してください。OAuth アプリを認可するか、個人用アクセストークンを貼り付けます。"
+
+msgid "Full release notes"
+msgstr "リリースノート全文"
+
+msgid "Show more"
+msgstr "もっと見る"
+
+msgid "Show less"
+msgstr "表示を減らす"
+
+msgid "Fold long entries"
+msgstr "長いエントリーを折りたたむ"
+
+msgid "Lines of an entry the timeline shows before \"Show more\". 0 never folds. Empty uses the site default."
+msgstr "タイムラインで「もっと見る」の前に表示するエントリーの行数。0 で折りたたみません。空欄ならサイトの既定値を使います。"
+
+#, python-format
+msgid "Merged pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "%(repo)s でプルリクエスト #%(number)s をマージしました：%(title)s"
+
+#, python-format
+msgid "Opened pull request #%(number)s in %(repo)s: %(title)s"
+msgstr "%(repo)s でプルリクエスト #%(number)s を作成しました：%(title)s"
+
+#, python-format
+msgid "Opened issue #%(number)s in %(repo)s: %(title)s"
+msgstr "%(repo)s で Issue #%(number)s を作成しました：%(title)s"
+
+#, python-format
+msgid "Pushed %(count)d commit to %(branch)s in %(repo)s"
+msgid_plural "Pushed %(count)d commits to %(branch)s in %(repo)s"
+msgstr[0] "%(repo)s の %(branch)s に %(count)d 件のコミットをプッシュしました"
+
+msgid "See all changes"
+msgstr "すべての変更を見る"
+
+#, python-format
+msgid "%(count)d entry of the unchecked kinds is now hidden."
+msgid_plural "%(count)d entries of the unchecked kinds are now hidden."
+msgstr[0] "チェックを外した種類のエントリー %(count)d 件を非表示にしました。"
+
+#, python-format
+msgid "%(count)d entry of the checked kinds is shown again."
+msgid_plural "%(count)d entries of the checked kinds are shown again."
+msgstr[0] "チェックした種類のエントリー %(count)d 件を再び表示しました。"

@@ -54,6 +54,7 @@ EXCLUDED_APIS = (
     'fb',
     'flickr',
     'friendfeed',
+    'github',
     'mastodon',
     'pixelfed',
     'pocket',

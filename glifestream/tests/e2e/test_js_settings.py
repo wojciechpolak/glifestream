@@ -90,12 +90,13 @@ def test_add_service_form_toggles_dependent_fields(
     page.goto(f'{app_base_url}/settings/services')
     form = page.locator('#service-form')
 
+    # AT Protocol has both a timeline and every way to sign in.
     with page.expect_request(_is_service_api('get')) as request_info:
-        page.locator('#add-service a.mastodon').click()
-    assert _form(request_info.value) == {'method': ['get'], 'api': ['mastodon']}
+        page.locator('#add-service a.atproto').click()
+    assert _form(request_info.value) == {'method': ['get'], 'api': ['atproto']}
     expect(form).to_be_visible()
     expect(page.locator('#name')).to_be_focused()
-    expect(form.locator('input[type=hidden][name=api]')).to_have_value('mastodon')
+    expect(form.locator('input[type=hidden][name=api]')).to_have_value('atproto')
     expect(form.locator('input[type=hidden][name=id]')).to_have_count(0)
     expect(page.locator('#home')).to_be_checked()
     expect(page.locator('#active')).to_be_checked()
@@ -228,20 +229,22 @@ def test_saved_service_name_is_listed_as_text(
 
 
 @pytest.mark.parametrize(
-    ('auth', 'link', 'path'),
-    [('oauth', 'oauth_conf', 'oauth'), ('oauth2', 'oauth2_conf', 'oauth2')],
+    ('api', 'auth', 'link', 'path'),
+    [
+        ('twitter', 'oauth', 'oauth_conf', 'oauth'),
+        ('mastodon', 'oauth2', 'oauth2_conf', 'oauth2'),
+    ],
 )
 def test_configure_access_opens_the_oauth_popup(
     page: Page,
     app_base_url: str,
     ensure_admin_session,
+    api: str,
     auth: str,
     link: str,
     path: str,
 ):
-    service = Service.objects.create(
-        api='mastodon', name='OAuth Service', url='', creds=auth
-    )
+    service = Service.objects.create(api=api, name='OAuth Service', url='', creds=auth)
     ensure_admin_session()
     page.context.route(
         f'**/settings/{path}/{service.pk}',

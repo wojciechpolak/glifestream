@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import timedelta
 import threading
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -725,3 +726,73 @@ def test_run_services_with_no_matching_services_does_nothing():
         run_services({'id': 999})
 
     fetch.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_run_services_fetches_every_service_and_returns_the_failures(service):
+    from glifestream.fetching import run_services
+
+    other = Service.objects.create(name='Other', api='webfeed', url='http://o.example')
+    service.api = 'webfeed'
+    service.save()
+    error = httpclient.build_fetch_error(category='rate_limited', detail='limit')
+
+    def fetch(target: Service, **kwargs: Any) -> None:
+        if target.pk == service.pk:
+            raise error
+
+    with patch('glifestream.fetching.run_service_fetch', side_effect=fetch) as runs:
+        failures = run_services({'id__in': [service.pk, other.pk]}, force_check=True)
+
+    assert runs.call_count == 2
+    assert failures == [(service, error)]
+
+
+@pytest.mark.django_db
+def test_run_service_fetch_logs_a_classified_failure_without_a_traceback(
+    service, caplog
+):
+    service.api = 'webfeed'
+    service.save()
+    error = httpclient.build_fetch_error(
+        category='rate_limited',
+        detail='HTTP 403 rate limit exceeded from https://api.example/x',
+        retryable=True,
+        retry_after_sec=1200,
+    )
+
+    with (
+        patch(
+            'glifestream.fetching.ServiceFactory.create_service',
+            return_value=Mock(run=Mock(side_effect=error)),
+        ),
+        pytest.raises(httpclient.FetchError),
+    ):
+        run_service_fetch(service)
+
+    [record] = [r for r in caplog.records if 'Fetch failed' in r.getMessage()]
+    assert record.levelname == 'WARNING'
+    assert record.exc_info is None
+    assert record.getMessage() == (
+        'Fetch failed for service %s (webfeed): rate_limited: HTTP 403 rate limit '
+        'exceeded from https://api.example/x; retry after 1200 s' % service.pk
+    )
+
+
+@pytest.mark.django_db
+def test_run_service_fetch_logs_a_bug_with_its_traceback(service, caplog):
+    service.api = 'webfeed'
+    service.save()
+
+    with (
+        patch(
+            'glifestream.fetching.ServiceFactory.create_service',
+            return_value=Mock(run=Mock(side_effect=KeyError('title'))),
+        ),
+        pytest.raises(KeyError),
+    ):
+        run_service_fetch(service)
+
+    [record] = [r for r in caplog.records if 'Fetch failed' in r.getMessage()]
+    assert record.levelname == 'ERROR'
+    assert record.exc_info is not None
