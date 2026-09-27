@@ -276,8 +276,8 @@ msgstr "Anzeige der Einträge"
 msgid "Public"
 msgstr "Öffentlich"
 
-msgid "Public services are visible to anyone."
-msgstr "Öffentliche Dienste sind für alle sichtbar."
+msgid "Shows its entries in the public stream. Unchecked, only you see them, once logged in."
+msgstr "Zeigt seine Einträge im öffentlichen Stream. Ohne Haken siehst nur du sie, wenn du angemeldet bist."
 
 msgid "Active"
 msgstr "Aktiv"
@@ -1196,3 +1196,6 @@ msgid "%(count)d entry of the checked kinds is shown again."
 msgid_plural "%(count)d entries of the checked kinds are shown again."
 msgstr[0] "%(count)d Eintrag der ausgewählten Arten wird wieder angezeigt."
 msgstr[1] "%(count)d Einträge der ausgewählten Arten werden wieder angezeigt."
+
+msgid "Public services are visible to anyone."
+msgstr "Öffentliche Dienste sind für alle sichtbar."

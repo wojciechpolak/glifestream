@@ -265,8 +265,8 @@ msgstr "条目显示方式"
 msgid "Public"
 msgstr "公开"
 
-msgid "Public services are visible to anyone."
-msgstr "公开服务对所有人可见。"
+msgid "Shows its entries in the public stream. Unchecked, only you see them, once logged in."
+msgstr "在公开信息流中显示其内容。不勾选时，只有登录后的你能看到。"
 
 msgid "Active"
 msgstr "启用"
@@ -1167,3 +1167,6 @@ msgstr[0] "已隐藏未勾选类型的 %(count)d 条内容。"
 msgid "%(count)d entry of the checked kinds is shown again."
 msgid_plural "%(count)d entries of the checked kinds are shown again."
 msgstr[0] "已重新显示勾选类型的 %(count)d 条内容。"
+
+msgid "Public services are visible to anyone."
+msgstr "公开服务对所有人可见。"

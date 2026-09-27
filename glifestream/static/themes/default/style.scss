@@ -2419,6 +2419,37 @@ ul.files {
     }
   }
 
+  #service-form .form-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+
+    &:hover {
+      background: none;
+    }
+
+    a.delete {
+      margin-left: auto;
+      padding: 10px 16px;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      transition:
+        transform 0.18s ease,
+        box-shadow 0.18s ease,
+        background-color 0.18s ease;
+
+      &:hover {
+        color: var(--button-text);
+        background: var(--danger);
+        box-shadow: var(--shadow-button);
+        transform: translateY(-1px);
+      }
+    }
+  }
+
   #list-services {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(13em, 1fr));
@@ -2566,7 +2597,8 @@ fieldset .form-notice {
 
 .form-row {
   position: relative;
-  overflow: hidden;
+  // Holds the floated label without clipping the hint that pops over it.
+  display: flow-root;
   padding: 10px 14px;
   border-radius: 16px;
   transition: background-color 0.18s ease;
@@ -2579,6 +2611,7 @@ fieldset .form-notice {
 .form-row:hover > span.hint {
   display: block;
   position: absolute;
+  z-index: 1;
   top: 10px;
   right: 14px;
   max-width: 320px;

@@ -265,8 +265,8 @@ msgstr "エントリーの表示"
 msgid "Public"
 msgstr "公開"
 
-msgid "Public services are visible to anyone."
-msgstr "公開サービスは誰でも見ることができます。"
+msgid "Shows its entries in the public stream. Unchecked, only you see them, once logged in."
+msgstr "エントリーを公開ストリームに表示します。オフにすると、ログインしたあなただけが見られます。"
 
 msgid "Active"
 msgstr "有効"
@@ -1167,3 +1167,6 @@ msgstr[0] "チェックを外した種類のエントリー %(count)d 件を非�
 msgid "%(count)d entry of the checked kinds is shown again."
 msgid_plural "%(count)d entries of the checked kinds are shown again."
 msgstr[0] "チェックした種類のエントリー %(count)d 件を再び表示しました。"
+
+msgid "Public services are visible to anyone."
+msgstr "公開サービスは誰でも見ることができます。"

@@ -346,7 +346,7 @@ def load_service_payload_state(
                 )
             else:
                 payload['id'] = srv.pk
-            payload['delete'] = _('delete')
+            payload['delete'] = _('Delete')
         except Service.DoesNotExist:
             pass
     else:
@@ -582,7 +582,10 @@ def build_service_form_response(
             'name': 'public',
             'checked': s['public'],
             'label': _('Public'),
-            'hint': _('Public services are visible to anyone.'),
+            'hint': _(
+                'Shows its entries in the public stream. Unchecked, only you '
+                'see them, once logged in.'
+            ),
         }
     )
 

@@ -276,8 +276,8 @@ msgstr "Visualizzazione delle voci"
 msgid "Public"
 msgstr "Pubblico"
 
-msgid "Public services are visible to anyone."
-msgstr "I servizi pubblici sono visibili a tutti."
+msgid "Shows its entries in the public stream. Unchecked, only you see them, once logged in."
+msgstr "Mostra le sue voci nello stream pubblico. Se non selezionato, le vedi solo tu, dopo l’accesso."
 
 msgid "Active"
 msgstr "Attivo"
@@ -1194,3 +1194,6 @@ msgid "%(count)d entry of the checked kinds is shown again."
 msgid_plural "%(count)d entries of the checked kinds are shown again."
 msgstr[0] "%(count)d voce dei tipi selezionati è di nuovo visibile."
 msgstr[1] "%(count)d voci dei tipi selezionati sono di nuovo visibili."
+
+msgid "Public services are visible to anyone."
+msgstr "I servizi pubblici sono visibili a tutti."

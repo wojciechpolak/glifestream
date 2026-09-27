@@ -210,6 +210,9 @@ work, so only the significant changes are listed.
   the service form as well.
 - Saving the service form no longer resets "Display entries" when the form
   does not offer it.
+- The hints of the service form show whole instead of cut off by their row,
+  and the "Public" hint says what unchecking it does. The service's delete
+  link looks like the list's red Delete button.
 - The cached feeds and pages follow what changes. A saved, hidden or deleted
   entry, service, list or preference empties the page cache, and browsers no
   longer keep their own copy for ten minutes.

@@ -222,7 +222,7 @@ function render_field(f: ServiceFormField, data: ServiceForm): HTMLElement {
 }
 
 function render_buttons(data: ServiceForm): HTMLDivElement {
-    const row = h('div', { className: 'form-row' }, [
+    const row = h('div', { className: 'form-row form-actions' }, [
         data.save ? h('input', { type: 'submit', id: 'save', value: data.save }) : null,
         h('input', { type: 'button', id: 'cancel', value: data.cancel }),
     ]);
@@ -233,11 +233,12 @@ function render_buttons(data: ServiceForm): HTMLDivElement {
             {
                 href: config.baseurl + 'admin/stream/service/' + data.id + '/delete/',
                 target: 'admin',
+                className: 'delete',
             },
             [data.delete],
         );
         listen(link, 'click', hide_settings_form);
-        row.append(' ', link);
+        row.append(link);
     }
     return row;
 }

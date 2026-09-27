@@ -280,8 +280,8 @@ msgstr "Показ записів"
 msgid "Public"
 msgstr "Публічний"
 
-msgid "Public services are visible to anyone."
-msgstr "Публічні сервіси бачать усі."
+msgid "Shows its entries in the public stream. Unchecked, only you see them, once logged in."
+msgstr "Показує записи сервісу в публічному потоці. Якщо не позначено, їх бачите лише ви, після входу."
 
 msgid "Active"
 msgstr "Активний"
@@ -1200,3 +1200,6 @@ msgid_plural "%(count)d entries of the checked kinds are shown again."
 msgstr[0] "%(count)d запис вибраних типів знову показано."
 msgstr[1] "%(count)d записи вибраних типів знову показано."
 msgstr[2] "%(count)d записів вибраних типів знову показано."
+
+msgid "Public services are visible to anyone."
+msgstr "Публічні сервіси бачать усі."

@@ -277,8 +277,8 @@ msgstr "Weergave van items"
 msgid "Public"
 msgstr "Openbaar"
 
-msgid "Public services are visible to anyone."
-msgstr "Openbare diensten zijn voor iedereen zichtbaar."
+msgid "Shows its entries in the public stream. Unchecked, only you see them, once logged in."
+msgstr "Toont de berichten in de openbare stream. Uitgevinkt zie alleen jij ze, na het inloggen."
 
 msgid "Active"
 msgstr "Actief"
@@ -1194,3 +1194,6 @@ msgid "%(count)d entry of the checked kinds is shown again."
 msgid_plural "%(count)d entries of the checked kinds are shown again."
 msgstr[0] "%(count)d bericht van de aangevinkte soorten wordt weer getoond."
 msgstr[1] "%(count)d berichten van de aangevinkte soorten worden weer getoond."
+
+msgid "Public services are visible to anyone."
+msgstr "Openbare diensten zijn voor iedereen zichtbaar."

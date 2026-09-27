@@ -1143,12 +1143,13 @@ fieldset .hint {
 }
 
 .form-row {
-  overflow: hidden;
+  display: flow-root;
   padding: 4px 12px;
 }
 .form-row:hover > span.hint {
   display: block;
   position: absolute;
+  z-index: 1;
   max-width: 300px;
   font: bold 0.8em arial;
   color: #000;
