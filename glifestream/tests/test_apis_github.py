@@ -322,7 +322,9 @@ def test_forced_overwrite_scans_repositories_pushed_long_ago(user_service):
 
 
 @pytest.mark.django_db
-def test_release_scan_checks_a_bounded_number_of_repositories(user_service):
+def test_release_scan_checks_a_bounded_number_of_repositories(
+    user_service: Service,
+) -> None:
     names = ['r%d' % i for i in range(github.MAX_RELEASE_REPOS + 5)]
     routes: dict[str, Any] = {EVENTS: [], REPOS: [repo(name) for name in names]}
     routes.update({releases_path('me/' + name): [] for name in names})
