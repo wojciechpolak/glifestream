@@ -132,6 +132,16 @@ def test_usettings_status_translates_the_worker_messages(logged_in_client):
 
 
 @pytest.mark.django_db
+def test_usettings_status_shows_the_service_type_as_its_icon(logged_in_client):
+    Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
+
+    body = logged_in_client.get(reverse('usettings-status')).content.decode()
+
+    assert 'data-tooltip="Webfeed"' in body
+    assert '<span class="service webfeed" aria-hidden="true"></span>' in body
+
+
+@pytest.mark.django_db
 def test_usettings_status_hides_non_fetchable_services(logged_in_client):
     Service.objects.create(name='Notes', api='selfposts')
 

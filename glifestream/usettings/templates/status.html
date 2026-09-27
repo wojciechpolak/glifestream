@@ -96,8 +96,19 @@
       cursor: help;
       border-bottom: 1px dotted currentColor;
     }
+    #status-table .service-type {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+    #status-table .service-type span.service {
+      font-size: 1.25rem;
+      margin: 0;
+    }
     #status-table .fetch-time:hover::after,
-    #status-table .fetch-time:focus-visible::after {
+    #status-table .fetch-time:focus-visible::after,
+    #status-table .service-type:hover::after,
+    #status-table .service-type:focus-visible::after {
       content: attr(data-tooltip);
       position: absolute;
       left: 0;
@@ -153,7 +164,9 @@
           data-last-error="{{ s.fetch_state_snapshot.last_error }}"
           data-failure-note="{{ s.fetch_state_snapshot.failure_note }}">
         <td class="service-name">{{ s.name }}</td>
-        <td>{{ s.api }}</td>
+        <td>
+          <span class="service-type" tabindex="0" role="img" aria-label="{{ s.get_api_display }}" data-tooltip="{{ s.get_api_display }}"><span class="service {{ s.api }}" aria-hidden="true"></span></span>
+        </td>
         <td class="action-cell">
           <a href="#" class="run-fetch" data-service-id="{{ s.id }}">{% trans "Run now" %}</a>
         </td>
