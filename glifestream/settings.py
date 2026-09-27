@@ -259,7 +259,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.middleware.cache.UpdateCacheMiddleware',
+    'glifestream.utils.page_cache.UpdatePageCacheMiddleware',
     # Below the cache middleware, so that a cached page keeps the header with
     # the nonce its markup was rendered with.
     'django.middleware.csp.ContentSecurityPolicyMiddleware',
@@ -275,7 +275,7 @@ MIDDLEWARE = [
     'glifestream.gauth.middleware.UserLanguageMiddleware',
     'django.middleware.gzip.GZipMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.cache.FetchFromCacheMiddleware',
+    'glifestream.utils.page_cache.FetchFromPageCacheMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 

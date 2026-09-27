@@ -15,11 +15,15 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from typing import Any
+
 from django.conf import settings
 from django.core.validators import MaxValueValidator
 from django.db import models
+from django.db.models.signals import post_save
 from django.utils.translation import gettext as _
 from glifestream.stream.models import Service
+from glifestream.utils import page_cache
 
 
 class UserProfile(models.Model):
@@ -90,3 +94,11 @@ class OAuthClient(models.Model):
 
     def __str__(self):
         return '%s: %s' % (self.service, self.identifier)
+
+
+def _profile_saved(**kwargs: Any) -> None:
+    # The pages carry the profile's preferences, such as fold_lines.
+    page_cache.invalidate()
+
+
+post_save.connect(_profile_saved, sender=UserProfile)

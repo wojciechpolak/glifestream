@@ -24,12 +24,14 @@ import secrets
 from typing import Any
 
 from django.db import models
+from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from django.utils.dateparse import parse_date, parse_datetime
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
+from glifestream.utils import page_cache
 from glifestream.utils.time import now
 
 
@@ -98,6 +100,33 @@ def _normalize_required_dt(value: datetime.datetime) -> datetime.datetime:
     return normalized
 
 
+class PageQuerySet(models.QuerySet):
+    """Rows the pages show. An update skips the signals that empty the
+    page cache, so it empties it itself."""
+
+    def update(self, **kwargs: Any) -> int:
+        rows = super().update(**kwargs)
+        if rows:
+            page_cache.invalidate()
+        return rows
+
+
+# The fields of a service its pages show. Saving only others, as every
+# fetch does, leaves the cached pages alone.
+SERVICE_PAGE_FIELDS = (
+    'api',
+    'cls',
+    'name',
+    'link',
+    'url',
+    'user_id',
+    'display',
+    'public',
+    'home',
+    'active',
+)
+
+
 class Service(models.Model):
     api = models.CharField(
         _('API'), max_length=16, choices=API_LIST, default='feed', db_index=True
@@ -158,6 +187,10 @@ class Service(models.Model):
     # Settings only one provider reads, keyed by that provider's name.
     options = models.JSONField(_('Options'), default=dict, blank=True)
 
+    objects = PageQuerySet.as_manager()
+    # page_state() as loaded or last saved.
+    _page_state: tuple[Any, ...]
+
     class Meta:
         verbose_name = _('Service')
         verbose_name_plural = _('Services')
@@ -174,6 +207,17 @@ class Service(models.Model):
         self.last_checked = _normalize_dt(self.last_checked)
         self.next_fetch_at = _normalize_dt(self.next_fetch_at)
         super().save(*args, **kwargs)
+
+    @classmethod
+    def from_db(cls, db: Any, field_names: Any, values: Any, **kwargs: Any) -> Service:
+        service = super().from_db(db, field_names, values, **kwargs)
+        service._page_state = service.page_state()
+        return service
+
+    def page_state(self) -> tuple[Any, ...]:
+        """What the pages show of this service, as loaded."""
+        # From __dict__, so a deferred field is not loaded for it.
+        return tuple(self.__dict__.get(name) for name in SERVICE_PAGE_FIELDS)
 
     def __str__(self):
         return '%s' % self.name
@@ -241,6 +285,8 @@ class Entry(models.Model):
     reblog_by = models.CharField(_('Reblogged by'), max_length=64, blank=True)
     reblog_uri = models.CharField(_('Reblogged URI'), max_length=128, blank=True)
     mblob = models.TextField('Media', null=True, blank=True, editable=False)
+
+    objects = PageQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('Entry')
@@ -442,3 +488,23 @@ class ServiceFetchState(models.Model):
 
     def __str__(self) -> str:
         return '%s: %s' % (self.service.name, self.status)
+
+
+def _empty_page_cache(**kwargs: Any) -> None:
+    page_cache.invalidate()
+
+
+def _service_saved(instance: Service, created: bool, **kwargs: Any) -> None:
+    state = instance.page_state()
+    if created or state != getattr(instance, '_page_state', None):
+        page_cache.invalidate()
+    instance._page_state = state
+
+
+_PAGE_MODELS: tuple[type[models.Model], ...] = (Service, Entry, Media, Favorite, List)
+for _model in _PAGE_MODELS:
+    post_delete.connect(_empty_page_cache, sender=_model)
+    if _model is not Service:
+        post_save.connect(_empty_page_cache, sender=_model)
+post_save.connect(_service_saved, sender=Service)
+m2m_changed.connect(_empty_page_cache, sender=List.services.through)

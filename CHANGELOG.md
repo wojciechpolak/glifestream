@@ -210,6 +210,9 @@ work, so only the significant changes are listed.
   the service form as well.
 - Saving the service form no longer resets "Display entries" when the form
   does not offer it.
+- The cached feeds and pages follow what changes. A saved, hidden or deleted
+  entry, service, list or preference empties the page cache, and browsers no
+  longer keep their own copy for ten minutes.
 - Saving a service works behind a proxy that ends TLS. The form posted to an
   `http://` URL, which the browser sent without the CSRF cookie.
 - "Configure access" works for a service not saved yet: it saves the service
