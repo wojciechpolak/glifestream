@@ -315,6 +315,7 @@ def test_service_form_after_saving_a_service(staff_client):
     assert form['method'] == 'post'
     assert isinstance(form['id'], int)
     assert 'delete' in form and 'fetch_status' in form and 'need_import' in form
+    assert form['action'] == settings_api('service')
     fields = {field['name']: field for field in form['fields']}
     assert fields['oauth2_conf']['type'] == 'link'
     assert fields['url']['deps'] == {'timeline': 'user'}

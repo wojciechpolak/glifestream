@@ -210,6 +210,8 @@ work, so only the significant changes are listed.
   the service form as well.
 - Saving the service form no longer resets "Display entries" when the form
   does not offer it.
+- Saving a service works behind a proxy that ends TLS. The form posted to an
+  `http://` URL, which the browser sent without the CSRF cookie.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
 

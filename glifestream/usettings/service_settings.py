@@ -613,7 +613,9 @@ def build_service_form_response(
     if 'creds' in s:
         del s['creds']
 
-    s['action'] = request.build_absolute_uri()
+    # A path, not a URL: behind a proxy that ends TLS, Django may see http,
+    # and the page would post to another origin without its CSRF cookie.
+    s['action'] = request.get_full_path()
     s['method'] = method
     s['save'] = _('Save')
     s['cancel'] = _('Cancel')
