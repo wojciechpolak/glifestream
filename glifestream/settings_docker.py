@@ -66,6 +66,10 @@ BASE_URL = (
     get_env(ENV, 'BASE_URL', default=default_base_url) or default_base_url
 ).rstrip('/')
 LOGIN_URL = BASE_URL + '/login'
+# The base settings derived it from their own BASE_URL.
+FEED_AUTHOR_URI = (
+    get_env(ENV, 'FEED_AUTHOR_URI', default=f'{BASE_URL}/') or f'{BASE_URL}/'
+)
 
 MEDIA_URL = path_prefix + 'media/'
 STATIC_URL = path_prefix + 'static/'
