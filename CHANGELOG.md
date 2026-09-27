@@ -134,6 +134,16 @@ work, so only the significant changes are listed.
 - A fetch that fails for a known reason, such as a rate limit, logs one line
   instead of a traceback. `worker.py` still fetches the other services and
   exits with 1.
+- The Compose stack runs without a checkout:
+  `curl …/docker-compose.yml | docker compose -f - up` in an empty directory.
+  The Docker settings moved to `glifestream.settings_docker`, and
+  `run/settings_docker.py` imports them; the first start writes that file to
+  an empty `run/`, and an existing one is used as before. A
+  `DJANGO_SETTINGS_MODULE` set on the container now wins over it. The nginx
+  template moved to `conf/docker/nginx/templates/` and comes with the image;
+  templates in `run/nginx/templates/` still replace it. The container creates
+  the `run/` directories it needs and lets Gunicorn write a database and
+  media directories it has just created.
 
 ### Deprecated
 

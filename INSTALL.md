@@ -151,7 +151,7 @@ These settings matter most for a hardened deployment:
 - `RUN_DIR_MEDIA` or `MEDIA_ROOT`
   Persistent media storage location for uploads and generated thumbnails.
 - `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`
-  Keep these enabled in production. `run.settings_docker` defaults both to `True`.
+  Keep these enabled in production. `glifestream.settings_docker` defaults both to `True`.
 - `CONTENT_SECURITY_POLICY`
   `report-only` (the default), `enforce` or `off`. The policy runs scripts only
   from the static files, and from an inline script that carries the request's
@@ -240,7 +240,7 @@ gLifestream is typically served behind a reverse proxy. Keep these rules in mind
 
 - Set `BASE_URL` to the public URL that browsers use to reach the site.
 - Use an `https://` `BASE_URL` when TLS terminates before the Django process.
-- In Docker, `run.settings_docker` derives path-prefix-aware URLs from `FORCE_SCRIPT_NAME` or `VIRTUAL_PATH`.
+- In Docker, `glifestream.settings_docker` derives path-prefix-aware URLs from `FORCE_SCRIPT_NAME` or `VIRTUAL_PATH`.
 - When `VIRTUAL_PATH` is not `/`, Docker rewrites `STATIC_URL`, `MEDIA_URL`, and `LOGIN_URL` to include that prefix. `FAVICON`, `APPLE_TOUCH_ICON` and `PWA_APP_ICONS` name static files relative to `STATIC_URL`, so they follow it.
 - The current Docker `HEALTHCHECK` only performs `curl -f http://localhost/`.
   It confirms that the container serves the root path successfully, but it does
@@ -252,7 +252,7 @@ Docker Deployment
 =================
 
 The repository ships a `docker-compose.yml`, a production-oriented `Dockerfile`,
-and a `run.settings_docker` overlay.
+and a `glifestream.settings_docker` overlay.
 
 What the container startup does
 -------------------------------
@@ -305,7 +305,14 @@ uploaded media, generated thumbnails, and collected static files.
 Example startup
 ---------------
 
-Create or update your `.env` and then start the stack:
+To try the published image without a checkout, run this in an empty
+directory. The database and media go to `run/` in it:
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/wojciechpolak/glifestream/master/docker-compose.yml | APP_SECRET_KEY=$(openssl rand -hex 32) docker compose -f - up
+```
+
+From a checkout, create or update your `.env` and then start the stack:
 
 ```shell
 docker compose up -d --build
@@ -320,19 +327,30 @@ Operational notes
 - An image never contains `glifestream/settings_local.py` or a `.env` file:
   `.dockerignore` keeps them out of the build, even from a working checkout.
   Configure a container through environment variables. For a Python override,
-  put a module in the mounted `run/` that starts with
-  `from run.settings_docker import *` and point `DJANGO_SETTINGS_MODULE` at it.
-- `run.settings_docker` defaults `DEBUG` to `False`.
+  edit `settings_docker.py` in the mounted `run/`, which the container uses:
+  it starts with `from glifestream.settings_docker import *`, and the first
+  start writes it to an empty `run/`. A `DJANGO_SETTINGS_MODULE` set on the
+  container names another module instead.
+- `glifestream.settings_docker` defaults `DEBUG` to `False`.
 - It switches sessions to `django.contrib.sessions.backends.cached_db`.
 - It expects Memcached at `memcached:11211`.
 - It extends `ALLOWED_HOSTS` with `VIRTUAL_HOST`, `localhost`, and `backend`.
 - It keeps secure session and CSRF cookies enabled by default.
-- The `nginx` service serves `/media/` and `/static/` itself, from
-  `run/nginx/templates/default.conf.template`. It sends media that a browser
-  could run, such as HTML or SVG, as a download, and it rate-limits login
-  attempts per client. If the stack sits behind another reverse proxy,
-  uncomment the `set_real_ip_from` and `real_ip_header` lines in that template
-  and set the proxy's address. Otherwise all clients share one login limit.
+- The `nginx` service serves `/media/` and `/static/` itself. Its
+  configuration, `conf/docker/nginx/templates/default.conf.template`, comes
+  with the image: the `app` container copies it to a shared volume on every
+  start, and `nginx` starts once `app` is healthy. Templates in
+  `run/nginx/templates/` replace the image's. The configuration sends media
+  that a browser could run, such as HTML or SVG, as a download, and it
+  rate-limits login attempts per client. If the stack sits behind another
+  reverse proxy, copy the template to `run/nginx/templates/`, uncomment its
+  `set_real_ip_from` and `real_ip_header` lines and set the proxy's address.
+  Otherwise all clients share one login limit. `NGINX_DIR_TEMPLATES` mounts a
+  directory of templates into `nginx` directly.
+- On every start the `app` container creates the directories it needs in
+  `run/`. When it creates the database or the media directories, it gives the
+  `users` group write access to them, because Gunicorn runs as `www-data`;
+  existing ones keep their permissions.
 - The published image workflow builds multi-arch images for `linux/amd64` and `linux/arm64`.
 
 
@@ -427,7 +445,7 @@ Non-Docker hardening notes
   when it serves media itself. Otherwise an uploaded HTML or SVG file runs as
   your site. Send `X-Content-Type-Options: nosniff` for every file, and
   `Content-Disposition: attachment` for every type except images other than
-  SVG, audio, video and PDF. `run/nginx/templates/default.conf.template` does
+  SVG, audio, video and PDF. `conf/docker/nginx/templates/default.conf.template` does
   this with a `map` on `$sent_http_content_type`.
 - Rate-limit POST requests to `/login` and `/admin/login/` at the reverse
   proxy, because gLifestream itself does not slow down password guessing. The

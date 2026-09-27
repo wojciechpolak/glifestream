@@ -31,6 +31,16 @@ You can see gLifestream running at <https://wojciechpolak.org/stream/>,
 the author's own stream. It shows the public view; the private streams,
 favorites and settings need a sign-in.
 
+Running with Docker Compose
+---------------------------
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/wojciechpolak/glifestream/master/docker-compose.yml | APP_SECRET_KEY=$(openssl rand -hex 32) docker compose -f - up
+```
+
+Then open <http://localhost:8080/> and sign in as `admin` / `admin`. The
+database and media are kept in `run/` in the current directory.
+
 Getting started
 ---------------
 

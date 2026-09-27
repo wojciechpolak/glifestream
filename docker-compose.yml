@@ -7,10 +7,18 @@ services:
         - app_static:/app/static
         - ${RUN_DIR:-./run}:/app/run
         - ${RUN_DIR_MEDIA:-./run/media}:/app/media
+        - nginx_templates:/app/nginx/templates
     environment:
         - VIRTUAL_HOST=${VIRTUAL_HOST:-}
         - VIRTUAL_PATH=${VIRTUAL_PATH:-/}
         - APP_SECRET_KEY
+    # Nginx waits for this, so check early and often until the first success.
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost/"]
+        interval: 60m
+        timeout: 3s
+        start_period: 5m
+        start_interval: 2s
     depends_on:
         - memcached
   nginx:
@@ -20,14 +28,16 @@ services:
           - app_static:/app/static
           - ${RUN_DIR:-./run}:/app/run
           - ${RUN_DIR_MEDIA:-./run/media}:/app/media
-          - ${NGINX_DIR_TEMPLATES:-./run/nginx/templates}:/etc/nginx/templates
+          # The image's configuration, or a directory of your own templates.
+          - ${NGINX_DIR_TEMPLATES:-nginx_templates}:/etc/nginx/templates
       ports:
           - "${APP_PORT:-8080}:80"
       environment:
           - VIRTUAL_HOST=${VIRTUAL_HOST:-_}
           - VIRTUAL_PATH=${VIRTUAL_PATH:-/}
       depends_on:
-          - app
+          app:
+              condition: service_healthy
   memcached:
       image: ${MEMCACHED_IMAGE:-memcached:1.6}
       restart: unless-stopped
@@ -37,3 +47,4 @@ services:
 
 volumes:
   app_static:
+  nginx_templates:

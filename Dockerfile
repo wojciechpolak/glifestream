@@ -40,14 +40,17 @@ RUN apt-get update \
     && pip install --no-cache-dir supervisor \
     && rm -rf /var/lib/apt/lists/*
 RUN echo 'alias ll="ls -l"' >>~/.bashrc
-RUN mkdir -p /app/run/db /app/run/static/themes /app/run/templates /app/media /app/static
+RUN mkdir -p /app/run/db /app/run/static/themes /app/run/templates /app/media /app/static \
+    /app/nginx/templates
 COPY --from=gls-builder-python --chown=app:app /app/.venv /app/.venv
 
 ENV PATH=/app/.venv/bin:$PATH
 ENV DJANGO_SETTINGS_MODULE=run.settings_docker
 WORKDIR /app
 COPY conf/docker/entrypoint.sh .
+COPY conf/docker/nginx/templates conf/nginx/templates
 COPY run/__init__.py run/settings_docker.py run/
+COPY run/__init__.py run/settings_docker.py conf/run/
 COPY locale locale
 COPY glifestream glifestream
 COPY --from=gls-builder-js /app/glifestream/static/js/dist glifestream/static/js/dist
