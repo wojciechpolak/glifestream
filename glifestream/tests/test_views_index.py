@@ -64,6 +64,17 @@ def test_index_date_year_filter(client, entries):
 
 
 @pytest.mark.django_db
+def test_index_lone_entry_is_not_folded(client, entries):
+    # The theme folds long entries only on a timeline of several: a new
+    # installation's welcome entry is shown whole.
+    lone = client.get('/2022/').content.decode()
+    several = client.get('/2023/').content.decode()
+
+    assert '<main id="stream" class="hfeed single-entry">' in lone
+    assert '<main id="stream" class="hfeed">' in several
+
+
+@pytest.mark.django_db
 def test_index_date_month_filter(client, entries):
     url = '/2023/10/'  # Using hardcoded URL since original urls.py has no name
     response = client.get(url)

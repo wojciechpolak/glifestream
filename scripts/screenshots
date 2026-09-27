@@ -21,7 +21,8 @@ Take the README screenshots of the stream, in a light and a dark version.
 It builds the page script, sets up a throwaway instance the way a fresh
 installation starts -- the starting services and the welcome entry, in a
 database in a temporary directory, plus a GitHub service so that the sidebar
-shows the code class too -- serves it with `runserver`, and has
+shows the code class too, and without the copyright footer -- serves it with
+`runserver`, and has
 Chromium photograph the home page once per colour scheme. The results are
 written as WebP to docs/screenshots/. Neither `.env` nor `settings_local.py`
 is read, so your own instance and its data never show up in them.
@@ -101,11 +102,10 @@ def instance_env(workdir: Path) -> dict[str, str]:
             'RUN_DIR': str(workdir / 'run'),
             'RUN_DIR_MEDIA': str(workdir / 'media'),
             'LANGUAGE_CODE': 'en-us',
-            # Instead of the 'YOUR NAME' placeholder under the entry.
+            # Instead of the 'YOUR NAME' placeholder under the entry, as in
+            # the Compose stack.
             'FEED_AUTHOR_NAME': 'gLifestream',
             'MAGICSSO_ENABLED': '0',
-            # The welcome entry is shown whole, not folded behind "Show more".
-            'FOLD_LINES': '0',
         }
     )
     return env
@@ -204,6 +204,8 @@ def main() -> int:
         workdir = Path(tmp)
         for name in ('templates', 'static'):
             (workdir / 'run' / name).mkdir(parents=True)
+        # No copyright footer: worker_init_files keeps a file that exists.
+        (workdir / 'run' / 'templates' / 'user-copyright.html').touch()
         env = instance_env(workdir)
         python = str(VENV_PYTHON)
         run([python, 'manage.py', 'migrate', '--run-syncdb', '-v', '0'], env)

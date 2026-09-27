@@ -63,7 +63,7 @@
 
 {% block mainClass %}stream{% endblock mainClass %}
 {% block main %}
-<main id="stream" class="hfeed{% if page.exactentry %} single-entry{% endif %}">
+<main id="stream" class="hfeed{% if page.exactentry or entries|length == 1 %} single-entry{% endif %}">
 
 {% if authed %}
 <aside id="share" class="share-collapsed">

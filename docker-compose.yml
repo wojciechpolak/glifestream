@@ -12,6 +12,8 @@ services:
         - VIRTUAL_HOST=${VIRTUAL_HOST:-}
         - VIRTUAL_PATH=${VIRTUAL_PATH:-/}
         - APP_SECRET_KEY
+        # Instead of the 'YOUR NAME' placeholder under the welcome entry.
+        - FEED_AUTHOR_NAME=${FEED_AUTHOR_NAME:-gLifestream}
     # Nginx waits for this, so check early and often until the first success.
     healthcheck:
         test: ["CMD", "curl", "-f", "http://localhost/"]

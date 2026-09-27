@@ -63,7 +63,11 @@ work, so only the significant changes are listed.
 - A welcome entry for new installations, with first steps and a video player,
   instead of a bare "Hello, World!". `manage.py load_initial_data` loads it with
   the starting services into an empty database, both in Docker and in
-  `./scripts/bootstrap`; `--no-welcome` leaves the entry out.
+  `./scripts/bootstrap`; `--no-welcome` leaves the entry out. A new
+  installation also gets a starting About box and copyright footer
+  (`user-about.html`, `user-copyright.html` in `run/templates/`). In the
+  Compose stack `FEED_AUTHOR_NAME` defaults to "gLifestream" instead of
+  "YOUR NAME".
 - Test infrastructure: pytest suite, Playwright E2E coverage (including OAuth
   and Bluesky service flows), optional visual regression testing, and coverage
   reporting.
@@ -74,7 +78,8 @@ work, so only the significant changes are listed.
 - Support for additional image formats and a reworked thumbnail pipeline.
 - Reblog filtering and an entry link shortcut in the admin view.
 - Long entries fold behind "Show more" on the timeline. Preferences sets the
-  height in lines; `FOLD_LINES` sets the default.
+  height in lines; `FOLD_LINES` sets the default. An entry alone on the page
+  never folds.
 
 ### Changed
 

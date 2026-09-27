@@ -25,6 +25,7 @@ from unittest.mock import patch
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.template.loader import render_to_string
 from django.test import override_settings
 from django.utils import timezone
 
@@ -146,3 +147,41 @@ def test_worker_init_files_command_creates_missing_media_root(tmp_path):
 
     assert (media_root / 'upload').is_dir()
     assert (media_root / 'thumbs' / 'f').is_dir()
+
+
+def test_worker_init_files_command_writes_starting_user_templates(tmp_path):
+    media_root = tmp_path / 'media'
+    templates_dir = tmp_path / 'templates'
+    templates_dir.mkdir()
+    # An owner's own template is kept as it is.
+    (templates_dir / 'user-about.html').write_text('<p>Mine</p>')
+
+    with override_settings(
+        MEDIA_ROOT=str(media_root),
+        TEMPLATES=[
+            {
+                'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                'DIRS': [str(templates_dir)],
+                'APP_DIRS': True,
+                'OPTIONS': {'context_processors': []},
+            }
+        ],
+    ):
+        call_command('worker_init_files', stdout=StringIO())
+        copyright = render_to_string(
+            'user-copyright.html',
+            {
+                'page': {
+                    'copyright_years': '2025-2026',
+                    'author_name': 'gLifestream',
+                    'author_uri': 'https://example.com/',
+                }
+            },
+        )
+
+    assert (templates_dir / 'user-about.html').read_text() == '<p>Mine</p>'
+    assert 'Copyright &copy; 2025-2026' in copyright
+    assert '<a href="https://example.com/" class="url fn" rel="me">gLifestream</a>' in (
+        copyright
+    )
+    assert (templates_dir / 'user-scripts.js').read_text() == ''

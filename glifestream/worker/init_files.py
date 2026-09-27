@@ -23,6 +23,22 @@ from typing import Any, cast
 
 from django.conf import settings
 
+# What a new installation shows until the owner edits these templates.
+USER_TEMPLATES = {
+    'user-about.html': """\
+{# The About box in the sidebar. Edit this file to say who you are. #}
+<p>This is a lifestream: posts written here and entries from elsewhere on
+  the web, gathered in one place.</p>
+""",
+    'user-copyright.html': """\
+{# The footer of the stream. Edit this file to name the stream's owner. #}
+<p id="copyright" class="vcard">Copyright &copy; {% if page.copyright_years %}{{ page.copyright_years }} {% endif %}
+  {% if page.author_uri %}<a href="{{ page.author_uri }}" class="url fn" rel="me">{{ page.author_name }}</a>{% else %}<span class="fn">{{ page.author_name }}</span>{% endif %}
+</p>
+""",
+    'user-scripts.js': '',
+}
+
 
 def init_files_dirs() -> int:
     upload = os.path.join(settings.MEDIA_ROOT, 'upload')
@@ -46,17 +62,12 @@ and all have write permissions by your webserver.
     templates = cast(list[dict[str, Any]], settings.TEMPLATES)
     template_dirs = cast(list[str], templates[0]['DIRS'])
     template_dir = template_dirs[0]
-    template_files = (
-        'user-about.html',
-        'user-copyright.html',
-        'user-scripts.js',
-    )
     try:
-        for template_file in template_files:
+        for template_file, content in USER_TEMPLATES.items():
             path = Path(template_dir, template_file)
             if not path.is_file():
-                print("Creating empty file '%s'" % path)
-                path.touch()
+                print("Creating file '%s'" % path)
+                path.write_text(content, encoding='utf-8')
     except Exception as exc:
         print(exc)
         return 1

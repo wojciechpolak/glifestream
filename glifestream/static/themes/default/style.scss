@@ -1273,7 +1273,8 @@ img.entry-icon {
 
 // On the timeline a long entry folds to --fold-lines lines (the user's
 // preference), fading out, until "Show more" unfolds it. An entry on its own
-// page never folds: the page script folds only what this rule would hide.
+// page, or alone on the timeline, never folds: the page script folds only
+// what this rule would hide.
 #stream:not(.single-entry) .entry-content.folded {
   max-height: calc(var(--fold-lines, 20) * 1.8em);
   max-height: calc(var(--fold-lines, 20) * 1lh);
