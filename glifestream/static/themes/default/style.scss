@@ -3060,11 +3060,15 @@ img.noborder {
 
     .services .e-blog,
     .e-blog div.entry-icon {
+      // The light brown would all but vanish on the dark tile.
+      color: #916b32;
       background: linear-gradient(180deg, rgba(82, 63, 33, 0.96), rgba(128, 98, 49, 0.46));
     }
 
     .services .e-code,
     .e-code div.entry-icon {
+      // The light slate would all but vanish on the dark tile.
+      color: #5c687f;
       background: linear-gradient(180deg, rgba(47, 53, 66, 0.96), rgba(78, 88, 108, 0.46));
     }
 
