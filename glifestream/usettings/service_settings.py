@@ -137,6 +137,18 @@ def _build_service_payload(request: HttpRequest, id_service: Any) -> dict[str, A
     }
 
 
+# APIs that read a user or the home timeline, chosen by a User ID.
+TIMELINE_APIS = (
+    'atproto',
+    'fb',
+    'friendfeed',
+    'github',
+    'mastodon',
+    'pixelfed',
+    'twitter',
+)
+
+
 def validate_service_payload(
     payload: dict[str, Any], request: HttpRequest, method: str
 ) -> tuple[str, dict[str, bool], int | None]:
@@ -156,13 +168,18 @@ def validate_service_payload(
             except ValueError:
                 miss['fetch_interval_sec'] = True
                 method = 'get'
-        if (
-            payload['api'] not in ('selfposts', 'pocket', 'webfeed')
-            and not payload['user_id']
-            and request.POST.get('timeline', 'user') == 'user'
-        ):
-            miss['user_id'] = True
-            method = 'get'
+        if payload['api'] in TIMELINE_APIS:
+            if (
+                not payload['user_id']
+                and request.POST.get('timeline', 'user') == 'user'
+            ):
+                miss['user_id'] = True
+                method = 'get'
+        elif payload['api'] not in ('selfposts', 'pocket', 'webfeed'):
+            # These have no User ID field: their ID/Username is the url.
+            if not payload['url']:
+                miss['url'] = True
+                method = 'get'
 
     return method, miss, fetch_interval
 
@@ -403,15 +420,7 @@ def build_service_form_response(
             }
         )
 
-    elif s['api'] in (
-        'atproto',
-        'fb',
-        'friendfeed',
-        'github',
-        'mastodon',
-        'pixelfed',
-        'twitter',
-    ):
+    elif s['api'] in TIMELINE_APIS:
         v = 'user' if s['user_id'] else 'home'
         s['fields'].append(
             {

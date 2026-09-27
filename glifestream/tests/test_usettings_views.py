@@ -617,6 +617,39 @@ def test_validate_service_payload_preserves_missing_field_behavior():
 
 
 @pytest.mark.django_db
+def test_usettings_service_api_saves_a_username_service(logged_in_client):
+    # Flickr has no User ID field: its ID/Username is stored in url.
+    service = Service.objects.create(api='flickr', name='Flickr', url='old')
+
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'flickr',
+            'id': service.pk,
+            'name': 'Flickr',
+            'url': 'new',
+            'method': 'post',
+        },
+    )
+
+    assert response.json()['method'] == 'post'
+    service.refresh_from_db()
+    assert service.url == 'new'
+
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {'api': 'flickr', 'id': service.pk, 'name': 'Flickr', 'method': 'post'},
+    )
+
+    form = response.json()
+    assert form['method'] == 'get'
+    url_field = next(f for f in form['fields'] if f['name'] == 'url')
+    assert url_field['miss'] is True
+    service.refresh_from_db()
+    assert service.url == 'new'
+
+
+@pytest.mark.django_db
 def test_handle_opml_import_file_normalizes_supported_feed_urls():
     xml = b"""<?xml version="1.0" encoding="UTF-8"?>
 <opml version="2.0">
