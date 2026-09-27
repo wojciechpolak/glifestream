@@ -85,22 +85,32 @@ img.ProseMirror-separator {
     gap: 2px;
 }
 
-.editor-toolbar button {
+/*
+ * The toolbar's buttons are bare icons. The selectors outrank the look a
+ * theme gives to its buttons as `body.style-* button`, and every part of
+ * that look is taken off, the shadows and the lift on hover too.
+ */
+.editor-toolbar .editor-toolbar-group button {
     min-width: 28px;
     height: 28px;
     padding: 0 6px;
     border: 0;
     border-radius: 4px;
     background: none;
+    box-shadow: none;
     color: inherit;
     font: inherit;
     font-weight: bold;
+    text-shadow: none;
+    transform: none;
     cursor: pointer;
 }
 
-.editor-toolbar button:hover,
-.editor-toolbar button[aria-pressed='true'] {
+.editor-toolbar .editor-toolbar-group button:hover,
+.editor-toolbar .editor-toolbar-group button[aria-pressed='true'] {
     background: rgba(127, 127, 127, 0.2);
+    box-shadow: none;
+    color: inherit;
 }
 
 #status-editor {
