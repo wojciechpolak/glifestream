@@ -167,9 +167,13 @@ LANGUAGES = [
     ('de', 'Deutsch'),
     ('es', 'Español'),
     ('fr', 'Français'),
+    ('it', 'Italiano'),
     ('ja', '日本語'),
+    ('nl', 'Nederlands'),
     ('pl', 'Polski'),
     ('pt-br', 'Português (Brasil)'),
+    ('uk', 'Українська'),
+    ('zh-hans', '简体中文'),
 ]
 
 # Directories where Django looks for translation files.

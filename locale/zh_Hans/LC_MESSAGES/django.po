@@ -1,0 +1,1058 @@
+# Simplified Chinese translations for gLifestream package.
+# Copyright (C) 2026 Wojciech Polak
+# This file is distributed under the same license as the gLifestream package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glifestream 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 22:43+0200\n"
+"PO-Revision-Date: 2026-09-27 12:00+0200\n"
+"Language: zh_Hans\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Replying to"
+msgstr "回复"
+
+msgid "Replied-to post unavailable."
+msgstr "被回复的帖子不可用。"
+
+#, python-format
+msgid "%s reblogged"
+msgstr "%s 转发了"
+
+msgid "Link preview"
+msgstr "链接预览"
+
+msgid "Quoted post"
+msgstr "引用的帖子"
+
+msgid "Quoted post unavailable."
+msgstr "引用的帖子不可用。"
+
+msgid "No text content."
+msgstr "无文本内容。"
+
+msgid "Posted Photos"
+msgstr "照片"
+
+msgid "Posted a Photo"
+msgstr "照片"
+
+msgid "Quoted post pending approval."
+msgstr "引用的帖子正在等待批准。"
+
+msgid "Reblogged"
+msgstr "已转发"
+
+#, python-format
+msgid "Liked %s"
+msgstr "赞了 %s"
+
+#, python-format
+msgid "Published %s"
+msgstr "发布于 %s"
+
+#, python-format
+msgid "Favorited %s"
+msgstr "收藏了 %s"
+
+#, python-format
+msgid ""
+"Failed %(count)d time in a row. The error does not look temporary, so fetches"
+" are slowed down."
+msgid_plural ""
+"Failed %(count)d times in a row. The error does not look temporary, so "
+"fetches are slowed down."
+msgstr[0] "已连续失败 %(count)d 次。该错误看起来不是暂时的，因此会降低获取频率。"
+
+#, python-format
+msgid "Failed %(count)d time in a row. Retrying sooner than usual."
+msgid_plural "Failed %(count)d times in a row. Retrying sooner than usual."
+msgstr[0] "已连续失败 %(count)d 次。将比平时更早重试。"
+
+msgid "Fetch interrupted."
+msgstr "获取已中断。"
+
+msgid "Worker stopped before fetch completed."
+msgstr "后台进程在获取完成前已停止。"
+
+msgid "Fetch completed."
+msgstr "获取已完成。"
+
+msgid "Unexpected fetch error."
+msgstr "获取时发生意外错误。"
+
+msgid "Remember Me"
+msgstr "记住我"
+
+msgid "Request token URL not set."
+msgstr "未设置 Request Token URL。"
+
+msgid "Invalid OAuth response. No tokens found."
+msgstr "OAuth 响应无效。未找到令牌。"
+
+msgid "Authorize URL not set."
+msgstr "未设置授权 URL。"
+
+msgid "Access token URL not set."
+msgstr "未设置 Access Token URL。"
+
+msgid "Token URL not set."
+msgstr "未设置令牌 URL。"
+
+msgid "Invalid OAuth 2.0 response. No access token found."
+msgstr "OAuth 2.0 响应无效。未找到访问令牌。"
+
+msgid "User"
+msgstr "用户"
+
+msgid "Must change password"
+msgstr "必须修改密码"
+
+msgid "If set, the user will be forced to change their password on next login."
+msgstr "如果勾选，用户在下次登录时必须修改密码。"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "Interface language. Empty means the browser decides."
+msgstr "界面语言。留空则由浏览器决定。"
+
+msgid "User Profile"
+msgstr "用户资料"
+
+msgid "User Profiles"
+msgstr "用户资料"
+
+msgid "Service"
+msgstr "服务"
+
+msgid "Change Your Password"
+msgstr "修改你的密码"
+
+msgid "You must change your password before continuing."
+msgstr "你必须先修改密码才能继续。"
+
+msgid "New Password"
+msgstr "新密码"
+
+msgid "Confirm New Password"
+msgstr "确认新密码"
+
+msgid "Change Password"
+msgstr "修改密码"
+
+msgid "Invalid username or password"
+msgstr "用户名或密码无效"
+
+msgid "Username"
+msgstr "用户名"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Log In"
+msgstr "登录"
+
+msgid "Please fill in both password fields."
+msgstr "请填写两个密码字段。"
+
+msgid "Passwords do not match."
+msgstr "两次输入的密码不一致。"
+
+msgid "The new password must differ from the current one."
+msgstr "新密码必须与当前密码不同。"
+
+msgid "Activate item"
+msgstr "启用条目"
+
+msgid "Deactivate item"
+msgstr "停用条目"
+
+msgid "Set as reblogged"
+msgstr "标记为转发"
+
+msgid "Unset as reblogged"
+msgstr "取消转发标记"
+
+msgid "Additional, optional fields"
+msgstr "其他可选字段"
+
+msgid "Fields updated automatically by gLifestream"
+msgstr "由 gLifestream 自动更新的字段"
+
+#, python-format
+msgid "You are currently browsing the archive for %s"
+msgstr "你正在浏览 %s 的归档"
+
+msgid "Favorites"
+msgstr "收藏"
+
+msgid "You are currently browsing your favorite entries"
+msgstr "你正在浏览收藏的条目"
+
+#, python-format
+msgid "You are currently browsing entries from %s list only."
+msgstr "你正在浏览列表 %s 中的条目。"
+
+#, python-format
+msgid "You are currently browsing %s entries only."
+msgstr "你正在浏览 %s 类型的条目。"
+
+#, python-format
+msgid "You are currently browsing entries from %s service only."
+msgstr "你正在浏览服务 %s 中的条目。"
+
+#, python-format
+msgid "Your search for %s returned the following results."
+msgstr "搜索 %s 的结果如下。"
+
+msgid "API"
+msgstr "API"
+
+msgid "Custom CSS Class"
+msgstr "自定义 CSS 类"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "User ID"
+msgstr "用户 ID"
+
+msgid "Optional User ID"
+msgstr "可选的用户 ID"
+
+msgid "Credentials"
+msgstr "凭据"
+
+msgid "Short name"
+msgstr "简称"
+
+msgid "WWW Link"
+msgstr "网站链接"
+
+msgid "Last modified"
+msgstr "最后修改"
+
+msgid "Last checked"
+msgstr "最后检查"
+
+msgid "Fetch interval (seconds)"
+msgstr "获取间隔（秒）"
+
+msgid "Optional override for scheduled fetch interval in seconds."
+msgstr "可选，自定义定时获取的间隔，单位为秒。"
+
+msgid "Next fetch at"
+msgstr "下次获取"
+
+msgid "Title and Contents"
+msgstr "标题和内容"
+
+msgid "Contents only"
+msgstr "仅内容"
+
+msgid "Title only"
+msgstr "仅标题"
+
+msgid "Display entries'"
+msgstr "条目显示方式"
+
+msgid "Public"
+msgstr "公开"
+
+msgid "Public services are visible to anyone."
+msgstr "公开服务对所有人可见。"
+
+msgid "Active"
+msgstr "启用"
+
+msgid "If not active, this service will not be further updated."
+msgstr "停用后，此服务将不再更新。"
+
+msgid "Home visible"
+msgstr "在主页显示"
+
+msgid ""
+"If unchecked, this stream will be still active, but hidden and thus visible "
+"only via custom lists."
+msgstr "如果不勾选，此信息流仍然启用，但会被隐藏，只能通过自定义列表查看。"
+
+msgid "Skip reblogs"
+msgstr "跳过转发"
+
+msgid "Skip importing reblogged posts."
+msgstr "不导入转发的帖子。"
+
+msgid "Services"
+msgstr "服务"
+
+msgid "Title"
+msgstr "标题"
+
+msgid "Link"
+msgstr "链接"
+
+msgid "Image Link"
+msgstr "图片链接"
+
+msgid "Contents"
+msgstr "内容"
+
+msgid "Date published"
+msgstr "发布日期"
+
+msgid "Date updated"
+msgstr "更新日期"
+
+msgid "Author's Name"
+msgstr "作者姓名"
+
+msgid "Author's Email"
+msgstr "作者邮箱"
+
+msgid "Author's URI"
+msgstr "作者 URI"
+
+msgid "Geo Latitude"
+msgstr "纬度"
+
+msgid "Geo Longitude"
+msgstr "经度"
+
+msgid "Protected"
+msgstr "受保护"
+
+msgid "Protect from possible overwriting by next update."
+msgstr "防止在下次更新时被覆盖。"
+
+msgid "If not active, this entry will not be shown."
+msgstr "停用后，此条目将不会显示。"
+
+msgid "Draft"
+msgstr "草稿"
+
+msgid "A draft is a post that is in progress. Only you will be able to see it."
+msgstr "草稿是尚未完成的帖子，只有你能看到。"
+
+msgid "Friends-only"
+msgstr "仅好友"
+
+msgid "Entry will only be visible to you and your friends."
+msgstr "此条目仅对你和你的好友可见。"
+
+msgid "Reblog"
+msgstr "转发"
+
+msgid "Reblogged post."
+msgstr "转发的帖子。"
+
+msgid "Reblogged by"
+msgstr "转发者"
+
+msgid "Reblogged URI"
+msgstr "转发帖子的 URI"
+
+msgid "Entry"
+msgstr "条目"
+
+msgid "Entries"
+msgstr "条目"
+
+msgid "Media"
+msgstr "媒体"
+
+msgid "Favorite"
+msgstr "收藏"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Slug"
+msgstr "Slug"
+
+msgid "List"
+msgstr "列表"
+
+msgid "Lists"
+msgstr "列表"
+
+msgid "Idle"
+msgstr "空闲"
+
+msgid "Queued"
+msgstr "排队中"
+
+msgid "Running"
+msgstr "运行中"
+
+msgid "Succeeded"
+msgstr "成功"
+
+msgid "Failed"
+msgstr "失败"
+
+msgid "Retryable"
+msgstr "可重试"
+
+msgid "Terminal"
+msgstr "永久"
+
+msgid "Manual"
+msgstr "手动"
+
+msgid "Schedule"
+msgstr "定时"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Trigger"
+msgstr "触发方式"
+
+msgid "Requested at"
+msgstr "请求时间"
+
+msgid "Started at"
+msgstr "开始时间"
+
+msgid "Finished at"
+msgstr "结束时间"
+
+msgid "Last succeeded at"
+msgstr "上次成功时间"
+
+msgid "Last failed at"
+msgstr "上次失败时间"
+
+msgid "Last result"
+msgstr "上次结果"
+
+msgid "Last error"
+msgstr "上次错误"
+
+msgid "Consecutive failures"
+msgstr "连续失败次数"
+
+msgid "Failure kind"
+msgstr "失败类型"
+
+msgid "Failure category"
+msgstr "失败类别"
+
+msgid "Triggered by user"
+msgstr "由用户触发"
+
+msgid "Worker token"
+msgstr "后台进程令牌"
+
+msgid "Service fetch state"
+msgstr "服务获取状态"
+
+msgid "Service fetch states"
+msgstr "服务获取状态"
+
+msgid "Friends Login"
+msgstr "好友登录"
+
+msgid "The content of this entry is available only to my friends."
+msgstr "此条目的内容仅对我的好友可见。"
+
+msgid "show map"
+msgstr "显示地图"
+
+msgid "Yesterday"
+msgstr "昨天"
+
+#, python-format
+msgid "%d days ago"
+msgstr "%d 天前"
+
+#, python-format
+msgid "%(count)d hour ago"
+msgid_plural "%(count)d hours ago"
+msgstr[0] "%(count)d 小时前"
+
+#, python-format
+msgid "%(count)d minute ago"
+msgid_plural "%(count)d minutes ago"
+msgstr[0] "%(count)d 分钟前"
+
+msgid "Align center"
+msgstr "居中对齐"
+
+msgid "Align left"
+msgstr "左对齐"
+
+msgid "Align right"
+msgstr "右对齐"
+
+msgid "Are you sure?"
+msgstr "确定吗？"
+
+msgid "Bold"
+msgstr "粗体"
+
+msgid "Bullet list"
+msgstr "项目符号列表"
+
+msgid "Clear formatting"
+msgstr "清除格式"
+
+msgid "Click and Listen"
+msgstr "点击收听"
+
+msgid "Code block"
+msgstr "代码块"
+
+msgid "Communication Error. Try again."
+msgstr "通信错误，请重试。"
+
+msgid "Entry hidden"
+msgstr "条目已隐藏"
+
+msgid "Fetch queued."
+msgstr "获取已加入队列。"
+
+msgid "Formatting"
+msgstr "格式"
+
+msgid "Heading 1"
+msgstr "标题 1"
+
+msgid "Heading 2"
+msgstr "标题 2"
+
+msgid "Image"
+msgstr "图片"
+
+msgid "Italic"
+msgstr "斜体"
+
+msgid "Justify"
+msgstr "两端对齐"
+
+msgid "Keep the original author?"
+msgstr "保留原作者吗？"
+
+msgid "Link address:"
+msgstr "链接地址："
+
+msgid "Never"
+msgstr "从不"
+
+msgid "Next year"
+msgstr "下一年"
+
+msgid "No completed runs"
+msgstr "尚无已完成的获取"
+
+msgid "Not scheduled"
+msgstr "未安排"
+
+msgid "Numbered list"
+msgstr "编号列表"
+
+msgid "Previous year"
+msgstr "上一年"
+
+msgid "Pull to refresh"
+msgstr "下拉刷新"
+
+msgid "Quote"
+msgstr "引用"
+
+msgid "Refreshing..."
+msgstr "正在刷新…"
+
+msgid "Release to refresh"
+msgstr "松开刷新"
+
+msgid "Reshare it at your stream"
+msgstr "在你的信息流中再次分享"
+
+msgid "Share or bookmark this entry"
+msgstr "分享此条目或添加书签"
+
+msgid "Strikethrough"
+msgstr "删除线"
+
+msgid "Unable to queue fetch."
+msgstr "无法将获取加入队列。"
+
+msgid "Underline"
+msgstr "下划线"
+
+msgid "Undo"
+msgstr "撤销"
+
+msgid "Unfavorite"
+msgstr "取消收藏"
+
+msgid "Unfavorite this entry before hiding it."
+msgstr "请先取消收藏此条目，再将其隐藏。"
+
+msgid "Video"
+msgstr "视频"
+
+msgid "Video address:"
+msgstr "视频地址："
+
+msgid "You are about to re-share this entry at your stream. Confirm?"
+msgstr "你将在你的信息流中再次分享此条目。确认吗？"
+
+msgid "Your browser does not support it."
+msgstr "你的浏览器不支持此功能。"
+
+msgid "failed"
+msgstr "失败"
+
+msgid "idle"
+msgstr "空闲"
+
+msgid "or elsewhere:"
+msgstr "或在其他地方："
+
+msgid "queued"
+msgstr "排队中"
+
+msgid "running"
+msgstr "运行中"
+
+msgid "succeeded"
+msgstr "成功"
+
+msgid "Hello"
+msgstr "你好"
+
+msgid "My private stream"
+msgstr "我的私人信息流"
+
+msgid "Home"
+msgstr "主页"
+
+msgid "My publicly visible stream"
+msgstr "我的公开信息流"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Logout"
+msgstr "退出登录"
+
+msgid "Login"
+msgstr "登录"
+
+msgid "The Stream"
+msgstr "信息流"
+
+msgid "Expand content"
+msgstr "展开内容"
+
+msgid "Menu"
+msgstr "菜单"
+
+msgid "Reply"
+msgstr "回复"
+
+msgid "Hide"
+msgstr "隐藏"
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "Raw Edit"
+msgstr "编辑源代码"
+
+msgid "Admin"
+msgstr "管理"
+
+msgid "Share"
+msgstr "分享"
+
+msgid "by"
+msgstr "作者"
+
+msgid "from"
+msgstr "来自"
+
+msgid "About"
+msgstr "关于"
+
+msgid "Favorite entries"
+msgstr "收藏的条目"
+
+msgid "Hide reblogs"
+msgstr "隐藏转发"
+
+msgid "Show reblogs"
+msgstr "显示转发"
+
+msgid "All entries"
+msgstr "所有条目"
+
+msgid "Select List"
+msgstr "选择列表"
+
+msgid "Archives"
+msgstr "归档"
+
+msgid "Search this site"
+msgstr "搜索本站"
+
+msgid "Search"
+msgstr "搜索"
+
+msgid "Change theme"
+msgstr "更换主题"
+
+msgid "Powered by"
+msgstr "技术支持"
+
+msgid "A free and open source lifestream platform and social activity reader"
+msgstr "一个自由开源的生活流平台和社交动态阅读器"
+
+msgid "Add content"
+msgstr "添加内容"
+
+msgid "Quick post, draft, or upload."
+msgstr "快速发帖、草稿或上传。"
+
+msgid "What's up?"
+msgstr "有什么新鲜事？"
+
+msgid "Class:"
+msgstr "类别："
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Post"
+msgstr "发布"
+
+msgid "more options"
+msgstr "更多选项"
+
+msgid "Mark as draft"
+msgstr "标记为草稿"
+
+msgid "Only visible to friends"
+msgstr "仅好友可见"
+
+msgid "Add files:"
+msgstr "添加文件："
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "next month"
+msgstr "下个月"
+
+msgid "Show all entries"
+msgstr "显示所有条目"
+
+msgid "newer entries"
+msgstr "较新的条目"
+
+msgid "older entries"
+msgstr "较早的条目"
+
+msgid "previous page"
+msgstr "上一页"
+
+msgid "next page"
+msgstr "下一页"
+
+msgid "Keyboard shortcuts"
+msgstr "键盘快捷键"
+
+msgid "Next entry"
+msgstr "下一个条目"
+
+msgid "Previous entry"
+msgstr "上一个条目"
+
+msgid "Favorite or unfavorite the highlighted entry"
+msgstr "收藏或取消收藏高亮的条目"
+
+msgid "Hide the highlighted entry, or bring it back"
+msgstr "隐藏或恢复高亮的条目"
+
+msgid "Show or hide this list"
+msgstr "显示或隐藏此列表"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Browser default"
+msgstr "跟随浏览器"
+
+msgid "Lists - Settings"
+msgstr "列表 - 设置"
+
+msgid "OAuth - Settings"
+msgstr "OAuth - 设置"
+
+msgid ""
+"The authorization response does not match the request. Reset the tokens and "
+"try again."
+msgstr "授权响应与请求不匹配。请重置令牌后重试。"
+
+msgid "OAuth 2.0 - Settings"
+msgstr "OAuth 2.0 - 设置"
+
+msgid "Preferences - Settings"
+msgstr "偏好 - 设置"
+
+msgid "Preferences saved."
+msgstr "偏好已保存。"
+
+msgid "Services - Settings"
+msgstr "服务 - 设置"
+
+msgid "Status - Settings"
+msgstr "状态 - 设置"
+
+msgid "delete"
+msgstr "删除"
+
+msgid "Class name"
+msgstr "类别名称"
+
+msgid "Any name for the service classification; a category."
+msgstr "用于对服务分类的任意名称，即一个类别。"
+
+msgid "User timeline"
+msgstr "用户时间线"
+
+msgid "Home timeline"
+msgstr "主页时间线"
+
+msgid "Timeline"
+msgstr "时间线"
+
+msgid "Tag name"
+msgstr "标签名"
+
+msgid "Optional tag name."
+msgstr "可选的标签名。"
+
+msgid "ID/Username"
+msgstr "ID/用户名"
+
+msgid "Leave empty to use the service default refresh interval."
+msgstr "留空则使用服务的默认刷新间隔。"
+
+msgid "none"
+msgstr "无"
+
+msgid "Basic"
+msgstr "Basic"
+
+msgid "OAuth 1.0"
+msgstr "OAuth 1.0"
+
+msgid "OAuth 2.0"
+msgstr "OAuth 2.0"
+
+msgid "Authorization"
+msgstr "授权"
+
+msgid "configure access"
+msgstr "配置访问权限"
+
+msgid "Basic username"
+msgstr "用户名"
+
+msgid "Basic password"
+msgstr "密码"
+
+msgid "This service cannot be fetched."
+msgstr "无法获取此服务。"
+
+msgid "Service not found."
+msgstr "未找到服务。"
+
+msgid "Editing list:"
+msgstr "编辑列表："
+
+msgid "new"
+msgstr "新建"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Read more about this implementation:"
+msgstr "了解此实现的更多信息："
+
+msgid "Your callback URL:"
+msgstr "你的回调 URL："
+
+msgid "Consumer Key"
+msgstr "Consumer Key"
+
+msgid "Consumer Secret"
+msgstr "Consumer Secret"
+
+msgid "Request token URL"
+msgstr "Request Token URL"
+
+msgid "Authorize URL"
+msgstr "授权 URL"
+
+msgid "Access token URL"
+msgstr "Access Token URL"
+
+msgid "Got Request token! Click \"Next step\" to authorize this application."
+msgstr "已获取 Request Token！点击“下一步”授权此应用。"
+
+msgid "Your OAuth access setup is completed."
+msgstr "OAuth 访问已配置完成。"
+
+msgid "Reset all tokens"
+msgstr "重置所有令牌"
+
+msgid "Next step"
+msgstr "下一步"
+
+msgid "Your Redirect URI:"
+msgstr "你的重定向 URI："
+
+msgid "Base URL"
+msgstr "基础 URL"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "or"
+msgstr "或"
+
+msgid "Access Token"
+msgstr "访问令牌"
+
+msgid "Your OAuth 2.0 access setup is completed."
+msgstr "OAuth 2.0 访问已配置完成。"
+
+msgid "Add a service:"
+msgstr "添加服务："
+
+msgid "Connected services:"
+msgstr "已连接的服务："
+
+msgid "Import OPML"
+msgstr "导入 OPML"
+
+msgid "Export OPML"
+msgstr "导出 OPML"
+
+msgid "WebSub"
+msgstr "WebSub"
+
+msgid "Preferences"
+msgstr "偏好"
+
+msgid "Service fetch status:"
+msgstr "服务获取状态："
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Action"
+msgstr "操作"
+
+msgid "Last successful import"
+msgstr "上次成功导入"
+
+msgid "Last completed attempt"
+msgstr "上次完成的尝试"
+
+msgid "Next scheduled fetch"
+msgstr "下次定时获取"
+
+msgid "Run now"
+msgstr "立即运行"
+
+msgid "No fetchable services are connected yet."
+msgstr "尚未连接任何可获取的服务。"
+
+msgid "WebSub subscriptions"
+msgstr "WebSub 订阅"
+
+msgid "Verified"
+msgstr "已验证"
+
+msgid "Expire"
+msgstr "过期时间"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid "unsubscribe"
+msgstr "取消订阅"
+
+msgid "service"
+msgstr "服务"
+
+msgid "subscribe"
+msgstr "订阅"
+
+msgid "Hub not found."
+msgstr "未找到 Hub。"
+
+#, python-format
+msgid "Hub %s: Accepted for verification."
+msgstr "Hub %s：已接受验证请求。"
+
+#, python-format
+msgid "Hub %s: Subscription verified."
+msgstr "Hub %s：订阅已验证。"
+
+msgid "No subscription found."
+msgstr "未找到订阅。"
+
+#, python-format
+msgid "Hub %s: Unsubscribed."
+msgstr "Hub %s：已取消订阅。"
+
+msgid "WebSub - Settings"
+msgstr "WebSub - 设置"
+
+msgid "Remote request timed out."
+msgstr "远程请求超时。"
+
+msgid "Remote host could not be reached."
+msgstr "无法连接远程主机。"
+
+msgid "Remote service rate-limited the request."
+msgstr "远程服务因请求过多而限制了此请求。"
+
+msgid "Remote service rejected the request."
+msgstr "远程服务拒绝了此请求。"
+
+msgid "Remote service returned a temporary server error."
+msgstr "远程服务返回了临时服务器错误。"
+
+msgid "Stored credentials were rejected by the remote service."
+msgstr "远程服务拒绝了已保存的凭据。"
+
+msgid "Remote service returned an invalid or unsupported response."
+msgstr "远程服务返回了无效或不受支持的响应。"
+
+msgid "Remote response could not be parsed."
+msgstr "无法解析远程响应。"
+
+msgid "Remote address is not allowed."
+msgstr "不允许访问此远程地址。"

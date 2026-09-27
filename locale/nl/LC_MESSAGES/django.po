@@ -1,0 +1,1082 @@
+# Dutch translations for gLifestream package.
+# Copyright (C) 2026 Wojciech Polak
+# This file is distributed under the same license as the gLifestream package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glifestream 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 22:43+0200\n"
+"PO-Revision-Date: 2026-09-27 12:00+0200\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Replying to"
+msgstr "Reactie op"
+
+msgid "Replied-to post unavailable."
+msgstr "Het bericht waarop gereageerd wordt, is niet beschikbaar."
+
+#, python-format
+msgid "%s reblogged"
+msgstr "Geboost door %s"
+
+msgid "Link preview"
+msgstr "Linkvoorbeeld"
+
+msgid "Quoted post"
+msgstr "Geciteerd bericht"
+
+msgid "Quoted post unavailable."
+msgstr "Het geciteerde bericht is niet beschikbaar."
+
+msgid "No text content."
+msgstr "Geen tekstinhoud."
+
+msgid "Posted Photos"
+msgstr "Foto’s"
+
+msgid "Posted a Photo"
+msgstr "Foto"
+
+msgid "Quoted post pending approval."
+msgstr "Het geciteerde bericht wacht op goedkeuring."
+
+msgid "Reblogged"
+msgstr "Geboost"
+
+#, python-format
+msgid "Liked %s"
+msgstr "Leuk gevonden: %s"
+
+#, python-format
+msgid "Published %s"
+msgstr "Gepubliceerd: %s"
+
+#, python-format
+msgid "Favorited %s"
+msgstr "Als favoriet gemarkeerd: %s"
+
+#, python-format
+msgid ""
+"Failed %(count)d time in a row. The error does not look temporary, so fetches"
+" are slowed down."
+msgid_plural ""
+"Failed %(count)d times in a row. The error does not look temporary, so "
+"fetches are slowed down."
+msgstr[0] ""
+"%(count)d keer achter elkaar mislukt. De fout lijkt niet tijdelijk, daarom "
+"wordt minder vaak opgehaald."
+msgstr[1] ""
+"%(count)d keer achter elkaar mislukt. De fout lijkt niet tijdelijk, daarom "
+"wordt minder vaak opgehaald."
+
+#, python-format
+msgid "Failed %(count)d time in a row. Retrying sooner than usual."
+msgid_plural "Failed %(count)d times in a row. Retrying sooner than usual."
+msgstr[0] ""
+"%(count)d keer achter elkaar mislukt. Er wordt eerder dan gebruikelijk "
+"opnieuw geprobeerd."
+msgstr[1] ""
+"%(count)d keer achter elkaar mislukt. Er wordt eerder dan gebruikelijk "
+"opnieuw geprobeerd."
+
+msgid "Fetch interrupted."
+msgstr "Ophalen onderbroken."
+
+msgid "Worker stopped before fetch completed."
+msgstr "Het achtergrondproces stopte voordat het ophalen klaar was."
+
+msgid "Fetch completed."
+msgstr "Ophalen voltooid."
+
+msgid "Unexpected fetch error."
+msgstr "Onverwachte fout bij het ophalen."
+
+msgid "Remember Me"
+msgstr "Ingelogd blijven"
+
+msgid "Request token URL not set."
+msgstr "De request-token-URL is niet ingesteld."
+
+msgid "Invalid OAuth response. No tokens found."
+msgstr "Ongeldig OAuth-antwoord. Geen tokens gevonden."
+
+msgid "Authorize URL not set."
+msgstr "De autorisatie-URL is niet ingesteld."
+
+msgid "Access token URL not set."
+msgstr "De access-token-URL is niet ingesteld."
+
+msgid "Token URL not set."
+msgstr "De token-URL is niet ingesteld."
+
+msgid "Invalid OAuth 2.0 response. No access token found."
+msgstr "Ongeldig OAuth 2.0-antwoord. Geen toegangstoken gevonden."
+
+msgid "User"
+msgstr "Gebruiker"
+
+msgid "Must change password"
+msgstr "Moet wachtwoord wijzigen"
+
+msgid "If set, the user will be forced to change their password on next login."
+msgstr ""
+"Indien ingesteld, moet de gebruiker bij de volgende keer inloggen het "
+"wachtwoord wijzigen."
+
+msgid "Language"
+msgstr "Taal"
+
+msgid "Interface language. Empty means the browser decides."
+msgstr "Taal van de interface. Leeg betekent dat de browser beslist."
+
+msgid "User Profile"
+msgstr "Gebruikersprofiel"
+
+msgid "User Profiles"
+msgstr "Gebruikersprofielen"
+
+msgid "Service"
+msgstr "Dienst"
+
+msgid "Change Your Password"
+msgstr "Wijzig je wachtwoord"
+
+msgid "You must change your password before continuing."
+msgstr "Je moet je wachtwoord wijzigen voordat je verdergaat."
+
+msgid "New Password"
+msgstr "Nieuw wachtwoord"
+
+msgid "Confirm New Password"
+msgstr "Bevestig het nieuwe wachtwoord"
+
+msgid "Change Password"
+msgstr "Wachtwoord wijzigen"
+
+msgid "Invalid username or password"
+msgstr "Ongeldige gebruikersnaam of ongeldig wachtwoord"
+
+msgid "Username"
+msgstr "Gebruikersnaam"
+
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgid "Log In"
+msgstr "Inloggen"
+
+msgid "Please fill in both password fields."
+msgstr "Vul beide wachtwoordvelden in."
+
+msgid "Passwords do not match."
+msgstr "De wachtwoorden komen niet overeen."
+
+msgid "The new password must differ from the current one."
+msgstr "Het nieuwe wachtwoord moet verschillen van het huidige."
+
+msgid "Activate item"
+msgstr "Item activeren"
+
+msgid "Deactivate item"
+msgstr "Item deactiveren"
+
+msgid "Set as reblogged"
+msgstr "Als geboost markeren"
+
+msgid "Unset as reblogged"
+msgstr "Markering als geboost verwijderen"
+
+msgid "Additional, optional fields"
+msgstr "Extra, optionele velden"
+
+msgid "Fields updated automatically by gLifestream"
+msgstr "Velden die gLifestream automatisch bijwerkt"
+
+#, python-format
+msgid "You are currently browsing the archive for %s"
+msgstr "Je bekijkt nu het archief van %s"
+
+msgid "Favorites"
+msgstr "Favorieten"
+
+msgid "You are currently browsing your favorite entries"
+msgstr "Je bekijkt nu je favoriete items"
+
+#, python-format
+msgid "You are currently browsing entries from %s list only."
+msgstr "Je bekijkt nu alleen items uit de lijst %s."
+
+#, python-format
+msgid "You are currently browsing %s entries only."
+msgstr "Je bekijkt nu alleen items van het type %s."
+
+#, python-format
+msgid "You are currently browsing entries from %s service only."
+msgstr "Je bekijkt nu alleen items van de dienst %s."
+
+#, python-format
+msgid "Your search for %s returned the following results."
+msgstr "Je zoekopdracht naar %s leverde de volgende resultaten op."
+
+msgid "API"
+msgstr "API"
+
+msgid "Custom CSS Class"
+msgstr "Eigen CSS-klasse"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "User ID"
+msgstr "Gebruikers-ID"
+
+msgid "Optional User ID"
+msgstr "Optionele gebruikers-ID"
+
+msgid "Credentials"
+msgstr "Inloggegevens"
+
+msgid "Short name"
+msgstr "Korte naam"
+
+msgid "WWW Link"
+msgstr "WWW-link"
+
+msgid "Last modified"
+msgstr "Laatst gewijzigd"
+
+msgid "Last checked"
+msgstr "Laatst gecontroleerd"
+
+msgid "Fetch interval (seconds)"
+msgstr "Ophaalinterval (seconden)"
+
+msgid "Optional override for scheduled fetch interval in seconds."
+msgstr "Optioneel eigen interval voor gepland ophalen, in seconden."
+
+msgid "Next fetch at"
+msgstr "Volgende keer ophalen"
+
+msgid "Title and Contents"
+msgstr "Titel en inhoud"
+
+msgid "Contents only"
+msgstr "Alleen inhoud"
+
+msgid "Title only"
+msgstr "Alleen titel"
+
+msgid "Display entries'"
+msgstr "Weergave van items"
+
+msgid "Public"
+msgstr "Openbaar"
+
+msgid "Public services are visible to anyone."
+msgstr "Openbare diensten zijn voor iedereen zichtbaar."
+
+msgid "Active"
+msgstr "Actief"
+
+msgid "If not active, this service will not be further updated."
+msgstr "Een inactieve dienst wordt niet meer bijgewerkt."
+
+msgid "Home visible"
+msgstr "Zichtbaar op de startpagina"
+
+msgid ""
+"If unchecked, this stream will be still active, but hidden and thus visible "
+"only via custom lists."
+msgstr ""
+"Indien niet aangevinkt, blijft deze stream actief, maar verborgen en dus "
+"alleen zichtbaar via eigen lijsten."
+
+msgid "Skip reblogs"
+msgstr "Boosts overslaan"
+
+msgid "Skip importing reblogged posts."
+msgstr "Gebooste berichten niet importeren."
+
+msgid "Services"
+msgstr "Diensten"
+
+msgid "Title"
+msgstr "Titel"
+
+msgid "Link"
+msgstr "Link"
+
+msgid "Image Link"
+msgstr "Afbeeldingslink"
+
+msgid "Contents"
+msgstr "Inhoud"
+
+msgid "Date published"
+msgstr "Publicatiedatum"
+
+msgid "Date updated"
+msgstr "Bijwerkdatum"
+
+msgid "Author's Name"
+msgstr "Naam van de auteur"
+
+msgid "Author's Email"
+msgstr "E-mail van de auteur"
+
+msgid "Author's URI"
+msgstr "URI van de auteur"
+
+msgid "Geo Latitude"
+msgstr "Breedtegraad"
+
+msgid "Geo Longitude"
+msgstr "Lengtegraad"
+
+msgid "Protected"
+msgstr "Beschermd"
+
+msgid "Protect from possible overwriting by next update."
+msgstr "Beschermen tegen overschrijven bij de volgende update."
+
+msgid "If not active, this entry will not be shown."
+msgstr "Een inactief item wordt niet getoond."
+
+msgid "Draft"
+msgstr "Concept"
+
+msgid "A draft is a post that is in progress. Only you will be able to see it."
+msgstr ""
+"Een concept is een bericht dat nog niet af is. Alleen jij kunt het zien."
+
+msgid "Friends-only"
+msgstr "Alleen vrienden"
+
+msgid "Entry will only be visible to you and your friends."
+msgstr "Het item is alleen zichtbaar voor jou en je vrienden."
+
+msgid "Reblog"
+msgstr "Boost"
+
+msgid "Reblogged post."
+msgstr "Geboost bericht."
+
+msgid "Reblogged by"
+msgstr "Geboost door"
+
+msgid "Reblogged URI"
+msgstr "URI van het gebooste bericht"
+
+msgid "Entry"
+msgstr "Item"
+
+msgid "Entries"
+msgstr "Items"
+
+msgid "Media"
+msgstr "Media"
+
+msgid "Favorite"
+msgstr "Favoriet"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "Slug"
+msgstr "Slug"
+
+msgid "List"
+msgstr "Lijst"
+
+msgid "Lists"
+msgstr "Lijsten"
+
+msgid "Idle"
+msgstr "Inactief"
+
+msgid "Queued"
+msgstr "In de wachtrij"
+
+msgid "Running"
+msgstr "Bezig"
+
+msgid "Succeeded"
+msgstr "Geslaagd"
+
+msgid "Failed"
+msgstr "Mislukt"
+
+msgid "Retryable"
+msgstr "Opnieuw te proberen"
+
+msgid "Terminal"
+msgstr "Blijvend"
+
+msgid "Manual"
+msgstr "Handmatig"
+
+msgid "Schedule"
+msgstr "Planning"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Trigger"
+msgstr "Aanleiding"
+
+msgid "Requested at"
+msgstr "Aangevraagd"
+
+msgid "Started at"
+msgstr "Gestart"
+
+msgid "Finished at"
+msgstr "Beëindigd"
+
+msgid "Last succeeded at"
+msgstr "Laatst geslaagd"
+
+msgid "Last failed at"
+msgstr "Laatst mislukt"
+
+msgid "Last result"
+msgstr "Laatste resultaat"
+
+msgid "Last error"
+msgstr "Laatste fout"
+
+msgid "Consecutive failures"
+msgstr "Mislukkingen op rij"
+
+msgid "Failure kind"
+msgstr "Soort fout"
+
+msgid "Failure category"
+msgstr "Foutcategorie"
+
+msgid "Triggered by user"
+msgstr "Door gebruiker gestart"
+
+msgid "Worker token"
+msgstr "Token van het achtergrondproces"
+
+msgid "Service fetch state"
+msgstr "Ophaalstatus van de dienst"
+
+msgid "Service fetch states"
+msgstr "Ophaalstatussen van de diensten"
+
+msgid "Friends Login"
+msgstr "Inloggen voor vrienden"
+
+msgid "The content of this entry is available only to my friends."
+msgstr "De inhoud van dit item is alleen beschikbaar voor mijn vrienden."
+
+msgid "show map"
+msgstr "kaart tonen"
+
+msgid "Yesterday"
+msgstr "Gisteren"
+
+#, python-format
+msgid "%d days ago"
+msgstr "%d dagen geleden"
+
+#, python-format
+msgid "%(count)d hour ago"
+msgid_plural "%(count)d hours ago"
+msgstr[0] "%(count)d uur geleden"
+msgstr[1] "%(count)d uur geleden"
+
+#, python-format
+msgid "%(count)d minute ago"
+msgid_plural "%(count)d minutes ago"
+msgstr[0] "%(count)d minuut geleden"
+msgstr[1] "%(count)d minuten geleden"
+
+msgid "Align center"
+msgstr "Centreren"
+
+msgid "Align left"
+msgstr "Links uitlijnen"
+
+msgid "Align right"
+msgstr "Rechts uitlijnen"
+
+msgid "Are you sure?"
+msgstr "Weet je het zeker?"
+
+msgid "Bold"
+msgstr "Vet"
+
+msgid "Bullet list"
+msgstr "Opsomming"
+
+msgid "Clear formatting"
+msgstr "Opmaak wissen"
+
+msgid "Click and Listen"
+msgstr "Klik en luister"
+
+msgid "Code block"
+msgstr "Codeblok"
+
+msgid "Communication Error. Try again."
+msgstr "Communicatiefout. Probeer het opnieuw."
+
+msgid "Entry hidden"
+msgstr "Item verborgen"
+
+msgid "Fetch queued."
+msgstr "Ophalen in de wachtrij gezet."
+
+msgid "Formatting"
+msgstr "Opmaak"
+
+msgid "Heading 1"
+msgstr "Kop 1"
+
+msgid "Heading 2"
+msgstr "Kop 2"
+
+msgid "Image"
+msgstr "Afbeelding"
+
+msgid "Italic"
+msgstr "Cursief"
+
+msgid "Justify"
+msgstr "Uitvullen"
+
+msgid "Keep the original author?"
+msgstr "De oorspronkelijke auteur behouden?"
+
+msgid "Link address:"
+msgstr "Linkadres:"
+
+msgid "Never"
+msgstr "Nooit"
+
+msgid "Next year"
+msgstr "Volgend jaar"
+
+msgid "No completed runs"
+msgstr "Nog niets voltooid"
+
+msgid "Not scheduled"
+msgstr "Niet gepland"
+
+msgid "Numbered list"
+msgstr "Genummerde lijst"
+
+msgid "Previous year"
+msgstr "Vorig jaar"
+
+msgid "Pull to refresh"
+msgstr "Trek om te vernieuwen"
+
+msgid "Quote"
+msgstr "Citaat"
+
+msgid "Refreshing..."
+msgstr "Vernieuwen..."
+
+msgid "Release to refresh"
+msgstr "Loslaten om te vernieuwen"
+
+msgid "Reshare it at your stream"
+msgstr "Opnieuw delen in je stream"
+
+msgid "Share or bookmark this entry"
+msgstr "Dit item delen of als bladwijzer opslaan"
+
+msgid "Strikethrough"
+msgstr "Doorhalen"
+
+msgid "Unable to queue fetch."
+msgstr "Ophalen kon niet in de wachtrij worden gezet."
+
+msgid "Underline"
+msgstr "Onderstrepen"
+
+msgid "Undo"
+msgstr "Ongedaan maken"
+
+msgid "Unfavorite"
+msgstr "Uit favorieten verwijderen"
+
+msgid "Unfavorite this entry before hiding it."
+msgstr "Verwijder dit item uit je favorieten voordat je het verbergt."
+
+msgid "Video"
+msgstr "Video"
+
+msgid "Video address:"
+msgstr "Videoadres:"
+
+msgid "You are about to re-share this entry at your stream. Confirm?"
+msgstr ""
+"Je staat op het punt dit item opnieuw te delen in je stream. Bevestigen?"
+
+msgid "Your browser does not support it."
+msgstr "Je browser ondersteunt dit niet."
+
+msgid "failed"
+msgstr "mislukt"
+
+msgid "idle"
+msgstr "inactief"
+
+msgid "or elsewhere:"
+msgstr "of elders:"
+
+msgid "queued"
+msgstr "in de wachtrij"
+
+msgid "running"
+msgstr "bezig"
+
+msgid "succeeded"
+msgstr "geslaagd"
+
+msgid "Hello"
+msgstr "Hallo"
+
+msgid "My private stream"
+msgstr "Mijn privéstream"
+
+msgid "Home"
+msgstr "Start"
+
+msgid "My publicly visible stream"
+msgstr "Mijn openbaar zichtbare stream"
+
+msgid "Settings"
+msgstr "Instellingen"
+
+msgid "Logout"
+msgstr "Uitloggen"
+
+msgid "Login"
+msgstr "Inloggen"
+
+msgid "The Stream"
+msgstr "De stream"
+
+msgid "Expand content"
+msgstr "Inhoud uitklappen"
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Reply"
+msgstr "Reageren"
+
+msgid "Hide"
+msgstr "Verbergen"
+
+msgid "Edit"
+msgstr "Bewerken"
+
+msgid "Raw Edit"
+msgstr "Broncode bewerken"
+
+msgid "Admin"
+msgstr "Beheer"
+
+msgid "Share"
+msgstr "Delen"
+
+msgid "by"
+msgstr "door"
+
+msgid "from"
+msgstr "van"
+
+msgid "About"
+msgstr "Over"
+
+msgid "Favorite entries"
+msgstr "Favoriete items"
+
+msgid "Hide reblogs"
+msgstr "Boosts verbergen"
+
+msgid "Show reblogs"
+msgstr "Boosts tonen"
+
+msgid "All entries"
+msgstr "Alle items"
+
+msgid "Select List"
+msgstr "Kies een lijst"
+
+msgid "Archives"
+msgstr "Archief"
+
+msgid "Search this site"
+msgstr "Deze site doorzoeken"
+
+msgid "Search"
+msgstr "Zoeken"
+
+msgid "Change theme"
+msgstr "Thema wijzigen"
+
+msgid "Powered by"
+msgstr "Mogelijk gemaakt door"
+
+msgid "A free and open source lifestream platform and social activity reader"
+msgstr ""
+"Een vrij en opensource lifestreamplatform en lezer voor sociale activiteit"
+
+msgid "Add content"
+msgstr "Inhoud toevoegen"
+
+msgid "Quick post, draft, or upload."
+msgstr "Snel bericht, concept of upload."
+
+msgid "What's up?"
+msgstr "Wat is er nieuw?"
+
+msgid "Class:"
+msgstr "Klasse:"
+
+msgid "Update"
+msgstr "Bijwerken"
+
+msgid "Post"
+msgstr "Plaatsen"
+
+msgid "more options"
+msgstr "meer opties"
+
+msgid "Mark as draft"
+msgstr "Als concept markeren"
+
+msgid "Only visible to friends"
+msgstr "Alleen zichtbaar voor vrienden"
+
+msgid "Add files:"
+msgstr "Bestanden toevoegen:"
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "next month"
+msgstr "volgende maand"
+
+msgid "Show all entries"
+msgstr "Alle items tonen"
+
+msgid "newer entries"
+msgstr "nieuwere items"
+
+msgid "older entries"
+msgstr "oudere items"
+
+msgid "previous page"
+msgstr "vorige pagina"
+
+msgid "next page"
+msgstr "volgende pagina"
+
+msgid "Keyboard shortcuts"
+msgstr "Sneltoetsen"
+
+msgid "Next entry"
+msgstr "Volgend item"
+
+msgid "Previous entry"
+msgstr "Vorig item"
+
+msgid "Favorite or unfavorite the highlighted entry"
+msgstr "Gemarkeerd item aan favorieten toevoegen of eruit verwijderen"
+
+msgid "Hide the highlighted entry, or bring it back"
+msgstr "Gemarkeerd item verbergen of terughalen"
+
+msgid "Show or hide this list"
+msgstr "Dit overzicht tonen of verbergen"
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "Browser default"
+msgstr "Zoals in de browser"
+
+msgid "Lists - Settings"
+msgstr "Lijsten - Instellingen"
+
+msgid "OAuth - Settings"
+msgstr "OAuth - Instellingen"
+
+msgid ""
+"The authorization response does not match the request. Reset the tokens and "
+"try again."
+msgstr ""
+"Het autorisatieantwoord komt niet overeen met het verzoek. Zet de tokens "
+"terug en probeer het opnieuw."
+
+msgid "OAuth 2.0 - Settings"
+msgstr "OAuth 2.0 - Instellingen"
+
+msgid "Preferences - Settings"
+msgstr "Voorkeuren - Instellingen"
+
+msgid "Preferences saved."
+msgstr "Voorkeuren opgeslagen."
+
+msgid "Services - Settings"
+msgstr "Diensten - Instellingen"
+
+msgid "Status - Settings"
+msgstr "Status - Instellingen"
+
+msgid "delete"
+msgstr "verwijderen"
+
+msgid "Class name"
+msgstr "Klassenaam"
+
+msgid "Any name for the service classification; a category."
+msgstr "Een willekeurige naam om de dienst in te delen; een categorie."
+
+msgid "User timeline"
+msgstr "Tijdlijn van de gebruiker"
+
+msgid "Home timeline"
+msgstr "Starttijdlijn"
+
+msgid "Timeline"
+msgstr "Tijdlijn"
+
+msgid "Tag name"
+msgstr "Tagnaam"
+
+msgid "Optional tag name."
+msgstr "Optionele tagnaam."
+
+msgid "ID/Username"
+msgstr "ID/gebruikersnaam"
+
+msgid "Leave empty to use the service default refresh interval."
+msgstr ""
+"Laat leeg om het standaard vernieuwingsinterval van de dienst te gebruiken."
+
+msgid "none"
+msgstr "geen"
+
+msgid "Basic"
+msgstr "Basic"
+
+msgid "OAuth 1.0"
+msgstr "OAuth 1.0"
+
+msgid "OAuth 2.0"
+msgstr "OAuth 2.0"
+
+msgid "Authorization"
+msgstr "Autorisatie"
+
+msgid "configure access"
+msgstr "toegang instellen"
+
+msgid "Basic username"
+msgstr "Gebruikersnaam"
+
+msgid "Basic password"
+msgstr "Wachtwoord"
+
+msgid "This service cannot be fetched."
+msgstr "Deze dienst kan niet worden opgehaald."
+
+msgid "Service not found."
+msgstr "Dienst niet gevonden."
+
+msgid "Editing list:"
+msgstr "Lijst bewerken:"
+
+msgid "new"
+msgstr "nieuw"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Read more about this implementation:"
+msgstr "Meer over deze implementatie:"
+
+msgid "Your callback URL:"
+msgstr "Je callback-URL:"
+
+msgid "Consumer Key"
+msgstr "Consumer Key"
+
+msgid "Consumer Secret"
+msgstr "Consumer Secret"
+
+msgid "Request token URL"
+msgstr "Request-token-URL"
+
+msgid "Authorize URL"
+msgstr "Autorisatie-URL"
+
+msgid "Access token URL"
+msgstr "Access-token-URL"
+
+msgid "Got Request token! Click \"Next step\" to authorize this application."
+msgstr ""
+"Request-token ontvangen! Klik op ‘Volgende stap’ om deze applicatie te "
+"autoriseren."
+
+msgid "Your OAuth access setup is completed."
+msgstr "De OAuth-toegang is ingesteld."
+
+msgid "Reset all tokens"
+msgstr "Alle tokens terugzetten"
+
+msgid "Next step"
+msgstr "Volgende stap"
+
+msgid "Your Redirect URI:"
+msgstr "Je redirect-URI:"
+
+msgid "Base URL"
+msgstr "Basis-URL"
+
+msgid "Client ID"
+msgstr "Client-ID"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "or"
+msgstr "of"
+
+msgid "Access Token"
+msgstr "Toegangstoken"
+
+msgid "Your OAuth 2.0 access setup is completed."
+msgstr "De OAuth 2.0-toegang is ingesteld."
+
+msgid "Add a service:"
+msgstr "Dienst toevoegen:"
+
+msgid "Connected services:"
+msgstr "Gekoppelde diensten:"
+
+msgid "Import OPML"
+msgstr "OPML importeren"
+
+msgid "Export OPML"
+msgstr "OPML exporteren"
+
+msgid "WebSub"
+msgstr "WebSub"
+
+msgid "Preferences"
+msgstr "Voorkeuren"
+
+msgid "Service fetch status:"
+msgstr "Ophaalstatus van de diensten:"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Action"
+msgstr "Actie"
+
+msgid "Last successful import"
+msgstr "Laatste geslaagde import"
+
+msgid "Last completed attempt"
+msgstr "Laatste voltooide poging"
+
+msgid "Next scheduled fetch"
+msgstr "Volgende geplande keer ophalen"
+
+msgid "Run now"
+msgstr "Nu uitvoeren"
+
+msgid "No fetchable services are connected yet."
+msgstr "Er zijn nog geen diensten gekoppeld die kunnen worden opgehaald."
+
+msgid "WebSub subscriptions"
+msgstr "WebSub-abonnementen"
+
+msgid "Verified"
+msgstr "Bevestigd"
+
+msgid "Expire"
+msgstr "Verloopt"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nee"
+
+msgid "unsubscribe"
+msgstr "opzeggen"
+
+msgid "service"
+msgstr "dienst"
+
+msgid "subscribe"
+msgstr "abonneren"
+
+msgid "Hub not found."
+msgstr "Hub niet gevonden."
+
+#, python-format
+msgid "Hub %s: Accepted for verification."
+msgstr "Hub %s: geaccepteerd voor bevestiging."
+
+#, python-format
+msgid "Hub %s: Subscription verified."
+msgstr "Hub %s: abonnement bevestigd."
+
+msgid "No subscription found."
+msgstr "Geen abonnement gevonden."
+
+#, python-format
+msgid "Hub %s: Unsubscribed."
+msgstr "Hub %s: abonnement opgezegd."
+
+msgid "WebSub - Settings"
+msgstr "WebSub - Instellingen"
+
+msgid "Remote request timed out."
+msgstr "Het verzoek aan de externe server duurde te lang."
+
+msgid "Remote host could not be reached."
+msgstr "De externe server is niet bereikbaar."
+
+msgid "Remote service rate-limited the request."
+msgstr "De externe dienst heeft het verzoek beperkt wegens te veel verzoeken."
+
+msgid "Remote service rejected the request."
+msgstr "De externe dienst heeft het verzoek geweigerd."
+
+msgid "Remote service returned a temporary server error."
+msgstr "De externe dienst gaf een tijdelijke serverfout."
+
+msgid "Stored credentials were rejected by the remote service."
+msgstr "De externe dienst heeft de opgeslagen inloggegevens geweigerd."
+
+msgid "Remote service returned an invalid or unsupported response."
+msgstr "De externe dienst gaf een ongeldig of niet-ondersteund antwoord."
+
+msgid "Remote response could not be parsed."
+msgstr "Het antwoord van de externe dienst kon niet worden verwerkt."
+
+msgid "Remote address is not allowed."
+msgstr "Dit externe adres is niet toegestaan."

@@ -84,3 +84,10 @@ def test_a_generic_browser_language_finds_its_regional_translation(client):
     response = _get_index(client, 'pt')
 
     assert response['Content-Language'] == 'pt-br'
+
+
+@pytest.mark.django_db
+def test_a_chinese_browser_region_finds_the_simplified_script(client):
+    response = _get_index(client, 'zh-CN')
+
+    assert response['Content-Language'] == 'zh-hans'

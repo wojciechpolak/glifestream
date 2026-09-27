@@ -1,0 +1,1085 @@
+# Ukrainian translations for gLifestream package.
+# Copyright (C) 2026 Wojciech Polak
+# This file is distributed under the same license as the gLifestream package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: glifestream 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-26 22:43+0200\n"
+"PO-Revision-Date: 2026-09-27 12:00+0200\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+
+msgid "Replying to"
+msgstr "У відповідь на"
+
+msgid "Replied-to post unavailable."
+msgstr "Допис, на який дано відповідь, недоступний."
+
+#, python-format
+msgid "%s reblogged"
+msgstr "Поширено користувачем %s"
+
+msgid "Link preview"
+msgstr "Попередній перегляд посилання"
+
+msgid "Quoted post"
+msgstr "Цитований допис"
+
+msgid "Quoted post unavailable."
+msgstr "Цитований допис недоступний."
+
+msgid "No text content."
+msgstr "Немає текстового вмісту."
+
+msgid "Posted Photos"
+msgstr "Фотографії"
+
+msgid "Posted a Photo"
+msgstr "Фотографія"
+
+msgid "Quoted post pending approval."
+msgstr "Цитований допис очікує на схвалення."
+
+msgid "Reblogged"
+msgstr "Поширено"
+
+#, python-format
+msgid "Liked %s"
+msgstr "Вподобано: %s"
+
+#, python-format
+msgid "Published %s"
+msgstr "Опубліковано: %s"
+
+#, python-format
+msgid "Favorited %s"
+msgstr "Додано до вибраного: %s"
+
+#, python-format
+msgid ""
+"Failed %(count)d time in a row. The error does not look temporary, so fetches"
+" are slowed down."
+msgid_plural ""
+"Failed %(count)d times in a row. The error does not look temporary, so "
+"fetches are slowed down."
+msgstr[0] ""
+"%(count)d невдала спроба поспіль. Помилка не схожа на тимчасову, тому "
+"отримання сповільнено."
+msgstr[1] ""
+"%(count)d невдалі спроби поспіль. Помилка не схожа на тимчасову, тому "
+"отримання сповільнено."
+msgstr[2] ""
+"%(count)d невдалих спроб поспіль. Помилка не схожа на тимчасову, тому "
+"отримання сповільнено."
+
+#, python-format
+msgid "Failed %(count)d time in a row. Retrying sooner than usual."
+msgid_plural "Failed %(count)d times in a row. Retrying sooner than usual."
+msgstr[0] ""
+"%(count)d невдала спроба поспіль. Наступна спроба буде раніше, ніж зазвичай."
+msgstr[1] ""
+"%(count)d невдалі спроби поспіль. Наступна спроба буде раніше, ніж зазвичай."
+msgstr[2] ""
+"%(count)d невдалих спроб поспіль. Наступна спроба буде раніше, ніж зазвичай."
+
+msgid "Fetch interrupted."
+msgstr "Отримання перервано."
+
+msgid "Worker stopped before fetch completed."
+msgstr "Фоновий процес зупинився до завершення отримання."
+
+msgid "Fetch completed."
+msgstr "Отримання завершено."
+
+msgid "Unexpected fetch error."
+msgstr "Неочікувана помилка під час отримання."
+
+msgid "Remember Me"
+msgstr "Запам’ятати мене"
+
+msgid "Request token URL not set."
+msgstr "URL request token не задано."
+
+msgid "Invalid OAuth response. No tokens found."
+msgstr "Недійсна відповідь OAuth. Токенів не знайдено."
+
+msgid "Authorize URL not set."
+msgstr "URL авторизації не задано."
+
+msgid "Access token URL not set."
+msgstr "URL access token не задано."
+
+msgid "Token URL not set."
+msgstr "URL токена не задано."
+
+msgid "Invalid OAuth 2.0 response. No access token found."
+msgstr "Недійсна відповідь OAuth 2.0. Токен доступу не знайдено."
+
+msgid "User"
+msgstr "Користувач"
+
+msgid "Must change password"
+msgstr "Має змінити пароль"
+
+msgid "If set, the user will be forced to change their password on next login."
+msgstr ""
+"Якщо позначено, користувач муситиме змінити пароль під час наступного входу."
+
+msgid "Language"
+msgstr "Мова"
+
+msgid "Interface language. Empty means the browser decides."
+msgstr "Мова інтерфейсу. Якщо порожньо, вирішує браузер."
+
+msgid "User Profile"
+msgstr "Профіль користувача"
+
+msgid "User Profiles"
+msgstr "Профілі користувачів"
+
+msgid "Service"
+msgstr "Сервіс"
+
+msgid "Change Your Password"
+msgstr "Змініть пароль"
+
+msgid "You must change your password before continuing."
+msgstr "Перш ніж продовжити, змініть пароль."
+
+msgid "New Password"
+msgstr "Новий пароль"
+
+msgid "Confirm New Password"
+msgstr "Підтвердіть новий пароль"
+
+msgid "Change Password"
+msgstr "Змінити пароль"
+
+msgid "Invalid username or password"
+msgstr "Неправильне ім’я користувача або пароль"
+
+msgid "Username"
+msgstr "Ім’я користувача"
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Log In"
+msgstr "Увійти"
+
+msgid "Please fill in both password fields."
+msgstr "Заповніть обидва поля пароля."
+
+msgid "Passwords do not match."
+msgstr "Паролі не збігаються."
+
+msgid "The new password must differ from the current one."
+msgstr "Новий пароль має відрізнятися від поточного."
+
+msgid "Activate item"
+msgstr "Увімкнути елемент"
+
+msgid "Deactivate item"
+msgstr "Вимкнути елемент"
+
+msgid "Set as reblogged"
+msgstr "Позначити як поширене"
+
+msgid "Unset as reblogged"
+msgstr "Зняти позначку поширеного"
+
+msgid "Additional, optional fields"
+msgstr "Додаткові необов’язкові поля"
+
+msgid "Fields updated automatically by gLifestream"
+msgstr "Поля, які gLifestream оновлює автоматично"
+
+#, python-format
+msgid "You are currently browsing the archive for %s"
+msgstr "Ви переглядаєте архів за %s"
+
+msgid "Favorites"
+msgstr "Вибране"
+
+msgid "You are currently browsing your favorite entries"
+msgstr "Ви переглядаєте вибрані записи"
+
+#, python-format
+msgid "You are currently browsing entries from %s list only."
+msgstr "Ви переглядаєте лише записи зі списку %s."
+
+#, python-format
+msgid "You are currently browsing %s entries only."
+msgstr "Ви переглядаєте лише записи типу %s."
+
+#, python-format
+msgid "You are currently browsing entries from %s service only."
+msgstr "Ви переглядаєте лише записи із сервісу %s."
+
+#, python-format
+msgid "Your search for %s returned the following results."
+msgstr "Результати пошуку за запитом %s."
+
+msgid "API"
+msgstr "API"
+
+msgid "Custom CSS Class"
+msgstr "Власний клас CSS"
+
+msgid "URL"
+msgstr "URL"
+
+msgid "User ID"
+msgstr "ID користувача"
+
+msgid "Optional User ID"
+msgstr "Необов’язковий ID користувача"
+
+msgid "Credentials"
+msgstr "Облікові дані"
+
+msgid "Short name"
+msgstr "Коротка назва"
+
+msgid "WWW Link"
+msgstr "Посилання WWW"
+
+msgid "Last modified"
+msgstr "Остання зміна"
+
+msgid "Last checked"
+msgstr "Остання перевірка"
+
+msgid "Fetch interval (seconds)"
+msgstr "Інтервал отримання (секунди)"
+
+msgid "Optional override for scheduled fetch interval in seconds."
+msgstr "Необов’язковий власний інтервал запланованого отримання, у секундах."
+
+msgid "Next fetch at"
+msgstr "Наступне отримання"
+
+msgid "Title and Contents"
+msgstr "Заголовок і вміст"
+
+msgid "Contents only"
+msgstr "Лише вміст"
+
+msgid "Title only"
+msgstr "Лише заголовок"
+
+msgid "Display entries'"
+msgstr "Показ записів"
+
+msgid "Public"
+msgstr "Публічний"
+
+msgid "Public services are visible to anyone."
+msgstr "Публічні сервіси бачать усі."
+
+msgid "Active"
+msgstr "Активний"
+
+msgid "If not active, this service will not be further updated."
+msgstr "Неактивний сервіс більше не оновлюватиметься."
+
+msgid "Home visible"
+msgstr "Видимий на головній"
+
+msgid ""
+"If unchecked, this stream will be still active, but hidden and thus visible "
+"only via custom lists."
+msgstr ""
+"Якщо не позначено, цей потік залишиться активним, але прихованим, тож його "
+"буде видно лише у власних списках."
+
+msgid "Skip reblogs"
+msgstr "Пропускати поширення"
+
+msgid "Skip importing reblogged posts."
+msgstr "Не імпортувати поширені дописи."
+
+msgid "Services"
+msgstr "Сервіси"
+
+msgid "Title"
+msgstr "Заголовок"
+
+msgid "Link"
+msgstr "Посилання"
+
+msgid "Image Link"
+msgstr "Посилання на зображення"
+
+msgid "Contents"
+msgstr "Вміст"
+
+msgid "Date published"
+msgstr "Дата публікації"
+
+msgid "Date updated"
+msgstr "Дата оновлення"
+
+msgid "Author's Name"
+msgstr "Ім’я автора"
+
+msgid "Author's Email"
+msgstr "Ел. пошта автора"
+
+msgid "Author's URI"
+msgstr "URI автора"
+
+msgid "Geo Latitude"
+msgstr "Широта"
+
+msgid "Geo Longitude"
+msgstr "Довгота"
+
+msgid "Protected"
+msgstr "Захищений"
+
+msgid "Protect from possible overwriting by next update."
+msgstr "Захистити від перезапису під час наступного оновлення."
+
+msgid "If not active, this entry will not be shown."
+msgstr "Неактивний запис не показуватиметься."
+
+msgid "Draft"
+msgstr "Чернетка"
+
+msgid "A draft is a post that is in progress. Only you will be able to see it."
+msgstr "Чернетка — це незавершений допис. Бачити її зможете лише ви."
+
+msgid "Friends-only"
+msgstr "Лише для друзів"
+
+msgid "Entry will only be visible to you and your friends."
+msgstr "Запис бачитимете лише ви та ваші друзі."
+
+msgid "Reblog"
+msgstr "Поширення"
+
+msgid "Reblogged post."
+msgstr "Поширений допис."
+
+msgid "Reblogged by"
+msgstr "Поширено користувачем"
+
+msgid "Reblogged URI"
+msgstr "URI поширеного допису"
+
+msgid "Entry"
+msgstr "Запис"
+
+msgid "Entries"
+msgstr "Записи"
+
+msgid "Media"
+msgstr "Медіа"
+
+msgid "Favorite"
+msgstr "Вибране"
+
+msgid "Name"
+msgstr "Назва"
+
+msgid "Slug"
+msgstr "Slug"
+
+msgid "List"
+msgstr "Список"
+
+msgid "Lists"
+msgstr "Списки"
+
+msgid "Idle"
+msgstr "Очікування"
+
+msgid "Queued"
+msgstr "У черзі"
+
+msgid "Running"
+msgstr "Виконується"
+
+msgid "Succeeded"
+msgstr "Успішно"
+
+msgid "Failed"
+msgstr "Невдало"
+
+msgid "Retryable"
+msgstr "Можна повторити"
+
+msgid "Terminal"
+msgstr "Остаточна"
+
+msgid "Manual"
+msgstr "Вручну"
+
+msgid "Schedule"
+msgstr "За розкладом"
+
+msgid "Status"
+msgstr "Стан"
+
+msgid "Trigger"
+msgstr "Запуск"
+
+msgid "Requested at"
+msgstr "Запитано"
+
+msgid "Started at"
+msgstr "Розпочато"
+
+msgid "Finished at"
+msgstr "Завершено"
+
+msgid "Last succeeded at"
+msgstr "Остання вдала спроба"
+
+msgid "Last failed at"
+msgstr "Остання невдала спроба"
+
+msgid "Last result"
+msgstr "Останній результат"
+
+msgid "Last error"
+msgstr "Остання помилка"
+
+msgid "Consecutive failures"
+msgstr "Невдач поспіль"
+
+msgid "Failure kind"
+msgstr "Вид помилки"
+
+msgid "Failure category"
+msgstr "Категорія помилки"
+
+msgid "Triggered by user"
+msgstr "Запущено користувачем"
+
+msgid "Worker token"
+msgstr "Токен фонового процесу"
+
+msgid "Service fetch state"
+msgstr "Стан отримання сервісу"
+
+msgid "Service fetch states"
+msgstr "Стани отримання сервісів"
+
+msgid "Friends Login"
+msgstr "Вхід для друзів"
+
+msgid "The content of this entry is available only to my friends."
+msgstr "Вміст цього запису доступний лише моїм друзям."
+
+msgid "show map"
+msgstr "показати мапу"
+
+msgid "Yesterday"
+msgstr "Учора"
+
+#, python-format
+msgid "%d days ago"
+msgstr "%d дн. тому"
+
+#, python-format
+msgid "%(count)d hour ago"
+msgid_plural "%(count)d hours ago"
+msgstr[0] "%(count)d годину тому"
+msgstr[1] "%(count)d години тому"
+msgstr[2] "%(count)d годин тому"
+
+#, python-format
+msgid "%(count)d minute ago"
+msgid_plural "%(count)d minutes ago"
+msgstr[0] "%(count)d хвилину тому"
+msgstr[1] "%(count)d хвилини тому"
+msgstr[2] "%(count)d хвилин тому"
+
+msgid "Align center"
+msgstr "Вирівняти по центру"
+
+msgid "Align left"
+msgstr "Вирівняти ліворуч"
+
+msgid "Align right"
+msgstr "Вирівняти праворуч"
+
+msgid "Are you sure?"
+msgstr "Ви впевнені?"
+
+msgid "Bold"
+msgstr "Жирний"
+
+msgid "Bullet list"
+msgstr "Маркований список"
+
+msgid "Clear formatting"
+msgstr "Очистити форматування"
+
+msgid "Click and Listen"
+msgstr "Натисніть і слухайте"
+
+msgid "Code block"
+msgstr "Блок коду"
+
+msgid "Communication Error. Try again."
+msgstr "Помилка зв’язку. Спробуйте ще раз."
+
+msgid "Entry hidden"
+msgstr "Запис приховано"
+
+msgid "Fetch queued."
+msgstr "Отримання додано до черги."
+
+msgid "Formatting"
+msgstr "Форматування"
+
+msgid "Heading 1"
+msgstr "Заголовок 1"
+
+msgid "Heading 2"
+msgstr "Заголовок 2"
+
+msgid "Image"
+msgstr "Зображення"
+
+msgid "Italic"
+msgstr "Курсив"
+
+msgid "Justify"
+msgstr "Вирівняти за шириною"
+
+msgid "Keep the original author?"
+msgstr "Зберегти оригінального автора?"
+
+msgid "Link address:"
+msgstr "Адреса посилання:"
+
+msgid "Never"
+msgstr "Ніколи"
+
+msgid "Next year"
+msgstr "Наступний рік"
+
+msgid "No completed runs"
+msgstr "Немає завершених отримань"
+
+msgid "Not scheduled"
+msgstr "Не заплановано"
+
+msgid "Numbered list"
+msgstr "Нумерований список"
+
+msgid "Previous year"
+msgstr "Попередній рік"
+
+msgid "Pull to refresh"
+msgstr "Потягніть, щоб оновити"
+
+msgid "Quote"
+msgstr "Цитата"
+
+msgid "Refreshing..."
+msgstr "Оновлення..."
+
+msgid "Release to refresh"
+msgstr "Відпустіть, щоб оновити"
+
+msgid "Reshare it at your stream"
+msgstr "Поширити у своєму потоці"
+
+msgid "Share or bookmark this entry"
+msgstr "Поділитися цим записом або додати до закладок"
+
+msgid "Strikethrough"
+msgstr "Закреслений"
+
+msgid "Unable to queue fetch."
+msgstr "Не вдалося додати отримання до черги."
+
+msgid "Underline"
+msgstr "Підкреслений"
+
+msgid "Undo"
+msgstr "Скасувати"
+
+msgid "Unfavorite"
+msgstr "Вилучити з вибраного"
+
+msgid "Unfavorite this entry before hiding it."
+msgstr "Перш ніж приховати цей запис, вилучіть його з вибраного."
+
+msgid "Video"
+msgstr "Відео"
+
+msgid "Video address:"
+msgstr "Адреса відео:"
+
+msgid "You are about to re-share this entry at your stream. Confirm?"
+msgstr "Ви збираєтеся знову поширити цей запис у своєму потоці. Підтвердити?"
+
+msgid "Your browser does not support it."
+msgstr "Ваш браузер цього не підтримує."
+
+msgid "failed"
+msgstr "невдало"
+
+msgid "idle"
+msgstr "очікування"
+
+msgid "or elsewhere:"
+msgstr "або деінде:"
+
+msgid "queued"
+msgstr "у черзі"
+
+msgid "running"
+msgstr "виконується"
+
+msgid "succeeded"
+msgstr "успішно"
+
+msgid "Hello"
+msgstr "Вітаємо"
+
+msgid "My private stream"
+msgstr "Мій приватний потік"
+
+msgid "Home"
+msgstr "Головна"
+
+msgid "My publicly visible stream"
+msgstr "Мій публічний потік"
+
+msgid "Settings"
+msgstr "Налаштування"
+
+msgid "Logout"
+msgstr "Вийти"
+
+msgid "Login"
+msgstr "Увійти"
+
+msgid "The Stream"
+msgstr "Потік"
+
+msgid "Expand content"
+msgstr "Розгорнути вміст"
+
+msgid "Menu"
+msgstr "Меню"
+
+msgid "Reply"
+msgstr "Відповісти"
+
+msgid "Hide"
+msgstr "Приховати"
+
+msgid "Edit"
+msgstr "Редагувати"
+
+msgid "Raw Edit"
+msgstr "Редагувати код"
+
+msgid "Admin"
+msgstr "Адміністрування"
+
+msgid "Share"
+msgstr "Поділитися"
+
+msgid "by"
+msgstr "автор"
+
+msgid "from"
+msgstr "з"
+
+msgid "About"
+msgstr "Про сайт"
+
+msgid "Favorite entries"
+msgstr "Вибрані записи"
+
+msgid "Hide reblogs"
+msgstr "Приховати поширення"
+
+msgid "Show reblogs"
+msgstr "Показати поширення"
+
+msgid "All entries"
+msgstr "Усі записи"
+
+msgid "Select List"
+msgstr "Виберіть список"
+
+msgid "Archives"
+msgstr "Архів"
+
+msgid "Search this site"
+msgstr "Пошук на сайті"
+
+msgid "Search"
+msgstr "Пошук"
+
+msgid "Change theme"
+msgstr "Змінити тему"
+
+msgid "Powered by"
+msgstr "Працює на"
+
+msgid "A free and open source lifestream platform and social activity reader"
+msgstr ""
+"Вільна платформа з відкритим кодом для лайфстриму та читання соціальної "
+"активності"
+
+msgid "Add content"
+msgstr "Додати вміст"
+
+msgid "Quick post, draft, or upload."
+msgstr "Швидкий допис, чернетка або завантаження."
+
+msgid "What's up?"
+msgstr "Що нового?"
+
+msgid "Class:"
+msgstr "Клас:"
+
+msgid "Update"
+msgstr "Оновити"
+
+msgid "Post"
+msgstr "Опублікувати"
+
+msgid "more options"
+msgstr "більше параметрів"
+
+msgid "Mark as draft"
+msgstr "Позначити як чернетку"
+
+msgid "Only visible to friends"
+msgstr "Видно лише друзям"
+
+msgid "Add files:"
+msgstr "Додати файли:"
+
+msgid "Save"
+msgstr "Зберегти"
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "next month"
+msgstr "наступний місяць"
+
+msgid "Show all entries"
+msgstr "Показати всі записи"
+
+msgid "newer entries"
+msgstr "новіші записи"
+
+msgid "older entries"
+msgstr "старіші записи"
+
+msgid "previous page"
+msgstr "попередня сторінка"
+
+msgid "next page"
+msgstr "наступна сторінка"
+
+msgid "Keyboard shortcuts"
+msgstr "Комбінації клавіш"
+
+msgid "Next entry"
+msgstr "Наступний запис"
+
+msgid "Previous entry"
+msgstr "Попередній запис"
+
+msgid "Favorite or unfavorite the highlighted entry"
+msgstr "Додати виділений запис до вибраного або вилучити з нього"
+
+msgid "Hide the highlighted entry, or bring it back"
+msgstr "Приховати виділений запис або повернути його"
+
+msgid "Show or hide this list"
+msgstr "Показати або приховати цей перелік"
+
+msgid "Close"
+msgstr "Закрити"
+
+msgid "Browser default"
+msgstr "Як у браузері"
+
+msgid "Lists - Settings"
+msgstr "Списки - Налаштування"
+
+msgid "OAuth - Settings"
+msgstr "OAuth - Налаштування"
+
+msgid ""
+"The authorization response does not match the request. Reset the tokens and "
+"try again."
+msgstr ""
+"Відповідь авторизації не відповідає запиту. Скиньте токени й спробуйте ще "
+"раз."
+
+msgid "OAuth 2.0 - Settings"
+msgstr "OAuth 2.0 - Налаштування"
+
+msgid "Preferences - Settings"
+msgstr "Уподобання - Налаштування"
+
+msgid "Preferences saved."
+msgstr "Уподобання збережено."
+
+msgid "Services - Settings"
+msgstr "Сервіси - Налаштування"
+
+msgid "Status - Settings"
+msgstr "Стан - Налаштування"
+
+msgid "delete"
+msgstr "видалити"
+
+msgid "Class name"
+msgstr "Назва класу"
+
+msgid "Any name for the service classification; a category."
+msgstr "Будь-яка назва для класифікації сервісу; категорія."
+
+msgid "User timeline"
+msgstr "Стрічка користувача"
+
+msgid "Home timeline"
+msgstr "Головна стрічка"
+
+msgid "Timeline"
+msgstr "Стрічка"
+
+msgid "Tag name"
+msgstr "Назва тегу"
+
+msgid "Optional tag name."
+msgstr "Необов’язкова назва тегу."
+
+msgid "ID/Username"
+msgstr "ID/ім’я користувача"
+
+msgid "Leave empty to use the service default refresh interval."
+msgstr "Залиште порожнім, щоб використати типовий інтервал оновлення сервісу."
+
+msgid "none"
+msgstr "немає"
+
+msgid "Basic"
+msgstr "Basic"
+
+msgid "OAuth 1.0"
+msgstr "OAuth 1.0"
+
+msgid "OAuth 2.0"
+msgstr "OAuth 2.0"
+
+msgid "Authorization"
+msgstr "Авторизація"
+
+msgid "configure access"
+msgstr "налаштувати доступ"
+
+msgid "Basic username"
+msgstr "Ім’я користувача"
+
+msgid "Basic password"
+msgstr "Пароль"
+
+msgid "This service cannot be fetched."
+msgstr "Дані з цього сервісу не можна отримати."
+
+msgid "Service not found."
+msgstr "Сервіс не знайдено."
+
+msgid "Editing list:"
+msgstr "Редагування списку:"
+
+msgid "new"
+msgstr "новий"
+
+msgid "Delete"
+msgstr "Видалити"
+
+msgid "Read more about this implementation:"
+msgstr "Докладніше про цю реалізацію:"
+
+msgid "Your callback URL:"
+msgstr "Ваш URL зворотного виклику:"
+
+msgid "Consumer Key"
+msgstr "Consumer Key"
+
+msgid "Consumer Secret"
+msgstr "Consumer Secret"
+
+msgid "Request token URL"
+msgstr "URL request token"
+
+msgid "Authorize URL"
+msgstr "URL авторизації"
+
+msgid "Access token URL"
+msgstr "URL access token"
+
+msgid "Got Request token! Click \"Next step\" to authorize this application."
+msgstr ""
+"Request token отримано! Натисніть «Наступний крок», щоб авторизувати цей "
+"застосунок."
+
+msgid "Your OAuth access setup is completed."
+msgstr "Доступ OAuth налаштовано."
+
+msgid "Reset all tokens"
+msgstr "Скинути всі токени"
+
+msgid "Next step"
+msgstr "Наступний крок"
+
+msgid "Your Redirect URI:"
+msgstr "Ваш URI перенаправлення:"
+
+msgid "Base URL"
+msgstr "Базовий URL"
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "or"
+msgstr "або"
+
+msgid "Access Token"
+msgstr "Токен доступу"
+
+msgid "Your OAuth 2.0 access setup is completed."
+msgstr "Доступ OAuth 2.0 налаштовано."
+
+msgid "Add a service:"
+msgstr "Додати сервіс:"
+
+msgid "Connected services:"
+msgstr "Під’єднані сервіси:"
+
+msgid "Import OPML"
+msgstr "Імпортувати OPML"
+
+msgid "Export OPML"
+msgstr "Експортувати OPML"
+
+msgid "WebSub"
+msgstr "WebSub"
+
+msgid "Preferences"
+msgstr "Уподобання"
+
+msgid "Service fetch status:"
+msgstr "Стан отримання сервісів:"
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "Action"
+msgstr "Дія"
+
+msgid "Last successful import"
+msgstr "Останній вдалий імпорт"
+
+msgid "Last completed attempt"
+msgstr "Остання завершена спроба"
+
+msgid "Next scheduled fetch"
+msgstr "Наступне заплановане отримання"
+
+msgid "Run now"
+msgstr "Запустити зараз"
+
+msgid "No fetchable services are connected yet."
+msgstr "Ще не під’єднано жодного сервісу, з якого можна отримувати дані."
+
+msgid "WebSub subscriptions"
+msgstr "Підписки WebSub"
+
+msgid "Verified"
+msgstr "Підтверджено"
+
+msgid "Expire"
+msgstr "Спливає"
+
+msgid "Yes"
+msgstr "Так"
+
+msgid "No"
+msgstr "Ні"
+
+msgid "unsubscribe"
+msgstr "відписатися"
+
+msgid "service"
+msgstr "сервіс"
+
+msgid "subscribe"
+msgstr "підписатися"
+
+msgid "Hub not found."
+msgstr "Хаб не знайдено."
+
+#, python-format
+msgid "Hub %s: Accepted for verification."
+msgstr "Хаб %s: прийнято для підтвердження."
+
+#, python-format
+msgid "Hub %s: Subscription verified."
+msgstr "Хаб %s: підписку підтверджено."
+
+msgid "No subscription found."
+msgstr "Підписку не знайдено."
+
+#, python-format
+msgid "Hub %s: Unsubscribed."
+msgstr "Хаб %s: підписку скасовано."
+
+msgid "WebSub - Settings"
+msgstr "WebSub - Налаштування"
+
+msgid "Remote request timed out."
+msgstr "Час очікування віддаленого запиту вичерпано."
+
+msgid "Remote host could not be reached."
+msgstr "Не вдалося з’єднатися з віддаленим сервером."
+
+msgid "Remote service rate-limited the request."
+msgstr "Віддалений сервіс обмежив запит через надто велику кількість запитів."
+
+msgid "Remote service rejected the request."
+msgstr "Віддалений сервіс відхилив запит."
+
+msgid "Remote service returned a temporary server error."
+msgstr "Віддалений сервіс повернув тимчасову помилку сервера."
+
+msgid "Stored credentials were rejected by the remote service."
+msgstr "Віддалений сервіс відхилив збережені облікові дані."
+
+msgid "Remote service returned an invalid or unsupported response."
+msgstr "Віддалений сервіс повернув недійсну або непідтримувану відповідь."
+
+msgid "Remote response could not be parsed."
+msgstr "Не вдалося обробити відповідь віддаленого сервісу."
+
+msgid "Remote address is not allowed."
+msgstr "Ця віддалена адреса не дозволена."
