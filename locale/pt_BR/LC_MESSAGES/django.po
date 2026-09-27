@@ -1190,3 +1190,6 @@ msgstr[1] "%(count)d entradas dos tipos marcados voltaram a aparecer."
 
 msgid "Public services are visible to anyone."
 msgstr "Serviços públicos ficam visíveis para todos."
+
+msgid "A new service cannot use this API any more."
+msgstr "Um novo serviço não pode mais usar esta API."

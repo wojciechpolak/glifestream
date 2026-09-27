@@ -1202,3 +1202,6 @@ msgstr[1] "%(count)d entrées des types cochés sont de nouveau affichées."
 
 msgid "Public services are visible to anyone."
 msgstr "Les services publics sont visibles par tous."
+
+msgid "A new service cannot use this API any more."
+msgstr "Un nouveau service ne peut plus utiliser cette API."

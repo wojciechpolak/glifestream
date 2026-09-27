@@ -1203,3 +1203,6 @@ msgstr[2] "%(count)d записів вибраних типів знову по�
 
 msgid "Public services are visible to anyone."
 msgstr "Публічні сервіси бачать усі."
+
+msgid "A new service cannot use this API any more."
+msgstr "Новий сервіс більше не може використовувати цей API."

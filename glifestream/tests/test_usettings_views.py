@@ -413,6 +413,36 @@ def test_usettings_an_empty_class_takes_the_default_of_the_api(logged_in_client)
 
 
 @pytest.mark.django_db
+def test_usettings_twitter_takes_no_new_service(logged_in_client):
+    page = logged_in_client.get(reverse('usettings-services'))
+    assert [api for api, _ in page.context['services_supported']].count('twitter') == 0
+
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {'api': 'twitter', 'name': 'Tweets', 'user_id': 'me', 'method': 'post'},
+    )
+    assert response.status_code == 400
+    assert not Service.objects.filter(api='twitter').exists()
+
+    # A service it already has stays editable.
+    service = Service.objects.create(api='twitter', name='Tweets', user_id='me')
+    response = logged_in_client.post(
+        reverse('usettings-api-cmd', args=['service']),
+        {
+            'api': 'twitter',
+            'id': service.pk,
+            'name': 'Old tweets',
+            'user_id': 'me',
+            'timeline': 'user',
+            'method': 'post',
+        },
+    )
+    assert response.status_code == 200
+    service.refresh_from_db()
+    assert service.name == 'Old tweets'
+
+
+@pytest.mark.django_db
 def test_usettings_github_offers_only_token_authorization(logged_in_client):
     response = logged_in_client.post(
         reverse('usettings-api-cmd', args=['service']),

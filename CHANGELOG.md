@@ -126,6 +126,8 @@ work, so only the significant changes are listed.
 - The Docker container stops at the first startup step that fails, such as
   `migrate` or `collectstatic`, with that step's error. It used to start
   anyway and fail later, for example with a worker missing a database column.
+- Settings no longer offers Twitter for a new service, as its API v1.1 is
+  gone. An existing Twitter service can still be edited.
 - The Authorization select offers only the methods a service supports.
 - A service saved without a class gets one the themes have an icon for:
   `sms`, `photos`, `videos` or `code`, depending on its API.

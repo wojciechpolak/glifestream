@@ -1197,3 +1197,6 @@ msgstr[1] "%(count)d berichten van de aangevinkte soorten worden weer getoond."
 
 msgid "Public services are visible to anyone."
 msgstr "Openbare diensten zijn voor iedereen zichtbaar."
+
+msgid "A new service cannot use this API any more."
+msgstr "Een nieuwe dienst kan deze API niet meer gebruiken."

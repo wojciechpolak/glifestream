@@ -1170,3 +1170,6 @@ msgstr[0] "チェックした種類のエントリー %(count)d 件を再び表�
 
 msgid "Public services are visible to anyone."
 msgstr "公開サービスは誰でも見ることができます。"
+
+msgid "A new service cannot use this API any more."
+msgstr "新しいサービスでこの API は使用できなくなりました。"

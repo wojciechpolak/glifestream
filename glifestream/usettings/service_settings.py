@@ -86,7 +86,9 @@ def services(request: HttpRequest, **args: Any) -> HttpResponse:
             'authed': True,
             'is_secure': request.is_secure(),
             'user': request.user,
-            'services_supported': API_LIST,
+            'services_supported': [
+                api for api in API_LIST if api[0] not in NO_NEW_SERVICE_APIS
+            ],
             'services': services_all,
         },
     )
@@ -242,6 +244,10 @@ def persist_service_payload(
         print(exc)
         return srv, payload.get('id')
 
+
+# APIs no new service can use; the services that do can still be edited.
+# Twitter's API v1.1 is gone.
+NO_NEW_SERVICE_APIS = ('twitter',)
 
 # The ways a service can sign in, as offered by the Authorization select.
 DEFAULT_AUTH_METHODS = ('none', 'basic', 'oauth', 'oauth2')
@@ -797,9 +803,13 @@ def handle_service_api(
 ) -> HttpResponse:
     method = request.POST.get('method', 'get')
     payload = _build_service_payload(request, id_service)
+    if not id_service and payload['api'] in NO_NEW_SERVICE_APIS:
+        return JsonResponse(
+            {'error': _('A new service cannot use this API any more.')}, status=400
+        )
     method, miss, fetch_interval = validate_service_payload(payload, request, method)
     apply_service_payload_defaults(payload)
-    _, id_service = persist_service_payload(
+    _srv, id_service = persist_service_payload(
         request,
         payload,
         method=method,

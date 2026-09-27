@@ -1205,3 +1205,6 @@ msgstr[2] "Przywrócono %(count)d wpisów zaznaczonych rodzajów."
 
 msgid "Public services are visible to anyone."
 msgstr "Publiczne serwisy są widziane przez wszystkich."
+
+msgid "A new service cannot use this API any more."
+msgstr "Nowy serwis nie może już korzystać z tego API."

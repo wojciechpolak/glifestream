@@ -1197,3 +1197,6 @@ msgstr[1] "%(count)d voci dei tipi selezionati sono di nuovo visibili."
 
 msgid "Public services are visible to anyone."
 msgstr "I servizi pubblici sono visibili a tutti."
+
+msgid "A new service cannot use this API any more."
+msgstr "Un nuovo servizio non può più usare questa API."

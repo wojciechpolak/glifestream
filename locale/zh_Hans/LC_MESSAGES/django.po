@@ -1170,3 +1170,6 @@ msgstr[0] "已重新显示勾选类型的 %(count)d 条内容。"
 
 msgid "Public services are visible to anyone."
 msgstr "公开服务对所有人可见。"
+
+msgid "A new service cannot use this API any more."
+msgstr "新服务已不能再使用此 API。"
