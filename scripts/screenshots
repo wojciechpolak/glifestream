@@ -20,7 +20,8 @@ Take the README screenshots of the stream, in a light and a dark version.
 
 It builds the page script, sets up a throwaway instance the way a fresh
 installation starts -- the starting services and the welcome entry, in a
-database in a temporary directory -- serves it with `runserver`, and has
+database in a temporary directory, plus a GitHub service so that the sidebar
+shows the code class too -- serves it with `runserver`, and has
 Chromium photograph the home page once per colour scheme. The results are
 written as WebP to docs/screenshots/. Neither `.env` nor `settings_local.py`
 is read, so your own instance and its data never show up in them.
@@ -59,6 +60,13 @@ SCHEMES = ('light', 'dark')
 
 SERVER_START_TIMEOUT_SEC = 60
 
+# A service the starting ones lack, so that the sidebar shows its class too.
+# Nothing fetches it: no worker runs.
+EXTRA_SERVICES = """
+from glifestream.stream.models import Service
+Service.objects.create(name='GitHub', api='github', cls='code', public=True)
+"""
+
 
 def ensure_venv() -> None:
     """Re-run this script with the project's virtualenv, which has Playwright."""
@@ -96,6 +104,8 @@ def instance_env(workdir: Path) -> dict[str, str]:
             # Instead of the 'YOUR NAME' placeholder under the entry.
             'FEED_AUTHOR_NAME': 'gLifestream',
             'MAGICSSO_ENABLED': '0',
+            # The welcome entry is shown whole, not folded behind "Show more".
+            'FOLD_LINES': '0',
         }
     )
     return env
@@ -198,6 +208,7 @@ def main() -> int:
         python = str(VENV_PYTHON)
         run([python, 'manage.py', 'migrate', '--run-syncdb', '-v', '0'], env)
         run([python, 'manage.py', 'load_initial_data'], env)
+        run([python, 'manage.py', 'shell', '-c', EXTRA_SERVICES], env)
         run([python, 'manage.py', 'worker_init_files', '-v', '0'], env)
 
         port = free_port()
