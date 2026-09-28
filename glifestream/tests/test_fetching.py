@@ -14,6 +14,7 @@ from glifestream.fetching import (
     claim_runnable_jobs,
     enqueue_manual_fetch,
     get_effective_interval_sec,
+    get_fetch_status_payload,
     get_next_wait_timeout,
     initialize_missing_schedules,
     ProcessedFetchJob,
@@ -587,6 +588,30 @@ def test_serialize_fetch_state_looks_the_row_up_when_not_given_one(service):
     )
 
     assert serialize_fetch_state(service)['status'] == ServiceFetchState.STATUS_QUEUED
+
+
+@pytest.mark.django_db
+def test_fetch_status_payload_reads_every_state_in_one_query(
+    django_assert_num_queries,
+):
+    for idx in range(3):
+        service = Service.objects.create(
+            name=f'Feed {idx}', api='webfeed', url=f'https://example.org/{idx}'
+        )
+        ServiceFetchState.objects.create(
+            service=service, status=ServiceFetchState.STATUS_QUEUED
+        )
+    Service.objects.create(name='Notes', api='selfposts')
+
+    with django_assert_num_queries(1):
+        payload = get_fetch_status_payload()
+
+    assert [state['status'] for state in payload['services'].values()] == [
+        ServiceFetchState.STATUS_QUEUED,
+        ServiceFetchState.STATUS_QUEUED,
+        ServiceFetchState.STATUS_QUEUED,
+        ServiceFetchState.STATUS_IDLE,
+    ]
 
 
 @pytest.mark.django_db

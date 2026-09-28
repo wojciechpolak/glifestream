@@ -29,12 +29,12 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import IO, Any
+from typing import IO, Any, cast
 
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import DatabaseError, close_old_connections, connections, transaction
-from django.db.models import F, Q
+from django.db.models import F, OneToOneRel, Q
 from django.utils import timezone
 from django.utils.translation import gettext, gettext_noop, ngettext
 
@@ -339,12 +339,21 @@ def _isoformat(value: datetime | None) -> str | None:
     return value.isoformat() if value else None
 
 
+def _loaded_fetch_state(service: Service) -> ServiceFetchState | None:
+    """The service's state row, as select_related('fetch_state') loaded it,
+    or else read now."""
+    relation = cast(OneToOneRel, Service._meta.get_field('fetch_state'))
+    if relation.is_cached(service):
+        return cast(ServiceFetchState | None, relation.get_cached_value(service))
+    return ServiceFetchState.objects.filter(service=service).first()
+
+
 def serialize_fetch_state(
     service: Service,
     state: ServiceFetchState | None = None,
 ) -> dict[str, Any]:
     if state is None:
-        state = ServiceFetchState.objects.filter(service=service).first()
+        state = _loaded_fetch_state(service)
 
     payload: dict[str, Any] = {
         'service_id': service.pk,
