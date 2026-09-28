@@ -162,10 +162,12 @@ class Service(models.Model):
         null=False,
         blank=False,
     )
+    # No index: with one, SQLite starts the public stream from the services
+    # and sorts all their entries, where it would otherwise read the newest
+    # ones off the date_published index.
     public = models.BooleanField(
         _('Public'),
         default=False,
-        db_index=True,
         help_text=_('Public services are visible to anyone.'),
     )
     active = models.BooleanField(
