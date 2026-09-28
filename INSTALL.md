@@ -1,14 +1,13 @@
-gLifestream -- INSTALL
-Copyright (C) 2009-2026 Wojciech Polak
+# Installing gLifestream
 
-Overview
-========
+## Overview
 
 This guide is the primary reference for:
 
 - local development and first-run setup
 - Docker deployment
 - non-Docker deployment and production hardening
+- backups and upgrades
 
 gLifestream is a Django application with a long-lived background worker.
 In production you should plan for:
@@ -19,8 +18,7 @@ In production you should plan for:
 - a separate long-lived `worker.py --daemon` process
 
 
-Requirements
-============
+## Requirements
 
 - Python 3.12 or newer
 - A database supported by Django (SQLite, MySQL, PostgreSQL, and others supported by Django)
@@ -38,8 +36,7 @@ npm ci
 ```
 
 
-Local Development / First Run
-=============================
+## Local Development / First Run
 
 One command takes a fresh checkout to a working instance:
 
@@ -114,15 +111,13 @@ Local configuration notes:
 - `create_initial_user` creates `admin` / `admin` by default and forces a password change on first login.
 
 
-Production Deployment and Hardening
-===================================
+## Production Deployment and Hardening
 
 Production defaults should come from environment variables, not from editing
 committed settings files. Keep `GLIFESTREAM_VALIDATE_SETTINGS_SECRETS=1`
 unless you are temporarily debugging startup.
 
-Core production settings
-------------------------
+### Core production settings
 
 These settings matter most for a hardened deployment:
 
@@ -169,8 +164,7 @@ These settings matter most for a hardened deployment:
 - `GLIFESTREAM_VALIDATE_SETTINGS_SECRETS`
   Leave enabled in production so placeholder secrets fail fast at startup.
 
-Background worker settings
---------------------------
+### Background worker settings
 
 The fetch worker (`./worker.py --daemon` or `manage.py run_worker`) reads:
 
@@ -204,12 +198,40 @@ The fetch worker (`./worker.py --daemon` or `manage.py run_worker`) reads:
   Mastodon instance on the LAN. Behind an outgoing HTTP proxy, the proxy
   decides which addresses can be reached.
 
+- `WORKER_MAINTENANCE_JOBS`
+  The cleanup jobs the worker runs on a schedule, as a JSON array. Each job
+  has a `name`, a five-field cron `schedule` and the `args` of `worker.py`
+  that it runs. The schedule is read in `TIME_ZONE`, which defaults to `UTC`.
+  `[]` turns them all off. The default is:
+
+  | Job | Schedule | Runs |
+  |-----|----------|------|
+  | `delete-inactive-old-entries` | Sundays 09:05 | `--only-inactive --delete-old=80` |
+  | `delete-old-entries` | 1st of the month 09:06 | `--delete-old=365` |
+  | `delete-orphan-thumbnails` | 1st of the month 09:07 | `--thumbs-delete-orphans` |
+  | `report-orphan-uploads` | 1st of the month 09:08 | `--uploads-list-orphans` |
+
+  `--delete-old` deletes only entries of services that are not public, and
+  never a protected or favorited entry, so your own posts are kept. Setting the
+  variable replaces the whole list, so repeat any default job you want to
+  keep:
+
+  ```text
+  WORKER_MAINTENANCE_JOBS=[{"name": "delete-orphan-thumbnails", "schedule": "7 9 1 * *", "args": ["--thumbs-delete-orphans"]}]
+  ```
+
 Run one worker per installation. While it runs, the worker holds a lock on a
 file beside its socket, `WORKER_SOCKET` plus `.lock`, and a second worker
 started against the same socket exits with an error.
 
-Magic Link SSO settings
------------------------
+gLifestream needs no cron. The worker fetches each service on its own
+interval and runs the maintenance jobs above. Remove any crontab lines left
+from older versions that run `worker.py` to fetch or clean up. They would
+fetch the same services again beside the worker, and clean up on a second
+schedule. `worker.py --force-check`, `--delete-old` and the other one-off
+options still work by hand.
+
+### Magic Link SSO settings
 
 If you enable friends-only access through Magic Link SSO, also configure:
 
@@ -233,8 +255,7 @@ Optional cookie and behavior settings are also supported, including:
 When `MAGICSSO_ENABLED=1` and secret validation is enabled, placeholder Magic
 Link SSO secrets will fail startup when `DEBUG=0`.
 
-Reverse proxy, TLS, and URL shape
----------------------------------
+### Reverse proxy, TLS, and URL shape
 
 gLifestream is typically served behind a reverse proxy. Keep these rules in mind:
 
@@ -248,14 +269,12 @@ gLifestream is typically served behind a reverse proxy. Keep these rules in mind
   or third-party dependency availability.
 
 
-Docker Deployment
-=================
+## Docker Deployment
 
 The repository ships a `docker-compose.yml`, a production-oriented `Dockerfile`,
 and a `glifestream.settings_docker` overlay.
 
-What the container startup does
--------------------------------
+### What the container startup does
 
 The Docker entrypoint currently performs these steps on container start:
 
@@ -272,8 +291,7 @@ The Docker entrypoint currently performs these steps on container start:
 If a step fails, the container stops there with that step's error, before
 Supervisor starts.
 
-Required environment values
----------------------------
+### Required environment values
 
 At minimum, set these before starting a real deployment:
 
@@ -290,8 +308,7 @@ Common Docker-specific values:
 - `RUN_DIR`
 - `RUN_DIR_MEDIA`
 
-Persistent storage
-------------------
+### Persistent storage
 
 The shipped Compose file persists:
 
@@ -302,8 +319,7 @@ The shipped Compose file persists:
 Do not treat these as disposable in production. They contain runtime state,
 uploaded media, generated thumbnails, and collected static files.
 
-Example startup
----------------
+### Example startup
 
 To try the published image without a checkout, run this in an empty
 directory. The database and media go to `run/` in it:
@@ -321,8 +337,7 @@ docker compose up -d --build
 If you prefer the legacy command-line spelling, `docker-compose up -d --build`
 uses the same repository file.
 
-Operational notes
------------------
+### Operational notes
 
 - An image never contains `glifestream/settings_local.py` or a `.env` file:
   `.dockerignore` keeps them out of the build, even from a working checkout.
@@ -354,22 +369,19 @@ Operational notes
 - The published image workflow builds multi-arch images for `linux/amd64` and `linux/arm64`.
 
 
-Non-Docker Deployment
-=====================
+## Non-Docker Deployment
 
 For non-container deployments, the repository still expects one web process and
 one long-lived worker process.
 
-Recommended shape
------------------
+### Recommended shape
 
 - Reverse proxy: Nginx, Caddy, Apache, or equivalent
 - Application server: Gunicorn serving `glifestream.wsgi:application`
 - Background worker: `worker.py --daemon`
 - Process supervision: systemd, Supervisor, s6, or equivalent
 
-Suggested setup flow
---------------------
+### Suggested setup flow
 
 1. Export production environment variables.
 2. Disable `.env` loading if your process manager already injects configuration:
@@ -435,8 +447,58 @@ uv run gunicorn glifestream.wsgi:application --bind 0.0.0.0:8000 --workers 2
 uv run worker.py --daemon
 ```
 
-Non-Docker hardening notes
---------------------------
+Under systemd, one unit for each process keeps them running and restarts them
+after a crash or a reboot. These assume a checkout in `/srv/glifestream`, run
+as `glifestream`, with its settings in `/etc/glifestream.env`:
+
+```ini
+# /etc/systemd/system/glifestream-web.service
+[Unit]
+Description=gLifestream web
+After=network.target
+
+[Service]
+User=glifestream
+WorkingDirectory=/srv/glifestream
+EnvironmentFile=/etc/glifestream.env
+ExecStart=/srv/glifestream/.venv/bin/gunicorn glifestream.wsgi:application --bind 127.0.0.1:8000 --workers 2
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```ini
+# /etc/systemd/system/glifestream-worker.service
+[Unit]
+Description=gLifestream worker
+After=network.target
+
+[Service]
+User=glifestream
+WorkingDirectory=/srv/glifestream
+EnvironmentFile=/etc/glifestream.env
+ExecStart=/srv/glifestream/.venv/bin/python -u worker.py --daemon
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```shell
+sudo systemctl enable --now glifestream-web glifestream-worker
+```
+
+The units call the virtual environment's programs, because systemd does not
+run `uv`. Set `GLIFESTREAM_LOAD_DOTENV=0` in `/etc/glifestream.env`, so that
+only that file configures the site. The reverse proxy serves `STATIC_ROOT` at
+`/static/` and `MEDIA_ROOT` at `/media/`, and passes everything else to
+`127.0.0.1:8000`. For nginx, copy the `map` blocks and the `location`
+blocks from `conf/docker/nginx/templates/default.conf.template`. Replace
+`${VIRTUAL_HOST}`, `${VIRTUAL_PATH}` and the `/app/...` paths with your own,
+and point the `backend` upstream at `127.0.0.1:8000`.
+
+### Non-Docker hardening notes
 
 - Make sure `RUN_DIR`, `RUN_DIR_MEDIA`, and `STATIC_ROOT` live on persistent storage.
 - If you keep the default file-based session backend, ensure session files are stored on persistent writable storage as well.
@@ -454,13 +516,91 @@ Non-Docker hardening notes
   one that applies the limit, configure the real client address there
   (`set_real_ip_from` and `real_ip_header` in nginx). Otherwise all clients
   share one limit.
-- Re-run `npm ci`, `npm run build` and then `collectstatic` during upgrades
-  before restarting the web tier.
 - Keep the worker process running continuously so scheduled imports and cleanup jobs continue to execute.
 
 
-Production Checklist
-====================
+## Backups
+
+Back up these, from Docker's mounted directories or from the checkout:
+
+- The database. A SQLite database is `run/db/dev.sqlite3` unless
+  `DATABASE_NAME` names another file. Copying it while the site writes to it
+  can capture half a transaction. SQLite's own backup takes a consistent copy
+  while the site runs:
+
+  ```shell
+  sqlite3 run/db/dev.sqlite3 ".backup 'glifestream-$(date +%F).sqlite3'"
+  ```
+
+  Use `pg_dump` or `mysqldump` for PostgreSQL or MySQL.
+- The media directory, `RUN_DIR_MEDIA` or `MEDIA_ROOT`. The files under
+  `upload/` are the only copy of what you attached to your own posts.
+- `run/`: your templates and themes, and in Docker `settings_docker.py`.
+- The configuration: `.env`, `/etc/glifestream.env` or wherever your
+  environment variables are set, and `glifestream/settings_local.py` if you
+  use one.
+
+`static/`, `.venv/` and `node_modules/` are rebuilt from the code and need no
+backup.
+
+
+## Upgrading
+
+Read the new version's entries in `CHANGELOG.md` first, under Changed,
+Removed and Security in particular. They name settings that changed and steps
+an upgrade needs. Then take a backup. Migrations change the database in place,
+and the way back to an older version is to restore the backup made before the
+upgrade.
+
+### Docker
+
+The container migrates the database, collects static files and creates
+missing directories on every start, so an upgrade is a new image and a
+restart:
+
+```shell
+docker compose pull
+docker compose up -d
+```
+
+From a checkout, build the image instead:
+
+```shell
+git pull
+docker compose up -d --build
+```
+
+`APP_IMAGE` pins the image, for example to a version tag. Change it to
+upgrade. Your `run/` and media directories carry over. Templates in
+`run/nginx/templates/` replace the image's nginx configuration, so compare
+them with the new `conf/docker/nginx/templates/default.conf.template` after an
+upgrade.
+
+### Without Docker
+
+Stop the worker first. It would otherwise keep writing while the migrations
+change the tables, and with SQLite either could fail with "database is
+locked".
+
+```shell
+sudo systemctl stop glifestream-worker
+git pull
+uv sync
+npm ci
+npm run build
+uv run manage.py migrate --run-syncdb
+uv run manage.py compilemessages
+uv run manage.py collectstatic --no-input
+uv run worker.py --init-files-dirs
+sudo systemctl restart glifestream-web
+sudo systemctl start glifestream-worker
+```
+
+Each step is safe to repeat. If `migrate` fails, do not restart the site on
+the new code. Restore the backup, or fix the cause and run the steps again.
+
+
+## Production Checklist
 
 Before calling the deployment ready, verify:
 
@@ -476,11 +616,13 @@ Before calling the deployment ready, verify:
 - database settings point to the intended production database
 - migrations, `collectstatic`, and `worker.py --init-files-dirs` have been run successfully
 - the web process is serving requests
-- `worker.py --daemon` is running under supervision
-- your upgrade procedure includes migrations, static collection, and controlled restarts
+- `worker.py --daemon` is running under supervision, and no crontab still runs
+  `worker.py`
+- the database, media, `run/` and configuration are backed up, as described
+  under Backups
+- your upgrade procedure follows Upgrading
 
-Receive Postings via E-mail
-===========================
+## Receive Postings via E-mail
 
 `worker.py --email2post` reads a message on standard input and posts it as a
 selfpost. It stays off until `EMAIL2POST_SECRET` is set, and it posts only a
@@ -544,8 +686,7 @@ printf 'To: gls+%s@example.com\nSubject: Test\n\nHello\n' "$EMAIL2POST_SECRET" |
 ```
 
 
-Development and Testing
-=======================
+## Development and Testing
 
 Running the checks and tests, the test conventions and what a pull request
 needs are covered in [CONTRIBUTING](CONTRIBUTING.md).

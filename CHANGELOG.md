@@ -55,6 +55,10 @@ work, so only the significant changes are listed.
   and how requests, imports and WebSub pushes move through the code. The layers
   are checked with `import-linter` (`uv run lint-imports`), in
   `./scripts/check` and in CI.
+- `INSTALL.md` covers backups, upgrades with and without Docker, systemd
+  units for the web process and the worker, and the worker's maintenance
+  schedule (`WORKER_MAINTENANCE_JOBS`), which replaces the crontab older
+  versions needed.
 - Forced password change flow for initial admin accounts.
 - `./scripts/bootstrap`, a one-command local setup. It installs the
   dependencies, writes a `.env` with random secrets, migrates the database,

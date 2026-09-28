@@ -1,5 +1,4 @@
-gLifestream
-===========
+# gLifestream
 
 gLifestream is a free lifestream platform and social activity reader.
 It is licensed under GPLv3.
@@ -9,8 +8,7 @@ It is licensed under GPLv3.
   <img src="docs/screenshots/stream-light.webp" alt="The gLifestream home page of a new installation, showing the welcome entry with a video player, and a sidebar with service icons, the archives and search">
 </picture>
 
-Introduction
-------------
+## Introduction
 
 gLifestream joins several external and/or internal streams into a
 single one.  External streams may be represented by RSS/Atom channels
@@ -31,8 +29,7 @@ You can see gLifestream running at <https://wojciechpolak.org/stream/>,
 the author's own stream. It shows the public view; the private streams,
 favorites and settings need a sign-in.
 
-Running with Docker Compose
----------------------------
+## Running with Docker Compose
 
 ```shell
 curl -fsSL https://raw.githubusercontent.com/wojciechpolak/glifestream/master/docker-compose.yml | APP_SECRET_KEY=$(openssl rand -hex 32) docker compose -f - up
@@ -41,8 +38,7 @@ curl -fsSL https://raw.githubusercontent.com/wojciechpolak/glifestream/master/do
 Then open <http://localhost:8080/> and sign in as `admin` / `admin`. The
 database and media are kept in `run/` in the current directory.
 
-Getting started
----------------
+## Getting started
 
 See [INSTALL](INSTALL.md) for the full setup and deployment guide.
 
@@ -55,8 +51,7 @@ See [INSTALL](INSTALL.md) for the full setup and deployment guide.
 - To work on gLifestream itself, see [CONTRIBUTING](CONTRIBUTING.md) for the
   checks, test conventions and what a pull request needs.
 
-Supported services (out of the box)
------------------------------------
+## Supported services (out of the box)
 
 gLifestream supports the following services by default:
 
@@ -76,8 +71,7 @@ To support another service, write a provider module; see
 [Adding things](docs/ARCHITECTURE.md#adding-things) in the architecture
 document.
 
-Features
---------
+## Features
 
 - Free, self-hosted web application, with a Docker image and Compose setup
 - Automatic imports of external streams, with per-service status and

@@ -1,5 +1,4 @@
-Contributing to gLifestream
-===========================
+# Contributing to gLifestream
 
 gLifestream is a self-hosted Django application with a strict TypeScript
 page script. This guide covers setting up a checkout, running the checks,
@@ -9,8 +8,7 @@ environment variable; [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains
 how the code is laid out and which module owns what.
 
 
-Setting up
-----------
+## Setting up
 
 Install the tools under [Requirements](INSTALL.md#requirements), then set
 up the checkout as
@@ -35,8 +33,7 @@ While you work on `frontend/src/`, keep `npm run watch` running, so the page
 loads the script you just changed.
 
 
-Running the checks
-------------------
+## Running the checks
 
 ```shell
 ./scripts/check
@@ -98,8 +95,7 @@ Two things make tests fail for reasons outside your change:
   After changing a pipeline bundle, run `collectstatic` again.
 
 
-Where tests go
---------------
+## Where tests go
 
 Python tests live in `glifestream/tests/`, one `test_<module>.py` per area
 (`test_apis_mastodon.py`, `test_utils_html.py`). Vitest tests sit next to the
@@ -168,8 +164,7 @@ and data stay out of the pictures. It needs the network, for the video
 thumbnail from YouTube, and Playwright's Chromium.
 
 
-Conventions
------------
+## Conventions
 
 **Module layers.** `lint-imports` enforces the layers declared under
 `[tool.importlinter]` in `pyproject.toml`: a module imports only from layers
@@ -206,8 +201,7 @@ add strings, if you can; otherwise mention the new strings in the pull
 request.
 
 
-Commits and pull requests
--------------------------
+## Commits and pull requests
 
 Keep a pull request to one change, and make sure `./scripts/check` passes
 and both formatters have run before you ask for a review. CI runs the same
@@ -243,8 +237,7 @@ A review looks for:
   `docs/ARCHITECTURE.md`, `CHANGELOG.md`
 
 
-License
--------
+## License
 
 gLifestream is licensed under the GNU General Public License, version 3 or
 later. By contributing, you agree that your contribution is licensed under
