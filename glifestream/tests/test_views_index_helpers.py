@@ -6,7 +6,9 @@ from typing import Any, cast
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.http import Http404
+from django.db import connection
 from django.test import RequestFactory, override_settings
+from django.test.utils import CaptureQueriesContext
 
 from glifestream.stream.index_view import (
     apply_archive_filters,
@@ -275,6 +277,40 @@ def test_run_index_query_search_sets_prev_next_and_filters_friends_only(
     assert result.extra_page['prevpage'] == 1
     assert result.extra_page['nextpage'] == 3
     assert 'Friends Only' not in titles
+
+
+@override_settings(SEARCH_ENABLE=True, ENTRIES_ON_PAGE=2)
+@pytest.mark.django_db
+def test_run_index_query_search_full_last_page_has_no_next_page_and_one_search(
+    request_factory, service
+):
+    service.public = True
+    service.save(update_fields=['public'])
+    for idx in range(4):
+        Entry.objects.create(
+            service=service,
+            title=f'Visible {idx}',
+            guid=f'search-{idx}',
+            content='python term',
+            date_published=datetime.datetime(2023, 11, 1, 12, idx, tzinfo=UTC),
+        )
+
+    request = request_factory.get('/?s=python&page=2')
+    request.user = AnonymousUser()
+
+    state = _build_state(request, {})
+    query = build_index_query_state(state)
+    apply_archive_filters(query)
+    apply_context_filters(state, query)
+    apply_query_string_filters(state, query)
+
+    with CaptureQueriesContext(connection) as queries:
+        result = run_index_query(state, query)
+        titles = [entry.title for entry in result.entries]
+
+    assert titles == ['Visible 1', 'Visible 0']
+    assert result.extra_page == {'prevpage': 1}
+    assert sum('LIKE' in q['sql'] for q in queries) == 1
 
 
 @override_settings(SEARCH_ENABLE=True, ENTRIES_ON_PAGE=10)

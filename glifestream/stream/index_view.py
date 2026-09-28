@@ -371,14 +371,16 @@ def run_search_query(
 
     try:
         entries = build_search_queryset(state, query, search_filters)
-        limit = offset + state.entries_on_page
+        # One entry more tells whether there is a next page, where a count
+        # would search every entry a second time.
+        found = list(entries[offset : offset + state.entries_on_page + 1])
         extra_page: dict[str, Any] = {}
         if offset >= state.entries_on_page:
             extra_page['prevpage'] = page_number - 1
-        if limit < entries.count():
+        if len(found) > state.entries_on_page:
             extra_page['nextpage'] = page_number + 1
         return IndexResult(
-            entries=entries[offset:limit],
+            entries=found[: state.entries_on_page],
             start=False,
             after=after,
             extra_page=extra_page,
