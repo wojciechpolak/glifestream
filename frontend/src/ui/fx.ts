@@ -23,9 +23,13 @@
 /** jQuery's default, 'normal', duration. */
 const NORMAL = 400;
 
+type Effect = 'fade_in' | 'fade_out' | 'slide_down' | 'slide_up';
+
 interface Running {
+    effect: Effect;
     animation: Animation;
     finish: () => void;
+    done: Promise<void>;
 }
 
 const running = new WeakMap<HTMLElement, Running>();
@@ -107,49 +111,72 @@ export function stop(el: HTMLElement): void {
     }
 }
 
-function animate(
-    el: HTMLElement,
-    keyframes: Keyframe[],
-    duration: number,
-    done: () => void,
-): Promise<void> {
-    return new Promise(function (resolve) {
-        function finish(): void {
-            done();
-            resolve();
-        }
-        if (duration <= 0 || reduced_motion() || typeof el.animate !== 'function') {
-            finish();
-            return;
-        }
-        const animation = el.animate(keyframes, { duration, easing: 'ease-in-out' });
-        const entry = { animation, finish };
-        running.set(el, entry);
-        animation.addEventListener('finish', function () {
-            if (running.get(el) === entry) {
-                running.delete(el);
-                finish();
-            }
-        });
-    });
+/** The promise of the element's running `effect`, if that is what runs. */
+function already_running(el: HTMLElement, effect: Effect): Promise<void> | undefined {
+    const current = running.get(el);
+    return current?.effect === effect ? current.done : undefined;
 }
 
+function animate(
+    el: HTMLElement,
+    effect: Effect,
+    keyframes: Keyframe[],
+    duration: number,
+    end: () => void,
+): Promise<void> {
+    let resolve!: () => void;
+    const done = new Promise<void>(function (r) {
+        resolve = r;
+    });
+    function finish(): void {
+        end();
+        resolve();
+    }
+    if (duration <= 0 || reduced_motion() || typeof el.animate !== 'function') {
+        finish();
+        return done;
+    }
+    const animation = el.animate(keyframes, { duration, easing: 'ease-in-out' });
+    const entry = { effect, animation, finish, done };
+    running.set(el, entry);
+    animation.addEventListener('finish', function () {
+        if (running.get(el) === entry) {
+            running.delete(el);
+            finish();
+        }
+    });
+    return done;
+}
+
+// Starting the effect that already runs leaves it running: a page that
+// fades in on every scroll event would otherwise restart it from nothing.
+
 export function fade_in(el: HTMLElement, duration = NORMAL): Promise<void> {
+    const same = already_running(el, 'fade_in');
+    if (same) {
+        return same;
+    }
     if (is_visible(el) && !running.has(el)) {
         return Promise.resolve();
     }
     show(el);
     const opacity = getComputedStyle(el).opacity;
-    return animate(el, [{ opacity: 0 }, { opacity }], duration, () => {});
+    return animate(el, 'fade_in', [{ opacity: 0 }, { opacity }], duration, () => {});
 }
 
 export function fade_out(el: HTMLElement, duration = NORMAL): Promise<void> {
+    const same = already_running(el, 'fade_out');
+    if (same) {
+        return same;
+    }
     if (!is_visible(el)) {
         return Promise.resolve();
     }
     stop(el);
     const opacity = getComputedStyle(el).opacity;
-    return animate(el, [{ opacity }, { opacity: 0 }], duration, () => hide(el));
+    return animate(el, 'fade_out', [{ opacity }, { opacity: 0 }], duration, () =>
+        hide(el),
+    );
 }
 
 const SLIDE_PROPERTIES = [
@@ -171,19 +198,27 @@ function box_keyframe(el: HTMLElement, collapsed: boolean): Keyframe {
 }
 
 export function slide_down(el: HTMLElement, duration = NORMAL): Promise<void> {
+    const same = already_running(el, 'slide_down');
+    if (same) {
+        return same;
+    }
     if (is_visible(el) && !running.has(el)) {
         return Promise.resolve();
     }
     show(el);
     const frames = [box_keyframe(el, true), box_keyframe(el, false)];
-    return animate(el, frames, duration, () => {});
+    return animate(el, 'slide_down', frames, duration, () => {});
 }
 
 export function slide_up(el: HTMLElement, duration = NORMAL): Promise<void> {
+    const same = already_running(el, 'slide_up');
+    if (same) {
+        return same;
+    }
     if (!is_visible(el)) {
         return Promise.resolve();
     }
     stop(el);
     const frames = [box_keyframe(el, false), box_keyframe(el, true)];
-    return animate(el, frames, duration, () => hide(el));
+    return animate(el, 'slide_up', frames, duration, () => hide(el));
 }

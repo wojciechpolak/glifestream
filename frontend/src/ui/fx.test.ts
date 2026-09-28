@@ -134,4 +134,21 @@ describe('effects', () => {
         expect(animation.cancel).toHaveBeenCalledOnce();
         expect(is_visible(el)).toBe(true);
     });
+
+    it('keep running when the same effect starts again', async () => {
+        reduce_motion(false);
+        const el = element('<div style="display: none">x</div>');
+        const animation = fake_animation();
+        const animate = vi.spyOn(el, 'animate').mockReturnValue(animation);
+
+        const showing = fade_in(el);
+        const again = fade_in(el);
+
+        expect(again).toBe(showing);
+        expect(animate).toHaveBeenCalledOnce();
+        expect(animation.cancel).not.toHaveBeenCalled();
+        animation.dispatchEvent(new Event('finish'));
+        await again;
+        expect(is_visible(el)).toBe(true);
+    });
 });
