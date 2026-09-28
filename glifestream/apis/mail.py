@@ -16,43 +16,124 @@
 """
 
 from __future__ import annotations
+import hmac
+import logging
+import mimetypes
 import os
 import re
 import email
+from collections.abc import Iterator
 from typing import Any, IO, cast
 from email.header import decode_header, make_header
+from email.utils import getaddresses
 from django.conf import settings
 from django.core.files.uploadedfile import TemporaryUploadedFile
 from django.utils.datastructures import MultiValueDict
 from glifestream.apis import selfposts
 from glifestream.stream.models import Service
 
+logger = logging.getLogger(__name__)
 
-ATTACHMENT_PREFIXES = ('image/', 'audio/', 'video/', 'application/')
+# sysexits.h codes, which an MTA's pipe delivery reports to the sender.
+EX_OK = 0
+EX_SOFTWARE = 70
+EX_NOPERM = 77
+EX_CONFIG = 78
+
+MIN_SECRET_LENGTH = 16
+
+# Headers that carry the address a message was sent to. Delivered-To and
+# X-Original-To, which the MTA adds, name it even when it was a Bcc.
+RECIPIENT_HEADERS = ('To', 'Cc', 'Delivered-To', 'X-Original-To', 'Envelope-To')
+
+# Parts without a file name that are still attachments, such as a photo a
+# phone's mail app attaches inline.
+ATTACHMENT_MAINTYPES = ('image', 'audio', 'video', 'application')
 
 
-def _sender_is_allowed(msg: Any) -> bool:
-    """EMAIL2POST_CHECK maps a header name to a substring it must contain."""
-    check = getattr(settings, 'EMAIL2POST_CHECK', {})
-    for lhs in check:
-        value = str(make_header(decode_header(msg.get(lhs, ''))))
-        if check[lhs] not in value:
-            return False
-    return True
+def _decoded(msg: Any, name: str) -> str:
+    return str(make_header(decode_header(msg.get(name, ''))))
+
+
+def _configured_secret() -> str | None:
+    secret = (getattr(settings, 'EMAIL2POST_SECRET', '') or '').strip()
+    if len(secret) < MIN_SECRET_LENGTH:
+        return None
+    return secret.lower()
+
+
+def _is_secret(word: str, secret: str) -> bool:
+    # Lower case, since an MTA may fold the case of a recipient address.
+    return hmac.compare_digest(word.lower().encode(), secret.encode())
+
+
+def _recipient_words(msg: Any) -> Iterator[str]:
+    """The local part of each recipient address, and its +detail."""
+    values: list[str] = []
+    for header in RECIPIENT_HEADERS:
+        values.extend(str(value) for value in msg.get_all(header, []))
+    for _name, address in getaddresses(values):
+        local = address.rsplit('@', 1)[0]
+        yield local
+        if '+' in local:
+            yield local.split('+', 1)[1]
+
+
+def _carries_secret(msg: Any, secret: str) -> bool:
+    """A word of the subject, or a recipient address, is the secret."""
+    words = [*_decoded(msg, 'Subject').split(), *_recipient_words(msg)]
+    return any(_is_secret(word, secret) for word in words)
+
+
+def _allowed_type(content_type: str) -> bool:
+    """EMAIL2POST_ATTACHMENT_TYPES lists media types; "image/" or "image/*"
+    stands for every image type."""
+    for allowed in getattr(settings, 'EMAIL2POST_ATTACHMENT_TYPES', ()):
+        allowed = allowed.strip().lower().rstrip('*')
+        if content_type == allowed or (
+            allowed.endswith('/') and content_type.startswith(allowed)
+        ):
+            return True
+    return False
+
+
+def _is_body(part: Any) -> bool:
+    return part.get_content_type() == 'text/plain' and part.get_filename() is None
 
 
 def _is_attachment(part: Any) -> bool:
-    content_type = part.get_content_type()
-    if content_type == 'text/plain':
-        return part.get_filename(None) is not None
-    return bool(content_type.startswith(ATTACHMENT_PREFIXES))
+    if part.is_multipart() or _is_body(part):
+        return False
+    return (
+        part.get_filename() is not None
+        or part.get_content_maintype() in ATTACHMENT_MAINTYPES
+    )
 
 
-def _save_attachment(part: Any) -> TemporaryUploadedFile:
-    payload = part.get_payload(decode=True)
+def _attachment_name(part: Any) -> str:
+    """The part's own file name without any directory, given an extension
+    for its type when it has none the site would recognise."""
+    name = os.path.basename((part.get_filename() or '').replace('\\', '/')).strip()
+    if mimetypes.guess_type(name)[0] is None:
+        extension = mimetypes.guess_extension(part.get_content_type()) or ''
+        name = (name or 'attachment') + extension
+    return name
+
+
+def _keeps_attachment(part: Any, name: str) -> bool:
+    """Both the type the sender declared and the one the site will serve the
+    file as, which comes from its name, must be allowed."""
+    served_type = mimetypes.guess_type(name)[0]
+    return _allowed_type(part.get_content_type()) and (
+        served_type is None or _allowed_type(served_type)
+    )
+
+
+def _save_attachment(part: Any, name: str) -> TemporaryUploadedFile:
+    payload = part.get_payload(decode=True) or b''
     os.umask(0)
     tmp = TemporaryUploadedFile(
-        name=part.get_filename('attachment'),
+        name=name,
         content_type=part.get_content_type(),
         size=len(payload),
         charset=None,
@@ -63,28 +144,44 @@ def _save_attachment(part: Any) -> TemporaryUploadedFile:
     return tmp
 
 
-def _extract_parts(msg: Any) -> tuple[Any, list[TemporaryUploadedFile]]:
+def _text(part: Any) -> str:
+    payload = part.get_payload(decode=True) or b''
+    try:
+        return payload.decode(part.get_content_charset() or 'utf-8', errors='replace')
+    except LookupError:
+        return payload.decode('utf-8', errors='replace')
+
+
+def _extract_parts(msg: Any) -> tuple[str | None, list[TemporaryUploadedFile]]:
     """The body text and every attachment worth keeping."""
     if not msg.is_multipart():
-        return msg.get_payload(decode=True), []
+        return _text(msg), []
 
-    content: Any = None
+    content: str | None = None
     files: list[TemporaryUploadedFile] = []
     for part in msg.walk():
         if _is_attachment(part):
-            files.append(_save_attachment(part))
-        elif part.get_content_type() == 'text/plain':
-            content = part.get_payload(decode=True)
+            name = _attachment_name(part)
+            if _keeps_attachment(part, name):
+                files.append(_save_attachment(part, name))
+            else:
+                logger.warning(
+                    'email2post: dropped attachment "%s" of type %s',
+                    name,
+                    part.get_content_type(),
+                )
+        elif _is_body(part):
+            content = _text(part)
     return content, files
 
 
-def _parse_subject(subject: str | None) -> dict[str, Any]:
+def _parse_subject(subject: str, secret: str) -> dict[str, Any]:
     """Pull the title plus any @class, !draft and !friends-only markers."""
     args: dict[str, Any] = {}
     if not subject:
         return args
 
-    title = str(make_header(decode_header(subject)))
+    title = ' '.join(word for word in subject.split() if not _is_secret(word, secret))
 
     # Mail subject may contain @foo, a selfposts' class name for which
     # this message is post to.
@@ -125,14 +222,24 @@ class MailService:
     def run(self):
         pass
 
-    def share(self, msgfile: IO[Any] | Any) -> int:
-        msg = email.message_from_file(msgfile)
-        if not _sender_is_allowed(msg):
-            return 77  # EX_NOPERM
+    def share(self, msgfile: IO[bytes]) -> int:
+        secret = _configured_secret()
+        if secret is None:
+            logger.error(
+                'email2post: EMAIL2POST_SECRET must be set, to at least %d '
+                'characters, before gLifestream accepts posts by e-mail',
+                MIN_SECRET_LENGTH,
+            )
+            return EX_CONFIG
+
+        msg = email.message_from_binary_file(msgfile)
+        if not _carries_secret(msg, secret):
+            logger.warning('email2post: refused a message without the secret')
+            return EX_NOPERM
 
         content, files = _extract_parts(msg)
 
-        args: dict[str, Any] = _parse_subject(msg.get('Subject', None))
+        args: dict[str, Any] = _parse_subject(_decoded(msg, 'Subject'), secret)
         if content is not None:
             args['content'] = content
 
@@ -140,5 +247,6 @@ class MailService:
             args['files'] = MultiValueDict()
             args['files'].setlist('docs', files)
 
-        selfposts.SelfpostsService(Service()).share(args)
-        return 0  # EX_OK
+        if selfposts.SelfpostsService(Service()).share(args) is None:
+            return EX_SOFTWARE
+        return EX_OK

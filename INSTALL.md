@@ -482,10 +482,65 @@ Before calling the deployment ready, verify:
 Receive Postings via E-mail
 ===========================
 
-To enable posting by e-mail, create a secret mail alias that pipes messages to:
+`worker.py --email2post` reads a message on standard input and posts it as a
+selfpost. It stays off until `EMAIL2POST_SECRET` is set, and it posts only a
+message that carries that secret. Anyone can forge a `From` header, so the
+sender's address earns no trust.
 
-```text
-gls.secret.address: "|/usr/local/django/glifestream/worker.py --email2post"
+1. Generate a secret of at least 16 characters and set it in the environment
+   of the process the MTA runs:
+
+   ```bash
+   python3 -c "import secrets; print(secrets.token_hex(16))"
+   ```
+
+   ```text
+   EMAIL2POST_SECRET=<the secret>
+   ```
+
+2. Pipe mail to the worker from an alias. With subaddressing
+   (`recipient_delimiter = +` in Postfix), mail sent to `gls+<secret>@` reaches
+   the `gls` alias. The MTA runs the command without the project's virtual
+   environment or `uv`, so name the virtual environment's interpreter:
+
+   ```text
+   gls: "|/usr/local/django/glifestream/.venv/bin/python /usr/local/django/glifestream/worker.py --email2post"
+   ```
+
+   Without subaddressing, make the secret the alias itself:
+   `<secret>: "|…/.venv/bin/python …/worker.py --email2post"`.
+
+The secret is accepted in either of two places:
+
+- a recipient address, as its local part or its `+detail`, in `To`, `Cc`,
+  `Delivered-To`, `X-Original-To` or `Envelope-To`. The last three name the
+  address even when you sent the message as a Bcc. Case does not matter,
+  because MTAs may lower-case addresses.
+- a word of the subject. It is removed from the title.
+
+The subject becomes the title. `@class` posts to the selfposts service with
+that class, `!draft` saves a draft, and `!friends-only` shows the entry to
+friends only. The first `text/plain` part becomes the body.
+
+Attachments are kept only when both the type the message declares and the type
+implied by the file name are listed in `EMAIL2POST_ATTACHMENT_TYPES`. The list
+is comma-separated, and `audio/` or `audio/*` matches every audio type. The
+default is JPEG, PNG, GIF, WebP and AVIF images, audio, video, PDF and plain
+text. Other attachments are dropped, the message is still posted, and a
+warning is logged.
+
+The exit status tells the MTA what happened, and the MTA reports a failure to
+the sender:
+
+- `0`: posted.
+- `77` (`EX_NOPERM`): the secret is missing from the message.
+- `78` (`EX_CONFIG`): `EMAIL2POST_SECRET` is unset or too short.
+- `70` (`EX_SOFTWARE`): the post could not be saved.
+
+To try the setup without an MTA, pipe a message in yourself:
+
+```bash
+printf 'To: gls+%s@example.com\nSubject: Test\n\nHello\n' "$EMAIL2POST_SECRET" | uv run ./worker.py --email2post; echo $?
 ```
 
 

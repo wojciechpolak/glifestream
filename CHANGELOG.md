@@ -239,11 +239,22 @@ work, so only the significant changes are listed.
   first. A token, once saved, fetches the service right away.
 - Numerous regressions in feed output, selfposts parsing, media permissions, and
   datetime handling (naive model datetimes are now normalized to UTC).
+- A post by e-mail shows its text in the charset the message declares. It was
+  posted as the repr of its bytes, such as `b'Za\xc5\xbc...'`. A post that
+  cannot be saved exits with status 70, so the sender gets a bounce.
 
 ### Security
 
 - Added CSRF protection across the application.
 - Added outbound fetch guardrails to limit server-side request forgery risk.
+- `worker.py --email2post` posts only a message that carries
+  `EMAIL2POST_SECRET`, as a word of its subject or as the local part or
+  `+detail` of a recipient address. It posts nothing until the secret is set.
+  The `From` check, `EMAIL2POST_FROM` and `EMAIL2POST_CHECK`, is gone.
+  Attachments are kept only for the types in `EMAIL2POST_ATTACHMENT_TYPES`.
+  By default those are common images, audio, video, PDF and plain text; SVG,
+  HTML and archives are dropped. See "Receive Postings via E-mail" in
+  `INSTALL.md`.
 - Regular dependency upgrades for `cryptography`, `urllib3`, `requests`, and
   `pyjwt`.
 

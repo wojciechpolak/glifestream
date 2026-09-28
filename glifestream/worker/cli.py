@@ -439,7 +439,8 @@ def handle_websub(command: WorkerCommand, *, prog_name: str) -> int:
 
 def handle_email2post() -> int:
     api = mail.MailService()
-    return api.share(sys.stdin)
+    # The raw bytes: a part's charset, not the locale, decodes its text.
+    return api.share(sys.stdin.buffer)
 
 
 def handle_init_files() -> int:

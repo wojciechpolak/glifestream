@@ -494,9 +494,27 @@ WEBSUB_HTTPS_CALLBACK = get_bool(
     default=True,
 )
 
-EMAIL2POST_CHECK = {
-    'From': get_env(ENV, 'EMAIL2POST_FROM', default='John Smith') or 'John Smith',
-}
+# `worker.py --email2post` posts only a message that carries this secret, as
+# a word of its subject or as the local part or +detail of the address it was
+# sent to. Unset, or shorter than 16 characters, it posts nothing.
+EMAIL2POST_SECRET = get_env(ENV, 'EMAIL2POST_SECRET', default='') or ''
+# Attachment types it keeps. "audio/" stands for every audio type. SVG is left
+# out: a browser runs its scripts.
+EMAIL2POST_ATTACHMENT_TYPES = get_list(
+    ENV,
+    'EMAIL2POST_ATTACHMENT_TYPES',
+    default=[
+        'image/jpeg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+        'image/avif',
+        'audio/',
+        'video/',
+        'application/pdf',
+        'text/plain',
+    ],
+)
 
 # Content Security Policy: enforce, report-only (the default, until
 # deployments have added nonces to their inline scripts) or off. See
