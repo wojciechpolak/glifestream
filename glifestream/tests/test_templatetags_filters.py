@@ -148,6 +148,28 @@ def test_gls_content_friends_only(service):
 
 
 @pytest.mark.django_db
+def test_gls_content_logs_a_failing_provider_filter_and_shows_the_content(caplog):
+    from glifestream.stream.models import Entry, Service
+
+    service = Service.objects.create(name='Old', api='twitter')
+    # The twitter filter expects "user: text".
+    e = Entry.objects.create(
+        service=service,
+        title='Test',
+        guid='t1',
+        content='no user prefix',
+        date_published=datetime.datetime.now(UTC),
+    )
+
+    content = gls_content(None, e)
+
+    assert 'no user prefix' in content
+    assert [r.levelname for r in caplog.records] == ['ERROR']
+    assert f'entry {e.pk} of service {service.pk} (twitter)' in caplog.text
+    assert 'IndexError' in caplog.text
+
+
+@pytest.mark.django_db
 def test_gls_content_translates_the_friends_only_notice(service):
     from django.utils import translation
 

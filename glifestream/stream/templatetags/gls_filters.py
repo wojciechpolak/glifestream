@@ -18,6 +18,7 @@
 import calendar
 import datetime
 import json
+import logging
 import time
 import math
 import re
@@ -38,6 +39,8 @@ from glifestream.utils.slugify import slugify
 from glifestream.utils.html import urlize as _urlize
 
 register = template.Library()
+
+logger = logging.getLogger(__name__)
 
 
 @register.filter
@@ -124,8 +127,14 @@ def gls_content(value, entry: Entry):
                     % (entry.geolat, entry.geolng, escape(_('show map')))
                 )
             return mark_safe(gls_media(s))
-    except Exception as exc:
-        print(exc)
+    except Exception:
+        # The entry shows its stored content instead.
+        logger.exception(
+            'Could not filter the content of entry %s of service %s (%s).',
+            entry.pk,
+            entry.service.pk,
+            entry.service.api,
+        )
     return mark_safe(gls_media(entry.content))
 
 
