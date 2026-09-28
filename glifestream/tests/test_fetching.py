@@ -244,7 +244,7 @@ def test_get_next_wait_timeout_ignores_running_service(service):
     assert timeout == 30.0
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_fetch_worker_run_ready_jobs_processes_queued_manual_job(service):
     service.api = 'webfeed'
     service.active = True
@@ -275,7 +275,7 @@ def test_fetch_worker_run_ready_jobs_processes_queued_manual_job(service):
     ]
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_fetch_worker_survives_a_failed_fetch_and_runs_the_rest(caplog):
     broken = Service.objects.create(name='Broken', api='webfeed', url='http://a')
     healthy = Service.objects.create(name='Healthy', api='webfeed', url='http://b')
@@ -377,7 +377,7 @@ def test_send_worker_wake_signal_uses_socket_path(settings):
     fake_socket.send.assert_called_once()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_fetch_worker_wake_flow_smoke(settings):
     settings.WORKER_SOCKET = '.gls-worker.sock'
     service = Service.objects.create(
@@ -404,7 +404,7 @@ def test_fetch_worker_wake_flow_smoke(settings):
     assert ran.is_set()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_run_service_fetch_records_success_timestamp(service):
     service.api = 'webfeed'
     service.save()
@@ -430,7 +430,7 @@ def test_run_service_fetch_records_success_timestamp(service):
     assert state.last_error == ''
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_run_service_fetch_failure_preserves_last_success(service):
     service.api = 'webfeed'
     service.save()
@@ -462,7 +462,7 @@ def test_run_service_fetch_failure_preserves_last_success(service):
     assert state.last_error == 'boom'
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_run_service_fetch_records_classified_fetch_failure(service):
     service.api = 'webfeed'
     service.save()
@@ -493,7 +493,7 @@ def test_run_service_fetch_records_classified_fetch_failure(service):
     assert state.last_error == 'Request to http://example.com/feed timed out.'
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_run_service_fetch_records_invalid_response_failure(service):
     service.api = 'webfeed'
     service.save()
@@ -773,7 +773,7 @@ def test_run_services_fetches_every_service_and_returns_the_failures(service):
     assert failures == [(service, error)]
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_run_service_fetch_logs_a_classified_failure_without_a_traceback(
     service, caplog
 ):
@@ -804,7 +804,7 @@ def test_run_service_fetch_logs_a_classified_failure_without_a_traceback(
     )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_run_service_fetch_logs_a_bug_with_its_traceback(service, caplog):
     service.api = 'webfeed'
     service.save()

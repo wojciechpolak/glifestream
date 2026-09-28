@@ -111,7 +111,7 @@ def test_a_fetch_finishing_after_its_timeout_changes_nothing(settings, hung):
     assert service.next_fetch_at == scheduled
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_a_stale_success_leaves_the_schedule_alone(service):
     service.api = 'webfeed'
     service.next_fetch_at = timezone.now() + timedelta(minutes=1)

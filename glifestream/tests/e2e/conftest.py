@@ -775,17 +775,19 @@ def django_db_setup(
     django_db_modify_db_settings: None,
     tmp_path_factory: pytest.TempPathFactory,
 ) -> Generator[None, None, None]:
-    db_dir = tmp_path_factory.mktemp('e2e-db')
-    db_path = db_dir / 'glifestream-e2e.sqlite3'
     database_settings = cast(dict[str, Any], django_settings.DATABASES['default'])
-    test_settings = cast(dict[str, Any], database_settings.get('TEST', {}))
-    options = cast(dict[str, Any], database_settings.get('OPTIONS', {}))
-    database_settings['NAME'] = str(db_path)
-    options['timeout'] = 30
-    database_settings['OPTIONS'] = options
-    test_settings['NAME'] = str(db_path)
-    test_settings.setdefault('MIRROR', None)
-    database_settings['TEST'] = test_settings
+    # Another backend already gives each thread its own connection to one
+    # test database, so only SQLite has to move onto a file.
+    if database_settings['ENGINE'] == 'django.db.backends.sqlite3':
+        db_path = tmp_path_factory.mktemp('e2e-db') / 'glifestream-e2e.sqlite3'
+        test_settings = cast(dict[str, Any], database_settings.get('TEST', {}))
+        options = cast(dict[str, Any], database_settings.get('OPTIONS', {}))
+        database_settings['NAME'] = str(db_path)
+        options['timeout'] = 30
+        database_settings['OPTIONS'] = options
+        test_settings['NAME'] = str(db_path)
+        test_settings.setdefault('MIRROR', None)
+        database_settings['TEST'] = test_settings
     django_settings.ALLOWED_HOSTS = list(
         dict.fromkeys(
             [*django_settings.ALLOWED_HOSTS, 'testserver', 'localhost', '127.0.0.1']

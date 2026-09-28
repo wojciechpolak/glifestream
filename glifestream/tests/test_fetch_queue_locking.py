@@ -25,6 +25,7 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
+from django.conf import settings
 from django.core.management import call_command
 from django.db import connections
 from django.utils import timezone
@@ -35,6 +36,11 @@ from glifestream.fetching import (
     enqueue_manual_fetch,
 )
 from glifestream.stream.models import Service, ServiceFetchState
+
+pytestmark = pytest.mark.skipif(
+    settings.DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3',
+    reason='Not running on SQLite.',
+)
 
 HOLD_SEC = 0.3
 

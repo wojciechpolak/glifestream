@@ -156,7 +156,7 @@ def fetch(service, state, *, error=None):
     service.refresh_from_db()
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_each_failure_counts_and_pushes_the_next_fetch_further(feed):
     state = running_state(feed)
     delays = []
@@ -170,7 +170,7 @@ def test_each_failure_counts_and_pushes_the_next_fetch_further(feed):
     assert (state.failure_kind, state.failure_category) == (RETRYABLE, 'timeout')
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_a_terminal_failure_is_recorded_as_such(feed):
     state = running_state(feed)
 
@@ -180,7 +180,7 @@ def test_a_terminal_failure_is_recorded_as_such(feed):
     assert feed.next_fetch_at - state.finished_at == timedelta(hours=24)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_a_success_resets_the_failure_streak(feed):
     state = running_state(feed)
     fetch(feed, state, error=timeout_error())
@@ -194,7 +194,7 @@ def test_a_success_resets_the_failure_streak(feed):
     assert feed.next_fetch_at - state.finished_at == timedelta(seconds=600)
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_a_failed_manual_fetch_continues_the_streak(feed):
     state = running_state(feed)
     fetch(feed, state, error=timeout_error())
@@ -217,7 +217,7 @@ def test_a_failed_manual_fetch_continues_the_streak(feed):
     assert state.consecutive_failures == 2
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_a_stale_worker_token_leaves_the_state_alone(feed):
     state = running_state(feed)
 
@@ -237,7 +237,7 @@ def test_a_stale_worker_token_leaves_the_state_alone(feed):
     )
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_a_fetch_without_a_state_backs_off_once(feed):
     with (
         patch(
@@ -255,7 +255,7 @@ def test_a_fetch_without_a_state_backs_off_once(feed):
 # --- status tab -----------------------------------------------------------------
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 def test_the_status_payload_describes_the_failure_streak(feed):
     state = running_state(feed)
     fetch(feed, state, error=timeout_error())
