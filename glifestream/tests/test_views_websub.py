@@ -1,10 +1,13 @@
 import hashlib
 import hmac
+import importlib
 import pytest
 from contextlib import contextmanager
 from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import patch
+from django.apps import apps as django_apps
+from django.conf import settings
 from django.test import override_settings
 from django.urls import reverse
 
@@ -142,8 +145,9 @@ def test_subscribe_posts_to_the_hub_and_stores_the_subscription(service):
     assert data['hub.mode'] == 'subscribe'
     assert data['hub.verify'] == 'async'
     assert data['hub.topic'].endswith('?format=atom')
-    # A plain http hub gets no shared secret.
+    # A plain http hub gets no shared secret, so none is kept to check with.
     assert 'hub.secret' not in data
+    assert WebSub.objects.get(service=service).secret is None
 
 
 @pytest.mark.django_db
@@ -161,7 +165,33 @@ def test_subscribe_sends_a_secret_to_an_https_hub(service):
 
     data = post.call_args.kwargs['data']
     assert len(data['hub.secret']) == 8
-    assert WebSub.objects.get(service=service).secret.startswith(data['hub.secret'])
+    assert WebSub.objects.get(service=service).secret == data['hub.secret']
+
+
+@pytest.mark.django_db
+def test_a_payload_the_hub_signs_with_the_secret_it_was_sent_is_accepted(service):
+    api = FakeFeedApi(links=[FakeLink('hub', 'https://hub.example/')])
+    with (
+        fake_service_api(api),
+        patch(
+            'glifestream.utils.httpclient.post',
+            return_value=SimpleNamespace(status_code=202),
+        ) as post,
+    ):
+        websub.subscribe(service)
+    data = post.call_args.kwargs['data']
+    hash_sub = data['hub.callback'].rstrip('/').rsplit('/', 1)[-1]
+    payload = b'<feed/>'
+    signature = hmac.new(
+        data['hub.secret'].encode('utf-8'), payload, hashlib.sha1
+    ).hexdigest()
+
+    with fake_service_api(SimpleNamespace(payload=None, run=lambda: None)):
+        result = websub.accept_payload(
+            hash_sub, payload, {'HTTP_X_HUB_SIGNATURE': 'sha1=%s' % signature}
+        )
+
+    assert result is True
 
 
 @pytest.mark.django_db
@@ -399,3 +429,31 @@ def test_list_subs_prints_and_can_return_raw(service, capsys):
 
     websub.list_subs()
     assert 'hub=http://hub.example/' in capsys.readouterr().out
+
+
+@pytest.mark.skipif(
+    settings.DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3',
+    reason='Only a database that ignores max_length holds a 32-character secret.',
+)
+@pytest.mark.django_db
+def test_the_migration_stores_the_secret_each_hub_was_sent(service):
+    migration = importlib.import_module(
+        'glifestream.stream.migrations.0013_websub_hub_secret'
+    )
+    digest = 'a' * 32
+    https = WebSub.objects.create(
+        hash='6' * 20, service=service, hub='https://hub.example/', secret=digest
+    )
+    http = WebSub.objects.create(
+        hash='7' * 20, service=service, hub='http://hub.example/', secret=digest
+    )
+    kept = WebSub.objects.create(
+        hash='8' * 20, service=service, hub='https://hub.example/', secret='b' * 8
+    )
+
+    migration.store_hub_secret(django_apps, None)
+
+    https.refresh_from_db()
+    http.refresh_from_db()
+    kept.refresh_from_db()
+    assert (https.secret, http.secret, kept.secret) == ('a' * 8, None, 'b' * 8)

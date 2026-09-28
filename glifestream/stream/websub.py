@@ -93,20 +93,18 @@ def subscribe(service: Service, verbose=False):
 
     secret = _subscription_secret(hub, service)
     hash_sub = hashlib.sha1(secret.encode('utf-8')).hexdigest()[0:20]
+    # The hub signs its payloads with the secret it was given, so store
+    # exactly that one: accept_payload checks the signature against it.
+    hub_secret = secret[0:8] if 'https://' in hub else None
 
     save_db = False
     try:
         db = WebSub.objects.get(hash=hash_sub, service=service)
     except WebSub.DoesNotExist:
-        db = WebSub(hash=hash_sub, service=service, hub=hub, secret=secret)
+        db = WebSub(hash=hash_sub, service=service, hub=hub, secret=hub_secret)
         save_db = True
 
-    data = _hub_form_data(
-        'subscribe',
-        hash_sub,
-        verify='async',
-        secret=secret[0:8] if 'https://' in hub else None,
-    )
+    data = _hub_form_data('subscribe', hash_sub, verify='async', secret=hub_secret)
 
     try:
         r = httpclient.post(hub, data=data)
