@@ -46,7 +46,7 @@ from glifestream.gauth.request_auth import RequestAuthState, get_request_auth_st
 from glifestream.stream.models import API_LIST, Entry, Favorite, List, Service
 from glifestream.stream.templatetags.gls_filters import gls_slugify
 from glifestream.stream.typing import Page
-from glifestream.utils import common
+from glifestream.utils import common, page_cache
 from glifestream.utils.time import pn_month_start
 
 
@@ -625,8 +625,13 @@ def build_archive_dates(query: IndexQueryState) -> Any:
             del archive_filters['date_published__month']
         if query.day:
             del archive_filters['date_published__day']
-    return Entry.objects.filter(**archive_filters).dates(
+    months = Entry.objects.filter(**archive_filters).dates(
         'date_published', 'month', order='DESC'
+    )
+    # A scan of every entry the page may show, run for each HTML page, which
+    # the page cache never keeps whole: it renews the CSRF cookie.
+    return page_cache.remember(
+        'archive-months', repr(months.query.sql_with_params()), lambda: list(months)
     )
 
 

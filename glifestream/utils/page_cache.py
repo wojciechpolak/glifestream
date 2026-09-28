@@ -21,11 +21,14 @@
 # page under the current generation, a number in the cache itself, so the
 # web server and the worker share it. `invalidate()` moves to a new
 # generation, and the pages cached under the old one are never read again;
-# the cache drops them in time.
+# the cache drops them in time. `remember()` keeps, the same way, what a
+# page that is not cached itself computes from the data.
 
+import hashlib
 import time
+from collections.abc import Callable
 from contextvars import ContextVar
-from typing import TypeVar
+from typing import Any, TypeVar, cast
 
 from django.conf import settings
 from django.core.cache import caches
@@ -37,6 +40,9 @@ from django.utils.cache import patch_cache_control
 GENERATION_KEY = 'page-generation'
 
 Response = TypeVar('Response', bound=HttpResponseBase)
+Value = TypeVar('Value')
+
+_MISSING = object()
 
 # The key prefix of the page the current request reads and stores, read
 # once per request, so a page is never stored under a newer generation than
@@ -63,6 +69,29 @@ def generation() -> int | None:
 def invalidate() -> None:
     """Moves the cached pages to a new generation, once the data is saved."""
     transaction.on_commit(_next_generation)
+
+
+def remember(name: str, key: str, compute: Callable[[], Value]) -> Value:
+    """What `compute()` returns, kept like a page until the data changes.
+
+    `key` tells apart what `compute()` returns for different pages.
+    """
+    # Read before computing, so the value is never kept under a newer
+    # generation than the data it comes from.
+    current = generation()
+    if current is None:
+        return compute()
+    cache = _cache()
+    cache_key = 'page-data.%s.%s.%s' % (
+        current,
+        name,
+        hashlib.sha256(key.encode()).hexdigest(),
+    )
+    value: Any = cache.get(cache_key, _MISSING)
+    if value is _MISSING:
+        value = compute()
+        cache.set(cache_key, value, settings.CACHE_MIDDLEWARE_SECONDS)
+    return cast(Value, value)
 
 
 def _next_generation() -> None:

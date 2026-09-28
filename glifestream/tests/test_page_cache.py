@@ -1,3 +1,7 @@
+import datetime
+import json
+import re
+
 import pytest
 from django.core.cache import cache
 from django.db import connection
@@ -135,3 +139,81 @@ def test_a_lost_generation_does_not_bring_back_older_pages(client, entry):
     cache.delete(page_cache.GENERATION_KEY)
 
     assert page_cache.generation() != first
+
+
+def archive_months(client) -> list[str]:
+    html = client.get(reverse('index')).content.decode()
+    data = re.search(r'id="gls-stream-data"[^>]*>(.*?)</script>', html, re.S)
+    assert data
+    months: list[str] = json.loads(data.group(1))['archives']
+    return months
+
+
+def add_entry(service: Service, guid: str, year: int, month: int) -> Entry:
+    date = datetime.datetime(year, month, 15, tzinfo=datetime.UTC)
+    return Entry.objects.create(
+        service=service,
+        guid=guid,
+        title=guid,
+        link='https://example.org/' + guid,
+        date_published=date,
+        date_updated=date,
+    )
+
+
+def move_unseen(entry: Entry, year: int, month: int) -> None:
+    """Moves the entry behind Django's back, to see whether months are kept."""
+    with connection.cursor() as cursor:
+        cursor.execute(
+            'UPDATE stream_entry SET date_published = %s WHERE id = %s',
+            [datetime.datetime(year, month, 15), entry.pk],
+        )
+
+
+def test_the_archive_months_are_kept_until_an_entry_changes(client, service):
+    old = add_entry(service, 'old', 2020, 1)
+    assert archive_months(client) == ['2020/01']
+
+    move_unseen(old, 2019, 5)
+    assert archive_months(client) == ['2020/01']
+
+    add_entry(service, 'new', 2021, 3)
+    assert archive_months(client) == ['2021/03', '2019/05']
+
+
+def test_each_view_keeps_its_own_archive_months(client, admin_client, service):
+    add_entry(service, 'public', 2020, 1)
+    private = Service.objects.create(
+        api='webfeed', name='Private', url='https://example.org/private'
+    )
+    add_entry(private, 'private', 2019, 5)
+
+    assert archive_months(admin_client) == ['2020/01', '2019/05']
+    assert archive_months(client) == ['2020/01']
+
+
+def test_a_cache_that_keeps_nothing_computes_every_time(settings):
+    settings.CACHES = {
+        'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+    }
+    calls = []
+
+    def compute() -> int:
+        calls.append(1)
+        return len(calls)
+
+    assert page_cache.remember('n', 'k', compute) == 1
+    assert page_cache.remember('n', 'k', compute) == 2
+
+
+def test_a_remembered_empty_value_is_not_computed_again():
+    calls = []
+
+    def compute() -> list[int]:
+        calls.append(1)
+        return []
+
+    page_cache.remember('n', 'k', compute)
+    page_cache.remember('n', 'k', compute)
+
+    assert calls == [1]
