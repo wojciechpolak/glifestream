@@ -1,11 +1,13 @@
 import pytest
 import datetime
+import json
+import re
 from urllib.parse import quote
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.test import override_settings
-from glifestream.stream.models import Entry
+from glifestream.stream.models import Entry, Service
 from glifestream.testsupport.magic_sso import make_magic_sso_token
 
 UTC = datetime.timezone.utc
@@ -340,3 +342,42 @@ def test_index_shows_friend_header_for_magic_sso_viewer_when_enabled(client):
     assert response.status_code == 200
     assert b'reader@example.com' in response.content
     assert b'>Login<' not in response.content
+
+
+def archive_months(response) -> list[str]:
+    html = response.content.decode()
+    data = re.search(r'id="gls-stream-data"[^>]*>(.*?)</script>', html, re.S)
+    assert data
+    months: list[str] = json.loads(data.group(1))['archives']
+    return months
+
+
+@pytest.mark.django_db
+def test_entry_page_lists_only_the_months_its_viewer_can_see(
+    client, admin_client, service
+):
+    def add(srv, guid, year, month, **fields):
+        return Entry.objects.create(
+            service=srv,
+            title=guid,
+            guid=guid,
+            link='http://example.com/' + guid,
+            date_published=datetime.datetime(year, month, 15, tzinfo=UTC),
+            **fields,
+        )
+
+    shown = add(service, 'shown', 2023, 10)
+    add(service, 'draft', 2022, 5, draft=True)
+    add(service, 'inactive', 2021, 3, active=False)
+    private = Service.objects.create(
+        name='Private', api='feed', url='http://example.com/private'
+    )
+    add(private, 'private', 2020, 7)
+    url = reverse('entry', args=[shown.pk])
+
+    assert archive_months(client.get(url, follow=True)) == ['2023/10']
+    assert archive_months(admin_client.get(url, follow=True)) == [
+        '2023/10',
+        '2022/05',
+        '2020/07',
+    ]

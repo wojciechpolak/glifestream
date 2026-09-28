@@ -615,16 +615,16 @@ def build_full_html_context(
 
 
 def build_archive_dates(query: IndexQueryState) -> Any:
-    if 'exactentry' in query.page:
-        archive_filters: dict[str, Any] = {}
-    else:
-        archive_filters = query.filters.copy()
-        if query.year:
-            del archive_filters['date_published__year']
-        if query.month:
-            del archive_filters['date_published__month']
-        if query.day:
-            del archive_filters['date_published__day']
+    # The months of the stream the page belongs to: an entry's page lists
+    # those the viewer can see, not the months of every entry.
+    archive_filters = query.filters.copy()
+    for name in (
+        'id__exact',
+        'date_published__year',
+        'date_published__month',
+        'date_published__day',
+    ):
+        archive_filters.pop(name, None)
     months = Entry.objects.filter(**archive_filters).dates(
         'date_published', 'month', order='DESC'
     )
