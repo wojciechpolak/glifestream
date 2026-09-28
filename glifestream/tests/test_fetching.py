@@ -18,13 +18,15 @@ from glifestream.fetching import (
     get_next_wait_timeout,
     initialize_missing_schedules,
     ProcessedFetchJob,
+    publish_requested_websub,
+    request_websub_publish,
     WorkerAlreadyRunning,
     run_service_fetch,
     send_worker_wake_signal,
     serialize_fetch_state,
     sync_service_schedule,
 )
-from glifestream.stream.models import Service, ServiceFetchState
+from glifestream.stream.models import Service, ServiceFetchState, WebSubPublishRequest
 from glifestream.utils import httpclient
 
 
@@ -311,13 +313,22 @@ def test_fetch_worker_serve_wakes_on_ready_socket() -> None:
 
     def _run_ready_jobs() -> int:
         calls.append('run')
-        stop_event.set()
         return 1
+
+    def _publish_requested_websub() -> bool:
+        calls.append('publish')
+        stop_event.set()
+        return False
 
     with (
         patch.object(fetch_worker, 'open_socket', return_value=fake_socket),
         patch.object(fetch_worker, 'close_socket', return_value=None),
         patch.object(fetch_worker, 'run_ready_jobs', side_effect=_run_ready_jobs),
+        patch.object(
+            fetch_worker,
+            'publish_requested_websub',
+            side_effect=_publish_requested_websub,
+        ),
         patch.object(fetch_worker, 'drain_socket', return_value=None),
         patch('glifestream.fetching.initialize_missing_schedules', return_value=None),
         patch('glifestream.fetching.get_next_wait_timeout', return_value=None),
@@ -328,7 +339,7 @@ def test_fetch_worker_serve_wakes_on_ready_socket() -> None:
     ):
         fetch_worker.serve(stop_event=stop_event)
 
-    assert calls == ['run']
+    assert calls == ['run', 'publish']
 
 
 def test_fetch_worker_open_socket_replaces_stale_socket_file(tmp_path, monkeypatch):
@@ -821,3 +832,77 @@ def test_run_service_fetch_logs_a_bug_with_its_traceback(service, caplog):
     [record] = [r for r in caplog.records if 'Fetch failed' in r.getMessage()]
     assert record.levelname == 'ERROR'
     assert record.exc_info is not None
+
+
+@pytest.mark.django_db
+def test_a_publish_request_is_stored_and_wakes_the_worker():
+    with patch('glifestream.fetching.send_worker_wake_signal') as wake:
+        request_websub_publish()
+
+    assert WebSubPublishRequest.objects.count() == 1
+    wake.assert_called_once_with()
+
+
+@pytest.mark.django_db
+def test_without_a_request_the_hubs_hear_nothing():
+    with patch('glifestream.stream.websub.publish') as publish:
+        assert publish_requested_websub() is False
+
+    publish.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_one_publish_covers_every_stored_request():
+    WebSubPublishRequest.objects.create()
+    WebSubPublishRequest.objects.create()
+
+    with patch('glifestream.stream.websub.publish') as publish:
+        assert publish_requested_websub(verbose=1) is True
+
+    publish.assert_called_once_with(verbose=1)
+    assert not WebSubPublishRequest.objects.exists()
+
+
+@pytest.mark.django_db
+def test_a_request_stored_while_publishing_waits_for_the_next_publish():
+    WebSubPublishRequest.objects.create()
+
+    def _share_meanwhile(**kwargs):
+        del kwargs
+        WebSubPublishRequest.objects.create()
+
+    with patch('glifestream.stream.websub.publish', side_effect=_share_meanwhile):
+        publish_requested_websub()
+
+    assert WebSubPublishRequest.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_a_failed_publish_is_logged_and_not_retried(caplog):
+    WebSubPublishRequest.objects.create()
+
+    with patch('glifestream.stream.websub.publish', side_effect=RuntimeError):
+        assert publish_requested_websub() is True
+
+    assert 'WebSub publish failed.' in caplog.text
+    assert not WebSubPublishRequest.objects.exists()
+
+
+@pytest.mark.django_db
+def test_a_stored_request_does_not_wait_for_the_next_fetch():
+    assert get_next_wait_timeout() is None
+    WebSubPublishRequest.objects.create()
+
+    assert get_next_wait_timeout() == 0.0
+
+
+def test_the_worker_survives_a_database_error_reading_the_requests(caplog):
+    fetch_worker = FetchWorker(socket_path='.gls-worker.sock', max_workers=1)
+
+    with patch(
+        'glifestream.fetching.publish_requested_websub',
+        side_effect=DatabaseError('locked'),
+    ):
+        assert fetch_worker.publish_requested_websub() is False
+
+    assert 'could not read the WebSub requests' in caplog.text

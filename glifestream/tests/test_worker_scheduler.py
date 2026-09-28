@@ -329,6 +329,7 @@ def test_serve_once_runs_ready_work(settings, signalled):
         ) as select_,
         patch.object(worker_, 'drain_socket') as drain,
         patch.object(worker_, 'run_ready_jobs', return_value=1) as run_jobs,
+        patch.object(worker_, 'publish_requested_websub', return_value=True) as pub,
         patch.object(daemon, '_run_due_maintenance_jobs', return_value=1) as run_mnt,
     ):
         daemon.serve_once(sock)
@@ -337,6 +338,7 @@ def test_serve_once_runs_ready_work(settings, signalled):
     select_.assert_called_once_with([sock], [], [], 1.0)
     assert drain.called is signalled
     run_jobs.assert_called_once_with()
+    pub.assert_called_once_with()
     run_mnt.assert_called_once_with()
 
 

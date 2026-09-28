@@ -273,6 +273,8 @@ class WorkerDaemon:
             self._verbose_print('woken by scheduler timeout')
         if self.fetch_worker.run_ready_jobs():
             self._verbose_print(self._describe_processed_fetch_jobs())
+        if self.fetch_worker.publish_requested_websub():
+            self._verbose_print('published the requested WebSub update')
         maintenance_runs = self._run_due_maintenance_jobs()
         if maintenance_runs:
             self._verbose_print('processed %d maintenance job(s)' % maintenance_runs)

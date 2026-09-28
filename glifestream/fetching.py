@@ -40,7 +40,12 @@ from django.utils.translation import gettext, gettext_noop, ngettext
 
 from glifestream.apis.factory import ServiceFactory
 from glifestream.stream import websub
-from glifestream.stream.models import Entry, Service, ServiceFetchState
+from glifestream.stream.models import (
+    Entry,
+    Service,
+    ServiceFetchState,
+    WebSubPublishRequest,
+)
 from glifestream.utils import httpclient
 
 logger = logging.getLogger(__name__)
@@ -420,6 +425,40 @@ def enqueue_manual_fetch(
     return EnqueueResult(state=state, queued=queued, wake_sent=wake_sent)
 
 
+def request_websub_publish() -> None:
+    """Have the worker tell the WebSub hubs that the public feed changed.
+
+    The hubs can take seconds to answer, so a view stores the request and
+    returns rather than posting to them itself.
+    """
+    WebSubPublishRequest.objects.create()
+    send_worker_wake_signal()
+
+
+def publish_requested_websub(*, verbose: int = 0) -> bool:
+    """Publish once for every request stored so far. False if there were none.
+
+    A request stored while the hubs are being posted to stays for the next
+    call; one that was covered is deleted only after the post, so a worker
+    stopped halfway publishes again rather than not at all. A publish that
+    fails is logged and not retried: kept, its requests would wake the
+    worker again at once, and the hubs hear of the next change anyway.
+    """
+    last_pk = (
+        WebSubPublishRequest.objects.order_by('-pk')
+        .values_list('pk', flat=True)
+        .first()
+    )
+    if last_pk is None:
+        return False
+    try:
+        websub.publish(verbose=verbose)
+    except Exception:
+        logger.exception('WebSub publish failed.')
+    WebSubPublishRequest.objects.filter(pk__lte=last_pk).delete()
+    return True
+
+
 def _get_public_latest_entry() -> Entry | None:
     return (
         Entry.objects.filter(service__public=True).order_by('-date_published').first()
@@ -703,9 +742,12 @@ def claim_runnable_jobs(
 
 def get_next_wait_timeout(*, now: Any | None = None) -> float | None:
     now = now or timezone.now()
-    if ServiceFetchState.objects.filter(
-        status=ServiceFetchState.STATUS_QUEUED
-    ).exists():
+    if (
+        ServiceFetchState.objects.filter(
+            status=ServiceFetchState.STATUS_QUEUED
+        ).exists()
+        or WebSubPublishRequest.objects.exists()
+    ):
         return 0.0
 
     blocked_service_ids = ServiceFetchState.objects.filter(
@@ -863,6 +905,15 @@ class FetchWorker:
         finally:
             connections.close_all()
 
+    def publish_requested_websub(self) -> bool:
+        try:
+            return publish_requested_websub(verbose=self.verbose)
+        except DatabaseError:
+            logger.exception('Fetch worker could not read the WebSub requests.')
+            return False
+        finally:
+            connections.close_all()
+
     def _run_jobs(self, jobs: list[_FetchJob], worker_token: str) -> None:
         """Fetch `jobs`, at most `max_workers` at a time, each with a deadline.
 
@@ -967,5 +1018,6 @@ class FetchWorker:
                 if stop_event is not None and stop_event.is_set():
                     return
                 self.run_ready_jobs()
+                self.publish_requested_websub()
         finally:
             self.close_socket()

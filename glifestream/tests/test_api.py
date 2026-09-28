@@ -1,12 +1,13 @@
 import pytest
 import datetime
+from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import quote
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.test import override_settings
-from glifestream.stream.models import Entry, Favorite, Service
+from glifestream.stream.models import Entry, Favorite, Service, WebSubPublishRequest
 from glifestream.testsupport.magic_sso import make_magic_sso_token
 
 UTC = datetime.timezone.utc
@@ -285,55 +286,72 @@ def test_api_gsc_returns_one_service_per_selfposts_class(admin_client):
     ]
 
 
+@pytest.fixture
+def hubs():
+    """The WebSub hubs and the worker's wake socket, neither of them real."""
+    with (
+        patch('glifestream.stream.websub.publish') as publish,
+        patch('glifestream.fetching.send_worker_wake_signal') as wake,
+    ):
+        yield SimpleNamespace(publish=publish, wake=wake)
+
+
+def assert_publish_requested(hubs, count=1):
+    # The view leaves the hubs to the worker, and wakes it to tell them.
+    assert WebSubPublishRequest.objects.count() == count
+    assert hubs.wake.call_count == count
+    hubs.publish.assert_not_called()
+
+
 @pytest.mark.django_db
-def test_api_share_returns_a_stream_fragment_for_xhr(admin_client, selfposts_service):
-    with patch('glifestream.stream.api_view.websub.publish') as publish:
-        response = admin_client.post(
-            api_url('share'),
-            {'content': 'Hello from the tests'},
-            headers={'x-requested-with': 'XMLHttpRequest'},
-        )
+def test_api_share_returns_a_stream_fragment_for_xhr(
+    admin_client, selfposts_service, hubs
+):
+    response = admin_client.post(
+        api_url('share'),
+        {'content': 'Hello from the tests'},
+        headers={'x-requested-with': 'XMLHttpRequest'},
+    )
 
     assert response.status_code == 200
     assert 'Hello from the tests' in response.content.decode()
-    publish.assert_called_once()
+    assert_publish_requested(hubs)
     assert Entry.objects.filter(service=selfposts_service).count() == 1
 
 
 @pytest.mark.django_db
-def test_api_share_redirects_a_plain_form_post(admin_client, selfposts_service):
-    with patch('glifestream.stream.api_view.websub.publish'):
-        response = admin_client.post(api_url('share'), {'content': 'Posted by form'})
+def test_api_share_redirects_a_plain_form_post(admin_client, selfposts_service, hubs):
+    response = admin_client.post(api_url('share'), {'content': 'Posted by form'})
 
     assert response.status_code == 302
     assert response['Location'] == settings.BASE_URL + '/'
 
 
 @pytest.mark.django_db
-def test_api_share_of_a_draft_does_not_ping_the_hubs(admin_client, selfposts_service):
-    with patch('glifestream.stream.api_view.websub.publish') as publish:
-        admin_client.post(
-            api_url('share'),
-            {'content': 'Not ready yet', 'draft': '1'},
-            headers={'x-requested-with': 'XMLHttpRequest'},
-        )
+def test_api_share_of_a_draft_does_not_ping_the_hubs(
+    admin_client, selfposts_service, hubs
+):
+    admin_client.post(
+        api_url('share'),
+        {'content': 'Not ready yet', 'draft': '1'},
+        headers={'x-requested-with': 'XMLHttpRequest'},
+    )
 
-    publish.assert_not_called()
+    assert_publish_requested(hubs, count=0)
 
 
 @pytest.mark.django_db
-def test_api_share_collects_up_to_five_image_urls(admin_client, selfposts_service):
+def test_api_share_collects_up_to_five_image_urls(
+    admin_client, selfposts_service, hubs
+):
     posted = {'content': 'With images'}
     for i in range(0, 6):
         posted['image%d' % i] = 'http://img.example/%d.jpg' % i
 
-    with (
-        patch('glifestream.stream.api_view.websub.publish'),
-        patch(
-            'glifestream.apis.selfposts.media.save_image',
-            side_effect=lambda url, **kw: url,
-        ) as save_image,
-    ):
+    with patch(
+        'glifestream.apis.selfposts.media.save_image',
+        side_effect=lambda url, **kw: url,
+    ) as save_image:
         admin_client.post(api_url('share'), posted)
 
     assert save_image.call_count == 5
@@ -352,29 +370,29 @@ def test_api_share_answers_empty_when_the_post_could_not_be_created(admin_client
 
 
 @pytest.mark.django_db
-def test_api_reshare_renders_the_new_entry(admin_client, entry, selfposts_service):
+def test_api_reshare_renders_the_new_entry(
+    admin_client, entry, selfposts_service, hubs
+):
     entry.content = 'Something worth resharing'
     entry.save()
 
-    with patch('glifestream.stream.api_view.websub.publish') as publish:
-        response = admin_client.post(api_url('reshare'), {'entry': entry.pk})
+    response = admin_client.post(api_url('reshare'), {'entry': entry.pk})
 
     assert response.status_code == 200
     assert 'Something worth resharing' in response.content.decode()
-    publish.assert_called_once()
+    assert_publish_requested(hubs)
 
 
 @pytest.mark.django_db
-def test_api_reshare_answers_empty_when_the_reshare_fails(admin_client, entry):
-    with (
-        patch('glifestream.apis.selfposts.SelfpostsService.reshare', return_value=None),
-        patch('glifestream.stream.api_view.websub.publish') as publish,
+def test_api_reshare_answers_empty_when_the_reshare_fails(admin_client, entry, hubs):
+    with patch(
+        'glifestream.apis.selfposts.SelfpostsService.reshare', return_value=None
     ):
         response = admin_client.post(api_url('reshare'), {'entry': entry.pk})
 
     assert response.status_code == 200
     assert response.content == b''
-    publish.assert_not_called()
+    assert_publish_requested(hubs, count=0)
 
 
 @pytest.mark.django_db

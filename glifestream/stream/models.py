@@ -404,6 +404,19 @@ class WebSub(models.Model):
         unique_together = (('hash', 'service', 'hub'),)
 
 
+class WebSubPublishRequest(models.Model):
+    """A change to the public feed the worker has yet to tell the hubs about.
+
+    A share stores one rather than posting to the hubs while the owner waits.
+    The worker publishes once for every request stored so far.
+    """
+
+    requested_at = models.DateTimeField('Requested at', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'WebSub publish request'
+
+
 class ServiceFetchState(models.Model):
     STATUS_IDLE = 'idle'
     STATUS_QUEUED = 'queued'

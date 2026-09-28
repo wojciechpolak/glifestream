@@ -41,8 +41,9 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from glifestream.apis import selfposts
+from glifestream.fetching import request_websub_publish
 from glifestream.gauth.request_auth import get_request_auth_state
-from glifestream.stream import media, websub
+from glifestream.stream import media
 from glifestream.stream.index_view import build_friends_login_url
 from glifestream.stream.models import Entry, Favorite, Service
 from glifestream.stream.templatetags.gls_filters import fix_ampersands, gls_content
@@ -117,7 +118,7 @@ def _cmd_share(ctx: ApiContext) -> HttpResponse | None:
         return None
 
     if not entry.draft:
-        websub.publish()
+        request_websub_publish()
     entry.friends_only = False
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(
@@ -139,7 +140,7 @@ def _cmd_reshare(ctx: ApiContext) -> HttpResponse | None:
     if not entry:
         return None
 
-    websub.publish()
+    request_websub_publish()
     return render(
         ctx.request, 'stream-pure.html', {'entries': (entry,), 'authed': ctx.authed}
     )

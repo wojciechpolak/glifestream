@@ -46,7 +46,7 @@ lower layer a way around it: `lint-imports` follows indirect imports too.
 | Registering thumbnails as `Media` rows | `stream.media.extract_and_register()` | Called by `ingestion` and by selfposts. |
 | Rewriting content (short links, video cards) | `filters` | Pure text in, text out, apart from thumbnail downloads. |
 | Scheduling, retries and backoff | `fetching` | The only caller of `ServiceFactory` for scheduled fetches. |
-| Telling WebSub hubs about new entries | `stream.websub.publish()` | Called by `fetching` after an import and by `api_view` after a share. Never by `ingestion` or `apis`. |
+| Telling WebSub hubs about new entries | `stream.websub.publish()` | Called by `fetching`: after an import, and for the requests `api_view` stores with `fetching.request_websub_publish()` after a share. Never by `ingestion` or `apis`. |
 | Deleting old entries and orphaned thumbnails | `worker.maintenance` | Run on a schedule by the daemon or with `worker.py`. |
 | Settings | `glifestream/settings.py` | Read from the environment; see `INSTALL.md`. |
 
@@ -110,8 +110,10 @@ The share form posts to `/api/share`, and "reshare" on an entry posts to
 `/api/reshare`. `api_view` passes both to `apis.selfposts`. Unlike the other
 providers, it saves its entry itself: the owner wrote it, so there is nothing
 to fetch and nothing for `ingest()` to compare. Selfposts stores uploads under
-`MEDIA_ROOT/upload/` and makes a thumbnail for each picture. `api_view` then
-publishes to the WebSub hubs, unless the share was a draft.
+`MEDIA_ROOT/upload/` and makes a thumbnail for each picture. Unless the share
+was a draft, `api_view` then stores a `WebSubPublishRequest` and wakes the
+daemon, which publishes to the WebSub hubs once for all the requests stored
+so far. The owner does not wait for the hubs to answer.
 
 ## Media on disk
 
@@ -211,8 +213,9 @@ http.ts          fetch with the CSRF token, and the error report
   `Candidate` objects and raises `FetchError` for remote failures. Register it
   in `apis/factory.py`, `apis/modules.py` and `stream.models.API_LIST`.
 - **A side effect of a new entry** (a notification, an index update): call it
-  from `fetching` or `api_view`, next to `websub.publish()`. Do not call it
-  from `ingestion` or a provider, which also run for WebSub pushes and
-  would then fire it from inside an import.
+  from `fetching` or `api_view`, next to `websub.publish()` or
+  `request_websub_publish()`. Do not call it from `ingestion` or a provider,
+  which also run for WebSub pushes and would then fire it from inside an
+  import.
 - **A new top-level package**: add it to the layers in `pyproject.toml`, or
   `lint-imports` will not check it.
