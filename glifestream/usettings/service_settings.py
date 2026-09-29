@@ -36,6 +36,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import ngettext
 from django.views.decorators.cache import never_cache
 
+from glifestream import VERSION
 from glifestream.apis import github
 from glifestream.apis.factory import ServiceFactory
 from glifestream.fetching import (
@@ -115,6 +116,7 @@ def status(request: HttpRequest, **args: Any) -> HttpResponse:
             'is_secure': request.is_secure(),
             'user': request.user,
             'services': get_fetchable_services(services_all),
+            'version': VERSION,
         },
     )
 

@@ -988,6 +988,9 @@ msgstr "Voorkeuren"
 msgid "Service fetch status:"
 msgstr "Ophaalstatus van de diensten:"
 
+msgid "Version:"
+msgstr "Versie:"
+
 msgid "Type"
 msgstr "Type"
 

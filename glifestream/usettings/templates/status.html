@@ -131,9 +131,22 @@
       margin-left: 0;
       transform: translateY(-50%);
     }
+    .status-heading {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 0.4rem 1.5rem;
+    }
+    .status-heading .app-version {
+      opacity: 0.75;
+    }
   </style>
 
-  <p class="bold">{% trans "Service fetch status:" %}</p>
+  <div class="status-heading">
+    <p class="bold">{% trans "Service fetch status:" %}</p>
+    <p class="app-version">{% trans "Version:" %} <code>{{ version }}</code></p>
+  </div>
 
   {% if services %}
   <table id="status-table">

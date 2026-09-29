@@ -981,6 +981,9 @@ msgstr "Preferências"
 msgid "Service fetch status:"
 msgstr "Estado de busca dos serviços:"
 
+msgid "Version:"
+msgstr "Versão:"
+
 msgid "Type"
 msgstr "Tipo"
 

@@ -89,6 +89,14 @@ def test_usettings_status_list(logged_in_client):
 
 
 @pytest.mark.django_db
+def test_usettings_status_shows_the_app_version(logged_in_client):
+    with patch.object(service_settings, 'VERSION', 'v9.9-1-gabc1234'):
+        response = logged_in_client.get(reverse('usettings-status'))
+    assert response.status_code == 200
+    assert 'Version: <code>v9.9-1-gabc1234</code>' in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_usettings_status_shows_the_failure_streak(logged_in_client):
     service = Service.objects.create(name='S1', api='webfeed', url='http://s1.com')
     ServiceFetchState.objects.create(

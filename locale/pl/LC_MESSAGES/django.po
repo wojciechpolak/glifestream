@@ -1008,6 +1008,9 @@ msgstr "Dostęp poprzez OAuth 2.0 został skonfigurowany pomyślnie."
 msgid "Service fetch status:"
 msgstr "Stan pobierania serwisów:"
 
+msgid "Version:"
+msgstr "Wersja:"
+
 msgid "Type"
 msgstr "Typ"
 

@@ -991,6 +991,9 @@ msgstr "Уподобання"
 msgid "Service fetch status:"
 msgstr "Стан отримання сервісів:"
 
+msgid "Version:"
+msgstr "Версія:"
+
 msgid "Type"
 msgstr "Тип"
 

@@ -964,6 +964,9 @@ msgstr "個人設定"
 msgid "Service fetch status:"
 msgstr "サービスの取得状態:"
 
+msgid "Version:"
+msgstr "バージョン:"
+
 msgid "Type"
 msgstr "種類"
 

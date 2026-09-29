@@ -964,6 +964,9 @@ msgstr "偏好"
 msgid "Service fetch status:"
 msgstr "服务获取状态："
 
+msgid "Version:"
+msgstr "版本："
+
 msgid "Type"
 msgstr "类型"
 
