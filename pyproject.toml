@@ -1,6 +1,6 @@
 [project]
 name = "glifestream"
-version = "1.5.0"
+version = "2.0.0"
 description = "A free lifestream platform and social activity reader"
 authors = [{ name = "WAP" }]
 requires-python = ">=3.12,<4"

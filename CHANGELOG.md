@@ -10,6 +10,8 @@ from the Git history and are intentionally high-level.
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-09-30
+
 Covers everything since the `v1.4` tag (March 2021). This is a large span of
 work, so only the significant changes are listed.
 
