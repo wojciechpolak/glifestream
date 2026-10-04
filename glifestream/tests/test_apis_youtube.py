@@ -93,8 +93,12 @@ def test_youtube_media_thumbs(service, youtube_json):
             api.run()
 
             e = Entry.objects.get(guid='tag:youtube.com,2008:video:vid-123')
-            assert 'local_med.png' in e.content
-            assert 'width="320" height="180"' in e.content
+            assert e.content == (
+                '<div data-id="youtube-vid-123" class="play-video">'
+                '<a href="https://www.youtube.com/watch?v=vid-123" rel="nofollow">'
+                '<img src="local_med.png" width="320" height="180" alt="YouTube Video" />'
+                '</a><div class="playbutton"></div></div>'
+            )
 
 
 @pytest.mark.django_db
@@ -147,22 +151,22 @@ def test_parse_published_accepts_milliseconds():
         (('default',), ('default.png', 200, 150)),
     ],
 )
-def test_pick_thumbnail_prefers_the_largest_listed(available, expected):
-    from glifestream.apis.youtube import _pick_thumbnail
+def testpick_thumbnail_prefers_the_largest_listed(available, expected):
+    from glifestream.apis.youtube import pick_thumbnail
 
     thumbnails = {key: {'url': '%s.png' % key} for key in available}
-    tn = _pick_thumbnail(thumbnails)
+    tn = pick_thumbnail(thumbnails)
 
     assert tn is not None
     assert (tn['url'], tn['width'], tn['height']) == expected
     assert 'width' not in thumbnails[available[-1]]
 
 
-def test_pick_thumbnail_needs_the_default_one():
-    from glifestream.apis.youtube import _pick_thumbnail
+def testpick_thumbnail_needs_the_default_one():
+    from glifestream.apis.youtube import pick_thumbnail
 
-    assert _pick_thumbnail({'medium': {'url': 'm.png'}}) is None
-    assert _pick_thumbnail({}) is None
+    assert pick_thumbnail({'medium': {'url': 'm.png'}}) is None
+    assert pick_thumbnail({}) is None
 
 
 @pytest.mark.django_db
@@ -198,3 +202,29 @@ def test_youtube_get_urls_passes_a_plain_url_through(service):
 def test_youtube_get_urls_without_a_key_has_nothing_to_fetch(service):
     service.url = 'no-playlists'
     assert YoutubeService(service).get_urls() == []
+
+
+@pytest.mark.django_db
+def test_youtube_drops_the_media_of_the_old_api(service, youtube_json):
+    """An overwritten entry loses the Flash and RTSP links GData once gave it."""
+    service.url = 'MYKEY:PLAYLIST1'
+    service.save()
+    e = run_with(service, youtube_json)
+    Entry.objects.filter(pk=e.pk).update(mblob='{"content": [[{"url": "x.swf"}]]}')
+    youtube_json['items'][0]['snippet']['publishedAt'] = '2023-11-02T12:00:00Z'
+
+    e = run_with(service, youtube_json)
+
+    assert e.mblob is None
+
+
+def test_thumbnails_of_lists_what_pick_thumbnail_prefers():
+    from glifestream.apis.youtube import pick_thumbnail, thumbnails_of
+
+    tn = pick_thumbnail(thumbnails_of('abc'))
+
+    assert tn == {
+        'url': 'https://i.ytimg.com/vi/abc/mqdefault.jpg',
+        'width': 320,
+        'height': 180,
+    }

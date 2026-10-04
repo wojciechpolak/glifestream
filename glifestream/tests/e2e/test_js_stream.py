@@ -789,7 +789,9 @@ def test_older_entries_load_in_place_until_the_end(
     assert second_href and second_href != first_href and 'start=' in second_href
 
     # Entries loaded later get the same treatment as the first page.
-    expect(page.locator('#youtube-late5.play-video .playbutton')).to_have_count(1)
+    expect(
+        page.locator('[data-id="youtube-late5"].play-video .playbutton')
+    ).to_have_count(1)
 
     _next_link(page).click()
     expect(page.locator('#stream article')).to_have_count(7)
@@ -1044,7 +1046,7 @@ def test_video_thumbnail_plays_and_stops_embed(
     make_entry('Video Entry', _thumb(href))
     ensure_admin_session()
     page.goto(f'{app_base_url}/')
-    wrapper = page.locator(f'#{wrapper_id}.play-video')
+    wrapper = page.locator(f'[data-id="{wrapper_id}"].play-video')
     expect(wrapper.locator('.playbutton')).to_have_count(1)
     player = page.locator(f'div.player.video.{provider}')
 

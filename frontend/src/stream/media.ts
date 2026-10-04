@@ -287,7 +287,10 @@ export function alter_html(ctx: Shown): void {
         for (const link of root.querySelectorAll<HTMLAnchorElement>('.thumbnails a')) {
             const id = video_id(link.href);
             if (id) {
-                wrap(link, h('div', { id, className: 'play-video' }));
+                // data-id rather than id: the same video may show up twice on a page.
+                const block = h('div', { className: 'play-video' });
+                block.dataset['id'] = id;
+                wrap(link, block);
                 link.after(h('div', { className: 'playbutton' }));
             }
         }

@@ -230,3 +230,17 @@ def test_run_fetches_only_videos_for_a_channel(vimeo):
 def test_filter_title_distinguishes_a_like_from_an_upload():
     assert 'Liked' in filter_title(Entry(idata='liked', title='A Clip'))
     assert 'Published' in filter_title(Entry(idata='', title='A Clip'))
+
+
+def test_player_html_escapes_the_title_in_alt():
+    from glifestream.apis.vimeo import player_html
+
+    html = player_html(7, 'https://vimeo.com/7', '"Imagination" & more', 'x.webp')
+
+    assert html == (
+        '<div data-id="vimeo-7" class="play-video">'
+        '<a href="https://vimeo.com/7" rel="nofollow">'
+        '<img src="x.webp" width="320" height="180" '
+        'alt="&quot;Imagination&quot; &amp; more" />'
+        '</a><div class="playbutton"></div></div>'
+    )

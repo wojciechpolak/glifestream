@@ -46,7 +46,11 @@ describe('alter_html', () => {
         alter_html(root);
 
         const blocks = root.querySelectorAll('.play-video');
-        expect(Array.from(blocks, (b) => b.id)).toEqual(['youtube-abc', 'vimeo-42']);
+        expect(Array.from(blocks, (b) => (b as HTMLElement).dataset['id'])).toEqual([
+            'youtube-abc',
+            'vimeo-42',
+        ]);
+        expect(Array.from(blocks, (b) => b.id)).toEqual(['', '']);
         const youtube = blocks[0] as HTMLElement;
         expect(youtube.firstElementChild?.tagName).toBe('A');
         expect(youtube.lastElementChild?.className).toBe('playbutton');

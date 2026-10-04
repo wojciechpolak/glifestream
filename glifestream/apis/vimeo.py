@@ -18,6 +18,7 @@
 import datetime
 from functools import partial
 
+from django.utils.html import escape
 from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
@@ -120,27 +121,52 @@ class VimeoService(BaseService):
         if idata:
             e.idata = idata
 
-        if self.service.public:
-            ent['thumbnail_large'] = media.save_image(
-                ent['thumbnail_large'], downscale=True, size=(320, 180)
-            )
-
-        e.content = (
-            """<div id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="320" height="180" alt="%s" /></a><div class="playbutton"></div></div>"""
-            % (ent['id'], e.link, ent['thumbnail_large'], ent['title'])
-        )
-
-        mblob = media.mrss_init()
-        mblob['content'].append(
-            [
-                {
-                    'url': 'https://player.vimeo.com/video/%s' % ent['id'],
-                    'medium': 'video',
-                }
-            ]
-        )
-        e.mblob = media.mrss_gen_json(mblob)
+        src = localize_thumbnail(ent['thumbnail_large'], public=self.service.public)
+        e.content = player_html(ent['id'], e.link, ent['title'], src)
+        e.mblob = player_mblob(ent['id'])
         return e
+
+
+# The box every Vimeo thumbnail is stored at and shown in.
+THUMBNAIL_SIZE = (320, 180)
+
+
+def video_link(video_id: str | int) -> str:
+    return 'https://vimeo.com/%s' % video_id
+
+
+def player_html(video_id: str | int, link: str, title: str, src: str) -> str:
+    """The stored markup of a video, its thumbnail already in place.
+
+    Entries keep this markup in their content, so `glifestream.upgrades`
+    compares old entries with it to find the ones a change here left behind.
+    """
+    return (
+        """<div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="%s" /></a><div class="playbutton"></div></div>"""
+        % (video_id, link, src, *THUMBNAIL_SIZE, escape(title))
+    )
+
+
+def localize_thumbnail(url: str, *, public: bool) -> str:
+    """Where a thumbnail is served from: a local copy for a public service,
+    the remote image for a private one."""
+    if not public:
+        return url
+    return media.save_image(url, downscale=True, size=THUMBNAIL_SIZE)
+
+
+def player_mblob(video_id: str | int) -> str | None:
+    """The Media RSS of a video: its player."""
+    mblob = media.mrss_init()
+    mblob['content'].append(
+        [
+            {
+                'url': 'https://player.vimeo.com/video/%s' % video_id,
+                'medium': 'video',
+            }
+        ]
+    )
+    return media.mrss_gen_json(mblob)
 
 
 def _parse_vimeo_date(value: str) -> Any:

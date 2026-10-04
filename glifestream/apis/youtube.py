@@ -98,28 +98,56 @@ class YoutubeService(BaseService):
         # YouTube entries never registered their thumbnail as Media.
         e = NormalizedEntry(guid=guid, register_media=False)
         e.title = snippet['title']
-        e.link = 'https://www.youtube.com/watch?v=%s' % vid
+        e.link = video_link(vid)
         e.date_published = t
         e.date_updated = t
         e.author_name = snippet['channelTitle']
         e.content = self._render_content(e, vid, snippet.get('thumbnails', {}))
+        # The Flash and RTSP media of the old GData API died with it.
+        e.mblob = None
         return e
 
     def _render_content(
         self, e: Entry | NormalizedEntry, vid: str, thumbnails: dict
     ) -> str:
-        tn = _pick_thumbnail(thumbnails) if vid else None
-        if tn is None:
+        player = render_player(vid, e.link, thumbnails, public=self.service.public)
+        if player is None:
             return '<a href="%s">%s</a>' % (e.link, e.title)
+        return player
 
-        if self.service.public:
-            tn['url'] = media.save_image(
-                tn['url'], downscale=True, size=(tn['width'], tn['height'])
-            )
-        return (
-            """<div id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>"""
-            % (vid, e.link, tn['url'], tn['width'], tn['height'])
-        )
+
+def video_link(vid: str) -> str:
+    return 'https://www.youtube.com/watch?v=%s' % vid
+
+
+def player_html(vid: str, link: str, src: str, width: int, height: int) -> str:
+    """The stored markup of a video, its thumbnail already in place.
+
+    Entries keep this markup in their content, so `glifestream.upgrades`
+    compares old entries with it to find the ones a change here left behind.
+    """
+    return (
+        """<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>"""
+        % (vid, link, src, width, height)
+    )
+
+
+def localize_thumbnail(tn: dict, *, public: bool) -> str:
+    """Where a thumbnail picked by `pick_thumbnail` is served from: a local
+    copy for a public service, the remote image for a private one."""
+    url: str = tn['url']
+    if not public:
+        return url
+    return media.save_image(url, downscale=True, size=(tn['width'], tn['height']))
+
+
+def render_player(vid: str, link: str, thumbnails: dict, *, public: bool) -> str | None:
+    """The markup of a video, or None when there is no thumbnail to show."""
+    tn = pick_thumbnail(thumbnails) if vid else None
+    if tn is None:
+        return None
+    src = localize_thumbnail(tn, public=public)
+    return player_html(vid, link, src, tn['width'], tn['height'])
 
 
 # Preferred thumbnail sizes, best first, with the box each is shown in.
@@ -129,8 +157,22 @@ _THUMBNAIL_SIZES = (
     ('default', 200, 150),
 )
 
+# The box of the best size, which every video can have.
+THUMBNAIL_SIZE = (320, 180)
 
-def _pick_thumbnail(thumbnails: dict) -> dict | None:
+# YouTube's own address of each size, which needs no API key.
+THUMBNAIL_URL = 'https://i.ytimg.com/vi/%s/%s.jpg'
+
+
+def thumbnails_of(vid: str) -> dict:
+    """The thumbnails of a video, as the Data API would list them."""
+    return {
+        'default': {'url': THUMBNAIL_URL % (vid, 'default')},
+        'medium': {'url': THUMBNAIL_URL % (vid, 'mqdefault')},
+    }
+
+
+def pick_thumbnail(thumbnails: dict) -> dict | None:
     """The best available thumbnail, sized for display, or None.
 
     YouTube always lists a `default` thumbnail; without one the entry falls
