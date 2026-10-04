@@ -147,12 +147,13 @@ def player_html(video_id: str | int, link: str, title: str, src: str) -> str:
     )
 
 
-def localize_thumbnail(url: str, *, public: bool) -> str:
+def localize_thumbnail(url: str, *, public: bool, strict: bool = False) -> str:
     """Where a thumbnail is served from: a local copy for a public service,
-    the remote image for a private one."""
+    the remote image for a private one. `strict` raises when the local copy
+    cannot be made."""
     if not public:
         return url
-    return media.save_image(url, downscale=True, size=THUMBNAIL_SIZE)
+    return media.save_image(url, downscale=True, size=THUMBNAIL_SIZE, strict=strict)
 
 
 def player_mblob(video_id: str | int) -> str | None:

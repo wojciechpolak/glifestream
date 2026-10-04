@@ -132,13 +132,16 @@ def player_html(vid: str, link: str, src: str, width: int, height: int) -> str:
     )
 
 
-def localize_thumbnail(tn: dict, *, public: bool) -> str:
+def localize_thumbnail(tn: dict, *, public: bool, strict: bool = False) -> str:
     """Where a thumbnail picked by `pick_thumbnail` is served from: a local
-    copy for a public service, the remote image for a private one."""
+    copy for a public service, the remote image for a private one. `strict`
+    raises when the local copy cannot be made."""
     url: str = tn['url']
     if not public:
         return url
-    return media.save_image(url, downscale=True, size=(tn['width'], tn['height']))
+    return media.save_image(
+        url, downscale=True, size=(tn['width'], tn['height']), strict=strict
+    )
 
 
 def render_player(vid: str, link: str, thumbnails: dict, *, public: bool) -> str | None:

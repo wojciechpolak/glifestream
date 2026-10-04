@@ -177,6 +177,27 @@ def test_save_image_rejects_malformed_image_and_cleans_up(tmp_path):
     assert not os.path.exists(thumb['local'])
 
 
+def test_save_image_strict_raises_what_went_wrong(tmp_path):
+    thumb = {
+        'format': 'WEBP',
+        'local': str(tmp_path / 'missing-dir' / 'thumb.webp'),
+        'url': '/media/thumbs/a/thumb.webp',
+        'rel': 'thumbs/a/thumb.webp',
+        'internal': '[GLS-THUMBS]/thumb.webp',
+    }
+
+    with patch('glifestream.stream.media.get_thumb_info', return_value=thumb):
+        with patch(
+            'glifestream.stream.media._download_thumb',
+            side_effect=PermissionError(13, 'Permission denied'),
+        ):
+            assert media.save_image('http://remote.com/img.jpg') == (
+                'http://remote.com/img.jpg'
+            )
+            with pytest.raises(PermissionError):
+                media.save_image('http://remote.com/img.jpg', strict=True)
+
+
 def test_save_image_returns_original_url_when_media_limit_is_hit(tmp_path):
     thumb = {
         'format': 'WEBP',

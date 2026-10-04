@@ -118,11 +118,15 @@ def save_image(
     force=False,
     downscale=True,
     size: tuple[int, int] | None = None,
+    *,
+    strict: bool = False,
 ) -> str:
     """Cache a remote image as a local thumbnail and return its internal URL.
 
     Falls back to the remote `url` when the download fails and there is no
-    earlier copy to keep serving.
+    earlier copy to keep serving. `strict` raises the failure instead, for a
+    caller that has to say why, such as a thumbnail directory the web server
+    cannot write to.
     """
     if settings.BASE_URL in url:
         return url
@@ -135,6 +139,8 @@ def save_image(
     try:
         _download_thumb(url, thumb, force=force, downscale=downscale, size=size)
     except Exception as exc:
+        if strict:
+            raise
         _log_rejected_media(url, exc)
         if not stale:
             return url

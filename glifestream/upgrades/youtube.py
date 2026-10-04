@@ -74,10 +74,10 @@ class YoutubeUpgrader:
         tn = youtube.pick_thumbnail(youtube.thumbnails_of(player.video_id))
         assert tn is not None
         src = require_thumbnail(
-            youtube.localize_thumbnail(tn, public=public),
+            lambda: youtube.localize_thumbnail(tn, public=public, strict=True),
             tn['url'],
             public=public,
-            reason=_(
+            gone=_(
                 'YouTube has no thumbnail of this video any more. '
                 'It may have been deleted or made private.'
             ),

@@ -1516,8 +1516,15 @@ msgstr "Brakuje pliku okładki."
 msgid "The cover address is not a web address."
 msgstr "Adres okładki nie jest adresem internetowym."
 
-msgid "The cover could not be downloaded."
-msgstr "Nie udało się pobrać okładki."
+msgid "The cover could not be saved."
+msgstr "Nie udało się zapisać okładki."
+
+#, python-format
+msgid "The cover could not be saved: %s"
+msgstr "Nie udało się zapisać okładki: %s"
+
+msgid "There is no image at the cover address."
+msgstr "Pod adresem okładki nie ma obrazu."
 
 msgid "Enter the artist and the title of the track."
 msgstr "Podaj wykonawcę i tytuł utworu."
@@ -1530,3 +1537,14 @@ msgstr "YouTube nie ma miniatury tego filmu. Podaj okładkę."
 
 msgid "Fill in the fields above to see B."
 msgstr "Uzupełnij pola powyżej, aby zobaczyć B."
+
+#, python-format
+msgid "The thumbnail could not be saved: %s"
+msgstr "Nie udało się zapisać miniatury: %s"
+
+#, python-format
+msgid "The thumbnail could not be fetched: HTTP %d."
+msgstr "Nie udało się pobrać miniatury: HTTP %d."
+
+msgid "The thumbnail could not be saved."
+msgstr "Nie udało się zapisać miniatury."

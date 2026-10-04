@@ -13,6 +13,7 @@ from django.urls import reverse
 from glifestream import upgrades
 from glifestream.filters import music
 from glifestream.stream.models import Entry, EntryUpgrade, Service
+from glifestream.utils import httpclient
 
 OLD = (
     '<table class="vc"><tr><td><div id="youtube-abc" class="play-video">'
@@ -126,9 +127,14 @@ def test_review_shows_the_entry_now_and_after(staff_client, entry, new_thumbnail
 
 @pytest.mark.django_db
 def test_review_without_a_proposal_offers_only_skip(staff_client, entry):
-    with patch(
-        'glifestream.apis.youtube.media.save_image', side_effect=lambda u, **k: u
-    ):
+    gone = httpclient.build_fetch_error(
+        category='not_found',
+        detail='HTTP 404',
+        retryable=False,
+        status_code=404,
+        url='https://i.ytimg.com/vi/abc/mqdefault.jpg',
+    )
+    with patch('glifestream.apis.youtube.media.save_image', side_effect=gone):
         body = staff_client.get(review_url()).content.decode()
 
     assert 'This entry cannot be upgraded.' in body

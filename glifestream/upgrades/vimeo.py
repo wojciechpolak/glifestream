@@ -86,10 +86,10 @@ class VimeoUpgrader:
         if not url:
             raise Unavailable(gone)
         src = require_thumbnail(
-            vimeo.localize_thumbnail(url, public=public),
+            lambda: vimeo.localize_thumbnail(url, public=public, strict=True),
             url,
             public=public,
-            reason=gone,
+            gone=gone,
         )
         return self._build(entry, player.video_id, src)
 

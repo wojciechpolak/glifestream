@@ -9,7 +9,6 @@ export DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE:-run.settings_docker}
 # A run/ mounted from an empty directory has none of these yet. An existing
 # run/settings_docker.py, your own or the checkout's, is left as it is.
 [ -n "$(ls -A /app/run/db 2>/dev/null)" ] || new_db=1
-[ -d /app/media/upload ] || new_media=1
 mkdir -p /app/run/db /app/run/static/themes /app/run/templates
 for file in __init__.py settings_docker.py; do
     [ -e "/app/run/$file" ] || cp "/app/conf/run/$file" /app/run/
@@ -32,14 +31,16 @@ python manage.py collectstatic --no-input
 python worker.py --init-files-dirs
 chgrp -R users /app/static/ && chmod -R g+w /app/static
 
-# Gunicorn runs as www-data: let it write the SQLite database and uploads
-# created above. Existing ones keep the permissions they have.
+# Gunicorn runs as www-data: let it write the SQLite database created above.
+# An existing database keeps the permissions it has.
 if [ -n "$new_db" ]; then
     chgrp -R users /app/run/db && chmod -R g+w /app/run/db
 fi
-if [ -n "$new_media" ]; then
-    find /app/media -maxdepth 2 -type d -exec chgrp users {} + -exec chmod g+w {} +
-fi
+# The worker runs as root, but the web process saves thumbnails and uploads
+# too, such as for a post with pictures or an entry upgrade. Its media
+# directories have to stay writable for it, also those an older image or
+# the worker created. Only the directories change, never the files in them.
+find /app/media -maxdepth 2 -type d -exec chgrp users {} + -exec chmod g+w {} +
 
 python manage.py create_initial_user
 

@@ -228,22 +228,52 @@ def test_propose_fetches_what_a_fresh_import_would(yt_service):
 
     assert proposal.content == fresh == yt_current(src=NEWER_THUMB)
     assert proposal.link == 'https://www.youtube.com/watch?v=abc'
-    save_image.assert_any_call(
-        'https://i.ytimg.com/vi/abc/mqdefault.jpg', downscale=True, size=(320, 180)
+    # The upgrade asks for the reason a download fails; the import does not.
+    for strict in (True, False):
+        save_image.assert_any_call(
+            'https://i.ytimg.com/vi/abc/mqdefault.jpg',
+            downscale=True,
+            size=(320, 180),
+            strict=strict,
+        )
+
+
+def not_found(url: str) -> httpclient.FetchError:
+    return httpclient.build_fetch_error(
+        category='not_found',
+        detail='HTTP 404 from %s' % url,
+        retryable=False,
+        status_code=404,
+        url=url,
     )
 
 
 def test_propose_reports_a_video_youtube_no_longer_has(yt_service):
     entry = make_entry(yt_service, YT_LEGACY[0])
 
-    # save_image hands back the remote URL when the download fails.
     with (
         patch(
-            'glifestream.apis.youtube.media.save_image', side_effect=lambda u, **k: u
+            'glifestream.apis.youtube.media.save_image',
+            side_effect=not_found('https://i.ytimg.com/vi/abc/mqdefault.jpg'),
         ),
-        pytest.raises(upgrades.Unavailable, match='YouTube'),
+        pytest.raises(upgrades.Unavailable, match='YouTube has no thumbnail'),
     ):
         YT.propose(entry)
+
+
+def test_propose_reports_a_thumbnail_it_cannot_save(yt_service, caplog):
+    entry = make_entry(yt_service, YT_LEGACY[0])
+    denied = PermissionError(13, 'Permission denied', '/media/thumbs/a/ad97.webp')
+
+    with patch('glifestream.apis.youtube.media.save_image', side_effect=denied):
+        with pytest.raises(upgrades.Unavailable) as raised:
+            YT.propose(entry)
+
+    message = str(raised.value)
+    assert message.startswith('The thumbnail could not be saved:')
+    assert 'Permission denied' in message and '/media/thumbs/a/ad97.webp' in message
+    assert 'deleted' not in message
+    assert 'Permission denied' in caplog.text
 
 
 def test_propose_checks_the_remote_thumbnail_of_a_private_service(db):
@@ -293,7 +323,7 @@ def test_propose_asks_vimeo_oembed_for_the_thumbnail(vimeo_service):
 
     discover.assert_called_once_with('https://vimeo.com/42', 'vimeo', maxwidth=640)
     save_image.assert_called_once_with(
-        'https://i.vimeocdn.com/42_640', downscale=True, size=(320, 180)
+        'https://i.vimeocdn.com/42_640', downscale=True, size=(320, 180), strict=True
     )
     assert proposal == upgrades.Proposal(
         content=vimeo.player_html('42', 'https://vimeo.com/42', 'A Clip', NEWER_THUMB),

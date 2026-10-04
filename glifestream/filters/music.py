@@ -38,6 +38,7 @@ from django.utils.translation import gettext as _
 
 from glifestream.filters.expand import normalize_youtube_url
 from glifestream.stream import media
+from glifestream.utils import httpclient
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +63,11 @@ YOUTUBE_THUMBNAIL_SIZE = (320, 180)
 
 class MusicError(ValueError):
     """A card that cannot be made as asked. The message says why, for the
-    owner."""
+    owner. `gone` tells that a remote image does not exist."""
+
+    def __init__(self, message: str, *, gone: bool = False) -> None:
+        super().__init__(message)
+        self.gone = gone
 
 
 @dataclass(frozen=True)
@@ -208,9 +213,15 @@ def localize_cover(url: str, size: tuple[int, int] = COVER_SIZE) -> Cover:
         return _local_cover(url)
     if not re.match(r'https?://', url):
         raise MusicError(_('The cover address is not a web address.'))
-    src = media.save_image(url, downscale=True, size=size)
+    try:
+        src = media.save_image(url, downscale=True, size=size, strict=True)
+    except Exception as exc:
+        if isinstance(exc, httpclient.FetchError) and exc.status_code in (404, 410):
+            raise MusicError(_('There is no image at the cover address.'), gone=True)
+        logger.warning('Music cover %s failed: %s', url, exc)
+        raise MusicError(_('The cover could not be saved: %s') % exc) from exc
     if not src.startswith('[GLS-THUMBS]/'):
-        raise MusicError(_('The cover could not be downloaded.'))
+        raise MusicError(_('The cover could not be saved.'))
     return _local_cover(src)
 
 
@@ -254,8 +265,10 @@ def build_track(
                 YOUTUBE_THUMBNAIL_URL % vid, size=YOUTUBE_THUMBNAIL_SIZE
             )
         except MusicError as exc:
-            if strict:
+            if strict and exc.gone:
                 raise MusicError(
                     _('YouTube has no thumbnail of this video. Enter a cover.')
                 ) from exc
+            if strict:
+                raise
     return Track(artist, title, cover, vid)

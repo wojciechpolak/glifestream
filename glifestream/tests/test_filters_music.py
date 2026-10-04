@@ -8,6 +8,7 @@ import pytest
 from PIL import Image
 
 from glifestream.filters import music
+from glifestream.utils import httpclient
 
 COVER = '[GLS-THUMBS]/1938a2f61cbe0bcdd49bdf6f7517accf9287a234.jpg'
 YT_THUMB = '[GLS-THUMBS]/ad97b17ffccd1af56d7f1596ff2b47f4e6a487bf.webp'
@@ -147,19 +148,54 @@ def test_a_remote_cover_is_saved_scaled_down(media_root):
         cover = music.localize_cover('https://img.example/c.jpg')
 
     save.assert_called_once_with(
-        'https://img.example/c.jpg', downscale=True, size=music.COVER_SIZE
+        'https://img.example/c.jpg', downscale=True, size=music.COVER_SIZE, strict=True
     )
     assert cover == music.Cover(YT_THUMB, 160, 120)
 
 
-def test_a_cover_that_cannot_be_downloaded_is_an_error():
+def _not_found(url):
+    return httpclient.build_fetch_error(
+        category='not_found',
+        detail='HTTP 404',
+        retryable=False,
+        status_code=404,
+        url=url,
+    )
+
+
+def test_a_cover_that_is_not_there_is_an_error():
+    url = 'https://img.example/gone.jpg'
     with patch(
-        'glifestream.filters.music.media.save_image', side_effect=lambda u, **k: u
+        'glifestream.filters.music.media.save_image', side_effect=_not_found(url)
     ):
-        with pytest.raises(music.MusicError):
-            music.localize_cover('https://img.example/gone.jpg')
+        with pytest.raises(music.MusicError, match='no image') as raised:
+            music.localize_cover(url)
+    assert raised.value.gone
     with pytest.raises(music.MusicError):
         music.localize_cover('file:///etc/passwd')
+
+
+def test_a_cover_that_cannot_be_saved_says_why():
+    denied = PermissionError(13, 'Permission denied', '/media/thumbs/a/x.webp')
+    with patch('glifestream.filters.music.media.save_image', side_effect=denied):
+        with pytest.raises(music.MusicError, match='Permission denied') as raised:
+            music.localize_cover('https://img.example/c.jpg')
+    assert not raised.value.gone
+
+
+def test_build_track_tells_a_missing_video_thumbnail_from_a_failure():
+    vid_thumb = music.YOUTUBE_THUMBNAIL_URL % 'abc'
+    with patch(
+        'glifestream.filters.music.media.save_image', side_effect=_not_found(vid_thumb)
+    ):
+        with pytest.raises(music.MusicError, match='Enter a cover'):
+            music.build_track('A', 'T', 'https://youtu.be/abc')
+    with patch(
+        'glifestream.filters.music.media.save_image',
+        side_effect=PermissionError(13, 'Permission denied'),
+    ):
+        with pytest.raises(music.MusicError, match='Permission denied'):
+            music.build_track('A', 'T', 'https://youtu.be/abc')
 
 
 def test_build_track_falls_back_to_the_video_thumbnail(media_root):

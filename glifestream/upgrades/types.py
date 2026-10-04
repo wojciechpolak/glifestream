@@ -17,17 +17,21 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import re
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Protocol
 
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from glifestream.stream import media
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
+
+logger = logging.getLogger(__name__)
 
 
 class Unavailable(Exception):
@@ -156,19 +160,42 @@ def thumb_exists(rel: str) -> bool:
     return os.path.isfile(os.path.join(settings.MEDIA_ROOT, rel))
 
 
-def require_thumbnail(src: str, url: str, *, public: bool, reason: str) -> str:
-    """`src`, the thumbnail `localize_thumbnail` gave for `url`, once it is
-    known to show. A public service needs a local copy: `save_image` hands
-    back the remote URL when the download fails. A private one shows the
-    remote image, so that has to answer."""
-    if public:
-        if not src.startswith('[GLS-THUMBS]/'):
-            raise Unavailable(reason)
-        return src
+# What a provider answers for an image it does not have.
+_GONE = (404, 410)
+
+
+def thumbnail_failure(exc: Exception, gone: str) -> str:
+    """Why a thumbnail could not be had, for the owner: `gone` when the
+    provider has no such image, else the failure itself, such as a
+    thumbnail directory the web server cannot write to."""
+    if isinstance(exc, httpclient.FetchError) and exc.status_code in _GONE:
+        return gone
+    logger.warning('Upgrade thumbnail failed: %s', exc)
+    return _('The thumbnail could not be saved: %s') % exc
+
+
+def require_thumbnail(
+    localize: Callable[[], str], url: str, *, public: bool, gone: str
+) -> str:
+    """The thumbnail `localize` gives for `url`, once it is known to show.
+
+    A public service needs a local copy, which `localize` makes or raises
+    for. A private one shows the remote image, so that has to answer.
+    """
     try:
-        r = httpclient.head(url)
+        src = localize()
+        if not public:
+            r = httpclient.head(url)
+            if r.status_code in _GONE:
+                raise Unavailable(gone)
+            if r.status_code >= 400:
+                raise Unavailable(
+                    _('The thumbnail could not be fetched: HTTP %d.') % r.status_code
+                )
+    except Unavailable:
+        raise
     except Exception as exc:
-        raise Unavailable(reason) from exc
-    if r.status_code >= 400:
-        raise Unavailable(reason)
+        raise Unavailable(thumbnail_failure(exc, gone)) from exc
+    if public and not src.startswith('[GLS-THUMBS]/'):
+        raise Unavailable(_('The thumbnail could not be saved.'))
     return src

@@ -363,9 +363,11 @@ uses the same repository file.
   Otherwise all clients share one login limit. `NGINX_DIR_TEMPLATES` mounts a
   directory of templates into `nginx` directly.
 - On every start the `app` container creates the directories it needs in
-  `run/`. When it creates the database or the media directories, it gives the
-  `users` group write access to them, because Gunicorn runs as `www-data`;
-  existing ones keep their permissions.
+  `run/`, and it gives the `users` group write access to the media
+  directories, because Gunicorn runs as `www-data` and saves thumbnails and
+  uploads too. Only the directories change, not the files in them. A database
+  the container creates gets the same access; an existing one keeps its
+  permissions.
 - The published image workflow builds multi-arch images for `linux/amd64` and `linux/arm64`.
 
 
