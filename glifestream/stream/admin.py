@@ -28,6 +28,7 @@ from glifestream.stream.models import (
     Favorite,
     List,
     ServiceFetchState,
+    EntryUpgrade,
 )
 
 
@@ -175,9 +176,24 @@ class ServiceFetchStateAdmin(admin.ModelAdmin):
     raw_id_fields = ('service', 'triggered_by_user')
 
 
+class EntryUpgradeAdmin(admin.ModelAdmin):
+    """The record of upgrades, which only the settings pages may change."""
+
+    list_display = ('entry', 'upgrader', 'status', 'created_at', 'reverted_at')
+    list_filter = ('upgrader', 'status')
+    raw_id_fields = ('entry',)
+
+    def has_add_permission(self, request: Any) -> bool:
+        return False
+
+    def has_change_permission(self, request: Any, obj: Any = None) -> bool:
+        return False
+
+
 admin.site.register(Service, ServiceAdmin)
 admin.site.register(Entry, EntryAdmin)
 admin.site.register(Media, MediaAdmin)
 admin.site.register(Favorite, FavoriteAdmin)
 admin.site.register(List, ListAdmin)
 admin.site.register(ServiceFetchState, ServiceFetchStateAdmin)
+admin.site.register(EntryUpgrade, EntryUpgradeAdmin)

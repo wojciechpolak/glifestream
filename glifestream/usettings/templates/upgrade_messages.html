@@ -1,0 +1,5 @@
+{% if messages %}
+  <ul class="upgrade-messages">
+    {% for message in messages %}<li class="{{ message.tags }}">{{ message }}</li>{% endfor %}
+  </ul>
+{% endif %}

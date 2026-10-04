@@ -85,10 +85,24 @@ _THUMB_SUFFIXES = {
 _PAGE_THUMB_MAX_AGE_SEC = 7 * 24 * 3600
 
 
+def thumb_suffix() -> str:
+    """The file suffix of the thumbnails saved from now on."""
+    iformat = getattr(settings, 'APP_THUMBNAIL_FORMAT', 'JPEG')
+    return _THUMB_SUFFIXES.get(iformat.lower(), '')
+
+
+def thumb_rels(content: str) -> set[str]:
+    """The MEDIA_ROOT-relative paths of the thumbnails `content` shows."""
+    return {
+        get_thumb_info(thumb_hash, append_suffix=False)['rel']
+        for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', content)
+    }
+
+
 def get_thumb_info(thumb_hash: str, append_suffix: bool) -> ThumbInfo:
     prefix = thumb_hash[0] + '/'
     iformat = getattr(settings, 'APP_THUMBNAIL_FORMAT', 'JPEG')
-    suffix = _THUMB_SUFFIXES.get(iformat.lower(), '') if append_suffix else ''
+    suffix = thumb_suffix() if append_suffix else ''
     return {
         'format': iformat,
         'local': '%s/thumbs/%s%s%s' % (settings.MEDIA_ROOT, prefix, thumb_hash, suffix),

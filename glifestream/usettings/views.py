@@ -21,6 +21,17 @@ from glifestream.usettings.list_settings import lists
 from glifestream.usettings.oauth_settings import oauth, oauth2
 from glifestream.usettings.preferences_settings import preferences
 from glifestream.usettings.service_settings import api, opml, services, status
+from glifestream.usettings.upgrade_settings import (
+    upgrade_apply,
+    upgrade_apply_markup_only,
+    upgrade_markup_only,
+    upgrade_requeue,
+    upgrade_revert,
+    upgrade_revert_batch,
+    upgrade_review,
+    upgrade_skip,
+    upgrades_overview,
+)
 from glifestream.usettings.websub_settings import websub
 
 __all__ = [
@@ -32,5 +43,14 @@ __all__ = [
     'preferences',
     'services',
     'status',
+    'upgrade_apply',
+    'upgrade_apply_markup_only',
+    'upgrade_markup_only',
+    'upgrade_requeue',
+    'upgrade_revert',
+    'upgrade_revert_batch',
+    'upgrade_review',
+    'upgrade_skip',
+    'upgrades_overview',
     'websub',
 ]

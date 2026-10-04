@@ -472,6 +472,14 @@ def finalize_page(
         query.page['title'] = page_title
 
 
+def entry_link(entry: Entry) -> str:
+    """The path of an entry's own page, ending in a slug of its title."""
+    return '%s/%s' % (
+        reverse('entry', args=[cast(int, entry.pk)]),
+        gls_slugify(truncatewords(entry.title, 7)),
+    )
+
+
 def decorate_entries(
     state: IndexRequestState, query: IndexQueryState, entries: Any
 ) -> None:
@@ -485,10 +493,7 @@ def decorate_entries(
             pass
 
         if not entry.friends_only:
-            entry_obj.gls_link = '%s/%s' % (
-                reverse('entry', args=[cast(int, entry.pk)]),
-                gls_slugify(truncatewords(entry.title, 7)),
-            )
+            entry_obj.gls_link = entry_link(entry)
         else:
             entry_obj.gls_link = '%s/' % (reverse('entry', args=[cast(int, entry.pk)]))
             if 'title' in query.page:

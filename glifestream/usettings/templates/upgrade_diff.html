@@ -1,0 +1,8 @@
+{% load i18n %}
+  {% if diffs %}
+  <details class="upgrade-diff">
+    <summary>{% trans "Source changes" %}</summary>
+    {% for diff in diffs %}<pre>{% for cls, line in diff %}<span class="{{ cls }}">{{ line }}</span>
+{% endfor %}</pre>{% endfor %}
+  </details>
+  {% endif %}

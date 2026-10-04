@@ -21,7 +21,6 @@ import datetime
 import getopt
 import json
 import os
-import re
 import time
 from dataclasses import dataclass, field
 from collections.abc import Iterator
@@ -31,7 +30,7 @@ from urllib.parse import quote
 from django.conf import settings
 
 from glifestream.stream import media
-from glifestream.stream.models import Entry, Favorite, Media
+from glifestream.stream.models import Entry, EntryUpgrade, Favorite, Media
 from glifestream.utils.time import unixnow
 
 
@@ -223,10 +222,7 @@ def _collect_files(subdir: str, *, modified_before: float) -> set[str]:
 
 def _referenced_thumbs(content: str, link_image: str) -> set[str]:
     """The thumbnails one entry lays claim to, via link_image or its body."""
-    referenced = {
-        _thumb_rel(thumb_hash)
-        for thumb_hash in re.findall(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', content)
-    }
+    referenced = media.thumb_rels(content)
     link_hash = media.get_thumb_hash(link_image)
     if link_hash:
         referenced.add(_thumb_rel(link_hash))
@@ -238,6 +234,12 @@ def list_orphan_thumbs() -> list[str]:
     entries = Entry.objects.values_list('content', 'link_image')
     for content, link_image in entries.iterator(chunk_size=500):
         orphans -= _referenced_thumbs(content, link_image)
+    # What an applied upgrade replaced stays, so the upgrade can be reverted.
+    replaced = EntryUpgrade.objects.filter(
+        status=EntryUpgrade.STATUS_APPLIED
+    ).values_list('old_content', flat=True)
+    for content in replaced.iterator(chunk_size=500):
+        orphans -= media.thumb_rels(content)
     return sorted(orphans)
 
 

@@ -1211,3 +1211,283 @@ msgstr "Publiczne serwisy są widziane przez wszystkich."
 
 msgid "A new service cannot use this API any more."
 msgstr "Nowy serwis nie może już korzystać z tego API."
+
+msgid "Upgrades"
+msgstr "Aktualizacje"
+
+msgid "Upgrades - Settings"
+msgstr "Aktualizacje - Ustawienia"
+
+#, python-format
+msgid "%s upgrades - Settings"
+msgstr "Aktualizacje %s - Ustawienia"
+
+msgid "Old entries to bring up to date:"
+msgstr "Stare wpisy do unowocześnienia:"
+
+msgid "Entries keep the markup they were imported with. An upgrade shows an entry as it is now and as a fresh import would show it, and changes nothing until you apply it. Every applied upgrade can be reverted."
+msgstr "Wpisy zachowują znaczniki z chwili importu. Aktualizacja pokazuje wpis taki, jaki jest teraz, i taki, jaki dałby świeży import, i niczego nie zmienia, dopóki jej nie zastosujesz. Każdą zastosowaną aktualizację można cofnąć."
+
+msgid "Provider"
+msgstr "Dostawca"
+
+msgid "Waiting"
+msgstr "Oczekujące"
+
+msgid "Applied"
+msgstr "Zastosowane"
+
+msgid "Skipped"
+msgstr "Pominięte"
+
+msgid "Reverted"
+msgstr "Cofnięte"
+
+msgid "Review"
+msgstr "Przeglądaj"
+
+msgid "Offer skipped again"
+msgstr "Pokaż pominięte ponownie"
+
+msgid "Recent upgrades:"
+msgstr "Ostatnie aktualizacje:"
+
+msgid "Revert"
+msgstr "Cofnij"
+
+msgid "All upgrades"
+msgstr "Wszystkie aktualizacje"
+
+#, python-format
+msgid "Applied to entry #%(id)s."
+msgstr "Zastosowano dla wpisu #%(id)s."
+
+#, python-format
+msgid "Entry #%(id)s was reverted."
+msgstr "Wpis #%(id)s został przywrócony."
+
+#, python-format
+msgid "%(position)s of %(total)s"
+msgstr "%(position)s z %(total)s"
+
+msgid "Hidden"
+msgstr "Ukryty"
+
+msgid "A: now"
+msgstr "A: teraz"
+
+msgid "B: after the upgrade"
+msgstr "B: po aktualizacji"
+
+msgid "This entry cannot be upgraded."
+msgstr "Tego wpisu nie można zaktualizować."
+
+msgid "Apply B"
+msgstr "Zastosuj B"
+
+msgid "Skip, keep A"
+msgstr "Pomiń, zostaw A"
+
+msgid "Decide later"
+msgstr "Zdecyduj później"
+
+msgid "Source changes"
+msgstr "Zmiany w źródle"
+
+msgid "No more entries after this one."
+msgstr "Po tym wpisie nie ma już kolejnych."
+
+msgid "Start over"
+msgstr "Zacznij od początku"
+
+#, python-format
+msgid "All %(label)s entries are up to date."
+msgstr "Wszystkie wpisy %(label)s są aktualne."
+
+msgid "Skipped. The entry stays as it was."
+msgstr "Pominięto. Wpis pozostaje bez zmian."
+
+#, python-format
+msgid "%d skipped entry is back in the queue."
+msgid_plural "%d skipped entries are back in the queue."
+msgstr[0] "%d pominięty wpis wrócił do kolejki."
+msgstr[1] "%d pominięte wpisy wróciły do kolejki."
+msgstr[2] "%d pominiętych wpisów wróciło do kolejki."
+
+msgid "Reverted. The entry is as it was and back in the queue."
+msgstr "Cofnięto. Wpis jest taki jak wcześniej i wrócił do kolejki."
+
+msgid "The entry shows no YouTube video."
+msgstr "Wpis nie pokazuje filmu z YouTube."
+
+msgid "YouTube has no thumbnail of this video any more. It may have been deleted or made private."
+msgstr "YouTube nie ma już miniatury tego filmu. Mógł zostać usunięty lub ustawiony jako prywatny."
+
+msgid "The entry shows no Vimeo video."
+msgstr "Wpis nie pokazuje filmu z Vimeo."
+
+msgid "Vimeo has no thumbnail of this video any more. It may have been deleted or made private."
+msgstr "Vimeo nie ma już miniatury tego filmu. Mógł zostać usunięty lub ustawiony jako prywatny."
+
+msgid "This preview has expired or is not valid. Review the entry again."
+msgstr "Ten podgląd wygasł lub jest nieprawidłowy. Przejrzyj wpis ponownie."
+
+msgid "Unknown upgrader."
+msgstr "Nieznany rodzaj aktualizacji."
+
+msgid "The entry no longer exists."
+msgstr "Wpis już nie istnieje."
+
+msgid "The entry changed after its preview was shown. Nothing was saved; review it again."
+msgstr "Wpis zmienił się po wyświetleniu podglądu. Niczego nie zapisano; przejrzyj go ponownie."
+
+msgid "The new thumbnail is missing. Nothing was saved; review the entry again."
+msgstr "Brakuje nowej miniatury. Niczego nie zapisano; przejrzyj wpis ponownie."
+
+msgid "There is no such upgrade to revert."
+msgstr "Nie ma takiej aktualizacji do cofnięcia."
+
+msgid "The entry changed after the upgrade, so reverting it would lose that change. Nothing was reverted."
+msgstr "Wpis zmienił się po aktualizacji, więc jej cofnięcie usunęłoby tę zmianę. Niczego nie cofnięto."
+
+msgid "Entry upgrade"
+msgstr "Aktualizacja wpisu"
+
+msgid "Entry upgrades"
+msgstr "Aktualizacje wpisów"
+
+msgid "Upgrader"
+msgstr "Rodzaj aktualizacji"
+
+msgid "Old contents"
+msgstr "Poprzednia treść"
+
+msgid "Old link"
+msgstr "Poprzedni odnośnik"
+
+msgid "Old media"
+msgstr "Poprzednie media"
+
+msgid "New contents"
+msgstr "Nowa treść"
+
+msgid "New link"
+msgstr "Nowy odnośnik"
+
+msgid "New media"
+msgstr "Nowe media"
+
+msgid "Created at"
+msgstr "Utworzono"
+
+msgid "Reverted at"
+msgstr "Cofnięto"
+
+msgid "Batch"
+msgstr "Partia"
+
+msgid "markup"
+msgstr "znaczniki"
+
+msgid "link"
+msgstr "odnośnik"
+
+msgid "media"
+msgstr "media"
+
+msgid "Published"
+msgstr "Opublikowano"
+
+msgid "Changes"
+msgstr "Zmiany"
+
+msgid "For example:"
+msgstr "Na przykład:"
+
+msgid "Markup only"
+msgstr "Tylko znaczniki"
+
+msgid "Revert the batch"
+msgstr "Cofnij partię"
+
+msgid "Review one by one instead"
+msgstr "Przeglądaj zamiast tego po kolei"
+
+msgid "Apply all where only the markup changes"
+msgstr "Zastosuj wszystkie, w których zmieniają się tylko znaczniki"
+
+msgid "No waiting entry changes only its markup."
+msgstr "Żaden oczekujący wpis nie zmienia samych znaczników."
+
+msgid "This list has expired or is not valid. Open it again."
+msgstr "Ta lista wygasła lub jest nieprawidłowa. Otwórz ją ponownie."
+
+#, python-format
+msgid "%(applied)s applied"
+msgstr "zastosowano: %(applied)s"
+
+msgid "Each of these entries keeps its thumbnail, so it looks as it does now. Only the stored markup changes, and the link and media where they are out of date. The dates stay as they are. The whole batch can be reverted from the list of recent upgrades."
+msgstr "Każdy z tych wpisów zachowuje swoją miniaturę, więc wygląda tak jak teraz. Zmieniają się tylko zapisane znaczniki oraz odnośnik i media, jeśli są nieaktualne. Daty pozostają bez zmian. Całą partię można cofnąć z listy ostatnich aktualizacji."
+
+#, python-format
+msgid "%(count)s waiting entry only changes its markup and keeps its thumbnail."
+msgid_plural "%(count)s waiting entries only change their markup and keep their thumbnails."
+msgstr[0] "%(count)s oczekujący wpis zmienia tylko znaczniki i zachowuje miniaturę."
+msgstr[1] "%(count)s oczekujące wpisy zmieniają tylko znaczniki i zachowują miniatury."
+msgstr[2] "%(count)s oczekujących wpisów zmienia tylko znaczniki i zachowuje miniatury."
+
+#, python-format
+msgid "Apply %(count)s where only the markup changes"
+msgid_plural "Apply %(count)s where only the markup changes"
+msgstr[0] "Zastosuj %(count)s, gdzie zmieniają się tylko znaczniki"
+msgstr[1] "Zastosuj %(count)s, gdzie zmieniają się tylko znaczniki"
+msgstr[2] "Zastosuj %(count)s, gdzie zmieniają się tylko znaczniki"
+
+#, python-format
+msgid "A batch of %(count)s entry"
+msgid_plural "A batch of %(count)s entries"
+msgstr[0] "Partia %(count)s wpisu"
+msgstr[1] "Partia %(count)s wpisów"
+msgstr[2] "Partia %(count)s wpisów"
+
+#, python-format
+msgid "%(label)s: %(count)s entry only changes its markup"
+msgid_plural "%(label)s: %(count)s entries only change their markup"
+msgstr[0] "%(label)s: %(count)s wpis zmienia tylko znaczniki"
+msgstr[1] "%(label)s: %(count)s wpisy zmieniają tylko znaczniki"
+msgstr[2] "%(label)s: %(count)s wpisów zmienia tylko znaczniki"
+
+#, python-format
+msgid "Apply to %(count)s entry"
+msgid_plural "Apply to all %(count)s entries"
+msgstr[0] "Zastosuj do %(count)s wpisu"
+msgstr[1] "Zastosuj do wszystkich %(count)s wpisów"
+msgstr[2] "Zastosuj do wszystkich %(count)s wpisów"
+
+#, python-format
+msgid "Applied to %d entry. Recent upgrades below can revert the batch."
+msgid_plural "Applied to %d entries. Recent upgrades below can revert the batch."
+msgstr[0] "Zastosowano do %d wpisu. Partię można cofnąć w ostatnich aktualizacjach poniżej."
+msgstr[1] "Zastosowano do %d wpisów. Partię można cofnąć w ostatnich aktualizacjach poniżej."
+msgstr[2] "Zastosowano do %d wpisów. Partię można cofnąć w ostatnich aktualizacjach poniżej."
+
+#, python-format
+msgid "%d entry changed after the list was shown and was left as it is."
+msgid_plural "%d entries changed after the list was shown and were left as they are."
+msgstr[0] "%d wpis zmienił się po wyświetleniu listy i pozostał bez zmian."
+msgstr[1] "%d wpisy zmieniły się po wyświetleniu listy i pozostały bez zmian."
+msgstr[2] "%d wpisów zmieniło się po wyświetleniu listy i pozostało bez zmian."
+
+#, python-format
+msgid "Reverted %d entry. It is as it was and back in the queue."
+msgid_plural "Reverted %d entries. They are as they were and back in the queue."
+msgstr[0] "Cofnięto %d wpis. Jest taki jak wcześniej i wrócił do kolejki."
+msgstr[1] "Cofnięto %d wpisy. Są takie jak wcześniej i wróciły do kolejki."
+msgstr[2] "Cofnięto %d wpisów. Są takie jak wcześniej i wróciły do kolejki."
+
+#, python-format
+msgid "%d entry changed after the upgrade and was not reverted."
+msgid_plural "%d entries changed after the upgrade and were not reverted."
+msgstr[0] "%d wpis zmienił się po aktualizacji i nie został cofnięty."
+msgstr[1] "%d wpisy zmieniły się po aktualizacji i nie zostały cofnięte."
+msgstr[2] "%d wpisów zmieniło się po aktualizacji i nie zostało cofniętych."

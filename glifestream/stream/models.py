@@ -417,6 +417,52 @@ class WebSubPublishRequest(models.Model):
         verbose_name = 'WebSub publish request'
 
 
+class EntryUpgrade(models.Model):
+    """A decision about bringing an old entry up to its provider's markup.
+
+    An applied upgrade keeps what it replaced, so it can be reverted, and
+    keeps the old thumbnail from being cleaned up as an orphan meanwhile.
+    """
+
+    STATUS_APPLIED = 'applied'
+    STATUS_SKIPPED = 'skipped'
+    STATUS_REVERTED = 'reverted'
+    STATUS_CHOICES = (
+        (STATUS_APPLIED, _('Applied')),
+        (STATUS_SKIPPED, _('Skipped')),
+        (STATUS_REVERTED, _('Reverted')),
+    )
+
+    entry = models.ForeignKey(
+        Entry,
+        on_delete=models.CASCADE,
+        related_name='upgrades',
+        verbose_name=_('Entry'),
+    )
+    entry_id: int
+    upgrader = models.CharField(_('Upgrader'), max_length=32)
+    status = models.CharField(_('Status'), max_length=16, choices=STATUS_CHOICES)
+    old_content = models.TextField(_('Old contents'), blank=True)
+    old_link = models.CharField(_('Old link'), max_length=200, blank=True)
+    old_mblob = models.TextField(_('Old media'), null=True, blank=True)
+    new_content = models.TextField(_('New contents'), blank=True)
+    new_link = models.CharField(_('New link'), max_length=200, blank=True)
+    new_mblob = models.TextField(_('New media'), null=True, blank=True)
+    # Upgrades applied together share a batch, so they can be reverted together.
+    batch = models.CharField(_('Batch'), max_length=32, blank=True, db_index=True)
+    created_at = models.DateTimeField(_('Created at'), auto_now_add=True)
+    reverted_at = models.DateTimeField(_('Reverted at'), null=True, blank=True)
+
+    class Meta:
+        verbose_name = _('Entry upgrade')
+        verbose_name_plural = _('Entry upgrades')
+        ordering = ('-created_at', '-id')
+        indexes = [models.Index(fields=['upgrader', 'status'])]
+
+    def __str__(self) -> str:
+        return '%s: %s (%s)' % (self.upgrader, self.entry_id, self.status)
+
+
 class ServiceFetchState(models.Model):
     STATUS_IDLE = 'idle'
     STATUS_QUEUED = 'queued'

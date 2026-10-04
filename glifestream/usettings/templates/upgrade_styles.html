@@ -1,0 +1,123 @@
+  <style>
+    .upgrade-messages li {
+      margin: 0.8rem 0;
+      padding: 0.55rem 0.8rem;
+      border-radius: 10px;
+      background: rgba(45, 140, 62, 0.12);
+    }
+    .upgrade-messages li.error {
+      background: rgba(180, 32, 32, 0.14);
+    }
+    .upgrade-messages li.warning {
+      background: rgba(196, 132, 31, 0.16);
+    }
+    .upgrade-messages form {
+      display: inline;
+      margin: 0 0 0 0.6rem;
+      padding: 0;
+    }
+    .upgrade-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.3rem 0.8rem;
+      margin: 0.6rem 0 1rem;
+    }
+    .upgrade-head .progress {
+      font-variant-numeric: tabular-nums;
+      opacity: 0.75;
+    }
+    .upgrade-badge {
+      padding: 0.08rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      background: rgba(196, 132, 31, 0.16);
+    }
+    #stream.upgrade-compare {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-areas:
+        "label-a label-b"
+        "a b";
+      gap: 0 24px;
+      align-items: start;
+    }
+    #stream.upgrade-compare > .upgrade-label {
+      margin: 0 0 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+    #stream.upgrade-compare > .label-a { grid-area: label-a; }
+    #stream.upgrade-compare > .label-b { grid-area: label-b; }
+    #stream.upgrade-compare > article:nth-of-type(1) { grid-area: a; }
+    #stream.upgrade-compare > article:nth-of-type(2),
+    #stream.upgrade-compare > .upgrade-unavailable { grid-area: b; }
+    .upgrade-unavailable {
+      padding: 1rem 1.2rem;
+      border-radius: 14px;
+      background: rgba(180, 32, 32, 0.1);
+    }
+    @media screen and (max-width: 900px) {
+      #stream.upgrade-compare {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "label-a" "a" "label-b" "b";
+      }
+    }
+    .upgrade-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem 1rem;
+      margin: 0.4rem 0 1rem;
+    }
+    #settings .upgrade-actions form {
+      margin: 0;
+      padding: 0;
+    }
+    .upgrade-actions .apply {
+      font-weight: 700;
+    }
+    .upgrade-diff pre {
+      overflow-x: auto;
+      padding: 0.8rem;
+      border-radius: 10px;
+      background: rgba(127, 127, 127, 0.1);
+      font-size: 0.8rem;
+      line-height: 1.45;
+      white-space: pre;
+    }
+    .upgrade-diff .del { color: #a3262b; }
+    .upgrade-diff .ins { color: #2b7a3b; }
+    .upgrade-diff .hunk,
+    .upgrade-diff .file { opacity: 0.6; }
+    .upgrade-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.8rem 0 1.6rem;
+      font-size: 0.92rem;
+    }
+    .upgrade-table th,
+    .upgrade-table td {
+      padding: 0.45rem 0.55rem;
+      border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+      text-align: left;
+      vertical-align: middle;
+    }
+    #settings .upgrade-table form {
+      display: inline;
+      margin: 0;
+      padding: 0;
+    }
+    .upgrade-table .upgrade-links > * {
+      margin-right: 1rem;
+    }
+    .upgrade-table .count {
+      font-variant-numeric: tabular-nums;
+    }
+    .upgrade-status[data-status="reverted"] {
+      opacity: 0.65;
+    }
+  </style>

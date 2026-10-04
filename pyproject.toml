@@ -85,7 +85,7 @@ layers = [
     "glifestream.stream.api_view",
     "glifestream.stream.index_view",
     "glifestream.stream.templatetags | glifestream.gauth.views",
-    "glifestream.fetching",
+    "glifestream.fetching | glifestream.upgrades",
     "glifestream.stream.websub",
     "glifestream.apis",
     "glifestream.ingestion | glifestream.filters",

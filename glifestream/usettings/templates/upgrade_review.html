@@ -1,0 +1,68 @@
+{% extends "settings.html" %}
+{% load i18n %}
+
+{% block settings %}
+  {% include "upgrade_styles.html" %}
+
+  <p><a href="{% url 'usettings-upgrades' %}">&larr; {% trans "All upgrades" %}</a></p>
+
+  {% include "upgrade_messages.html" %}
+
+  {% if done %}
+  <ul class="upgrade-messages">
+    <li class="done">
+      {% if done.status == "applied" %}
+        {% blocktrans with id=done.entry_id %}Applied to entry #{{ id }}.{% endblocktrans %}
+        <form method="post" action="{% url 'usettings-upgrade-revert' done.pk %}">{% csrf_token %}
+          <input type="hidden" name="next" value="review" />
+          <input type="submit" value="{% trans "Revert" %}" />
+        </form>
+      {% else %}
+        {% blocktrans with id=done.entry_id %}Entry #{{ id }} was reverted.{% endblocktrans %}
+      {% endif %}
+    </li>
+  </ul>
+  {% endif %}
+
+  {% if entry %}
+  {% if markup_only %}
+  <p class="upgrade-hint">
+    {% blocktrans count count=markup_only %}{{ count }} waiting entry only changes its markup and keeps its thumbnail.{% plural %}{{ count }} waiting entries only change their markup and keep their thumbnails.{% endblocktrans %}
+    <a href="{% url 'usettings-upgrade-markup-only' upgrader.key %}">{% trans "Apply all where only the markup changes" %}</a>
+  </p>
+  {% endif %}
+
+  <div class="upgrade-head">
+    <span class="bold">{{ upgrader.label }}</span>
+    <span class="progress">{% blocktrans %}{{ position }} of {{ total }}{% endblocktrans %}</span>
+    <a href="{{ entry.gls_link }}" target="_blank" rel="noopener">#{{ entry.id }}</a>
+    <span>{{ entry.date_published|date:"SHORT_DATE_FORMAT" }}</span>
+    {% if entry.protected %}<span class="upgrade-badge">{% trans "Protected" %}</span>{% endif %}
+    {% if not entry.active %}<span class="upgrade-badge">{% trans "Hidden" %}</span>{% endif %}
+    {% if entry.draft %}<span class="upgrade-badge">{% trans "Draft" %}</span>{% endif %}
+    {% if friends_only %}<span class="upgrade-badge">{% trans "Friends-only" %}</span>{% endif %}
+  </div>
+
+  {% include "upgrade_compare.html" %}
+
+  <div class="upgrade-actions">
+    {% if token %}
+    <form method="post" action="{% url 'usettings-upgrade-apply' upgrader.key %}">{% csrf_token %}
+      <input type="hidden" name="token" value="{{ token }}" />
+      <input type="hidden" name="entry" value="{{ entry.id }}" />
+      <input type="submit" class="apply" value="{% trans "Apply B" %}" />
+    </form>
+    {% endif %}
+    <form method="post" action="{% url 'usettings-upgrade-skip' upgrader.key %}">{% csrf_token %}
+      <input type="hidden" name="entry" value="{{ entry.id }}" />
+      <input type="submit" class="skip" value="{% trans "Skip, keep A" %}" />
+    </form>
+    <a href="{{ later_url }}" class="later">{% trans "Decide later" %}</a>
+  </div>
+
+  {% include "upgrade_diff.html" %}
+
+  {% else %}
+  <p>{% if total %}{% trans "No more entries after this one." %} <a href="{% url 'usettings-upgrade-review' upgrader.key %}">{% trans "Start over" %}</a>{% else %}{% blocktrans with label=upgrader.label %}All {{ label }} entries are up to date.{% endblocktrans %}{% endif %}</p>
+  {% endif %}
+{% endblock %}

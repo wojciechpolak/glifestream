@@ -25,7 +25,7 @@ import time
 import pytest
 from django.utils import timezone
 
-from glifestream.stream.models import Entry, Favorite, Service
+from glifestream.stream.models import Entry, EntryUpgrade, Favorite, Service
 from glifestream.worker import maintenance
 
 
@@ -132,6 +132,30 @@ def test_delete_thumb_files_removes_each_path(media_root):
     maintenance.delete_thumb_files([rel])
 
     assert not (media_root / rel).exists()
+
+
+@pytest.mark.django_db
+def test_list_orphan_thumbs_spares_what_an_applied_upgrade_replaced(
+    media_root, private_service
+):
+    """Reverting the upgrade shows the old thumbnail again, so it stays."""
+    make_thumb(media_root, 'fff666')
+    replaced = make_thumb(media_root, 'aaa777')
+    entry = make_entry(private_service, content='<img src="[GLS-THUMBS]/fff666" />')
+    upgrade = EntryUpgrade.objects.create(
+        entry=entry,
+        upgrader='youtube',
+        status=EntryUpgrade.STATUS_APPLIED,
+        old_content='<img src="[GLS-THUMBS]/aaa777" />',
+        new_content=entry.content,
+    )
+
+    assert maintenance.list_orphan_thumbs() == []
+
+    upgrade.status = EntryUpgrade.STATUS_REVERTED
+    upgrade.save()
+
+    assert maintenance.list_orphan_thumbs() == [replaced]
 
 
 @pytest.mark.django_db

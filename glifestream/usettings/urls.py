@@ -28,6 +28,47 @@ urlpatterns = [
     re_path(r'services/import$', views.opml, {'cmd': 'import'}, 'opml-import'),
     re_path(r'services/export$', views.opml, {'cmd': 'export'}, 'opml-export'),
     re_path(r'status$', views.status, name='usettings-status'),
+    re_path(r'upgrades$', views.upgrades_overview, name='usettings-upgrades'),
+    re_path(
+        r'upgrades/revert/(?P<id>[0-9]+)$',
+        views.upgrade_revert,
+        name='usettings-upgrade-revert',
+    ),
+    re_path(
+        r'upgrades/revert-batch/(?P<batch>[0-9a-f]{32})$',
+        views.upgrade_revert_batch,
+        name='usettings-upgrade-revert-batch',
+    ),
+    re_path(
+        r'upgrades/(?P<key>[a-z]+)/markup-only$',
+        views.upgrade_markup_only,
+        name='usettings-upgrade-markup-only',
+    ),
+    re_path(
+        r'upgrades/(?P<key>[a-z]+)/markup-only/apply$',
+        views.upgrade_apply_markup_only,
+        name='usettings-upgrade-apply-markup-only',
+    ),
+    re_path(
+        r'upgrades/(?P<key>[a-z]+)$',
+        views.upgrade_review,
+        name='usettings-upgrade-review',
+    ),
+    re_path(
+        r'upgrades/(?P<key>[a-z]+)/apply$',
+        views.upgrade_apply,
+        name='usettings-upgrade-apply',
+    ),
+    re_path(
+        r'upgrades/(?P<key>[a-z]+)/skip$',
+        views.upgrade_skip,
+        name='usettings-upgrade-skip',
+    ),
+    re_path(
+        r'upgrades/(?P<key>[a-z]+)/requeue$',
+        views.upgrade_requeue,
+        name='usettings-upgrade-requeue',
+    ),
     re_path(r'lists$', views.lists, name='usettings-lists'),
     re_path(r'lists/(?P<list>[a-z0-9\-]+)$', views.lists, name='usettings-lists-slug'),
     re_path(r'websub$', views.websub, name='usettings-websub'),

@@ -1,0 +1,92 @@
+{% extends "settings.html" %}
+{% load i18n %}
+
+{% block settings %}
+  {% include "upgrade_styles.html" %}
+
+  {% include "upgrade_messages.html" %}
+
+  <p class="bold">{% trans "Old entries to bring up to date:" %}</p>
+  <p>{% trans "Entries keep the markup they were imported with. An upgrade shows an entry as it is now and as a fresh import would show it, and changes nothing until you apply it. Every applied upgrade can be reverted." %}</p>
+
+  <table id="upgrades-table" class="upgrade-table">
+    <thead>
+      <tr>
+        <th>{% trans "Provider" %}</th>
+        <th>{% trans "Waiting" %}</th>
+        <th>{% trans "Applied" %}</th>
+        <th>{% trans "Skipped" %}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr data-upgrader="{{ row.upgrader.key }}">
+        <td>{{ row.upgrader.label }}</td>
+        <td class="count pending">{{ row.pending }}</td>
+        <td class="count applied">{{ row.applied }}</td>
+        <td class="count skipped">{{ row.skipped }}</td>
+        <td class="upgrade-links">
+          {% if row.pending %}<a href="{% url 'usettings-upgrade-review' row.upgrader.key %}" class="review">{% trans "Review" %}</a>{% endif %}
+          {% if row.markup_only %}<a href="{% url 'usettings-upgrade-markup-only' row.upgrader.key %}" class="markup-only">{% blocktrans count count=row.markup_only %}Apply {{ count }} where only the markup changes{% plural %}Apply {{ count }} where only the markup changes{% endblocktrans %}</a>{% endif %}
+          {% if row.skipped %}
+          <form method="post" action="{% url 'usettings-upgrade-requeue' row.upgrader.key %}">{% csrf_token %}
+            <input type="submit" value="{% trans "Offer skipped again" %}" />
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if history %}
+  <p class="bold">{% trans "Recent upgrades:" %}</p>
+  <table id="upgrades-history" class="upgrade-table">
+    <thead>
+      <tr>
+        <th>{% trans "Entry" %}</th>
+        <th>{% trans "Provider" %}</th>
+        <th>{% trans "Applied" %}</th>
+        <th>{% trans "Status" %}</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in history %}
+      {% if row.batch %}
+      <tr data-batch="{{ row.batch }}">
+        <td>{% blocktrans count count=row.count %}A batch of {{ count }} entry{% plural %}A batch of {{ count }} entries{% endblocktrans %} <span class="upgrade-badge">{% trans "Markup only" %}</span></td>
+        <td>{{ row.first.upgrader }}</td>
+        <td>{{ row.first.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+        <td>{% if row.applied %}{% blocktrans with applied=row.applied %}{{ applied }} applied{% endblocktrans %}{% else %}<span class="upgrade-status" data-status="reverted">{% trans "Reverted" %}</span>{% endif %}</td>
+        <td>
+          {% if row.applied %}
+          <form method="post" action="{% url 'usettings-upgrade-revert-batch' row.batch %}">{% csrf_token %}
+            <input type="submit" value="{% trans "Revert the batch" %}" />
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      {% with u=row.upgrade %}
+      <tr data-upgrade="{{ u.pk }}">
+        <td><a href="{% url 'entry' u.entry_id %}" target="_blank" rel="noopener">#{{ u.entry_id }}</a> {{ u.entry.title }}</td>
+        <td>{{ u.upgrader }}</td>
+        <td>{{ u.created_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+        <td><span class="upgrade-status" data-status="{{ u.status }}">{{ u.get_status_display }}</span></td>
+        <td>
+          {% if u.status == "applied" %}
+          <form method="post" action="{% url 'usettings-upgrade-revert' u.pk %}">{% csrf_token %}
+            <input type="submit" value="{% trans "Revert" %}" />
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endwith %}
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% load i18n %}
+  <div id="stream" class="upgrade-compare">
+    <h3 class="upgrade-label label-a">{% trans "A: now" %}</h3>
+    <h3 class="upgrade-label label-b">{% trans "B: after the upgrade" %}</h3>
+    {{ before }}
+    {% if after %}
+      {{ after }}
+    {% else %}
+      <div class="upgrade-unavailable">
+        <p class="bold">{% trans "This entry cannot be upgraded." %}</p>
+        <p>{{ unavailable }}</p>
+      </div>
+    {% endif %}
+  </div>

@@ -19,13 +19,13 @@ worker | usettings | stream.views     worker CLI and daemon, settings pages, vie
 stream.api_view                       /api/<cmd>: share, reshare, favorite, hide
 stream.index_view                     stream, archive, list and entry pages
 stream.templatetags | gauth.views     template filters | login, logout, password change
-fetching                              the fetch queue: claim, run, record, back off
+fetching | upgrades                   the fetch queue: claim, run, record, back off | upgrading old entries
 stream.websub                         WebSub subscriptions, pushes and publishing
 apis                                  provider adapters, one module per service
 ingestion | filters                   storing entries | rewriting entry content
 stream.media | gauth.gls_oauth*       thumbnails and uploads | OAuth clients
 gauth.models                          OAuth tokens, user profiles
-stream.models                         Service, Entry, Media, List, fetch state
+stream.models                         Service, Entry, Media, List, fetch state, upgrades
 utils                                 HTTP, HTML, time and slug helpers
 ```
 
@@ -48,6 +48,7 @@ lower layer a way around it: `lint-imports` follows indirect imports too.
 | Scheduling, retries and backoff | `fetching` | The only caller of `ServiceFactory` for scheduled fetches. |
 | Telling WebSub hubs about new entries | `stream.websub.publish()` | Called by `fetching`: after an import, and for the requests `api_view` stores with `fetching.request_websub_publish()` after a share. Never by `ingestion` or `apis`. |
 | Deleting old entries and orphaned thumbnails | `worker.maintenance` | Run on a schedule by the daemon or with `worker.py`. |
+| Bringing old entries up to a provider's current markup | `upgrades` | Only when the owner approves each entry on the settings page. Every change can be reverted. |
 | Settings | `glifestream/settings.py` | Read from the environment; see `INSTALL.md`. |
 
 ## A page request
@@ -114,6 +115,45 @@ to fetch and nothing for `ingest()` to compare. Selfposts stores uploads under
 was a draft, `api_view` then stores a `WebSubPublishRequest` and wakes the
 daemon, which publishes to the WebSub hubs once for all the requests stored
 so far. The owner does not wait for the hubs to answer.
+
+## Upgrading old entries
+
+An entry stores the HTML its provider rendered when it was imported. A later
+change to the renderer reaches new imports only. `upgrades` brings the old
+entries along, one at a time and only with the owner's approval:
+
+1. Each provider's renderer is split into a pure `player_html()` and the code
+   around it that picks and downloads the thumbnail. The import and the
+   upgrade use the same functions.
+2. An upgrader in `upgrades/<provider>.py` says an entry is legacy when its
+   stored content, link or media differ from what `player_html()` gives now,
+   or when its thumbnail is not in today's size and format. This check reads
+   the database and the disk only, so the queue costs no requests. The next
+   change to a renderer puts the affected entries in the queue without a new
+   upgrader.
+3. The settings page (`usettings.upgrade_settings`) shows the next entry
+   rendered by `stream-pure.html` twice, as it is (A) and as the upgrade
+   would leave it (B), with a diff of the source. Building B may download a
+   thumbnail. Nothing else is written.
+4. B goes to the form as a signed token holding the proposal and a hash of
+   the entry. `upgrades.apply()` refuses the token once the entry has
+   changed, so it stores exactly what the owner saw. It writes only
+   `content`, `link` and `mblob`, never the dates, so the entry keeps its
+   place in the stream. It keeps the old fields in an `EntryUpgrade` row.
+5. `upgrades.revert()` puts the old fields back, unless the entry changed
+   after the upgrade. While an upgrade stands, `--thumbs-delete-orphans`
+   keeps the thumbnail it replaced.
+
+An entry whose thumbnail is already current only changes its markup, and
+its link and media where they are stale. It looks as it does now, so the
+upgrader's `propose_offline()` builds its upgrade without a request, and
+the owner may apply all such entries at once from a list with one sample
+A/B. The list is signed with a hash of each entry; `apply_markup_only()`
+leaves alone any entry that changed since. The upgrades share a `batch`,
+which `revert_batch()` reverts together.
+
+A skipped entry stays out of the queue until the owner offers the skipped
+ones again. A reverted entry goes back into the queue.
 
 ## Media on disk
 
@@ -217,5 +257,9 @@ http.ts          fetch with the CSRF token, and the error report
   `request_websub_publish()`. Do not call it from `ingestion` or a provider,
   which also run for WebSub pushes and would then fire it from inside an
   import.
+- **An upgrade for another provider**: split its renderer into a pure
+  `player_html()` and the download around it, add an upgrader under
+  `upgrades/` with `is_legacy()`, `propose()` and `propose_offline()`, and
+  register it in `upgrades.service.UPGRADERS`.
 - **A new top-level package**: add it to the layers in `pyproject.toml`, or
   `lint-imports` will not check it.

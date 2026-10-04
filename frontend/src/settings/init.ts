@@ -20,6 +20,7 @@ import { show_spinner } from '../ui/spinner';
 import { delegate, h, listen, submit_form } from '../util/dom';
 import { _ } from '../util/i18n';
 import { parse_id } from '../util/ids';
+import { toggle_video } from '../stream/media';
 import { change_theme } from '../stream/sidebar';
 import {
     initialize_fetch_diagnostics,
@@ -85,6 +86,8 @@ export function init_settings(): void {
     });
     listen('#change-theme', 'click', change_theme);
     delegate(document, 'click', 'a.run-fetch', run_fetch_service);
+    // The A/B preview of an entry upgrade plays its videos as the stream does.
+    delegate(document, 'click', '.upgrade-compare .play-video', toggle_video);
     initialize_fetch_diagnostics();
     start_relative_time_ticker();
     maybe_start_fetch_status_polling(true);
