@@ -29,6 +29,12 @@ from the Git history and are intentionally high-level.
 - Video players carry `data-id` instead of `id`. A `user-scripts.js` that
   looks a player up by `id` should use `data-id`.
 
+### Fixed
+
+- The Docker container makes the media directories writable for Gunicorn on
+  every start, not only on the first. On an older installation the web
+  process could not save thumbnails, for example for an upgrade preview.
+
 ## [2.0.0] - 2026-09-30
 
 Covers everything since the `v1.4` tag (March 2021). This is a large span of
