@@ -31,7 +31,7 @@ from glifestream.utils.time import utcnow
 from glifestream.utils.html import strip_script, bytes_to_human, urlize
 from glifestream.stream.models import Service, Entry, Media
 from glifestream.stream import media
-from glifestream.filters import expand, truncate
+from glifestream.filters import expand, music, truncate
 
 try:
     import markdown
@@ -164,6 +164,27 @@ def _render_uploaded_docs(
 _MAX_POSTS_PER_SECOND = 100
 
 
+def _render_music_card(fields: dict[str, str]) -> tuple[str, str]:
+    """The card of the track the composer describes, and the title it gives
+    a post that says nothing else; ('', '') when it describes none."""
+    artist = fields.get('artist', '')
+    title = fields.get('title', '')
+    if not artist.strip() and not title.strip():
+        return '', ''
+    try:
+        track = music.build_track(
+            artist,
+            title,
+            fields.get('youtube', ''),
+            fields.get('cover', ''),
+            strict=False,
+        )
+    except music.MusicError as exc:
+        logger.warning('Music card left out: %s', exc)
+        return '', ''
+    return music.card_html(track), '%s – %s' % (track.title, track.artist)
+
+
 def _timestamp_guid(when: datetime) -> str:
     return '%s/entry/%s' % (settings.FEED_TAGURI, when.strftime('%Y-%m-%dT%H:%M:%SZ'))
 
@@ -244,6 +265,12 @@ class SelfpostsService(BaseService):
             e.title = truncate.smart(strip_tags(e.content)).strip()
         if e.title == '':
             e.title = truncate.smart(strip_tags(content)).strip()
+
+        card, card_title = _render_music_card(args.get('music') or {})
+        if card:
+            e.content = '%s\n%s' % (e.content, card) if e.content.strip() else card
+            if e.title == '':
+                e.title = card_title
 
         mblob = media.mrss_scan(e.content)
         e.mblob = media.mrss_gen_json(mblob)

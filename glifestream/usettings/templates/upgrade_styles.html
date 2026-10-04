@@ -80,6 +80,36 @@
     .upgrade-actions .apply {
       font-weight: 700;
     }
+    #settings form.upgrade-fields {
+      display: grid;
+      gap: 0.4rem;
+      max-width: 720px;
+      margin: 0 0 1rem;
+      padding: 0;
+    }
+    .upgrade-fields p {
+      display: grid;
+      grid-template-columns: 9rem minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0;
+    }
+    .upgrade-fields p:last-child {
+      grid-template-columns: auto;
+      justify-content: start;
+    }
+    .upgrade-fields input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    @media screen and (max-width: 600px) {
+      .upgrade-fields p {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+      .upgrade-fields label {
+        grid-column: 1 / -1;
+      }
+    }
     .upgrade-diff pre {
       overflow-x: auto;
       padding: 0.8rem;

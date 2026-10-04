@@ -9,6 +9,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.utils.datastructures import MultiValueDict
 from glifestream.stream.models import Entry, Media, Service
 from glifestream.apis.selfposts import SelfpostsService
+from glifestream.filters import music
 
 UTC = datetime.timezone.utc
 
@@ -506,3 +507,63 @@ def test_a_long_upload_name_is_shortened_to_fit(selfposts, media_root):
     # FileField's default max_length.
     assert len(name) <= 100
     assert (media_root / name).is_file()
+
+
+@pytest.mark.django_db
+def test_share_appends_the_card_of_a_music_track(selfposts):
+    with patch(
+        'glifestream.filters.music.localize_cover',
+        return_value=music.Cover('[GLS-THUMBS]/abc.webp', 320, 180),
+    ):
+        entry = selfposts.share(
+            {
+                'content': 'Listen to this.',
+                'music': {
+                    'artist': 'Angus & Julia Stone',
+                    'title': 'Big Jet Plane',
+                    'youtube': 'https://youtu.be/vid1',
+                    'cover': '',
+                },
+            }
+        )
+
+    assert entry is not None
+    assert entry.title == 'Listen to this'
+    body, card = entry.content.split('\n', 1)
+    assert 'Listen to this.' in body
+    assert card == music.card_html(
+        music.Track(
+            'Angus & Julia Stone',
+            'Big Jet Plane',
+            music.Cover('[GLS-THUMBS]/abc.webp', 320, 180),
+            'vid1',
+        )
+    )
+
+
+@pytest.mark.django_db
+def test_share_of_only_a_music_track_names_the_post_after_it(selfposts):
+    entry = selfposts.share(
+        {'content': '', 'music': {'artist': 'Artist', 'title': 'Title'}}
+    )
+
+    assert entry is not None
+    assert entry.content == music.card_html(music.Track('Artist', 'Title'))
+    assert entry.title == 'Title – Artist'
+
+
+@pytest.mark.django_db
+def test_share_leaves_out_what_does_not_work_in_a_music_track(selfposts, caplog):
+    entry = selfposts.share(
+        {
+            'content': 'Hi',
+            'music': {'artist': 'A', 'title': 'T', 'youtube': 'not a video'},
+        }
+    )
+    lonely = selfposts.share({'content': 'Hi', 'music': {'artist': 'A'}})
+
+    assert entry is not None and 'play-video' not in entry.content
+    assert '<span class="music-title">T</span>' in entry.content
+    assert 'without its player' in caplog.text
+    assert lonely is not None and 'music-card' not in lonely.content
+    assert 'Music card left out' in caplog.text

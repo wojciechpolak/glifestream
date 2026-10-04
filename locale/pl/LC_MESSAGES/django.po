@@ -1491,3 +1491,42 @@ msgid_plural "%d entries changed after the upgrade and were not reverted."
 msgstr[0] "%d wpis zmienił się po aktualizacji i nie został cofnięty."
 msgstr[1] "%d wpisy zmieniły się po aktualizacji i nie zostały cofnięte."
 msgstr[2] "%d wpisów zmieniło się po aktualizacji i nie zostało cofniętych."
+
+msgid "Artist"
+msgstr "Wykonawca"
+
+msgid "YouTube video"
+msgstr "Film na YouTube"
+
+msgid "Cover image"
+msgstr "Okładka"
+
+msgid "Preview B"
+msgstr "Podgląd B"
+
+msgid "Music track"
+msgstr "Utwór muzyczny"
+
+msgid "The cover is not a local thumbnail."
+msgstr "Okładka nie jest lokalną miniaturą."
+
+msgid "The cover file is missing."
+msgstr "Brakuje pliku okładki."
+
+msgid "The cover address is not a web address."
+msgstr "Adres okładki nie jest adresem internetowym."
+
+msgid "The cover could not be downloaded."
+msgstr "Nie udało się pobrać okładki."
+
+msgid "Enter the artist and the title of the track."
+msgstr "Podaj wykonawcę i tytuł utworu."
+
+msgid "That is not a YouTube video address."
+msgstr "To nie jest adres filmu na YouTube."
+
+msgid "YouTube has no thumbnail of this video. Enter a cover."
+msgstr "YouTube nie ma miniatury tego filmu. Podaj okładkę."
+
+msgid "Fill in the fields above to see B."
+msgstr "Uzupełnij pola powyżej, aby zobaczyć B."

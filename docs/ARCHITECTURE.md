@@ -44,7 +44,7 @@ lower layer a way around it: `lint-imports` follows indirect imports too.
 | Saving an entry and its media rows | `ingestion.service` | One transaction per entry. |
 | Downloading and storing thumbnails | `stream.media.save_image()` | Called by providers and filters while they build content. |
 | Registering thumbnails as `Media` rows | `stream.media.extract_and_register()` | Called by `ingestion` and by selfposts. |
-| Rewriting content (short links, video cards) | `filters` | Pure text in, text out, apart from thumbnail downloads. |
+| Rewriting content (short links, video cards, music cards) | `filters` | Pure text in, text out, apart from thumbnail downloads. |
 | Scheduling, retries and backoff | `fetching` | The only caller of `ServiceFactory` for scheduled fetches. |
 | Telling WebSub hubs about new entries | `stream.websub.publish()` | Called by `fetching`: after an import, and for the requests `api_view` stores with `fetching.request_websub_publish()` after a share. Never by `ingestion` or `apis`. |
 | Deleting old entries and orphaned thumbnails | `worker.maintenance` | Run on a schedule by the daemon or with `worker.py`. |
@@ -155,6 +155,21 @@ which `revert_batch()` reverts together.
 A skipped entry stays out of the queue until the owner offers the skipped
 ones again. A reverted entry goes back into the queue.
 
+Some upgrades need what only the owner knows. An upgrader may declare
+`fields` and `guess()` their values from the entry; the review page then
+shows a form above A/B, starts it from the guess, and builds B from what the
+owner enters. Each upgrader's `markers` narrow the scan to the entries whose
+content contains one of them.
+
+The music upgrader is one: posts about a track that played on
+thesixtyone.com, which is gone, or in a Spotify frame become a music card
+(`filters/music.py`). The card shows the cover, the title and the artist;
+the cover plays the YouTube video the owner names, and the card links to a
+search for the track on Spotify, Apple Music, YouTube Music, Deezer, Tidal
+and Bandcamp. Searches need no API and do not go stale. The composer makes
+the same card for a new post from its "Music track" fields, through
+`card_html()`, so a later change to the card queues the stored cards again.
+
 ## Media on disk
 
 - `MEDIA_ROOT/thumbs/<first hex digit>/<sha1>.<ext>` holds thumbnails. The
@@ -259,7 +274,8 @@ http.ts          fetch with the CSRF token, and the error report
   import.
 - **An upgrade for another provider**: split its renderer into a pure
   `player_html()` and the download around it, add an upgrader under
-  `upgrades/` with `is_legacy()`, `propose()` and `propose_offline()`, and
-  register it in `upgrades.service.UPGRADERS`.
+  `upgrades/` with its `markers`, `is_legacy()`, `propose()` and
+  `propose_offline()` (and `fields` with `guess()` when the owner has to
+  tell it something), and register it in `upgrades.service.UPGRADERS`.
 - **A new top-level package**: add it to the layers in `pyproject.toml`, or
   `lint-imports` will not check it.

@@ -43,6 +43,20 @@
     {% if friends_only %}<span class="upgrade-badge">{% trans "Friends-only" %}</span>{% endif %}
   </div>
 
+  {% if fields %}
+  <form method="get" action="{% url 'usettings-upgrade-review' upgrader.key %}" class="upgrade-fields">
+    <input type="hidden" name="entry" value="{{ entry.id }}" />
+    {% for field in fields %}
+    <p>
+      <label for="upgrade-{{ field.name }}">{% trans field.label %}</label>
+      <input type="text" id="upgrade-{{ field.name }}" name="{{ field.name }}" value="{{ field.value }}" />
+      {% if field.help %}<a href="{{ field.help }}" target="_blank" rel="noopener noreferrer">{% trans "Search" %}</a>{% endif %}
+    </p>
+    {% endfor %}
+    <p><input type="submit" value="{% trans "Preview B" %}" /></p>
+  </form>
+  {% endif %}
+
   {% include "upgrade_compare.html" %}
 
   <div class="upgrade-actions">

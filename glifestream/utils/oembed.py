@@ -21,6 +21,7 @@ from glifestream.utils import httpclient
 providers = {
     'flickr': 'https://www.flickr.com/services/oembed',
     'vimeo': 'https://vimeo.com/api/oembed.json',
+    'spotify': 'https://open.spotify.com/oembed',
 }
 
 

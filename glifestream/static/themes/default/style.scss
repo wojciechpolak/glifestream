@@ -1634,6 +1634,101 @@ table.vc {
   }
 }
 
+// A post about a track: its cover, which plays its video, then its title,
+// artist and searches on the music services. The player opens below.
+.music-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4em 1.1em;
+  margin: 0.6em 0;
+
+  &:has(> .play-video, > .music-cover) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  // Placed by row, as the player goes in right after the cover.
+  > .play-video,
+  > .music-cover {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+    align-self: start;
+  }
+
+  .play-video img,
+  .music-cover img {
+    display: block;
+    width: auto;
+    max-width: 160px;
+    max-height: 160px;
+    padding: 1px;
+    border: 1px solid var(--border-img);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .play-video,
+  .play-video img {
+    border-radius: 14px;
+  }
+
+  .music-track,
+  .music-links {
+    margin: 0;
+    grid-column: -2;
+  }
+
+  .music-track {
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .music-title {
+    display: block;
+    color: var(--text-strong);
+    font-size: 1.15em;
+    font-weight: 700;
+  }
+
+  .music-artist {
+    display: block;
+    color: var(--text-soft);
+  }
+
+  .music-links {
+    grid-row: 2;
+    align-self: start;
+    color: var(--text-muted);
+    font-size: 0.9em;
+    line-height: 1.7;
+
+    &::before {
+      @extend .fas;
+      @extend .fa-music;
+      margin-right: 8px;
+    }
+
+    a {
+      white-space: nowrap;
+    }
+  }
+
+  > div.player {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 0.3em;
+  }
+
+  @media only screen and (max-width: 460px) {
+    .play-video img,
+    .music-cover img {
+      max-width: 112px;
+      max-height: 112px;
+    }
+  }
+}
+
 .playbutton,
 .stopbutton {
   @extend .fas;
@@ -1987,6 +2082,42 @@ ul.files {
 
   p {
     margin-bottom: 10px;
+  }
+}
+
+#music-track {
+  margin: 4px 0 0;
+
+  summary {
+    margin-bottom: 8px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &::before {
+      @extend .fas;
+      @extend .fa-music;
+      margin-right: 8px;
+    }
+  }
+
+  p {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  @media only screen and (max-width: 460px) {
+    p {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+    }
   }
 }
 

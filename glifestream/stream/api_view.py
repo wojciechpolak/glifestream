@@ -110,6 +110,10 @@ def _cmd_share(ctx: ApiContext) -> HttpResponse | None:
             'link': request.POST.get('link', None),
             'images': _shared_images(request),
             'files': request.FILES,
+            'music': {
+                name: request.POST.get('music_' + name, '')
+                for name in ('artist', 'title', 'youtube', 'cover')
+            },
             'source': request.POST.get('from', ''),
             'user': request.user,
         }

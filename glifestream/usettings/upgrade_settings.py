@@ -223,8 +223,20 @@ def upgrade_review(request: HttpRequest, key: str, **args: Any) -> HttpResponse:
                 'later_url': _review_url(key, after=entry.pk),
             }
         )
+        values = None
+        if upgrader.fields:
+            values = _field_values(request, upgrader, entry)
+            context['fields'] = [
+                {
+                    'name': f.name,
+                    'label': f.label,
+                    'value': values.get(f.name, ''),
+                    'help': upgrader.field_help(f.name, values),
+                }
+                for f in upgrader.fields
+            ]
         try:
-            proposal = upgrader.propose(entry)
+            proposal = upgrader.propose(entry, values)
         except upgrades.Unavailable as exc:
             context.update(_compare(entry, None, page))
             context['unavailable'] = str(exc)
@@ -232,6 +244,17 @@ def upgrade_review(request: HttpRequest, key: str, **args: Any) -> HttpResponse:
             context.update(_compare(entry, proposal, page))
             context['token'] = upgrades.make_token(entry, upgrader, proposal)
     return render(request, 'upgrade_review.html', context)
+
+
+def _field_values(
+    request: HttpRequest, upgrader: upgrades.Upgrader, entry: Entry
+) -> dict[str, str]:
+    """What the owner entered in the upgrader's fields, or else what the
+    upgrader guesses from the entry."""
+    names = [f.name for f in upgrader.fields]
+    if any(name in request.GET for name in names):
+        return {name: request.GET.get(name, '') for name in names}
+    return upgrader.guess(entry)
 
 
 def _settings_page_with_author(request: HttpRequest, title: str) -> dict[str, Any]:

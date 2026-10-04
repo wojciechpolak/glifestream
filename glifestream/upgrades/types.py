@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import os
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -50,6 +51,16 @@ class Proposal:
         )
 
 
+@dataclass(frozen=True)
+class Field:
+    """Something the owner tells an upgrader that it cannot find out, such
+    as which video plays a track. The review page asks for it."""
+
+    name: str
+    # The untranslated label; the review page translates it.
+    label: str
+
+
 class Upgrader(Protocol):
     """Brings the stored markup of one provider's entries up to date.
 
@@ -60,10 +71,29 @@ class Upgrader(Protocol):
     key: str
     api: str
     label: str
+    # Text one of the entries it upgrades contains, to narrow the scan.
+    markers: tuple[str, ...]
+    # What the owner fills in for each entry; none for most upgraders.
+    fields: tuple[Field, ...]
 
     def is_legacy(self, entry: Entry) -> bool: ...
 
-    def propose(self, entry: Entry) -> Proposal: ...
+    def guess(self, entry: Entry) -> dict[str, str]:
+        """The values of `fields` the upgrader finds in the entry, to start
+        the owner's form with."""
+        ...
+
+    def field_help(self, name: str, values: Mapping[str, str]) -> str:
+        """The address of a page that helps the owner fill in field `name`,
+        such as a search, or ''."""
+        ...
+
+    def propose(
+        self, entry: Entry, values: Mapping[str, str] | None = None
+    ) -> Proposal:
+        """The upgrade of `entry`, made with the owner's `values` of
+        `fields` when it has any."""
+        ...
 
     def propose_offline(self, entry: Entry) -> Proposal | None:
         """The upgrade that keeps the entry's thumbnail, when that thumbnail

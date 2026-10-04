@@ -94,6 +94,25 @@
               <label for="gls-docs">{% trans "Add files:" %}</label>
               <input type="file" id="gls-docs" name="docs" multiple="" />
             </p>
+            <details id="music-track">
+              <summary>{% trans "Music track" %}</summary>
+              <p>
+                <label for="music-artist">{% trans "Artist" %}</label>
+                <input type="text" id="music-artist" name="music_artist" autocomplete="off" />
+              </p>
+              <p>
+                <label for="music-title">{% trans "Title" %}</label>
+                <input type="text" id="music-title" name="music_title" autocomplete="off" />
+              </p>
+              <p>
+                <label for="music-youtube">{% trans "YouTube video" %}</label>
+                <input type="text" inputmode="url" id="music-youtube" name="music_youtube" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" />
+              </p>
+              <p>
+                <label for="music-cover">{% trans "Cover image" %}</label>
+                <input type="text" inputmode="url" id="music-cover" name="music_cover" placeholder="https://…" autocomplete="off" />
+              </p>
+            </details>
           </div>
         </div>
       </div>

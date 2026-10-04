@@ -17,11 +17,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from django.utils.translation import gettext as _
 
 from glifestream.apis import youtube
 from glifestream.stream.models import Entry
 from glifestream.upgrades.types import (
+    Field,
     Proposal,
     Unavailable,
     find_player,
@@ -34,12 +37,20 @@ class YoutubeUpgrader:
     key = 'youtube'
     api = 'youtube'
     label = 'YouTube'
+    markers: tuple[str, ...] = ('play-video',)
+    fields: tuple[Field, ...] = ()
 
     def is_legacy(self, entry: Entry) -> bool:
         if find_player(entry.content, 'youtube') is None:
             return False
         proposal = self.propose_offline(entry)
         return proposal is None or not proposal.matches(entry)
+
+    def guess(self, entry: Entry) -> dict[str, str]:
+        return {}
+
+    def field_help(self, name: str, values: Mapping[str, str]) -> str:
+        return ''
 
     def propose_offline(self, entry: Entry) -> Proposal | None:
         player = find_player(entry.content, 'youtube')
@@ -49,7 +60,9 @@ class YoutubeUpgrader:
             return None
         return self._build(player.video_id, player.src)
 
-    def propose(self, entry: Entry) -> Proposal:
+    def propose(
+        self, entry: Entry, values: Mapping[str, str] | None = None
+    ) -> Proposal:
         proposal = self.propose_offline(entry)
         if proposal is not None:
             return proposal

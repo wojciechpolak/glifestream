@@ -24,19 +24,20 @@ from dataclasses import dataclass
 
 from django.core import signing
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from glifestream.stream import media
 from glifestream.stream.models import Entry, EntryUpgrade, Media
+from glifestream.upgrades.music import MusicUpgrader
 from glifestream.upgrades.types import Proposal, Upgrader, thumb_exists
 from glifestream.upgrades.vimeo import VimeoUpgrader
 from glifestream.upgrades.youtube import YoutubeUpgrader
 
 # Upgraders by key. Adding a provider means adding its upgrader here.
 UPGRADERS: dict[str, Upgrader] = {
-    u.key: u for u in (YoutubeUpgrader(), VimeoUpgrader())
+    u.key: u for u in (YoutubeUpgrader(), VimeoUpgrader(), MusicUpgrader())
 }
 
 _SALT = 'glifestream.upgrades'
@@ -57,8 +58,11 @@ def candidates(upgrader: Upgrader) -> QuerySet[Entry]:
     skipped = EntryUpgrade.objects.filter(
         upgrader=upgrader.key, status=EntryUpgrade.STATUS_SKIPPED
     ).values('entry_id')
+    marked = Q()
+    for marker in upgrader.markers:
+        marked |= Q(content__contains=marker)
     return (
-        Entry.objects.filter(service__api=upgrader.api, content__contains='play-video')
+        Entry.objects.filter(marked, service__api=upgrader.api)
         .exclude(pk__in=skipped)
         .select_related('service')
         .order_by('date_published', 'id')

@@ -128,6 +128,31 @@ export function open_more_sharing_options(link: HTMLElement): boolean {
     return false;
 }
 
+/** The fields of a music card, as the share form names them after music_. */
+const MUSIC_FIELDS = ['artist', 'title', 'youtube', 'cover'];
+
+function music_field(name: string): HTMLInputElement | null {
+    return document.getElementById('music-' + name) as HTMLInputElement | null;
+}
+
+/** The music card fields that are filled in, as share parameters. */
+function music_params(): Record<string, string> {
+    const params: Record<string, string> = {};
+    for (const name of MUSIC_FIELDS) {
+        const value = music_field(name)?.value.trim();
+        if (value) {
+            params['music_' + name] = value;
+        }
+    }
+    return params;
+}
+
+/** Whether the composer describes a track, which makes a post of its own. */
+function has_music(): boolean {
+    const params = music_params();
+    return !!(params['music_artist'] && params['music_title']);
+}
+
 function checked(id: string): 1 | 0 {
     return (by_id(id) as HTMLInputElement).checked ? 1 : 0;
 }
@@ -149,6 +174,7 @@ async function send(button: HTMLInputElement, content: string): Promise<void> {
         content: content,
         draft: checked('draft'),
         friends_only: checked('friends-only'),
+        ...music_params(),
     });
     if (html === null) {
         return;
@@ -189,7 +215,7 @@ export function share(target: HTMLElement): boolean {
         content = status_field().value;
         isEmptyContent = content.trim() === '';
     }
-    if (isEmptyContent) {
+    if (isEmptyContent && (composer.editor_id || !has_music())) {
         button.disabled = false;
         return false;
     }
@@ -204,6 +230,13 @@ function editor_clear(): void {
     } else {
         status_field().value = '';
     }
+    for (const name of MUSIC_FIELDS) {
+        const input = music_field(name);
+        if (input) {
+            input.value = '';
+        }
+    }
+    document.getElementById('music-track')?.removeAttribute('open');
 }
 
 /** Opens an entry's stored HTML in the composer for editing. */

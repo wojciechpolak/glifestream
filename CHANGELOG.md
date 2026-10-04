@@ -10,6 +10,25 @@ from the Git history and are intentionally high-level.
 
 ## [Unreleased]
 
+### Added
+
+- An Upgrades tab in settings brings old entries up to today's markup. It
+  shows each entry before and after, and changes nothing until the owner
+  applies it. Dates stay as they are, and every upgrade can be reverted.
+- YouTube and Vimeo upgrades: a 320×180 thumbnail without black bars, an
+  `https://` link, no dead Flash media. Entries that only change markup can
+  be applied at once.
+- A music card for posts about a track: cover, title, artist, a YouTube
+  player and search links to Spotify, Apple Music, YouTube Music, Deezer,
+  Tidal and Bandcamp. The composer adds one from its "Music track" fields.
+- A Music upgrade turns old thesixtyone.com and Spotify posts into music
+  cards.
+
+### Changed
+
+- Video players carry `data-id` instead of `id`. A `user-scripts.js` that
+  looks a player up by `id` should use `data-id`.
+
 ## [2.0.0] - 2026-09-30
 
 Covers everything since the `v1.4` tag (March 2021). This is a large span of

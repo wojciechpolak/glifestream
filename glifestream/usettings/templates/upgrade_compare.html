@@ -7,7 +7,7 @@
       {{ after }}
     {% else %}
       <div class="upgrade-unavailable">
-        <p class="bold">{% trans "This entry cannot be upgraded." %}</p>
+        <p class="bold">{% if fields %}{% trans "Fill in the fields above to see B." %}{% else %}{% trans "This entry cannot be upgraded." %}{% endif %}</p>
         <p>{{ unavailable }}</p>
       </div>
     {% endif %}

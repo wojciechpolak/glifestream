@@ -361,6 +361,24 @@ def test_api_share_collects_up_to_five_image_urls(
 
 
 @pytest.mark.django_db
+def test_api_share_passes_the_music_track_on(admin_client, selfposts_service, hubs):
+    with patch(
+        'glifestream.apis.selfposts.SelfpostsService.share', return_value=None
+    ) as share:
+        admin_client.post(
+            api_url('share'),
+            {'content': '', 'music_artist': 'Artist', 'music_title': 'Title'},
+        )
+
+    assert share.call_args.args[0]['music'] == {
+        'artist': 'Artist',
+        'title': 'Title',
+        'youtube': '',
+        'cover': '',
+    }
+
+
+@pytest.mark.django_db
 def test_api_share_answers_empty_when_the_post_could_not_be_created(admin_client):
     with patch('glifestream.apis.selfposts.SelfpostsService.share', return_value=None):
         response = admin_client.post(api_url('share'), {'content': 'nope'})
