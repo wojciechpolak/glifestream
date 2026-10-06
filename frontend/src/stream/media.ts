@@ -19,6 +19,7 @@ import { h } from '../util/dom';
 import { _ } from '../util/i18n';
 import { parse_id } from '../util/ids';
 import { scroll_to_element } from '../util/scroll';
+import { unfold } from './folding';
 
 /** Audio providers by id prefix; user-scripts.js may add more. */
 export const audio_embeds: Record<string, string> = {};
@@ -164,6 +165,7 @@ function play_video(el: HTMLElement): boolean {
         player.append(embed.node);
     }
     video_container(el).after(player);
+    unfold(player);
     if (typeof embed.onMount == 'function') {
         embed.onMount(player);
     }
@@ -250,6 +252,7 @@ export function play_audio(block: HTMLElement, e: MouseEvent): boolean {
         other.remove();
     }
     parent.append(player);
+    unfold(player);
     if (type === 'audio') {
         void (player.firstElementChild as HTMLAudioElement).play();
     }

@@ -34,6 +34,12 @@ function label(folded: boolean): string {
     return folded ? _('Show more') : _('Show less');
 }
 
+/** Makes `toggle` say what it does to a content that is `folded` or not. */
+function update_toggle(toggle: HTMLElement, folded: boolean): void {
+    toggle.textContent = label(folded);
+    toggle.setAttribute('aria-expanded', String(!folded));
+}
+
 /** Folds `content` if it is too tall, and gives it a toggle to unfold. */
 function fold(content: HTMLElement): void {
     if (config.fold_lines <= 0 || toggles.has(content)) {
@@ -48,12 +54,8 @@ function fold(content: HTMLElement): void {
     if (!content.id && article?.id) {
         content.id = article.id + '-content';
     }
-    const toggle = h('button', {
-        type: 'button',
-        className: 'show-more',
-        textContent: label(true),
-    });
-    toggle.setAttribute('aria-expanded', 'false');
+    const toggle = h('button', { type: 'button', className: 'show-more' });
+    update_toggle(toggle, true);
     toggle.setAttribute('aria-controls', content.id);
     content.after(toggle);
     toggles.set(content, toggle);
@@ -92,14 +94,26 @@ function toggle_content(toggle: HTMLElement): boolean {
         return false;
     }
     const folded = content.classList.toggle(FOLDED);
-    toggle.textContent = label(folded);
-    toggle.setAttribute('aria-expanded', String(!folded));
+    update_toggle(toggle, folded);
     // Folding a long entry read to its end would leave the reader far below it.
     const article = content.closest('article');
     if (folded && article && article.getBoundingClientRect().top < 0) {
         article.scrollIntoView();
     }
     return false;
+}
+
+/**
+ * Unfolds the folded content that holds `el`, as its toggle would: a player
+ * the reader opened there would otherwise start below the fold, unseen.
+ */
+export function unfold(el: Element): void {
+    const content = el.closest<HTMLElement>('.entry-content.' + FOLDED);
+    const toggle = content && toggles.get(content);
+    if (content && toggle) {
+        content.classList.remove(FOLDED);
+        update_toggle(toggle, false);
+    }
 }
 
 /** Folds the stream's long entries, now and as their images load. */

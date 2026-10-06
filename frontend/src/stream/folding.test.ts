@@ -15,10 +15,11 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { config } from '../config';
-import { fold_long_contents, init_folding } from './folding';
+import { fold_long_contents, init_folding, unfold } from './folding';
+import { toggle_video } from './media';
 
 /**
  * A folded content shows 100px. The test DOM has no layout, so the entry
@@ -52,6 +53,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+    vi.restoreAllMocks();
     config.fold_lines = 20;
 });
 
@@ -161,5 +163,51 @@ describe('init_folding', () => {
 
         expect(content.classList.contains('folded')).toBe(true);
         expect(root.querySelectorAll('button.show-more')).toHaveLength(1);
+    });
+});
+
+describe('unfold', () => {
+    it('unfolds the content that holds an element, as its toggle would', () => {
+        const article = entry('entry-1', 400);
+        const content = article.querySelector('.entry-content') as HTMLElement;
+        const inner = document.createElement('p');
+        content.append(inner);
+        const root = stream(article);
+        init_folding(root);
+
+        unfold(inner);
+
+        expect(content.classList.contains('folded')).toBe(false);
+        const toggle = content.nextElementSibling;
+        expect(toggle?.textContent).toBe('Show less');
+        expect(toggle?.getAttribute('aria-expanded')).toBe('true');
+    });
+
+    it('leaves an element outside a folded content alone', () => {
+        const article = entry('entry-1', 60);
+        const content = article.querySelector('.entry-content') as HTMLElement;
+        const root = stream(article);
+        init_folding(root);
+
+        unfold(content);
+
+        expect(content.classList.contains('folded')).toBe(false);
+        expect(root.querySelectorAll('button.show-more')).toHaveLength(0);
+    });
+
+    it('unfolds an entry whose video the reader plays', () => {
+        const article = entry('entry-1', 400);
+        const content = article.querySelector('.entry-content') as HTMLElement;
+        content.innerHTML =
+            '<span class="play-video video-inline" data-id="mastodon-1" data-src="/v.mp4"></span>';
+        const root = stream(article);
+        init_folding(root);
+        vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+
+        toggle_video(content.querySelector('span') as HTMLElement);
+
+        expect(content.querySelector('.player')).not.toBeNull();
+        expect(content.classList.contains('folded')).toBe(false);
+        expect(content.nextElementSibling?.textContent).toBe('Show less');
     });
 });
