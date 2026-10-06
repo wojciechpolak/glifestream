@@ -161,6 +161,27 @@ def normalize_youtube_url(url: str) -> str | None:
     return 'https://www.youtube.com/watch?v=%s' % video_id
 
 
+def youtube_video_id(url: str) -> str | None:
+    """The id of the YouTube video `url` shows, or None."""
+    # A YouTube Music address plays the same video.
+    url = re.sub(
+        r'^(https?://)music\.youtube\.com/', r'\1www.youtube.com/', url.strip()
+    )
+    canonical = normalize_youtube_url(url)
+    return canonical.rsplit('=', 1)[1] if canonical else None
+
+
+_VIMEO_VIDEO = re.compile(
+    r'https?://(?:www\.|player\.)?vimeo\.com/(?:[^?#]*/)?(\d+)/?(?:[?#].*)?'
+)
+
+
+def vimeo_video_id(url: str) -> str | None:
+    """The id of the Vimeo video `url` shows, or None."""
+    m = _VIMEO_VIDEO.fullmatch(url.strip())
+    return m.group(1) if m else None
+
+
 def is_video_url(url: str) -> bool:
     return normalize_youtube_url(url) is not None or bool(
         re.match(r'https?://(www\.)?vimeo\.com/\d+$', url)

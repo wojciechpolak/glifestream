@@ -342,6 +342,90 @@ def test_propose_reports_a_video_vimeo_no_longer_has(vimeo_service):
         VIMEO.propose(entry)
 
 
+def test_the_video_field_starts_from_the_video_shown(yt_service, vimeo_service):
+    yt = make_entry(yt_service, YT_LEGACY[0], title='Budgie&#39;s <b>Parents</b>')
+    vm = make_entry(vimeo_service, YT_LEGACY[0].replace('youtube-abc', 'vimeo-42'))
+
+    assert YT.guess(yt) == {'video': 'https://www.youtube.com/watch?v=abc'}
+    assert VIMEO.guess(vm) == {'video': 'https://vimeo.com/42'}
+    assert YT.field_help(yt, 'video', {}) == (
+        'https://www.youtube.com/results?search_query=Budgie%27s+Parents'
+    )
+    assert VIMEO.field_help(vm, 'video', {}) == 'https://vimeo.com/search?q=A+Video'
+
+
+def test_propose_plays_another_copy_the_owner_entered(yt_service, media_root):
+    # The thumbnail of the old video is current; that of the copy is fetched.
+    put_thumb(media_root, NEW_THUMB)
+    entry = make_entry(yt_service, YT_LEGACY[-1].replace(OLD_THUMB, NEW_THUMB))
+
+    with patch(
+        'glifestream.apis.youtube.media.save_image', return_value=NEWER_THUMB
+    ) as save_image:
+        proposal = YT.propose(entry, {'video': 'https://youtu.be/copy1'})
+
+    save_image.assert_called_once_with(
+        'https://i.ytimg.com/vi/copy1/mqdefault.jpg',
+        downscale=True,
+        size=(320, 180),
+        strict=True,
+    )
+    assert proposal == upgrades.Proposal(
+        content=yt_current('copy1', NEWER_THUMB),
+        link='https://www.youtube.com/watch?v=copy1',
+        mblob=None,
+    )
+
+
+@pytest.mark.parametrize('video', ['', 'https://www.youtube.com/watch?v=abc'])
+def test_propose_with_the_same_video_is_the_usual_upgrade(
+    yt_service, media_root, video
+):
+    put_thumb(media_root, NEW_THUMB)
+    entry = make_entry(yt_service, YT_LEGACY[-1])
+
+    with patch('glifestream.apis.youtube.media.save_image') as save_image:
+        proposal = YT.propose(entry, {'video': video})
+
+    save_image.assert_not_called()
+    assert proposal == YT.propose(entry)
+
+
+def test_propose_refuses_an_address_of_another_provider(yt_service, vimeo_service):
+    yt = make_entry(yt_service, YT_LEGACY[0])
+    vm = make_entry(vimeo_service, YT_LEGACY[0].replace('youtube-abc', 'vimeo-42'))
+
+    with pytest.raises(upgrades.Unavailable, match='not a YouTube video'):
+        YT.propose(yt, {'video': 'https://vimeo.com/42'})
+    with pytest.raises(upgrades.Unavailable, match='not a Vimeo video'):
+        VIMEO.propose(vm, {'video': 'https://youtu.be/abc'})
+
+
+def test_propose_plays_another_vimeo_copy(vimeo_service):
+    entry = make_entry(
+        vimeo_service,
+        YT_LEGACY[0].replace('youtube-abc', 'vimeo-42'),
+        title='A Clip',
+        link='https://vimeo.com/42',
+    )
+
+    with (
+        patch(
+            'glifestream.upgrades.vimeo.oembed.discover',
+            return_value={'thumbnail_url': 'https://i.vimeocdn.com/77_640'},
+        ) as discover,
+        patch('glifestream.apis.vimeo.media.save_image', return_value=NEWER_THUMB),
+    ):
+        proposal = VIMEO.propose(entry, {'video': 'https://vimeo.com/77'})
+
+    discover.assert_called_once_with('https://vimeo.com/77', 'vimeo', maxwidth=640)
+    assert proposal == upgrades.Proposal(
+        content=vimeo.player_html('77', 'https://vimeo.com/77', 'A Clip', NEWER_THUMB),
+        link='https://vimeo.com/77',
+        mblob=vimeo.player_mblob('77'),
+    )
+
+
 # --------------------------------------------------------------------- queue
 
 

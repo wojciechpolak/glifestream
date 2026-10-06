@@ -137,10 +137,33 @@ def test_review_without_a_proposal_offers_only_skip(staff_client, entry):
     with patch('glifestream.apis.youtube.media.save_image', side_effect=gone):
         body = staff_client.get(review_url()).content.decode()
 
-    assert 'This entry cannot be upgraded.' in body
+    assert 'Fill in the fields above to see B.' in body
     assert 'YouTube has no thumbnail' in body
+    assert 'Enter the address of another copy.' in body
     assert 'name="token"' not in body
     assert reverse('usettings-upgrade-skip', args=['youtube']) in body
+
+
+@pytest.mark.django_db
+def test_review_offers_another_copy_of_the_video(staff_client, entry, new_thumbnail):
+    body = staff_client.get(review_url()).content.decode()
+
+    form = search(r'<form method="get"[^>]*class="upgrade-fields">(.*?)</form>', body)
+    assert 'name="video" value="https://www.youtube.com/watch?v=abc"' in form
+    assert 'https://www.youtube.com/results?search_query=Old+Video' in form
+
+    body = staff_client.get(
+        review_url(entry=entry.pk, video='https://youtu.be/copy1')
+    ).content.decode()
+
+    assert 'name="video" value="https://youtu.be/copy1"' in body
+    staff_client.post(
+        reverse('usettings-upgrade-apply', args=['youtube']),
+        {'token': token_of(body), 'entry': entry.pk},
+    )
+    entry.refresh_from_db()
+    assert 'data-id="youtube-copy1"' in entry.content
+    assert entry.link == 'https://www.youtube.com/watch?v=copy1'
 
 
 @pytest.mark.django_db

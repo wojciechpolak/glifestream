@@ -36,7 +36,7 @@ from PIL import Image
 from django.utils.html import escape
 from django.utils.translation import gettext as _
 
-from glifestream.filters.expand import normalize_youtube_url
+from glifestream.filters.expand import youtube_video_id
 from glifestream.stream import media
 from glifestream.utils import httpclient
 
@@ -185,10 +185,7 @@ def parse_card(fragment: str) -> Track | None:
 
 def youtube_id(url: str) -> str | None:
     """The id of the YouTube video `url` shows, or None."""
-    # A YouTube Music address plays the same video.
-    url = re.sub(r'^(https?://)music\.youtube\.com/', r'\1www.youtube.com/', clean(url))
-    canonical = normalize_youtube_url(url)
-    return canonical.rsplit('=', 1)[1] if canonical else None
+    return youtube_video_id(clean(url))
 
 
 def _local_cover(src: str) -> Cover:

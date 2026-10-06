@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import html
 import logging
 import os
 import re
@@ -25,6 +26,7 @@ from dataclasses import dataclass
 from typing import Protocol
 
 from django.conf import settings
+from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 
 from glifestream.stream import media
@@ -87,9 +89,9 @@ class Upgrader(Protocol):
         the owner's form with."""
         ...
 
-    def field_help(self, name: str, values: Mapping[str, str]) -> str:
-        """The address of a page that helps the owner fill in field `name`,
-        such as a search, or ''."""
+    def field_help(self, entry: Entry, name: str, values: Mapping[str, str]) -> str:
+        """The address of a page that helps the owner fill in field `name`
+        of `entry`, such as a search, or ''."""
         ...
 
     def propose(
@@ -137,6 +139,28 @@ def find_player(content: str, provider: str) -> Player | None:
         width=attrs.get('width', ''),
         height=attrs.get('height', ''),
     )
+
+
+def chosen_video(
+    values: Mapping[str, str] | None,
+    player: Player,
+    video_id: Callable[[str], str | None],
+    invalid: str,
+) -> str:
+    """The id of the video the owner entered in the `video` field, or of
+    the one `player` shows when the field is empty."""
+    url = (values or {}).get('video', '').strip()
+    if not url:
+        return player.video_id
+    vid = video_id(url)
+    if vid is None:
+        raise Unavailable(invalid)
+    return vid
+
+
+def search_terms(entry: Entry) -> str:
+    """The title of `entry` as plain words, to search for it with."""
+    return ' '.join(html.unescape(strip_tags(entry.title)).split())
 
 
 def thumbnail_is_current(

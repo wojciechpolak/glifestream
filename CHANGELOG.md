@@ -17,7 +17,8 @@ from the Git history and are intentionally high-level.
   applies it. Dates stay as they are, and every upgrade can be reverted.
 - YouTube and Vimeo upgrades: a 320×180 thumbnail without black bars, an
   `https://` link, no dead Flash media. Entries that only change markup can
-  be applied at once.
+  be applied at once. A video the provider no longer has can be replaced
+  with another copy, found from the review page.
 - A music card for posts about a track: cover, title, artist, a YouTube
   player and search links to Spotify, Apple Music, YouTube Music, Deezer,
   Tidal and Bandcamp. The composer adds one from its "Music track" fields.

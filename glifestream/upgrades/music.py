@@ -246,7 +246,7 @@ class MusicUpgrader:
             'cover': cover,
         }
 
-    def field_help(self, name: str, values: Mapping[str, str]) -> str:
+    def field_help(self, entry: Entry, name: str, values: Mapping[str, str]) -> str:
         if name != 'youtube':
             return ''
         q = music.clean('%s %s' % (values.get('artist', ''), values.get('title', '')))

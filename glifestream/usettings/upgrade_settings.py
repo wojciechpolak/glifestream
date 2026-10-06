@@ -231,7 +231,7 @@ def upgrade_review(request: HttpRequest, key: str, **args: Any) -> HttpResponse:
                     'name': f.name,
                     'label': f.label,
                     'value': values.get(f.name, ''),
-                    'help': upgrader.field_help(f.name, values),
+                    'help': upgrader.field_help(entry, f.name, values),
                 }
                 for f in upgrader.fields
             ]

@@ -1320,14 +1320,14 @@ msgstr "Cofnięto. Wpis jest taki jak wcześniej i wrócił do kolejki."
 msgid "The entry shows no YouTube video."
 msgstr "Wpis nie pokazuje filmu z YouTube."
 
-msgid "YouTube has no thumbnail of this video any more. It may have been deleted or made private."
-msgstr "YouTube nie ma już miniatury tego filmu. Mógł zostać usunięty lub ustawiony jako prywatny."
+msgid "YouTube has no thumbnail of this video any more. It may have been deleted or made private. Enter the address of another copy."
+msgstr "YouTube nie ma już miniatury tego filmu. Mógł zostać usunięty lub ustawiony jako prywatny. Podaj adres innej kopii."
 
 msgid "The entry shows no Vimeo video."
 msgstr "Wpis nie pokazuje filmu z Vimeo."
 
-msgid "Vimeo has no thumbnail of this video any more. It may have been deleted or made private."
-msgstr "Vimeo nie ma już miniatury tego filmu. Mógł zostać usunięty lub ustawiony jako prywatny."
+msgid "Vimeo has no thumbnail of this video any more. It may have been deleted or made private. Enter the address of another copy."
+msgstr "Vimeo nie ma już miniatury tego filmu. Mógł zostać usunięty lub ustawiony jako prywatny. Podaj adres innej kopii."
 
 msgid "This preview has expired or is not valid. Review the entry again."
 msgstr "Ten podgląd wygasł lub jest nieprawidłowy. Przejrzyj wpis ponownie."
@@ -1531,6 +1531,12 @@ msgstr "Podaj wykonawcę i tytuł utworu."
 
 msgid "That is not a YouTube video address."
 msgstr "To nie jest adres filmu na YouTube."
+
+msgid "That is not a Vimeo video address."
+msgstr "To nie jest adres filmu na Vimeo."
+
+msgid "Vimeo video"
+msgstr "Film na Vimeo"
 
 msgid "YouTube has no thumbnail of this video. Enter a cover."
 msgstr "YouTube nie ma miniatury tego filmu. Podaj okładkę."

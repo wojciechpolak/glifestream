@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+import pytest
+
 from glifestream.filters import expand
 
 
@@ -186,3 +188,31 @@ def test_maplinks_renders_coordinates():
 def test_maplinks_leaves_a_map_link_without_coordinates():
     url = 'http://maps.google.com/maps?q=Warsaw'
     assert expand.maplinks(url) == url
+
+
+@pytest.mark.parametrize(
+    'url, vid',
+    [
+        ('https://www.youtube.com/watch?v=abc', 'abc'),
+        (' https://youtu.be/abc ', 'abc'),
+        ('https://music.youtube.com/watch?v=abc&list=x', 'abc'),
+        ('https://vimeo.com/123', None),
+    ],
+)
+def test_youtube_video_id(url, vid):
+    assert expand.youtube_video_id(url) == vid
+
+
+@pytest.mark.parametrize(
+    'url, vid',
+    [
+        ('https://vimeo.com/123', '123'),
+        (' https://www.vimeo.com/123/?share=copy ', '123'),
+        ('https://vimeo.com/channels/staffpicks/123', '123'),
+        ('https://player.vimeo.com/video/123', '123'),
+        ('https://vimeo.com/channels/staffpicks', None),
+        ('https://www.youtube.com/watch?v=123', None),
+    ],
+)
+def test_vimeo_video_id(url, vid):
+    assert expand.vimeo_video_id(url) == vid

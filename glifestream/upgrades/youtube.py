@@ -18,17 +18,22 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from urllib.parse import quote_plus
 
 from django.utils.translation import gettext as _
+from django.utils.translation import gettext_noop
 
 from glifestream.apis import youtube
+from glifestream.filters.expand import youtube_video_id
 from glifestream.stream.models import Entry
 from glifestream.upgrades.types import (
     Field,
     Proposal,
     Unavailable,
+    chosen_video,
     find_player,
     require_thumbnail,
+    search_terms,
     thumbnail_is_current,
 )
 
@@ -38,7 +43,8 @@ class YoutubeUpgrader:
     api = 'youtube'
     label = 'YouTube'
     markers: tuple[str, ...] = ('play-video',)
-    fields: tuple[Field, ...] = ()
+    # Another copy of a video YouTube no longer has.
+    fields: tuple[Field, ...] = (Field('video', gettext_noop('YouTube video')),)
 
     def is_legacy(self, entry: Entry) -> bool:
         if find_player(entry.content, 'youtube') is None:
@@ -47,10 +53,13 @@ class YoutubeUpgrader:
         return proposal is None or not proposal.matches(entry)
 
     def guess(self, entry: Entry) -> dict[str, str]:
-        return {}
+        player = find_player(entry.content, 'youtube')
+        return {'video': youtube.video_link(player.video_id)} if player else {}
 
-    def field_help(self, name: str, values: Mapping[str, str]) -> str:
-        return ''
+    def field_help(self, entry: Entry, name: str, values: Mapping[str, str]) -> str:
+        return 'https://www.youtube.com/results?search_query=%s' % quote_plus(
+            search_terms(entry)
+        )
 
     def propose_offline(self, entry: Entry) -> Proposal | None:
         player = find_player(entry.content, 'youtube')
@@ -63,15 +72,22 @@ class YoutubeUpgrader:
     def propose(
         self, entry: Entry, values: Mapping[str, str] | None = None
     ) -> Proposal:
-        proposal = self.propose_offline(entry)
-        if proposal is not None:
-            return proposal
         player = find_player(entry.content, 'youtube')
         if player is None:
             raise Unavailable(_('The entry shows no YouTube video.'))
+        vid = chosen_video(
+            values,
+            player,
+            youtube_video_id,
+            _('That is not a YouTube video address.'),
+        )
+        if vid == player.video_id:
+            proposal = self.propose_offline(entry)
+            if proposal is not None:
+                return proposal
         public = entry.service.public
 
-        tn = youtube.pick_thumbnail(youtube.thumbnails_of(player.video_id))
+        tn = youtube.pick_thumbnail(youtube.thumbnails_of(vid))
         assert tn is not None
         src = require_thumbnail(
             lambda: youtube.localize_thumbnail(tn, public=public, strict=True),
@@ -79,10 +95,11 @@ class YoutubeUpgrader:
             public=public,
             gone=_(
                 'YouTube has no thumbnail of this video any more. '
-                'It may have been deleted or made private.'
+                'It may have been deleted or made private. '
+                'Enter the address of another copy.'
             ),
         )
-        return self._build(player.video_id, src)
+        return self._build(vid, src)
 
     def registers_media(self, entry: Entry) -> bool:
         # A YouTube import never registers its thumbnail as Media.

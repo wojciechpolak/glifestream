@@ -161,7 +161,11 @@ shows a form above A/B, starts it from the guess, and builds B from what the
 owner enters. Each upgrader's `markers` narrow the scan to the entries whose
 content contains one of them.
 
-The music upgrader is one: posts about a track that played on
+The YouTube and Vimeo upgraders ask for the video, starting from the one
+the entry shows, and link a search for the entry's title: a video the
+provider no longer has gives way to another copy the owner finds.
+
+The music upgrader asks for more: posts about a track that played on
 thesixtyone.com, which is gone, or in a Spotify frame become a music card
 (`filters/music.py`). The card shows the cover, the title and the artist;
 the cover plays the YouTube video the owner names, and the card links to a
