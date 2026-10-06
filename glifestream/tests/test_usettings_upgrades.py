@@ -95,7 +95,7 @@ def test_overview_counts_the_entries_of_each_provider(staff_client, entry):
 
     assert 'class="active">Upgrades<' in body
     row = search(r'data-upgrader="youtube">(.*?)</tr>', body)
-    assert '<td class="count pending">1</td>' in row
+    assert '<td class="count pending stack-stat" data-label="Waiting">1</td>' in row
     assert review_url() in row
     assert 'data-upgrader="vimeo"' in body
 

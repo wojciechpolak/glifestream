@@ -1,0 +1,73 @@
+  <style>
+    /* On a narrow screen a .stack-table shows each row as a card: the
+       .stack-title cell heads it, .stack-aside cells sit beside the title,
+       .stack-stat cells share a line with their label above, and every
+       other cell takes a line with its data-label on the left. */
+    @media screen and (max-width: 760px) {
+      #settings table.stack-table,
+      #settings table.stack-table tbody,
+      #settings table.stack-table td {
+        display: block;
+      }
+      #settings table.stack-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+      #settings table.stack-table tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0.3rem 0.8rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid rgba(127, 127, 127, 0.18);
+      }
+      #settings table.stack-table td,
+      #settings table.stack-table td.action-cell {
+        flex: 1 0 100%;
+        box-sizing: border-box;
+        width: auto;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+      }
+      #settings table.stack-table td[data-label]:not(.stack-stat) {
+        display: flow-root;
+        padding-left: 8.5rem;
+      }
+      #settings table.stack-table td[data-label]:not(.stack-stat)::before {
+        content: attr(data-label);
+        float: left;
+        width: 7.8rem;
+        margin: 0.1em 0 0 -8.5rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        line-height: 1.3;
+        opacity: 0.7;
+      }
+      #settings table.stack-table td.stack-title {
+        font-weight: 700;
+      }
+      #settings table.stack-table td.stack-title:has(+ .stack-aside) {
+        flex: 1 1 auto;
+        width: 0;
+      }
+      #settings table.stack-table td.stack-aside {
+        flex: 0 0 auto;
+      }
+      #settings table.stack-table td.stack-stat {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+      #settings table.stack-table td.stack-stat::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.8rem;
+        font-weight: 700;
+        opacity: 0.7;
+      }
+    }
+  </style>

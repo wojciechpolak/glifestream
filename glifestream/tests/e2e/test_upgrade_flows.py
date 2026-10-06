@@ -30,7 +30,7 @@ from django.conf import settings
 from PIL import Image
 from playwright.sync_api import Page, expect
 
-from glifestream.stream.models import Entry, Service
+from glifestream.stream.models import Entry, EntryUpgrade, Service
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
 
@@ -126,3 +126,36 @@ def test_review_apply_and_revert_an_upgrade(
     entry.refresh_from_db()
     assert entry.content == OLD_CONTENT
     assert entry.link == 'http://www.youtube.com/watch?v=e2eVideo01'
+
+
+def test_settings_tables_fit_a_phone_screen(
+    page: Page,
+    app_base_url: str,
+    ensure_admin_session,
+    stub_external_requests,
+    old_video_entry: Entry,
+):
+    EntryUpgrade.objects.create(
+        entry=old_video_entry,
+        upgrader='youtube',
+        status=EntryUpgrade.STATUS_APPLIED,
+        old_content=OLD_CONTENT,
+        new_content=OLD_CONTENT,
+    )
+    ensure_admin_session()
+    page.set_viewport_size({'width': 390, 'height': 680})
+
+    for path, labelled in (
+        ('status', '#status-table td[data-label="Last error"]'),
+        ('upgrades', '#upgrades-history td[data-label="Provider"]'),
+    ):
+        page.goto(f'{app_base_url}/settings/{path}')
+        # Each row is a card whose cells say which column they are.
+        expect(page.locator(labelled).first).to_be_visible()
+        expect(page.locator('table.stack-table thead').first).not_to_be_in_viewport()
+        fits = page.evaluate(
+            '[...document.querySelectorAll("table.stack-table")]'
+            '.map(t => t.scrollWidth <= t.parentElement.clientWidth)'
+        )
+        assert fits and all(fits), path
+        assert page.evaluate('document.documentElement.scrollWidth') <= 390

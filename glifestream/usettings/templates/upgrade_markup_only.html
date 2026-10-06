@@ -3,6 +3,7 @@
 
 {% block settings %}
   {% include "upgrade_styles.html" %}
+  {% include "stack_table_styles.html" %}
 
   <p><a href="{% url 'usettings-upgrades' %}">&larr; {% trans "All upgrades" %}</a></p>
 
@@ -27,7 +28,7 @@
     <a href="{% url 'usettings-upgrade-review' upgrader.key %}" class="later">{% trans "Review one by one instead" %}</a>
   </div>
 
-  <table id="upgrades-markup-only" class="upgrade-table">
+  <table id="upgrades-markup-only" class="upgrade-table stack-table">
     <thead>
       <tr>
         <th>{% trans "Entry" %}</th>
@@ -38,9 +39,9 @@
     <tbody>
       {% for row in rows %}
       <tr data-entry="{{ row.entry.pk }}">
-        <td><a href="{% url 'entry' row.entry.pk %}" target="_blank" rel="noopener">#{{ row.entry.pk }}</a> {{ row.entry.title }}{% if row.entry.protected %} <span class="upgrade-badge">{% trans "Protected" %}</span>{% endif %}</td>
-        <td>{{ row.entry.date_published|date:"SHORT_DATE_FORMAT" }}</td>
-        <td>{{ row.changes|join:", " }}</td>
+        <td class="stack-title"><a href="{% url 'entry' row.entry.pk %}" target="_blank" rel="noopener">#{{ row.entry.pk }}</a> {{ row.entry.title }}{% if row.entry.protected %} <span class="upgrade-badge">{% trans "Protected" %}</span>{% endif %}</td>
+        <td class="stack-stat" data-label="{% trans "Published" %}">{{ row.entry.date_published|date:"SHORT_DATE_FORMAT" }}</td>
+        <td class="stack-stat" data-label="{% trans "Changes" %}">{{ row.changes|join:", " }}</td>
       </tr>
       {% endfor %}
     </tbody>
