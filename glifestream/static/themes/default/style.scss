@@ -757,6 +757,16 @@ input[placeholder].blur,
   .email {
     color: var(--text-main);
   }
+
+  // The narrow-screen menu: its button shows and its items fold into a
+  // panel at 920px and below. Wider, the items sit in the bar as they are.
+  .navtop-toggle {
+    display: none;
+  }
+
+  .navtop-menu {
+    display: contents;
+  }
 }
 
 #sidebar {
@@ -3318,60 +3328,141 @@ img.noborder {
 @media screen and (max-width: 920px) and (min-width: 641px) {
   #head {
     gap: 0.8rem 1rem;
+    z-index: 2;
   }
 
   #head h1 {
     min-width: 0;
     padding: 10px 14px 12px;
   }
-
-  #navtop {
-    gap: 0.35rem;
-    font-size: 0.84rem;
-
-    .hello .text,
-    a .text {
-      display: none;
-    }
-
-    .hello {
-      flex: 0 1 auto;
-      min-width: 0;
-      padding: 0;
-    }
-
-    .email {
-      display: inline-block;
-      max-width: 132px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1;
-    }
-
-    a {
-      min-width: 38px;
-      min-height: 36px;
-      padding: 0 9px;
-    }
-
-    i {
-      display: inline-block;
-      font-size: 0.98rem;
-      padding: 0;
-    }
-  }
 }
 
-@media screen and (max-width: 760px) and (min-width: 641px) {
+// At 920px and below the top bar keeps the title and a menu button; the
+// greeting and the links open from it as a panel, labelled as on a desktop.
+@media screen and (max-width: 920px) {
+  #head {
+    overflow: visible;
+
+    // The glow stays inside the bar, which no longer clips it for the menu.
+    &::before {
+      inset: 0 auto 0 0;
+      height: 100%;
+      border-radius: inherit;
+    }
+  }
+
   #navtop {
-    .hello {
+    flex: 0 0 auto;
+
+    .navtop-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      height: 42px;
+      padding: 0;
+      // The border is there but clear, so the one on hover moves nothing.
+      border: 1px solid transparent;
+      border-radius: var(--radius-pill);
+      background: var(--surface-control);
+      color: var(--link-navtop);
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: var(--sheen-control);
+
+      &:hover,
+      &:focus-visible,
+      &[aria-expanded="true"] {
+        background: var(--surface-control-hover);
+        border-color: var(--border-strong);
+        color: var(--text-strong);
+        box-shadow: var(--sheen-control);
+        transform: none;
+      }
+
+      i {
+        display: inline-block;
+      }
+    }
+
+    .navtop-menu {
       display: none;
     }
 
-    a {
-      min-width: 36px;
-      padding: 0 8px;
+    &.open .navtop-menu {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      width: max-content;
+      min-width: 230px;
+      max-width: calc(100vw - 28px);
+      padding: 8px;
+      background: var(--surface-panel-strong);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-float);
+      backdrop-filter: blur(12px);
+      font-size: 0.95rem;
+      text-align: left;
+
+      .hello {
+        display: block;
+        margin-bottom: 6px;
+        padding: 8px 12px 12px;
+        border-bottom: 1px solid var(--border);
+        white-space: normal;
+        line-height: 1.35;
+      }
+
+      .hello .text {
+        display: block;
+        font-size: 0.85em;
+        color: var(--text-soft);
+      }
+
+      .email {
+        display: block;
+        max-width: none;
+        overflow-wrap: anywhere;
+        color: var(--text-strong);
+      }
+
+      a {
+        justify-content: flex-start;
+        gap: 12px;
+        min-height: 44px;
+        padding: 0 12px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--text-main);
+        box-shadow: none;
+
+        &:hover,
+        &:focus-visible {
+          background: var(--accent-soft-strong);
+          color: var(--text-strong);
+          text-decoration: none;
+          box-shadow: none;
+          transform: none;
+        }
+      }
+
+      i {
+        display: inline-block;
+        width: 1.2em;
+        padding: 0;
+        text-align: center;
+        color: var(--icon);
+      }
+
+      .text {
+        display: inline;
+      }
     }
   }
 }
@@ -3438,8 +3529,8 @@ img.noborder {
 
     h1 {
       margin: 0;
+      min-width: 0;
       padding: 9px 14px 10px;
-      max-width: calc(100% - 120px);
 
       a {
         font-size: 1.35rem;
@@ -3448,44 +3539,7 @@ img.noborder {
   }
 
   #navtop {
-    top: 0;
-    right: 0;
-    padding: 7px 10px;
-    flex-wrap: nowrap;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.82rem;
-    max-width: calc(100% - 150px);
-    overflow: hidden;
-
-    text-align: left;
-
-    span.text,
-    .vb {
-      display: none;
-    }
-
-    i {
-      display: inline-block;
-      font-size: 1rem;
-      padding: 0 6px;
-    }
-
-    .email {
-      display: inline-block;
-      max-width: 72px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1;
-    }
-
-    a {
-      min-width: 36px;
-      min-height: 36px;
-      padding: 0 8px;
-      flex: 0 0 auto;
-    }
+    padding: 0;
   }
 
   #stream {
@@ -3769,29 +3823,11 @@ img.noborder {
     padding: 10px 10px;
 
     h1 {
-      max-width: calc(100% - 108px);
       padding: 8px 12px 9px;
 
       a {
         font-size: 1.2rem;
       }
-    }
-  }
-
-  #navtop {
-    right: 0;
-    padding: 6px 8px;
-    gap: 0.25rem;
-    max-width: calc(100% - 116px);
-
-    .hello {
-      display: none;
-    }
-
-    a {
-      min-width: 34px;
-      min-height: 34px;
-      padding: 0 7px;
     }
   }
 }

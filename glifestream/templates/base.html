@@ -29,47 +29,54 @@
     <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display:none;">
       {% csrf_token %}
     </form>
-    {% if authed %}
-      <span class="hello">
-        <span class="text">{% trans "Hello" %}</span>
-        <b class="email">{{ user.email }}</b>
-      </span>
-      <span class="vb">|</span>
-      <a href="{% url 'index' %}" title="{% trans "My private stream" %}">
-        <i class="fas fa-home"></i>
-        <span class="text">{% trans "Home" %}</span>
-      </a>
-      <span class="vb">|</span>
-      <a href="{% url 'public' %}" title="{% trans "My publicly visible stream" %}" accesskey="2">
-        <i class="fas fa-bullhorn"></i>
-        <span class="text">{% trans "Public" %}</span>
-      </a>
-      <span class="vb">|</span>
-      {% if user.is_staff %}
-        <a href="{% url 'settings' %}">
-          <i class="fas fa-cog"></i>
-          <span class="text">{% trans "Settings" %}</span>
-        </a>
-        <span class="vb">|</span>
-      {% endif %}
-      <a href="#" role="button" data-submit-form="logout-form">
-        <i class="fas fa-right-from-bracket"></i>
-        <span class="text">{% trans "Logout" %}</span>
-      </a>
+    {% if authed or friend %}
+      <button type="button" id="navtop-toggle" class="navtop-toggle"
+              aria-expanded="false" aria-controls="navtop-menu"
+              aria-label="{% trans "Menu" %}" title="{% trans "Menu" %}">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div id="navtop-menu" class="navtop-menu">
+        {% if authed %}
+          <span class="hello">
+            <span class="text">{% trans "Hello" %}</span>
+            <b class="email">{{ user.email }}</b>
+          </span>
+          <span class="vb">|</span>
+          <a href="{% url 'index' %}" title="{% trans "My private stream" %}">
+            <i class="fas fa-home"></i>
+            <span class="text">{% trans "Home" %}</span>
+          </a>
+          <span class="vb">|</span>
+          <a href="{% url 'public' %}" title="{% trans "My publicly visible stream" %}" accesskey="2">
+            <i class="fas fa-bullhorn"></i>
+            <span class="text">{% trans "Public" %}</span>
+          </a>
+          <span class="vb">|</span>
+          {% if user.is_staff %}
+            <a href="{% url 'settings' %}">
+              <i class="fas fa-cog"></i>
+              <span class="text">{% trans "Settings" %}</span>
+            </a>
+            <span class="vb">|</span>
+          {% endif %}
+          <a href="#" role="button" data-submit-form="logout-form">
+            <i class="fas fa-right-from-bracket"></i>
+            <span class="text">{% trans "Logout" %}</span>
+          </a>
+        {% else %}
+          <span class="hello">
+            <span class="text">{% trans "Hello" %}</span>
+            <b class="email">{{ friend_email|default:'Friend' }}</b>
+          </span>
+          <span class="vb">|</span>
+          <a href="#" role="button" data-submit-form="logout-form">
+            <i class="fas fa-right-from-bracket"></i>
+            <span class="text">{% trans "Logout" %}</span>
+          </a>
+        {% endif %}
+      </div>
     {% else %}
-      {% if friend %}
-        <span class="hello">
-          <span class="text">{% trans "Hello" %}</span>
-          <b class="email">{{ friend_email|default:'Friend' }}</b>
-        </span>
-        <span class="vb">|</span>
-        <a href="#" role="button" data-submit-form="logout-form">
-          <i class="fas fa-right-from-bracket"></i>
-          <span class="text">{% trans "Logout" %}</span>
-        </a>
-      {% else %}
-        <a href="{% url 'login' %}" rel="nofollow">{% trans "Login" %}</a>
-      {% endif %}
+      <a href="{% url 'login' %}" rel="nofollow">{% trans "Login" %}</a>
     {% endif %}
   </nav>
   <h1 class="tb">

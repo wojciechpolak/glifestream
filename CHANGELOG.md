@@ -29,6 +29,9 @@ from the Git history and are intentionally high-level.
 
 - Video players carry `data-id` instead of `id`. A `user-scripts.js` that
   looks a player up by `id` should use `data-id`.
+- On a screen 920px wide or narrower the top bar has one menu button. Its
+  menu shows the full e-mail address and the links with their labels,
+  instead of a cut-off address and bare icons.
 
 ### Fixed
 

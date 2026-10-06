@@ -24,6 +24,7 @@ from collections.abc import Callable
 from typing import cast
 
 import pytest
+from django.contrib.auth.models import User
 from playwright.sync_api import Locator, Page, expect
 
 from glifestream.gauth.models import OAuthClient
@@ -252,6 +253,70 @@ def test_mobile_sidebar_expands_and_scrolls_to_footer(
     assert scrolled_state['scrollTop'] > 0
     assert scrolled_state['footerTop'] >= scrolled_state['sidebarTop']
     assert scrolled_state['footerBottom'] <= scrolled_state['sidebarBottom']
+
+
+@pytest.mark.parametrize('width', [390, 800])
+def test_narrow_top_bar_folds_links_into_a_menu(
+    page: Page,
+    app_base_url: str,
+    login_as_initial_admin,
+    finish_forced_password_change,
+    width: int,
+):
+    login_as_initial_admin()
+    finish_forced_password_change()
+    email = 'a.rather.long.address@lifestream.example.com'
+    User.objects.filter(username='admin').update(email=email)
+
+    page.set_viewport_size({'width': width, 'height': 680})
+    page.goto(f'{app_base_url}/')
+
+    toggle = page.locator('#navtop-toggle')
+    menu = page.locator('#navtop-menu')
+    expect(toggle).to_be_visible()
+    expect(toggle).to_have_attribute('aria-expanded', 'false')
+    expect(menu).to_be_hidden()
+
+    toggle.click()
+    expect(toggle).to_have_attribute('aria-expanded', 'true')
+    for label in ('Home', 'Public', 'Settings', 'Logout'):
+        expect(menu.get_by_text(label, exact=True)).to_be_visible()
+    address = menu.locator('.email')
+    expect(address).to_have_text(email)
+    assert address.evaluate('(node) => node.scrollWidth <= node.clientWidth')
+    box = menu.bounding_box()
+    assert box is not None
+    assert box['x'] >= 0
+    assert box['x'] + box['width'] <= width
+
+    page.keyboard.press('Escape')
+    expect(menu).to_be_hidden()
+    expect(toggle).to_be_focused()
+
+    toggle.click()
+    page.locator('#head h1').click(position={'x': 4, 'y': 4})
+    expect(menu).to_be_hidden()
+
+    toggle.click()
+    menu.get_by_text('Settings', exact=True).click()
+    expect(page).to_have_url(re.compile(r'/settings'))
+
+
+def test_wide_top_bar_shows_links_without_a_menu(
+    page: Page,
+    app_base_url: str,
+    login_as_initial_admin,
+    finish_forced_password_change,
+):
+    login_as_initial_admin()
+    finish_forced_password_change()
+
+    page.set_viewport_size({'width': 1280, 'height': 800})
+    page.goto(f'{app_base_url}/')
+
+    expect(page.locator('#navtop-toggle')).to_be_hidden()
+    for label in ('Home', 'Public', 'Settings', 'Logout'):
+        expect(page.locator('#navtop').get_by_text(label, exact=True)).to_be_visible()
 
 
 def test_mobile_pull_to_refresh_reloads_page(

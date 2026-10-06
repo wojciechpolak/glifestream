@@ -24,6 +24,7 @@ import { init_settings } from './settings/init';
 import { unhide_entry } from './stream/entry-actions';
 import { init_stream } from './stream/init';
 import { init_page_controls } from './ui/controls';
+import { init_navtop } from './ui/navtop';
 import { es } from './util/dom';
 
 // The "Undo" link of a hidden entry and "Run now" on the settings status
@@ -37,6 +38,7 @@ es('gls.run_fetch_service', run_fetch_service);
 function start(): void {
     load_config();
     init_page_controls();
+    init_navtop();
 
     if (document.getElementById('settings')) {
         init_settings();

@@ -209,6 +209,13 @@ input[type="search"] {
   .hello .text {
     color: var(--color-font, #333);
   }
+  // The menu button of the default theme; these themes keep the plain bar.
+  .navtop-toggle {
+    display: none;
+  }
+  .navtop-menu {
+    display: contents;
+  }
 }
 
 #head {
