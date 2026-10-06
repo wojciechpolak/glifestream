@@ -2722,6 +2722,14 @@ fieldset .form-notice {
   margin-right: 4px;
 }
 
+// One column of fields, each as wide as the others.
+#preferences-form select,
+#preferences-form input[type="number"] {
+  box-sizing: border-box;
+  width: 15rem;
+  max-width: 100%;
+}
+
 #settings fieldset a,
 #edit-service li {
   line-height: 1.55;
