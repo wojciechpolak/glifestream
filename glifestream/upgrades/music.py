@@ -38,7 +38,7 @@ from django.utils.translation import gettext_noop
 from glifestream.filters import music
 from glifestream.stream import media
 from glifestream.stream.models import Entry
-from glifestream.upgrades.types import Field, Proposal, Unavailable
+from glifestream.upgrades.types import Field, Link, Proposal, Unavailable
 from glifestream.utils import oembed
 
 # An old player of a track: a thesixtyone link, or a link to a Spotify track.
@@ -246,11 +246,18 @@ class MusicUpgrader:
             'cover': cover,
         }
 
-    def field_help(self, entry: Entry, name: str, values: Mapping[str, str]) -> str:
+    def field_help(
+        self, entry: Entry, name: str, values: Mapping[str, str]
+    ) -> list[Link]:
         if name != 'youtube':
-            return ''
+            return []
         q = music.clean('%s %s' % (values.get('artist', ''), values.get('title', '')))
-        return 'https://www.youtube.com/results?search_query=%s' % quote_plus(q)
+        return [
+            Link(
+                gettext_noop('Search YouTube'),
+                'https://www.youtube.com/results?search_query=%s' % quote_plus(q),
+            )
+        ]
 
     def propose_offline(self, entry: Entry) -> Proposal | None:
         if _find_song(entry.content) is not None:

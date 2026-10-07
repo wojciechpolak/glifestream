@@ -25,7 +25,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from urllib.parse import quote_plus
 
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_noop
@@ -33,12 +32,13 @@ from django.utils.translation import gettext_noop
 from glifestream.filters import players
 from glifestream.stream import media
 from glifestream.stream.models import Entry
+from glifestream.upgrades import videos
 from glifestream.upgrades.types import (
     Field,
+    Link,
     Proposal,
     Unavailable,
     require_thumbnail,
-    search_terms,
 )
 
 
@@ -93,10 +93,10 @@ class PostVideosUpgrader:
             return {}
         return {'video': players.link_of(blocks[0].provider, blocks[0].video_id)}
 
-    def field_help(self, entry: Entry, name: str, values: Mapping[str, str]) -> str:
-        return 'https://www.youtube.com/results?search_query=%s' % quote_plus(
-            search_terms(entry)
-        )
+    def field_help(
+        self, entry: Entry, name: str, values: Mapping[str, str]
+    ) -> list[Link]:
+        return videos.searches(entry, first='youtube')
 
     def propose_offline(self, entry: Entry) -> Proposal | None:
         content = players.canonical(entry.content, public=entry.service.public)

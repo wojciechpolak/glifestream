@@ -50,7 +50,7 @@
     <p>
       <label for="upgrade-{{ field.name }}">{% trans field.label %}</label>
       <input type="text" id="upgrade-{{ field.name }}" name="{{ field.name }}" value="{{ field.value }}" />
-      {% if field.help %}<a href="{{ field.help }}" target="_blank" rel="noopener noreferrer">{% trans "Search" %}</a>{% endif %}
+      {% if field.help %}<span class="upgrade-search">{% for link in field.help %}<a href="{{ link.url }}" target="_blank" rel="noopener noreferrer">{% trans link.label %}</a>{% endfor %}</span>{% endif %}
     </p>
     {% endfor %}
     <p><input type="submit" value="{% trans "Preview B" %}" /></p>

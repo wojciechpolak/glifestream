@@ -137,7 +137,7 @@ def test_upgrade_an_old_music_post(
     expect(form.get_by_label('Artist')).to_have_value('The E2e Band')
     expect(form.get_by_label('Title')).to_have_value('E2e Song')
     expect(form.get_by_label('Cover image')).to_have_value(f'[GLS-THUMBS]/{OLD_COVER}')
-    expect(form.get_by_role('link', name='Search')).to_have_attribute(
+    expect(form.get_by_role('link', name='Search YouTube')).to_have_attribute(
         'href', 'https://www.youtube.com/results?search_query=The+E2e+Band+E2e+Song'
     )
 

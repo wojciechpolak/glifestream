@@ -193,8 +193,11 @@ def test_give_a_post_another_video_on_the_upgrades_page(
     expect(form.get_by_label('Video')).to_have_value(
         'https://www.youtube.com/watch?v=e2eVideo01'
     )
-    expect(form.get_by_role('link', name='Search')).to_have_attribute(
+    expect(form.get_by_role('link', name='Search YouTube')).to_have_attribute(
         'href', 'https://www.youtube.com/results?search_query=A+Guitar+Cover'
+    )
+    expect(form.get_by_role('link', name='Search Vimeo')).to_have_attribute(
+        'href', 'https://vimeo.com/search?q=A+Guitar+Cover'
     )
 
     form.get_by_label('Video').fill('https://youtu.be/e2eCopy001')

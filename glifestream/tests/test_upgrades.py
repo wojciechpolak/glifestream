@@ -11,7 +11,7 @@ from django.core import signing
 from glifestream import upgrades
 from glifestream.apis import vimeo, youtube
 from glifestream.stream.models import Entry, EntryUpgrade, Media, Service
-from glifestream.upgrades.types import find_player
+from glifestream.upgrades.types import Link, find_player
 from glifestream.utils import httpclient
 
 YT = upgrades.UPGRADERS['youtube']
@@ -312,7 +312,7 @@ def test_propose_asks_vimeo_oembed_for_the_thumbnail(vimeo_service):
 
     with (
         patch(
-            'glifestream.upgrades.vimeo.oembed.discover',
+            'glifestream.upgrades.videos.oembed.discover',
             return_value={'thumbnail_url': 'https://i.vimeocdn.com/42_640'},
         ) as discover,
         patch(
@@ -336,7 +336,7 @@ def test_propose_reports_a_video_vimeo_no_longer_has(vimeo_service):
     entry = make_entry(vimeo_service, YT_LEGACY[0].replace('youtube-abc', 'vimeo-42'))
 
     with (
-        patch('glifestream.upgrades.vimeo.oembed.discover', return_value=None),
+        patch('glifestream.upgrades.videos.oembed.discover', return_value=None),
         pytest.raises(upgrades.Unavailable, match='Vimeo'),
     ):
         VIMEO.propose(entry)
@@ -348,10 +348,17 @@ def test_the_video_field_starts_from_the_video_shown(yt_service, vimeo_service):
 
     assert YT.guess(yt) == {'video': 'https://www.youtube.com/watch?v=abc'}
     assert VIMEO.guess(vm) == {'video': 'https://vimeo.com/42'}
-    assert YT.field_help(yt, 'video', {}) == (
-        'https://www.youtube.com/results?search_query=Budgie%27s+Parents'
-    )
-    assert VIMEO.field_help(vm, 'video', {}) == 'https://vimeo.com/search?q=A+Video'
+    assert YT.field_help(yt, 'video', {}) == [
+        Link(
+            'Search YouTube',
+            'https://www.youtube.com/results?search_query=Budgie%27s+Parents',
+        ),
+        Link('Search Vimeo', 'https://vimeo.com/search?q=Budgie%27s+Parents'),
+    ]
+    assert VIMEO.field_help(vm, 'video', {}) == [
+        Link('Search Vimeo', 'https://vimeo.com/search?q=A+Video'),
+        Link('Search YouTube', 'https://www.youtube.com/results?search_query=A+Video'),
+    ]
 
 
 def test_propose_plays_another_copy_the_owner_entered(yt_service, media_root):
@@ -391,14 +398,64 @@ def test_propose_with_the_same_video_is_the_usual_upgrade(
     assert proposal == YT.propose(entry)
 
 
-def test_propose_refuses_an_address_of_another_provider(yt_service, vimeo_service):
+def test_propose_refuses_what_is_no_video_address(yt_service, vimeo_service):
     yt = make_entry(yt_service, YT_LEGACY[0])
     vm = make_entry(vimeo_service, YT_LEGACY[0].replace('youtube-abc', 'vimeo-42'))
 
-    with pytest.raises(upgrades.Unavailable, match='not a YouTube video'):
-        YT.propose(yt, {'video': 'https://vimeo.com/42'})
-    with pytest.raises(upgrades.Unavailable, match='not a Vimeo video'):
-        VIMEO.propose(vm, {'video': 'https://youtu.be/abc'})
+    for upgrader, entry in ((YT, yt), (VIMEO, vm)):
+        with pytest.raises(upgrades.Unavailable, match='not a YouTube or Vimeo'):
+            upgrader.propose(entry, {'video': 'https://example.com/42'})
+
+
+def test_propose_plays_a_youtube_copy_of_a_video_gone_from_vimeo(vimeo_service):
+    entry = make_entry(
+        vimeo_service,
+        YT_LEGACY[0].replace('youtube-abc', 'vimeo-42'),
+        title='A Clip',
+        link='https://vimeo.com/42',
+    )
+
+    with (
+        patch(
+            'glifestream.upgrades.videos.oembed.discover', side_effect=AssertionError
+        ),
+        patch(
+            'glifestream.apis.youtube.media.save_image', return_value=NEWER_THUMB
+        ) as save_image,
+    ):
+        proposal = VIMEO.propose(entry, {'video': 'https://youtu.be/copy1'})
+
+    save_image.assert_called_once_with(
+        'https://i.ytimg.com/vi/copy1/mqdefault.jpg',
+        downscale=True,
+        size=(320, 180),
+        strict=True,
+    )
+    assert proposal == upgrades.Proposal(
+        content=yt_current('copy1', NEWER_THUMB),
+        link='https://www.youtube.com/watch?v=copy1',
+        mblob=None,
+    )
+
+
+def test_propose_plays_a_vimeo_copy_of_a_video_gone_from_youtube(yt_service):
+    entry = make_entry(yt_service, YT_LEGACY[0], title='A Clip')
+
+    with (
+        patch(
+            'glifestream.upgrades.videos.oembed.discover',
+            return_value={'thumbnail_url': 'https://i.vimeocdn.com/77_640'},
+        ) as discover,
+        patch('glifestream.apis.vimeo.media.save_image', return_value=NEWER_THUMB),
+    ):
+        proposal = YT.propose(entry, {'video': 'https://vimeo.com/77'})
+
+    discover.assert_called_once_with('https://vimeo.com/77', 'vimeo', maxwidth=640)
+    assert proposal == upgrades.Proposal(
+        content=vimeo.player_html('77', 'https://vimeo.com/77', 'A Clip', NEWER_THUMB),
+        link='https://vimeo.com/77',
+        mblob=vimeo.player_mblob('77'),
+    )
 
 
 def test_propose_plays_another_vimeo_copy(vimeo_service):
@@ -411,7 +468,7 @@ def test_propose_plays_another_vimeo_copy(vimeo_service):
 
     with (
         patch(
-            'glifestream.upgrades.vimeo.oembed.discover',
+            'glifestream.upgrades.videos.oembed.discover',
             return_value={'thumbnail_url': 'https://i.vimeocdn.com/77_640'},
         ) as discover,
         patch('glifestream.apis.vimeo.media.save_image', return_value=NEWER_THUMB),
@@ -455,15 +512,15 @@ def test_pending_lists_legacy_entries_oldest_first_without_skipped(
 # --------------------------------------------------------------------- apply
 
 
-def approve(entry, upgrader, media_root, src=NEW_THUMB) -> str:
+def approve(entry, upgrader, media_root, src=NEW_THUMB, values=None) -> str:
     put_thumb(media_root, src)
     with patch('glifestream.apis.youtube.media.save_image', return_value=src):
         with patch('glifestream.apis.vimeo.media.save_image', return_value=src):
             with patch(
-                'glifestream.upgrades.vimeo.oembed.discover',
+                'glifestream.upgrades.videos.oembed.discover',
                 return_value={'thumbnail_url': 'https://i.vimeocdn.com/x'},
             ):
-                proposal = upgrader.propose(entry)
+                proposal = upgrader.propose(entry, values)
     return upgrades.make_token(entry, upgrader, proposal)
 
 
@@ -583,6 +640,30 @@ def test_revert_puts_back_the_entry_and_queues_it_again(vimeo_service, media_roo
         upgrades.revert(upgrade.pk)
 
 
+def test_a_video_moved_to_youtube_leaves_the_vimeo_queue_until_reverted(
+    vimeo_service, media_root
+):
+    old = YT_LEGACY[0].replace('youtube-abc', 'vimeo-42')
+    entry = make_entry(vimeo_service, old, link='https://vimeo.com/42')
+    token = approve(
+        entry, VIMEO, media_root, values={'video': 'https://youtu.be/copy1'}
+    )
+
+    upgrade = upgrades.apply(token)
+
+    entry.refresh_from_db()
+    assert entry.content == yt_current('copy1')
+    assert entry.link == 'https://www.youtube.com/watch?v=copy1'
+    assert upgrades.pending(VIMEO) == []
+    assert upgrades.pending(YT) == []
+
+    upgrades.revert(upgrade.pk)
+
+    entry.refresh_from_db()
+    assert (entry.content, entry.link) == (old, 'https://vimeo.com/42')
+    assert [e.pk for e in upgrades.pending(VIMEO)] == [entry.pk]
+
+
 def test_revert_refuses_to_lose_a_later_edit(yt_service, media_root):
     entry = make_entry(yt_service, YT_LEGACY[0])
     upgrade = upgrades.apply(approve(entry, YT, media_root))
@@ -623,7 +704,9 @@ def no_downloads():
     with (
         patch('glifestream.apis.youtube.media.save_image', side_effect=AssertionError),
         patch('glifestream.apis.vimeo.media.save_image', side_effect=AssertionError),
-        patch('glifestream.upgrades.vimeo.oembed.discover', side_effect=AssertionError),
+        patch(
+            'glifestream.upgrades.videos.oembed.discover', side_effect=AssertionError
+        ),
     ):
         yield
 

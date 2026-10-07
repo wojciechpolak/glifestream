@@ -1532,11 +1532,11 @@ msgstr "Podaj wykonawcę i tytuł utworu."
 msgid "That is not a YouTube video address."
 msgstr "To nie jest adres filmu na YouTube."
 
-msgid "That is not a Vimeo video address."
-msgstr "To nie jest adres filmu na Vimeo."
+msgid "Search YouTube"
+msgstr "Szukaj na YouTube"
 
-msgid "Vimeo video"
-msgstr "Film na Vimeo"
+msgid "Search Vimeo"
+msgstr "Szukaj na Vimeo"
 
 msgid "YouTube has no thumbnail of this video. Enter a cover."
 msgstr "YouTube nie ma miniatury tego filmu. Podaj okładkę."

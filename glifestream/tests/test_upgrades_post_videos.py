@@ -157,10 +157,11 @@ def test_the_owner_gives_another_video_of_either_provider(videos):
     assert POSTS.guess(entry) == {
         'video': 'https://www.youtube.com/watch?v=2yOVITOeY0g'
     }
-    assert POSTS.field_help(entry, 'video', {}) == (
+    assert [link.url for link in POSTS.field_help(entry, 'video', {})] == [
         'https://www.youtube.com/results?search_query='
-        'Nirvana+-+Aneurysm+%28guitar+cover%29'
-    )
+        'Nirvana+-+Aneurysm+%28guitar+cover%29',
+        'https://vimeo.com/search?q=Nirvana+-+Aneurysm+%28guitar+cover%29',
+    ]
     with (
         patch(
             'glifestream.filters.players.oembed.discover',

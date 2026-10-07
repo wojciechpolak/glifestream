@@ -65,6 +65,15 @@ class Field:
     label: str
 
 
+@dataclass(frozen=True)
+class Link:
+    """A page that helps the owner fill in a field, such as a search."""
+
+    # The untranslated label; the review page translates it.
+    label: str
+    url: str
+
+
 class Upgrader(Protocol):
     """Brings the stored markup of one provider's entries up to date.
 
@@ -87,9 +96,11 @@ class Upgrader(Protocol):
         the owner's form with."""
         ...
 
-    def field_help(self, entry: Entry, name: str, values: Mapping[str, str]) -> str:
-        """The address of a page that helps the owner fill in field `name`
-        of `entry`, such as a search, or ''."""
+    def field_help(
+        self, entry: Entry, name: str, values: Mapping[str, str]
+    ) -> list[Link]:
+        """The pages that help the owner fill in field `name` of `entry`,
+        such as searches."""
         ...
 
     def propose(
@@ -140,20 +151,18 @@ def find_player(content: str, provider: str) -> Player | None:
 
 
 def chosen_video(
-    values: Mapping[str, str] | None,
-    player: Player,
-    video_id: Callable[[str], str | None],
-    invalid: str,
-) -> str:
-    """The id of the video the owner entered in the `video` field, or of
-    the one `player` shows when the field is empty."""
+    values: Mapping[str, str] | None, player: Player, provider: str
+) -> tuple[str, str]:
+    """The provider and the id of the video the owner entered in the `video`
+    field, or of the one `player` of `provider` shows when the field is
+    empty. A video gone from one provider may live on at the other."""
     url = (values or {}).get('video', '').strip()
     if not url:
-        return player.video_id
-    vid = video_id(url)
-    if vid is None:
-        raise Unavailable(invalid)
-    return vid
+        return provider, player.video_id
+    video = players.video_of(url)
+    if video is None:
+        raise Unavailable(_('That is not a YouTube or Vimeo video address.'))
+    return video
 
 
 def search_terms(entry: Entry) -> str:

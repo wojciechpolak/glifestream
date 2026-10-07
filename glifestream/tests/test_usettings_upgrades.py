@@ -150,7 +150,10 @@ def test_review_offers_another_copy_of_the_video(staff_client, entry, new_thumbn
 
     form = search(r'<form method="get"[^>]*class="upgrade-fields">(.*?)</form>', body)
     assert 'name="video" value="https://www.youtube.com/watch?v=abc"' in form
-    assert 'https://www.youtube.com/results?search_query=Old+Video' in form
+    assert re.findall(r'<a href="([^"]+)"[^>]*>([^<]+)</a>', form) == [
+        ('https://www.youtube.com/results?search_query=Old+Video', 'Search YouTube'),
+        ('https://vimeo.com/search?q=Old+Video', 'Search Vimeo'),
+    ]
 
     body = staff_client.get(
         review_url(entry=entry.pk, video='https://youtu.be/copy1')
@@ -164,6 +167,28 @@ def test_review_offers_another_copy_of_the_video(staff_client, entry, new_thumbn
     entry.refresh_from_db()
     assert 'data-id="youtube-copy1"' in entry.content
     assert entry.link == 'https://www.youtube.com/watch?v=copy1'
+
+
+def test_review_takes_a_copy_on_the_other_provider(staff_client, entry):
+    with (
+        patch(
+            'glifestream.upgrades.videos.oembed.discover',
+            return_value={'thumbnail_url': 'https://i.vimeocdn.com/77_640'},
+        ),
+        patch('glifestream.apis.vimeo.media.save_image', return_value=NEW_THUMB),
+    ):
+        body = staff_client.get(
+            review_url(entry=entry.pk, video='https://vimeo.com/77')
+        ).content.decode()
+
+    assert 'data-id="vimeo-77"' in body
+    staff_client.post(
+        reverse('usettings-upgrade-apply', args=['youtube']),
+        {'token': token_of(body), 'entry': entry.pk},
+    )
+    entry.refresh_from_db()
+    assert 'data-id="vimeo-77"' in entry.content
+    assert entry.link == 'https://vimeo.com/77'
 
 
 @pytest.mark.django_db
