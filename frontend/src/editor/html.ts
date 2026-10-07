@@ -68,7 +68,8 @@ export function saved_html(html: string): string {
         last.remove();
     }
     for (const line of root.querySelectorAll('div, li')) {
-        if (!line.hasChildNodes()) {
+        // A player's play button is no line.
+        if (!line.hasChildNodes() && !line.closest('.play-video')) {
             line.append(document.createElement('br'));
         }
     }
@@ -95,6 +96,19 @@ export function is_html_empty(value: string): boolean {
             .replaceAll('&nbsp;', ' ')
             .trim().length === 0 &&
         value.indexOf('<img') === -1 &&
-        value.indexOf('<iframe') === -1
+        value.indexOf('<iframe') === -1 &&
+        value.indexOf('play-video') === -1 &&
+        value.indexOf('music-card') === -1
     );
+}
+
+/** The editor's HTML to read as source: each block on a line of its own. */
+export function source_html(html: string): string {
+    const root = fragment(html);
+    return [...root.childNodes]
+        .map((node) =>
+            node instanceof Element ? node.outerHTML : (node.textContent ?? ''),
+        )
+        .filter((line) => line.trim() !== '')
+        .join('\n');
 }

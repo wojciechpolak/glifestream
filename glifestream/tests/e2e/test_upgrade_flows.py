@@ -159,3 +159,56 @@ def test_settings_tables_fit_a_phone_screen(
         )
         assert fits and all(fits), path
         assert page.evaluate('document.documentElement.scrollWidth') <= 390
+
+
+def test_give_a_post_another_video_on_the_upgrades_page(
+    page: Page,
+    app_base_url: str,
+    ensure_admin_session,
+    stub_external_requests,
+    monkeypatch,
+):
+    _thumb(OLD_THUMB, (200, 150))
+    _thumb(NEW_THUMB, (320, 180))
+    monkeypatch.setattr(
+        'glifestream.filters.players.media.save_image',
+        lambda url, **kwargs: '[GLS-THUMBS]/%s' % NEW_THUMB,
+    )
+    service = Service.objects.create(name='Videos', api='selfposts', public=True)
+    entry = Entry.objects.create(
+        service=service,
+        guid='tag:e2e,2012:post-video',
+        title='A Guitar Cover',
+        link='http://example.org/stream/',
+        content='<p>A guitar cover</p>\n' + OLD_CONTENT,
+    )
+    published = entry.date_published
+    ensure_admin_session()
+
+    page.goto(f'{app_base_url}/settings/upgrades')
+    page.locator('tr[data-upgrader="post-videos"]').get_by_role(
+        'link', name='Review'
+    ).click()
+    form = page.locator('form.upgrade-fields')
+    expect(form.get_by_label('Video')).to_have_value(
+        'https://www.youtube.com/watch?v=e2eVideo01'
+    )
+    expect(form.get_by_role('link', name='Search')).to_have_attribute(
+        'href', 'https://www.youtube.com/results?search_query=A+Guitar+Cover'
+    )
+
+    form.get_by_label('Video').fill('https://youtu.be/e2eCopy001')
+    form.get_by_role('button', name='Preview B').click()
+    after = page.locator('#stream.upgrade-compare > article').last
+    expect(after.locator('[data-id="youtube-e2eCopy001"] img')).to_have_attribute(
+        'src', f'/media/thumbs/b/{NEW_THUMB}'
+    )
+    page.get_by_role('button', name='Apply B').click()
+    expect(page.locator('.upgrade-messages .done')).to_contain_text(
+        f'Applied to entry #{entry.pk}.'
+    )
+
+    entry.refresh_from_db()
+    assert 'data-id="youtube-e2eCopy001"' in entry.content
+    assert entry.content.startswith('<p>A guitar cover</p>\n<div data-id=')
+    assert entry.date_published == published

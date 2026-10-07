@@ -18,10 +18,10 @@
 import datetime
 from functools import partial
 
-from django.utils.html import escape
 from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
+from glifestream.filters import players
 from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.utils import httpclient
 from glifestream.utils.time import now
@@ -128,23 +128,12 @@ class VimeoService(BaseService):
 
 
 # The box every Vimeo thumbnail is stored at and shown in.
-THUMBNAIL_SIZE = (320, 180)
+THUMBNAIL_SIZE = players.THUMBNAIL_SIZE
 
-
-def video_link(video_id: str | int) -> str:
-    return 'https://vimeo.com/%s' % video_id
-
-
-def player_html(video_id: str | int, link: str, title: str, src: str) -> str:
-    """The stored markup of a video, its thumbnail already in place.
-
-    Entries keep this markup in their content, so `glifestream.upgrades`
-    compares old entries with it to find the ones a change here left behind.
-    """
-    return (
-        """<div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="%s" /></a><div class="playbutton"></div></div>"""
-        % (video_id, link, src, *THUMBNAIL_SIZE, escape(title))
-    )
+video_link = players.vimeo_link
+# The stored markup of a video, its thumbnail already in place, which
+# `glifestream.upgrades` compares old entries with.
+player_html = players.vimeo_html
 
 
 def localize_thumbnail(url: str, *, public: bool, strict: bool = False) -> str:

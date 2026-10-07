@@ -19,17 +19,15 @@ from __future__ import annotations
 
 import html
 import logging
-import os
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Protocol
 
-from django.conf import settings
 from django.utils.html import strip_tags
 from django.utils.translation import gettext as _
 
-from glifestream.stream import media
+from glifestream.filters import players
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
 
@@ -168,20 +166,12 @@ def thumbnail_is_current(
 ) -> bool:
     """Whether the thumbnail is what a fresh import would show: the right
     box, and for a public service a local copy in today's format."""
-    if (player.width, player.height) != (str(size[0]), str(size[1])):
-        return False
-    if not public:
-        return player.src.startswith('https://')
-    if not player.src.startswith('[GLS-THUMBS]/'):
-        return False
-    if not player.src.endswith(media.thumb_suffix()):
-        return False
-    return all(thumb_exists(rel) for rel in media.thumb_rels(player.src))
+    return players.thumbnail_is_current(
+        player.src, player.width, player.height, size, public=public
+    )
 
 
-def thumb_exists(rel: str) -> bool:
-    """Whether a MEDIA_ROOT-relative thumbnail is on disk."""
-    return os.path.isfile(os.path.join(settings.MEDIA_ROOT, rel))
+thumb_exists = players.thumb_exists
 
 
 # What a provider answers for an image it does not have.

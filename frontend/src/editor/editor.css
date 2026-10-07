@@ -139,3 +139,81 @@ img.ProseMirror-separator {
 #status-editor .ProseMirror img.ProseMirror-selectednode {
     outline: 2px solid Highlight;
 }
+
+/*
+ * A video's player: the theme draws its .play-video frame and its
+ * .playbutton as in the stream; this only lays it out with its address.
+ */
+
+#status-editor .ProseMirror .editor-player {
+    display: grid;
+    justify-items: start;
+    gap: 4px;
+    width: max-content;
+    max-width: 100%;
+    margin: 6px 0;
+    cursor: pointer;
+}
+
+#status-editor .ProseMirror .editor-player .play-video {
+    max-width: 100%;
+}
+
+#status-editor .ProseMirror .editor-player-name {
+    display: grid;
+    place-items: center;
+    width: 320px;
+    max-width: 100%;
+    aspect-ratio: 16 / 9;
+    border-radius: 20px;
+    background: rgba(127, 127, 127, 0.2);
+    font-weight: bold;
+}
+
+#status-editor .ProseMirror .editor-player-link {
+    max-width: 320px;
+    overflow: hidden;
+    font-size: 0.8em;
+    opacity: 0.7;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#status-editor .ProseMirror .editor-player.ProseMirror-selectednode .play-video {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+}
+
+/* The HTML source, in place of the editor while it is open. */
+
+#status-editor .editor-source {
+    display: none;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+    padding: 12px 15px;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    color: inherit;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    line-height: 1.5;
+    resize: none;
+    white-space: pre-wrap;
+}
+
+#status-editor.source-mode .editor-source {
+    display: block;
+}
+
+#status-editor.source-mode .ProseMirror {
+    display: none;
+}
+
+.editor-toolbar .editor-toolbar-group button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}

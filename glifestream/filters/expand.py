@@ -20,6 +20,12 @@ import re
 from typing import Match, cast
 from urllib.parse import parse_qsl, urlparse
 from django.utils.html import strip_tags
+from glifestream.filters.players import (
+    normalize_youtube_url,
+    player_html,
+    vimeo_video_id as vimeo_video_id,
+    youtube_video_id as youtube_video_id,
+)
 from glifestream.stream import media
 from glifestream.utils import httpclient, oembed
 
@@ -116,72 +122,6 @@ def imgloc(s: str) -> str:
 #
 
 
-def _youtube_path_id(parts: list[str], query: dict[str, str], path: str) -> str | None:
-    if path == '/watch':
-        return query.get('v')
-    if len(parts) >= 2 and parts[0] in ('shorts', 'live', 'embed'):
-        return parts[1]
-    return None
-
-
-def _youtu_be_id(parts: list[str], query: dict[str, str], path: str) -> str | None:
-    return parts[0] if parts else None
-
-
-def _nocookie_id(parts: list[str], query: dict[str, str], path: str) -> str | None:
-    if len(parts) >= 2 and parts[0] == 'embed':
-        return parts[1]
-    return None
-
-
-# Host (without "www.") -> how that host carries the video id.
-_YOUTUBE_ID_EXTRACTORS = {
-    'youtube.com': _youtube_path_id,
-    'm.youtube.com': _youtube_path_id,
-    'youtu.be': _youtu_be_id,
-    'youtube-nocookie.com': _nocookie_id,
-}
-
-
-def normalize_youtube_url(url: str) -> str | None:
-    parsed = urlparse(url)
-    if parsed.scheme not in ('http', 'https'):
-        return None
-
-    host = parsed.netloc.lower().removeprefix('www.')
-    extract = _YOUTUBE_ID_EXTRACTORS.get(host)
-    if extract is None:
-        return None
-
-    path = parsed.path.rstrip('/')
-    parts = [part for part in path.split('/') if part]
-    video_id = extract(parts, dict(parse_qsl(parsed.query)), path)
-    if not video_id or not re.fullmatch(r'[\-\w]+', video_id):
-        return None
-    return 'https://www.youtube.com/watch?v=%s' % video_id
-
-
-def youtube_video_id(url: str) -> str | None:
-    """The id of the YouTube video `url` shows, or None."""
-    # A YouTube Music address plays the same video.
-    url = re.sub(
-        r'^(https?://)music\.youtube\.com/', r'\1www.youtube.com/', url.strip()
-    )
-    canonical = normalize_youtube_url(url)
-    return canonical.rsplit('=', 1)[1] if canonical else None
-
-
-_VIMEO_VIDEO = re.compile(
-    r'https?://(?:www\.|player\.)?vimeo\.com/(?:[^?#]*/)?(\d+)/?(?:[?#].*)?'
-)
-
-
-def vimeo_video_id(url: str) -> str | None:
-    """The id of the Vimeo video `url` shows, or None."""
-    m = _VIMEO_VIDEO.fullmatch(url.strip())
-    return m.group(1) if m else None
-
-
 def is_video_url(url: str) -> bool:
     return normalize_youtube_url(url) is not None or bool(
         re.match(r'https?://(www\.)?vimeo\.com/\d+$', url)
@@ -206,11 +146,7 @@ def __youtube_card(link: str, rest: str = '') -> str:
         return link
     imgurl = 'https://i.ytimg.com/vi/%s/mqdefault.jpg' % id_video
     imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
-    return (
-        '<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow">'
-        '<img src="%s" width="320" height="180" alt="YouTube Video" /></a><div class="playbutton">'
-        '</div></div>%s' % (id_video, canonical_link, imgurl, rest)
-    )
+    return player_html('youtube', id_video, imgurl) + rest
 
 
 def __sv_youtube(m: Match) -> str:
@@ -244,11 +180,7 @@ def __sv_vimeo(m: Match) -> str:
     imgurl = vimeo_thumbnail_url(id_video)
     if imgurl:
         imgurl = media.save_image(imgurl, downscale=True, size=(320, 180))
-        return (
-            '<div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow">'
-            '<img src="%s" width="320" height="180" alt="Vimeo Video" /></a>'
-            '<div class="playbutton"></div></div>' % (id_video, link, imgurl)
-        )
+        return player_html('vimeo', id_video, imgurl)
     return cast(str, link)
 
 

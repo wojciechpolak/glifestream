@@ -25,6 +25,8 @@ JavaScript rely on it.
 
 from __future__ import annotations
 
+import copy
+import re
 from dataclasses import dataclass
 from typing import Any, Callable, cast
 
@@ -38,6 +40,7 @@ from django.http import (
     JsonResponse,
 )
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.urls import reverse
 
 from glifestream.apis import selfposts
@@ -99,34 +102,54 @@ def _shared_images(request: HttpRequest) -> list[str]:
     return images
 
 
+def _post_args(request: HttpRequest) -> dict[str, Any]:
+    """What the composer sends for a post, as `selfposts` takes it."""
+    return {
+        'content': request.POST.get('content', ''),
+        'sid': request.POST.get('sid', None),
+        'draft': request.POST.get('draft', False),
+        'friends_only': request.POST.get('friends_only', False),
+        'link': request.POST.get('link', None),
+        'images': _shared_images(request),
+        'files': request.FILES,
+        'music': {
+            name: request.POST.get('music_' + name, '')
+            for name in ('artist', 'title', 'youtube', 'cover')
+        },
+        'source': request.POST.get('from', ''),
+        'user': request.user,
+    }
+
+
+def _shown_to_owner(entry: Entry) -> None:
+    """Lets the owner see the content of `entry`, and its lock if it is for
+    friends only, as the stream shows them."""
+    cast(Any, entry).only_for_friends = entry.friends_only
+    entry.friends_only = False
+
+
+def _entry_page() -> dict[str, Any]:
+    """What the article of one entry needs of its page: the author it names."""
+    return {
+        'author_name': settings.FEED_AUTHOR_NAME,
+        'author_uri': getattr(settings, 'FEED_AUTHOR_URI', False),
+    }
+
+
 def _cmd_share(ctx: ApiContext) -> HttpResponse | None:
     request = ctx.request
-    entry = selfposts.SelfpostsService(Service()).share(
-        {
-            'content': request.POST.get('content', ''),
-            'sid': request.POST.get('sid', None),
-            'draft': request.POST.get('draft', False),
-            'friends_only': request.POST.get('friends_only', False),
-            'link': request.POST.get('link', None),
-            'images': _shared_images(request),
-            'files': request.FILES,
-            'music': {
-                name: request.POST.get('music_' + name, '')
-                for name in ('artist', 'title', 'youtube', 'cover')
-            },
-            'source': request.POST.get('from', ''),
-            'user': request.user,
-        }
-    )
+    entry = selfposts.SelfpostsService(Service()).share(_post_args(request))
     if not entry:
         return None
 
     if not entry.draft:
         request_websub_publish()
-    entry.friends_only = False
+    _shown_to_owner(entry)
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(
-            request, 'stream-pure.html', {'entries': (entry,), 'authed': ctx.authed}
+            request,
+            'stream-pure.html',
+            {'entries': (entry,), 'authed': ctx.authed, 'page': _entry_page()},
         )
     return HttpResponseRedirect(settings.BASE_URL + '/')
 
@@ -186,7 +209,8 @@ def _cmd_getcontent(ctx: ApiContext) -> HttpResponse | None:
         return None
 
     if ctx.authed and ctx.request.POST.get('raw', False):
-        return HttpResponse(entry.content)
+        # For the editor, which shows the pictures it is given.
+        return HttpResponse(media.set_upload_url(media.set_thumbs_url(entry.content)))
 
     cast(Any, entry).friends_login_url = build_friends_login_url(
         ctx.request.build_absolute_uri(reverse('entry', args=[entry.pk]))
@@ -196,15 +220,95 @@ def _cmd_getcontent(ctx: ApiContext) -> HttpResponse | None:
     return HttpResponse(fix_ampersands(gls_content('', entry)))
 
 
+def _cmd_editcontent(ctx: ApiContext) -> HttpResponse | None:
+    """An entry as the composer edits it: its HTML with addresses a browser
+    can load, its class, and whether it is a post, whose class may change."""
+    entry = Entry.objects.select_related('service').filter(pk=ctx.entry_pk).first()
+    if entry is None:
+        return None
+    return JsonResponse(
+        {
+            'content': media.set_upload_url(media.set_thumbs_url(entry.content)),
+            # As its icon shows it (stream-pure.html).
+            'cls': entry.service.cls or entry.service.api,
+            'post': entry.service.api == 'selfposts',
+            'draft': entry.draft,
+            'friends_only': entry.friends_only,
+        }
+    )
+
+
+def _edited_fields(entry: Entry, post: Any) -> dict[str, Any]:
+    """The fields of `entry` once what the composer sends in `post` is saved:
+    its HTML, and for a post the class the rich composer sends too."""
+    # What getcontent gave the editor, back as entries store it.
+    content = media.unset_media_urls(post.get('content', ''))
+    fields: dict[str, Any] = {'content': content}
+    # The rich composer's checkboxes; the raw editor has none.
+    for flag in ('draft', 'friends_only'):
+        if flag in post:
+            fields[flag] = post.get(flag) in ('1', 'true', 'on')
+    if entry.service.api == 'selfposts':
+        fields['content'], fields['mblob'] = selfposts.edited_content(entry, content)
+        service = selfposts.class_service(entry, post.get('sid'))
+        if service is not None:
+            fields['service'] = service
+    return fields
+
+
 def _cmd_putcontent(ctx: ApiContext) -> HttpResponse | None:
-    content = ctx.request.POST.get('content', '')
-    if content:
-        Entry.objects.filter(pk=ctx.entry_pk).update(content=content)
     try:
-        entry = Entry.objects.get(pk=ctx.entry_pk)
+        entry = Entry.objects.select_related('service').get(pk=ctx.entry_pk)
     except Entry.DoesNotExist:
         return None
+    post = ctx.request.POST
+    if post.get('content', ''):
+        Entry.objects.filter(pk=entry.pk).update(**_edited_fields(entry, post))
+        entry.refresh_from_db()
+    if post.get('article'):
+        # The whole article, whose icon shows a new class too.
+        _shown_to_owner(entry)
+        return render(
+            ctx.request,
+            'stream-pure.html',
+            {'entries': (entry,), 'authed': ctx.authed, 'page': _entry_page()},
+        )
     return HttpResponse(fix_ampersands(gls_content('', entry)))
+
+
+# The ids and the share link of the article a preview shows, which only
+# the entries of the stream have.
+_PREVIEW_IDS = re.compile(r' id="(?:entry|shareit)-\d*"')
+_PREVIEW_SHARE = re.compile(r'<a href="#"[^>]*class="shareit[^"]*".*?</a>', re.S)
+
+
+def _cmd_preview(ctx: ApiContext) -> HttpResponse | None:
+    """The article of a post being written, or of an entry being edited, as
+    the stream will show it. Nothing is saved."""
+    request = ctx.request
+    if ctx.entry_id is not None:
+        stored = Entry.objects.select_related('service').filter(pk=ctx.entry_id).first()
+        if stored is None:
+            return None
+        entry = copy.copy(stored)
+        for name, value in _edited_fields(stored, request.POST).items():
+            setattr(entry, name, value)
+    else:
+        args = _post_args(request)
+        try:
+            entry = selfposts.SelfpostsService(Service()).build(args)
+        except (Service.DoesNotExist, IndexError, ValueError):
+            return None
+        # Its links need an id; the article loses it below.
+        entry.pk = 0
+    # The owner sees what friends will, and the lock of a friends-only post.
+    _shown_to_owner(entry)
+    html: str = render_to_string(
+        'stream-pure.html',
+        {'entries': (entry,), 'authed': False, 'preview': True, 'page': _entry_page()},
+        request=request,
+    )
+    return HttpResponse(_PREVIEW_SHARE.sub('', _PREVIEW_IDS.sub('', html)))
 
 
 API_COMMANDS: dict[str, ApiHandler] = {
@@ -217,6 +321,8 @@ API_COMMANDS: dict[str, ApiHandler] = {
     'unfavorite': _cmd_unfavorite,
     'getcontent': _cmd_getcontent,
     'putcontent': _cmd_putcontent,
+    'editcontent': _cmd_editcontent,
+    'preview': _cmd_preview,
 }
 
 # The only command an anonymous visitor may reach.
@@ -224,7 +330,7 @@ PUBLIC_COMMANDS = frozenset({'getcontent'})
 
 # Commands that do nothing without an `entry` POST parameter. They answer with
 # an empty 200 rather than a 404, which is what the chain always did.
-ENTRY_COMMANDS = frozenset(API_COMMANDS) - {'gsc', 'share'}
+ENTRY_COMMANDS = frozenset(API_COMMANDS) - {'gsc', 'share', 'preview'}
 
 
 def dispatch(request: HttpRequest, **args: Any) -> HttpResponse:

@@ -190,6 +190,29 @@ def test_gsc_sends_selfposts_classes(admin_client):
 
 
 @pytest.mark.django_db
+def test_editcontent_sends_a_post_to_edit(admin_client):
+    service = Service.objects.create(name='Music', api='selfposts', cls='music')
+    entry = Entry.objects.create(
+        service=service,
+        guid='edit-contract',
+        title='Song',
+        content='<div class="music-card"><p class="music-track">'
+        '<span class="music-title">Song</span> <span class="music-artist">Band'
+        '</span></p><p class="music-links"></p></div><p>Text</p>',
+    )
+
+    response = admin_client.post(
+        reverse('api', kwargs={'cmd': 'editcontent'}), {'entry': entry.pk}
+    )
+
+    # EditContent
+    assert_fields(
+        response.json(),
+        {'content': str, 'cls': str, 'post': bool, 'draft': bool, 'friends_only': bool},
+    )
+
+
+@pytest.mark.django_db
 def test_html_pure_page_sends_entries_and_the_next_page(client, service, settings):
     settings.ENTRIES_ON_PAGE = 1
     for n in range(2):

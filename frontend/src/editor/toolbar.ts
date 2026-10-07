@@ -20,6 +20,8 @@
 
 import type { ChainedCommands, Editor } from '@tiptap/core';
 
+import { selected_video } from './schema';
+
 type Gettext = (msg: string) => string;
 
 interface Tool {
@@ -36,25 +38,6 @@ function command(apply: (chain: ChainedCommands) => ChainedCommands): Tool['run'
     return (editor) => {
         apply(editor.chain().focus()).run();
     };
-}
-
-/**
- * The address of the player for a video's page on YouTube or Vimeo, as
- * Quill's video button made it; any other address as it is.
- */
-export function video_embed_url(url: string): string {
-    const youtube =
-        /^(?:(https?):\/\/)?(?:(?:www|m)\.)?youtube\.com\/watch.*v=([\w-]+)/.exec(
-            url,
-        ) || /^(?:(https?):\/\/)?(?:(?:www|m)\.)?youtu\.be\/([\w-]+)/.exec(url);
-    if (youtube) {
-        return `${youtube[1] || 'https'}://www.youtube.com/embed/${youtube[2]}?showinfo=0`;
-    }
-    const vimeo = /^(?:(https?):\/\/)?(?:www\.)?vimeo\.com\/(\d+)/.exec(url);
-    if (vimeo) {
-        return `${vimeo[1] || 'https'}://player.vimeo.com/video/${vimeo[2]}/`;
-    }
-    return url;
 }
 
 function edit_link(editor: Editor, gettext: Gettext): void {
@@ -92,10 +75,17 @@ function insert_image(editor: Editor): void {
     input.click();
 }
 
+/** Puts a video in a new player, or in the selected one instead of its own. */
 function insert_video(editor: Editor, gettext: Gettext): void {
-    const url = prompt(gettext('Video address:'), 'https://');
-    if (url && url.trim() !== 'https://') {
-        editor.chain().focus().setVideo(video_embed_url(url.trim())).run();
+    const url = prompt(
+        gettext('Video address:'),
+        selected_video(editor.state.selection) ?? 'https://',
+    );
+    if (!url || url.trim() === '' || url.trim() === 'https://') {
+        return;
+    }
+    if (!editor.chain().focus().setPlayer(url.trim()).run()) {
+        alert(gettext('That is not a YouTube or Vimeo video address.'));
     }
 }
 
@@ -191,7 +181,12 @@ function tool_groups(gettext: Gettext): Tool[][] {
                 active: (e) => e.isActive('link'),
             },
             { label: gettext('Image'), icon: 'fa-image', run: insert_image },
-            { label: gettext('Video'), icon: 'fa-film', run: insert_video },
+            {
+                label: gettext('Video'),
+                icon: 'fa-film',
+                run: insert_video,
+                active: (e) => e.isActive('player'),
+            },
         ],
         [
             {

@@ -513,6 +513,14 @@ select {
     background-color 0.18s ease;
 }
 
+// A field that cannot be changed looks it.
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 input[type="checkbox"] {
   accent-color: var(--accent-strong);
 }
@@ -1232,6 +1240,25 @@ p.subtitle {
   background:
     var(--entry-accent-gradient) left top / 4px 100% no-repeat,
     var(--surface-card-muted-gradient);
+}
+
+// The live preview of a post, under the composer (frontend/src/stream/preview.ts).
+#stream > article.entry-preview {
+  border: 2px dashed var(--accent-strong);
+}
+
+.entry-preview-label {
+  position: absolute;
+  top: -0.8em;
+  right: 18px;
+  padding: 0.1rem 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--button-bg);
+  color: var(--button-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 #stream .entry-highlight {

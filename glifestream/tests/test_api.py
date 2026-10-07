@@ -1,5 +1,6 @@
 import pytest
 import datetime
+from PIL import Image
 from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import quote
@@ -489,3 +490,290 @@ def test_api_putcontent_with_no_content_leaves_the_entry_alone(admin_client, ent
     assert response.status_code == 200
     entry.refresh_from_db()
     assert entry.content == 'Unchanged'
+
+
+THUMB = '[GLS-THUMBS]/ad97b17ffccd1af56d7f1596ff2b47f4e6a487bf.webp'
+EDITOR_PLAYER = (
+    '<div data-id="youtube-abc" class="play-video">'
+    '<a href="https://www.youtube.com/watch?v=abc" rel="nofollow">'
+    '<img src="https://i.ytimg.com/vi/abc/mqdefault.jpg" width="320" height="180" '
+    'alt="YouTube Video"></a><div class="playbutton"></div></div>'
+)
+
+
+@pytest.mark.django_db
+def test_api_getcontent_raw_gives_the_editor_addresses_it_can_show(admin_client, entry):
+    entry.content = '<img src="%s"><a href="[GLS-UPLOAD]/a.pdf">a</a>' % THUMB
+    entry.save()
+
+    raw = admin_client.post(api_url('getcontent'), {'entry': entry.pk, 'raw': '1'})
+
+    assert raw.content.decode() == (
+        '<img src="%sthumbs/a/%s"><a href="%supload/a.pdf">a</a>'
+        % (settings.MEDIA_URL, THUMB.split('/')[1], settings.MEDIA_URL)
+    )
+
+    admin_client.post(
+        api_url('putcontent'), {'entry': entry.pk, 'content': raw.content.decode()}
+    )
+    entry.refresh_from_db()
+    assert entry.content == '<img src="%s"><a href="[GLS-UPLOAD]/a.pdf">a</a>' % THUMB
+    # Only a post gets its players made again.
+    assert entry.mblob is None
+
+
+@pytest.mark.django_db
+def test_api_putcontent_gives_a_post_its_players(admin_client, settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    settings.APP_THUMBNAIL_FORMAT = 'WEBP'
+    # The thumbnail a download leaves, which is then current.
+    name = THUMB.split('/')[1]
+    (tmp_path / 'thumbs' / name[0]).mkdir(parents=True)
+    (tmp_path / 'thumbs' / name[0] / name).write_bytes(b'thumb')
+    post = Service.objects.create(name='Videos', api='selfposts', public=True)
+    entry = Entry.objects.create(
+        service=post,
+        title='Post',
+        guid='post-1',
+        link='http://test.com',
+        mblob='{"content": [[{"url": "[GLS-UPLOAD]/p.jpg", "medium": "image"}]]}',
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+    edited = '<div>Two:</div>%s<div>https://youtu.be/def</div>' % EDITOR_PLAYER
+
+    with patch(
+        'glifestream.filters.players.media.save_image', return_value=THUMB
+    ) as save:
+        admin_client.post(api_url('putcontent'), {'entry': entry.pk, 'content': edited})
+
+    entry.refresh_from_db()
+    assert save.call_count == 2
+    assert entry.content.count('src="%s" width="320" height="180"' % THUMB) == 2
+    assert 'data-id="youtube-def"' in entry.content
+    assert 'i.ytimg.com' not in entry.content
+    assert entry.mblob is not None
+    assert 'youtube.com/embed/abc' in entry.mblob
+    assert 'youtube.com/embed/def' in entry.mblob
+    assert '[GLS-UPLOAD]/p.jpg' in entry.mblob
+
+
+@pytest.fixture
+def posts(db):
+    return Service.objects.create(name='Notes', api='selfposts', public=True)
+
+
+@pytest.mark.django_db
+def test_api_preview_shows_a_post_as_the_stream_will_and_saves_nothing(
+    admin_client, client, posts
+):
+    count = Entry.objects.count()
+
+    response = admin_client.post(
+        api_url('preview'),
+        {'sid': posts.pk, 'content': 'Hello *world*', 'friends_only': '1'},
+    )
+
+    body = response.content.decode()
+    assert response.status_code == 200
+    assert '<article' in body and 'class="hentry e-selfposts' in body
+    assert 'world' in body
+    assert 'id="entry-' not in body and 'shareit' not in body
+    # The owner sees the content friends will, and its lock.
+    assert 'friends-only-entry' not in body
+    assert 'friends-only-lock' in body
+    assert Entry.objects.count() == count
+    assert client.post(api_url('preview'), {'content': 'x'}).status_code == 403
+
+
+@pytest.mark.django_db
+def test_api_preview_shows_the_music_card(admin_client, posts):
+    response = admin_client.post(
+        api_url('preview'),
+        {'sid': posts.pk, 'music_artist': 'Band', 'music_title': 'Song'},
+    )
+
+    body = response.content.decode()
+    assert '<div class="music-card">' in body
+    assert 'Song – Band' in body
+
+
+@pytest.mark.django_db
+def test_api_preview_of_an_edit_leaves_the_entry_alone(
+    admin_client, posts, settings, tmp_path
+):
+    settings.MEDIA_ROOT = str(tmp_path)
+    entry = Entry.objects.create(
+        service=posts,
+        title='Post',
+        guid='post-preview',
+        link='http://test.com',
+        content='<div>Old</div>',
+        date_published=datetime.datetime(2023, 11, 1, 12, 0, tzinfo=UTC),
+    )
+
+    with patch('glifestream.filters.players.media.save_image', return_value=THUMB):
+        response = admin_client.post(
+            api_url('preview'),
+            {'entry': entry.pk, 'content': '<div>New</div>%s' % EDITOR_PLAYER},
+        )
+
+    body = response.content.decode()
+    assert 'New' in body and 'Old' not in body
+    assert 'data-id="youtube-abc"' in body
+    assert '/thumbs/a/%s' % THUMB.split('/')[1] in body
+    entry.refresh_from_db()
+    assert entry.content == '<div>Old</div>'
+    missing = admin_client.post(api_url('preview'), {'entry': 999999, 'content': 'x'})
+    assert missing.content == b''
+
+
+MUSIC_CARD = (
+    '<div class="music-card"><span class="music-cover"><img src="%s" width="160" '
+    'height="160" alt="Brave Men – Shoelace" /></span><p class="music-track">'
+    '<span class="music-title">Brave Men</span> <span class="music-artist">'
+    'Shoelace</span></p><p class="music-links"></p></div>' % THUMB
+)
+
+
+@pytest.fixture
+def music_post(db, settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    name = THUMB.split('/')[1]
+    (tmp_path / 'thumbs' / name[0]).mkdir(parents=True)
+    Image.new('RGB', (160, 160)).save(tmp_path / 'thumbs' / name[0] / name, 'WEBP')
+    music = Service.objects.create(
+        name='Music', api='selfposts', cls='music', public=True
+    )
+    Service.objects.create(name='Blog', api='selfposts', cls='blog', public=True)
+    return Entry.objects.create(
+        service=music,
+        title='Brave Men',
+        guid='music-post',
+        link='http://test.com',
+        content=MUSIC_CARD + '\n<p>Loved it.</p>',
+        date_published=datetime.datetime(2010, 1, 1, 12, 0, tzinfo=UTC),
+    )
+
+
+@pytest.mark.django_db
+def test_api_editcontent_gives_the_composer_the_post_and_its_class(
+    admin_client, client, music_post, entry
+):
+    data = admin_client.post(api_url('editcontent'), {'entry': music_post.pk}).json()
+
+    shown = MUSIC_CARD.replace(
+        THUMB, '%sthumbs/a/%s' % (settings.MEDIA_URL, THUMB.split('/')[1])
+    )
+    assert data == {
+        'content': shown + '\n<p>Loved it.</p>',
+        'cls': 'music',
+        'post': True,
+        'draft': False,
+        'friends_only': False,
+    }
+    # An imported entry has the class of its service, which stays.
+    other = admin_client.post(api_url('editcontent'), {'entry': entry.pk}).json()
+    assert (other['cls'], other['post']) == ('feed', False)
+    assert client.post(api_url('editcontent'), {'entry': entry.pk}).status_code == 403
+
+
+def edited_card(title: str, cover: str) -> str:
+    """A card as the editor writes it: what it shows, without its links."""
+    return (
+        '<div class="music-card"><span class="music-cover"><img src="%s" '
+        'width="160" height="160" alt=""></span><p class="music-track">'
+        '<span class="music-title">%s</span> <span class="music-artist">Shoelace'
+        '</span></p><p class="music-links"></p></div>' % (cover, title)
+    )
+
+
+@pytest.mark.django_db
+def test_api_putcontent_makes_the_card_again_and_moves_the_post_to_a_class(
+    admin_client, music_post
+):
+    blog = Service.objects.get(cls='blog')
+    published = music_post.date_published
+    shown = '%sthumbs/a/%s' % (settings.MEDIA_URL, THUMB.split('/')[1])
+
+    response = admin_client.post(
+        api_url('putcontent'),
+        {
+            'entry': music_post.pk,
+            'content': edited_card('Brave Men (live)', shown) + '<p>Loved it.</p>',
+            'sid': blog.pk,
+            'article': '1',
+        },
+    )
+
+    music_post.refresh_from_db()
+    assert music_post.service == blog
+    assert music_post.date_published == published
+    assert music_post.content.startswith('<div class="music-card">')
+    assert '<span class="music-title">Brave Men (live)</span>' in music_post.content
+    # Made again, with its links and the cover it had.
+    assert 'open.spotify.com/search/Shoelace%20Brave%20Men%20%28live%29' in (
+        music_post.content
+    )
+    assert 'src="%s"' % THUMB in music_post.content
+    body = response.content.decode()
+    assert body.lstrip().startswith('<article id="entry-%d"' % music_post.pk)
+    assert 'e-blog' in body
+
+    # A class of its own leaves the post where it is.
+    admin_client.post(
+        api_url('putcontent'),
+        {'entry': music_post.pk, 'content': '<p>Just text.</p>', 'sid': blog.pk},
+    )
+    music_post.refresh_from_db()
+    assert music_post.content == '<p>Just text.</p>'
+    assert music_post.service == blog
+
+
+@pytest.mark.django_db
+def test_api_preview_of_an_edit_shows_its_new_class_and_card(admin_client, music_post):
+    blog = Service.objects.get(cls='blog')
+
+    body = admin_client.post(
+        api_url('preview'),
+        {
+            'entry': music_post.pk,
+            'content': edited_card('Other Song', THUMB) + '<p>Loved it.</p>',
+            'sid': blog.pk,
+        },
+    ).content.decode()
+
+    assert 'e-blog' in body
+    assert '<span class="music-title">Other Song</span>' in body
+    assert 'Bandcamp' in body
+    music_post.refresh_from_db()
+    assert music_post.service.cls == 'music'
+
+
+@pytest.mark.django_db
+def test_api_putcontent_saves_the_checkboxes_of_the_composer(admin_client, music_post):
+    response = admin_client.post(
+        api_url('putcontent'),
+        {
+            'entry': music_post.pk,
+            'content': '<p>For friends.</p>',
+            'friends_only': '1',
+            'draft': '0',
+            'article': '1',
+        },
+    )
+
+    music_post.refresh_from_db()
+    assert music_post.friends_only and not music_post.draft
+    # The owner sees the content, and the lock the stream shows.
+    body = response.content.decode()
+    assert 'For friends.' in body and 'friends-only-lock' in body
+    assert admin_client.post(api_url('editcontent'), {'entry': music_post.pk}).json()[
+        'friends_only'
+    ]
+
+    # The raw editor sends no checkboxes, and changes neither.
+    admin_client.post(
+        api_url('putcontent'), {'entry': music_post.pk, 'content': '<p>Raw.</p>'}
+    )
+    music_post.refresh_from_db()
+    assert music_post.friends_only

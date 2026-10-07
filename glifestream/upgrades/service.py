@@ -31,13 +31,20 @@ from django.utils.translation import gettext as _
 from glifestream.stream import media
 from glifestream.stream.models import Entry, EntryUpgrade, Media
 from glifestream.upgrades.music import MusicUpgrader
+from glifestream.upgrades.post_videos import PostVideosUpgrader
 from glifestream.upgrades.types import Proposal, Upgrader, thumb_exists
 from glifestream.upgrades.vimeo import VimeoUpgrader
 from glifestream.upgrades.youtube import YoutubeUpgrader
 
 # Upgraders by key. Adding a provider means adding its upgrader here.
 UPGRADERS: dict[str, Upgrader] = {
-    u.key: u for u in (YoutubeUpgrader(), VimeoUpgrader(), MusicUpgrader())
+    u.key: u
+    for u in (
+        YoutubeUpgrader(),
+        VimeoUpgrader(),
+        MusicUpgrader(),
+        PostVideosUpgrader(),
+    )
 }
 
 _SALT = 'glifestream.upgrades'

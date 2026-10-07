@@ -24,17 +24,35 @@ from the Git history and are intentionally high-level.
   Tidal and Bandcamp. The composer adds one from its "Music track" fields.
 - A Music upgrade turns old thesixtyone.com and Spotify posts into music
   cards.
+- The editor shows a post's videos as players. A video address pasted on
+  its own becomes one at once, and the video button puts another video in
+  the selected player.
+- A live preview under the composer shows the post, or the entry being
+  edited, as the stream will show it, while it is written.
+- The editor shows a post's music card as it will look, and the "Music
+  track" fields edit it. Editing a post keeps its class, which can be
+  changed too.
+- Editing an entry shows and saves its "draft" and "friends only"
+  checkboxes. The class of an imported entry shows as locked.
+- An "HTML source" button in the editor shows the HTML a post will be saved
+  with, to change; publishing the post saves it.
+- A "Videos in posts" upgrade brings the players in posts up to date and
+  can give a post another copy of a video that is gone.
 
 ### Changed
 
 - Video players carry `data-id` instead of `id`. A `user-scripts.js` that
   looks a player up by `id` should use `data-id`.
+- The Media RSS of a post's YouTube video points at its embed player, not
+  the Flash one YouTube no longer serves.
 - On a screen 920px wide or narrower the top bar has one menu button. Its
   menu shows the full e-mail address and the links with their labels,
   instead of a cut-off address and bare icons.
 
 ### Fixed
 
+- Editing a post no longer turns its videos into linked pictures, and the
+  editor shows the post's pictures instead of broken images.
 - The Docker container makes the media directories writable for Gunicorn on
   every start, not only on the first. On an older installation the web
   process could not save thumbnails, for example for an upgrade preview.

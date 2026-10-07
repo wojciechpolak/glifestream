@@ -567,3 +567,54 @@ def test_share_leaves_out_what_does_not_work_in_a_music_track(selfposts, caplog)
     assert 'without its player' in caplog.text
     assert lonely is not None and 'music-card' not in lonely.content
     assert 'Music card left out' in caplog.text
+
+
+@pytest.mark.django_db
+def test_share_gives_a_player_from_the_editor_a_thumbnail_of_its_own(selfposts):
+    editor_player = (
+        '<div data-id="youtube-abc" class="play-video">'
+        '<a href="https://www.youtube.com/watch?v=abc" rel="nofollow">'
+        '<img src="https://i.ytimg.com/vi/abc/mqdefault.jpg" width="320" '
+        'height="180" alt="YouTube Video"></a><div class="playbutton"></div></div>'
+    )
+    with patch(
+        'glifestream.filters.players.media.save_image',
+        return_value='[GLS-THUMBS]/abc.webp',
+    ):
+        entry = selfposts.share({'content': '<div>Look</div>' + editor_player})
+
+    assert entry is not None
+    assert 'i.ytimg.com' not in entry.content
+    assert (
+        '<div data-id="youtube-abc" class="play-video">'
+        '<a href="https://www.youtube.com/watch?v=abc" rel="nofollow">'
+        '<img src="[GLS-THUMBS]/abc.webp" width="320" height="180"'
+    ) in entry.content
+    assert 'youtube.com/embed/abc' in entry.mblob
+
+
+@pytest.mark.django_db
+def test_build_makes_the_post_without_saving_it(selfposts):
+    count = Entry.objects.count()
+
+    entry = selfposts.build({'content': 'Just *built*'})
+
+    assert entry.pk is None
+    assert '<em>built</em>' in entry.content
+    assert entry.title == 'Just built'
+    assert Entry.objects.count() == count
+
+
+@pytest.mark.django_db
+def test_share_makes_the_card_the_editor_holds_again(selfposts):
+    edited = (
+        '<div class="music-card"><p class="music-track"><span class="music-title">'
+        'Big Jet Plane</span> <span class="music-artist">Angus</span></p>'
+        '<p class="music-links"></p></div>'
+    )
+
+    entry = selfposts.share({'content': edited})
+
+    assert entry is not None
+    assert entry.title == 'Big Jet Plane – Angus'
+    assert 'open.spotify.com/search/Angus%20Big%20Jet%20Plane' in entry.content

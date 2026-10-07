@@ -45,6 +45,7 @@ lower layer a way around it: `lint-imports` follows indirect imports too.
 | Downloading and storing thumbnails | `stream.media.save_image()` | Called by providers and filters while they build content. |
 | Registering thumbnails as `Media` rows | `stream.media.extract_and_register()` | Called by `ingestion` and by selfposts. |
 | Rewriting content (short links, video cards, music cards) | `filters` | Pure text in, text out, apart from thumbnail downloads. |
+| The markup of a YouTube or Vimeo player | `filters/players.py` | Imports, posts, the editor's saves and the upgrades all store it. |
 | Scheduling, retries and backoff | `fetching` | The only caller of `ServiceFactory` for scheduled fetches. |
 | Telling WebSub hubs about new entries | `stream.websub.publish()` | Called by `fetching`: after an import, and for the requests `api_view` stores with `fetching.request_websub_publish()` after a share. Never by `ingestion` or `apis`. |
 | Deleting old entries and orphaned thumbnails | `worker.maintenance` | Run on a schedule by the daemon or with `worker.py`. |
@@ -116,6 +117,38 @@ was a draft, `api_view` then stores a `WebSubPublishRequest` and wakes the
 daemon, which publishes to the WebSub hubs once for all the requests stored
 so far. The owner does not wait for the hubs to answer.
 
+A post's videos are players (`filters/players.py`): the video's thumbnail,
+linked to its page, which the page script turns into the video. A video
+address in the text becomes one (`expand.videolinks`), and `players.render()`
+gives every player of the post today's markup and a thumbnail of its own,
+so a player the editor inserted with the provider's thumbnail gets a local
+copy.
+
+`SelfpostsService.build()` makes the post without saving it, and `share()`
+saves what it builds. `/api/preview` renders what `build()` makes, or an
+edited entry as `/api/putcontent` would save it, through `stream-pure.html`
+and saves nothing. The composer shows that article live under itself, where
+the post will appear (`frontend/src/stream/preview.ts`), a moment after the
+owner stops typing.
+
+Editing an entry goes through `/api/editcontent` (the raw editor uses
+`/api/getcontent` with `raw`) and `/api/putcontent`. The first gives the
+composer the stored HTML with the thumbnail and upload addresses a browser
+can load, its class (which only a post's may change) and its draft and
+friends-only flags, which the composer sends back with it. The second turns the addresses back
+into `[GLS-THUMBS]`/`[GLS-UPLOAD]` (`media.unset_media_urls()`). For a post
+it also does what a share does to its videos and its music card, moves the
+post to the class chosen (`selfposts.class_service()`), and gives it the
+Media RSS of the videos it now shows (`media.mrss_with_videos()`).
+
+The editor shows a music card as a block (`MusicCard` in
+`frontend/src/editor/schema.ts`), which the composer's "Music track" fields
+edit. It saves the card as the track it shows, and the server makes every
+card of a post again from that (`music.render_cards()`): its saved cover,
+the video's thumbnail for a missing one, and its search links. Without the
+editor, the plain composer sends the fields, and the post gets the card
+they make at its end.
+
 ## Upgrading old entries
 
 An entry stores the HTML its provider rendered when it was imported. A later
@@ -165,6 +198,11 @@ The YouTube and Vimeo upgraders ask for the video, starting from the one
 the entry shows, and link a search for the entry's title: a video the
 provider no longer has gives way to another copy the owner finds.
 
+The "Videos in posts" upgrader (`upgrades/post_videos.py`) does the same for
+the players in posts, through `players.render()`. A post belongs to no
+provider, so its video may become one of either. Its field changes the
+first player; another one is changed in the editor.
+
 The music upgrader asks for more: posts about a track that played on
 thesixtyone.com, which is gone, or in a Spotify frame become a music card
 (`filters/music.py`). The card shows the cover, the title and the artist;
@@ -210,6 +248,13 @@ into `glifestream/static/js/dist/`, which is not in Git, for django-pipeline:
   composer sees only the `GlsEditor` interface, so the `main` bundle carries
   none of Tiptap. `editor/html.ts` keeps what it saves in the markup Quill,
   the editor before it, wrote, and `editor/schema.ts` reads that markup back.
+  Its `Player` node shows a post's player as the stream does and saves it in
+  the server's markup; a video address pasted on its own becomes one, and
+  the toolbar's video button puts another video in the selected one.
+  The toolbar's "HTML source" button shows the HTML the editor saves, to
+  change in a textarea; it has no saving of its own, and the post publishes
+  what the editor reads of it. "Raw Edit" on an entry instead saves its HTML
+  as typed, past the editor.
 
 PhotoSwipe and Tiptap are npm dependencies bundled in; nothing is vendored.
 TypeScript 7 (`npm run typecheck`) only checks the types, in strict mode;
@@ -277,7 +322,8 @@ http.ts          fetch with the CSRF token, and the error report
   which also run for WebSub pushes and would then fire it from inside an
   import.
 - **An upgrade for another provider**: split its renderer into a pure
-  `player_html()` and the download around it, add an upgrader under
+  `player_html()` (in `filters/players.py` for a video player) and the
+  download around it, add an upgrader under
   `upgrades/` with its `markers`, `is_legacy()`, `propose()` and
   `propose_offline()` (and `fields` with `guess()` when the owner has to
   tell it something), and register it in `upgrades.service.UPGRADERS`.

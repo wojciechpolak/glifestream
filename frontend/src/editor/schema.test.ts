@@ -81,6 +81,24 @@ describe('the editor schema', () => {
         );
     });
 
+    it('keeps a stored player, in the markup a post stores it in', () => {
+        const thumb = '/media/thumbs/a/aa48.jpg';
+        expect(
+            round_trip(
+                '<div>Cover</div><table class="vc"><tr><td>' +
+                    '<div id="vimeo-42" class="play-video">' +
+                    '<a href="http://vimeo.com/42" rel="nofollow">' +
+                    `<img src="${thumb}" width="200" height="150" alt="Trip &amp; back" /></a>` +
+                    '<div class="playbutton"></div></div></td></tr></table>',
+            ),
+        ).toBe(
+            '<div>Cover</div><div data-id="vimeo-42" class="play-video">' +
+                '<a href="https://vimeo.com/42" rel="nofollow">' +
+                `<img src="${thumb}" width="320" height="180" alt="Trip &amp; back"></a>` +
+                '<div class="playbutton"></div></div>',
+        );
+    });
+
     it('drops a player that is not on the web', () => {
         expect(
             round_trip('<iframe src="javascript:alert(1)"></iframe><div>a</div>'),

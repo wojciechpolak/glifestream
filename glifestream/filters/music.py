@@ -36,7 +36,7 @@ from PIL import Image
 from django.utils.html import escape
 from django.utils.translation import gettext as _
 
-from glifestream.filters.expand import youtube_video_id
+from glifestream.filters.players import youtube_video_id
 from glifestream.stream import media
 from glifestream.utils import httpclient
 
@@ -183,6 +183,50 @@ def parse_card(fragment: str) -> Track | None:
     return Track(artist, title, cover, m.group(1) if m else None)
 
 
+def strip_cards(content: str) -> str:
+    """`content` without its cards."""
+    out = []
+    pos = 0
+    while (found := find_card(content, pos)) is not None:
+        out.append(content[pos : found[0]])
+        pos = found[1]
+    out.append(content[pos:])
+    return ''.join(out)
+
+
+def render_cards(content: str) -> tuple[str, str]:
+    """`content` with each card made again from the track it shows, as the
+    composer's fields make one: its cover saved, a video's thumbnail for a
+    missing one, its search links. Also the title the first card gives a
+    post that says nothing else, or ''. A card that does not name both the
+    artist and the title is left out."""
+    out = []
+    pos = 0
+    title = ''
+    while (found := find_card(content, pos)) is not None:
+        begin, end = found
+        out.append(content[pos:begin])
+        track = parse_card(content[begin:end])
+        try:
+            if track is None:
+                raise MusicError(_('Enter the artist and the title of the track.'))
+            built = build_track(
+                track.artist,
+                track.title,
+                youtube_link(track.youtube_id) if track.youtube_id else '',
+                track.cover.src if track.cover else '',
+                strict=False,
+            )
+        except MusicError as exc:
+            logger.warning('Music card left out: %s', exc)
+        else:
+            out.append(card_html(built))
+            title = title or '%s – %s' % (built.title, built.artist)
+        pos = end
+    out.append(content[pos:])
+    return ''.join(out), title
+
+
 def youtube_id(url: str) -> str | None:
     """The id of the YouTube video `url` shows, or None."""
     return youtube_video_id(clean(url))
@@ -197,8 +241,11 @@ def _local_cover(src: str) -> Cover:
     local = media.get_thumb_info(m.group(1), append_suffix=False)['local']
     if not os.path.isfile(local):
         raise MusicError(_('The cover file is missing.'))
-    with Image.open(local) as im:
-        width, height = im.size
+    try:
+        with Image.open(local) as im:
+            width, height = im.size
+    except OSError as exc:
+        raise MusicError(_('The cover file is not a picture.')) from exc
     return Cover(src, width, height)
 
 

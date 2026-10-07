@@ -67,6 +67,15 @@ def set_thumbs_url(s: str) -> str:
     )
 
 
+def unset_media_urls(s: str) -> str:
+    """`s` with the addresses `set_thumbs_url` and `set_upload_url` give
+    turned back into the references entries store."""
+    # Only an attribute's whole value, not another site's like path.
+    prefix = '(?<=["\'])' + re.escape(settings.MEDIA_URL)
+    s = re.sub(prefix + r'thumbs/([a-f0-9])/(\1[a-z0-9\.]+)', r'[GLS-THUMBS]/\2', s)
+    return re.sub(prefix + 'upload/', '[GLS-UPLOAD]/', s)
+
+
 def get_thumb_hash(s: str) -> str | None:
     m = re.search(r'\[GLS-THUMBS\]/([a-z0-9\.]+)', s)
     return m.groups()[0] if m else None
@@ -293,13 +302,34 @@ def mrss_scan(content: str) -> dict:
     mblob = mrss_init()
     for v in re.findall(r'https?://www.youtube.com/watch\?v=([\-\w]+)', content):
         mblob['content'].append(
-            [{'url': 'https://www.youtube.com/v/' + v, 'medium': 'video'}]
+            [{'url': 'https://www.youtube.com/embed/' + v, 'medium': 'video'}]
         )
     for dummy, v in re.findall(r'https?://(www\.)?vimeo.com/(\d+)', content):
         mblob['content'].append(
             [{'url': 'https://player.vimeo.com/video/' + v, 'medium': 'video'}]
         )
     return mblob
+
+
+# The players `mrss_scan` finds, and the Flash ones it used to.
+_VIDEO_MEDIA = re.compile(
+    r'https?://(?:www\.youtube\.com/(?:v|embed)/|player\.vimeo\.com/video/)'
+)
+
+
+def mrss_with_videos(mblob_json: str | None, content: str) -> str | None:
+    """The Media RSS of an entry whose videos are now those `content`
+    shows: its other media, such as uploaded pictures, stay."""
+    mblob = mrss_scan(content)
+    if mblob_json:
+        try:
+            old = mrss_init(mblob_json)
+        except ValueError:
+            old = mrss_init()
+        for group in old['content']:
+            if not any(_VIDEO_MEDIA.match(str(i.get('url', ''))) for i in group):
+                mblob['content'].append(group)
+    return mrss_gen_json(mblob)
 
 
 def mrss_gen_json(mblob) -> str | None:

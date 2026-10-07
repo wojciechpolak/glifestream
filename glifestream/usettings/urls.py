@@ -40,32 +40,32 @@ urlpatterns = [
         name='usettings-upgrade-revert-batch',
     ),
     re_path(
-        r'upgrades/(?P<key>[a-z]+)/markup-only$',
+        r'upgrades/(?P<key>[a-z][a-z-]*)/markup-only$',
         views.upgrade_markup_only,
         name='usettings-upgrade-markup-only',
     ),
     re_path(
-        r'upgrades/(?P<key>[a-z]+)/markup-only/apply$',
+        r'upgrades/(?P<key>[a-z][a-z-]*)/markup-only/apply$',
         views.upgrade_apply_markup_only,
         name='usettings-upgrade-apply-markup-only',
     ),
     re_path(
-        r'upgrades/(?P<key>[a-z]+)$',
+        r'upgrades/(?P<key>[a-z][a-z-]*)$',
         views.upgrade_review,
         name='usettings-upgrade-review',
     ),
     re_path(
-        r'upgrades/(?P<key>[a-z]+)/apply$',
+        r'upgrades/(?P<key>[a-z][a-z-]*)/apply$',
         views.upgrade_apply,
         name='usettings-upgrade-apply',
     ),
     re_path(
-        r'upgrades/(?P<key>[a-z]+)/skip$',
+        r'upgrades/(?P<key>[a-z][a-z-]*)/skip$',
         views.upgrade_skip,
         name='usettings-upgrade-skip',
     ),
     re_path(
-        r'upgrades/(?P<key>[a-z]+)/requeue$',
+        r'upgrades/(?P<key>[a-z][a-z-]*)/requeue$',
         views.upgrade_requeue,
         name='usettings-upgrade-requeue',
     ),

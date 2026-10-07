@@ -26,8 +26,8 @@
     {% endif %}
   {% endif %}
     <footer class="entry-info">
+      {% if entry.only_for_friends %}{% if authed or preview %}<span class="friends-only-lock" title="{% trans "Friends-only" %}"></span>{% endif %}{% endif %}
       {% if authed %}
-      {% if entry.only_for_friends %}<span class="friends-only-lock" title="{% trans "Friends-only" %}"></span>{% endif %}
       {% if entry.fav or page.favorites %}<span class="favorite"></span>{% endif %}
       <span tabindex="0" class="link entry-controls-switch">{% trans "Menu" %}</span>
       <ul class="entry-controls">

@@ -351,9 +351,11 @@ def test_edit_entry_in_rich_editor_saves_content(
     page.goto(f'{app_base_url}/')
     expect(page.locator('#share .fieldset')).to_be_hidden()
 
-    with page.expect_request(_is_api_post('getcontent')) as request_info:
+    # The composer asks for the post with its class and music card apart,
+    # which it edits in their own fields.
+    with page.expect_request(_is_api_post('editcontent')) as request_info:
         _menu_action(page, entry, 'edit-control')
-    assert _form(request_info.value) == {'entry': str(entry.pk), 'raw': '1'}
+    assert _form(request_info.value) == {'entry': str(entry.pk)}
 
     expect(page.locator('#share .fieldset')).to_be_visible()
     expect(_editor(page)).to_contain_text('Original rich content')

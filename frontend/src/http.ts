@@ -118,6 +118,15 @@ export async function post_text(url: string, params: Params): Promise<string | n
     return result.ok ? result.data.text() : or_report(result);
 }
 
+/** POSTs `params` and resolves to the HTML answer, or null, quietly. */
+export async function try_post_text(
+    url: string,
+    params: Params,
+): Promise<string | null> {
+    const result = await request(url, { method: 'POST', params });
+    return result.ok ? result.data.text() : null;
+}
+
 /** POSTs `params` and resolves to the JSON answer, leaving failures to the caller. */
 export async function try_post_json<T>(
     url: string,

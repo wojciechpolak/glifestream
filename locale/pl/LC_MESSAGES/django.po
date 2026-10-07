@@ -1554,3 +1554,21 @@ msgstr "Nie udało się pobrać miniatury: HTTP %d."
 
 msgid "The thumbnail could not be saved."
 msgstr "Nie udało się zapisać miniatury."
+
+msgid "The entry shows no video."
+msgstr "Wpis nie pokazuje filmu."
+
+msgid "That is not a YouTube or Vimeo video address."
+msgstr "To nie jest adres filmu na YouTube ani na Vimeo."
+
+msgid "Preview"
+msgstr "Podgląd"
+
+msgid "The cover file is not a picture."
+msgstr "Plik okładki nie jest obrazem."
+
+msgid "An imported entry keeps the class of its service."
+msgstr "Zaimportowany wpis ma klasę swojej usługi."
+
+msgid "HTML source"
+msgstr "Źródło HTML"

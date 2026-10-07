@@ -39,8 +39,44 @@ def test_mrss_scan():
     content = 'Check https://www.youtube.com/watch?v=vid1 and https://vimeo.com/123'
     mblob = media.mrss_scan(content)
     assert len(mblob['content']) == 2
-    assert 'youtube.com/v/vid1' in mblob['content'][0][0]['url']
+    assert mblob['content'][0][0]['url'] == 'https://www.youtube.com/embed/vid1'
     assert 'player.vimeo.com/video/123' in mblob['content'][1][0]['url']
+
+
+def test_mrss_with_videos_keeps_other_media():
+    picture = [{'url': '[GLS-UPLOAD]/p.jpg', 'medium': 'image'}]
+    old = json.dumps(
+        {
+            'content': [
+                [{'url': 'http://www.youtube.com/v/old', 'medium': 'video'}],
+                picture,
+            ]
+        }
+    )
+
+    merged = media.mrss_with_videos(
+        old, '<a href="https://www.youtube.com/watch?v=new">'
+    )
+
+    assert merged is not None
+    mblob = json.loads(merged)
+
+    assert mblob['content'] == [
+        [{'url': 'https://www.youtube.com/embed/new', 'medium': 'video'}],
+        picture,
+    ]
+    assert media.mrss_with_videos(None, 'no video') is None
+
+
+def test_unset_media_urls_reverses_both_addresses():
+    stored = (
+        '<img src="[GLS-THUMBS]/a123.webp"><a href="[GLS-UPLOAD]/doc.pdf">'
+        '<img src="https://elsewhere.test/media/thumbs/a/a123.webp">'
+    )
+    with patch('django.conf.settings.MEDIA_URL', '/media/'):
+        shown = media.set_upload_url(media.set_thumbs_url(stored))
+        assert 'src="/media/thumbs/a/a123.webp"' in shown
+        assert media.unset_media_urls(shown) == stored
 
 
 def test_mrss_gen_xml():

@@ -20,8 +20,8 @@
 // glifestream/tests/test_frontend_contract.py checks that the server sends
 // them; change both together.
 //
-// The other endpoints it calls (api/getcontent, putcontent, share and
-// reshare) answer with HTML.
+// The other endpoints it calls (api/getcontent, putcontent, preview, share
+// and reshare) answer with HTML.
 
 /** #gls-config, on every page (stream/templatetags/gls_page.py). */
 export interface PageConfig {
@@ -52,6 +52,18 @@ export interface StreamData {
 export interface SelfpostsClass {
     id: number;
     cls: string;
+}
+
+/** api/editcontent: an entry as the composer edits it. */
+export interface EditContent {
+    /** The HTML, with addresses a browser can load. */
+    content: string;
+    /** Its class, as its icon shows it: its service's class, or its api. */
+    cls: string;
+    /** Whether it is a post, whose class may change. */
+    post: boolean;
+    draft: boolean;
+    friends_only: boolean;
 }
 
 /** A stream page requested with format=html-pure (stream/index_view.py). */

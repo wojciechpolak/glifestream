@@ -66,7 +66,10 @@ function init_entry_controls(stream: HTMLElement): void {
     delegate(stream, 'click', 'a.show-map', show_map);
     delegate(stream, 'click', 'a.expand-content', expand_content);
     delegate(stream, 'click', 'span.entry-controls-switch', show_menu_controls);
-    delegate(stream, 'click', 'div.play-video,span.play-video', toggle_video);
+    // A player in the composer's editor is only selected there.
+    delegate(stream, 'click', 'div.play-video,span.play-video', (block) =>
+        block.closest('#share') ? undefined : toggle_video(block),
+    );
     delegate(stream, 'click', 'span.play-audio', play_audio);
 }
 

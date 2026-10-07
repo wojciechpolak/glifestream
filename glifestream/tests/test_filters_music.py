@@ -140,6 +140,16 @@ def test_a_missing_local_cover_is_an_error():
         music.localize_cover(COVER)
 
 
+def test_a_local_cover_that_is_no_picture_is_an_error(media_root):
+    name = COVER.split('/', 1)[1]
+    path = media_root / 'thumbs' / name[0] / name
+    path.parent.mkdir(parents=True)
+    path.write_bytes(b'not a picture')
+
+    with pytest.raises(music.MusicError, match='not a picture'):
+        music.localize_cover(COVER)
+
+
 def test_a_remote_cover_is_saved_scaled_down(media_root):
     put_image(media_root, YT_THUMB, size=(160, 120))
     with patch(
@@ -227,3 +237,24 @@ def test_build_track_strict_or_lenient_about_a_bad_address(caplog):
     assert track == music.Track('A', 'T')
     assert 'without its player' in caplog.text
     assert 'without its cover' in caplog.text
+
+
+def test_render_cards_makes_each_card_again_from_what_it_shows(media_root):
+    put_image(media_root, COVER, size=(175, 175))
+    edited = (
+        '<div>Intro</div><div class="music-card"><span class="music-cover">'
+        '<img src="%s" width="0" height="0" alt=""></span><p class="music-track">'
+        '<span class="music-title">Big Jet Plane</span> <span class="music-artist">'
+        'Angus &amp; Julia Stone</span></p><p class="music-links"></p></div>' % COVER
+    )
+    nameless = '<div class="music-card"><p class="music-track"></p></div>'
+
+    out, title = music.render_cards(edited + nameless)
+
+    track = music.Track(
+        'Angus & Julia Stone', 'Big Jet Plane', music.Cover(COVER, 175, 175)
+    )
+    assert out == '<div>Intro</div>' + music.card_html(track)
+    assert title == 'Big Jet Plane – Angus & Julia Stone'
+    assert music.strip_cards(out) == '<div>Intro</div>'
+    assert music.render_cards('<p>No card</p>') == ('<p>No card</p>', '')

@@ -21,6 +21,7 @@ from functools import partial
 from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
+from glifestream.filters import players
 from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.stream import media
 from glifestream.stream.models import Entry
@@ -116,20 +117,11 @@ class YoutubeService(BaseService):
         return player
 
 
-def video_link(vid: str) -> str:
-    return 'https://www.youtube.com/watch?v=%s' % vid
-
-
-def player_html(vid: str, link: str, src: str, width: int, height: int) -> str:
-    """The stored markup of a video, its thumbnail already in place.
-
-    Entries keep this markup in their content, so `glifestream.upgrades`
-    compares old entries with it to find the ones a change here left behind.
-    """
-    return (
-        """<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>"""
-        % (vid, link, src, width, height)
-    )
+# The stored markup of a video, its thumbnail already in place. Entries keep
+# it in their content, so `glifestream.upgrades` compares old entries with it
+# to find the ones a change to it left behind.
+video_link = players.youtube_link
+player_html = players.youtube_html
 
 
 def localize_thumbnail(tn: dict, *, public: bool, strict: bool = False) -> str:

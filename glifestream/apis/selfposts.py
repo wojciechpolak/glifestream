@@ -31,7 +31,7 @@ from glifestream.utils.time import utcnow
 from glifestream.utils.html import strip_script, bytes_to_human, urlize
 from glifestream.stream.models import Service, Entry, Media
 from glifestream.stream import media
-from glifestream.filters import expand, music, truncate
+from glifestream.filters import expand, music, players, truncate
 
 try:
     import markdown
@@ -221,7 +221,9 @@ class SelfpostsService(BaseService):
     def run(self):
         pass
 
-    def share(self, args: dict[str, Any] | None = None) -> Entry | None:
+    def build(self, args: dict[str, Any] | None = None) -> Entry:
+        """The post `args` make, not yet saved and without its uploads, as
+        the preview shows it."""
         if args is None:
             args = {}
         content = args.get('content', '')
@@ -229,7 +231,6 @@ class SelfpostsService(BaseService):
         title = args.get('title', None)
         link = args.get('link', None)
         images = args.get('images', None)
-        files = args.get('files', MultiValueDict())
         user = args.get('user', None)
 
         un = utcnow()
@@ -255,6 +256,11 @@ class SelfpostsService(BaseService):
         )
         e.content = strip_script(e.content)
         e.content = expand.imgloc(e.content)
+        # A player the editor inserted shows the provider's thumbnail.
+        e.content = players.render(e.content, public=s.public)
+
+        # A card the editor holds, made as its fields would make it.
+        e.content, card_title = music.render_cards(e.content)
 
         if images:
             e.content += _render_remote_thumbs(images, e.link)
@@ -262,18 +268,27 @@ class SelfpostsService(BaseService):
         if title:
             e.title = title
         else:
-            e.title = truncate.smart(strip_tags(e.content)).strip()
+            e.title = truncate.smart(strip_tags(music.strip_cards(e.content))).strip()
         if e.title == '':
-            e.title = truncate.smart(strip_tags(content)).strip()
+            e.title = truncate.smart(strip_tags(music.strip_cards(content))).strip()
 
-        card, card_title = _render_music_card(args.get('music') or {})
+        # The plain composer, without the editor, sends the card's fields.
+        card, fields_title = _render_music_card(args.get('music') or {})
         if card:
             e.content = '%s\n%s' % (e.content, card) if e.content.strip() else card
-            if e.title == '':
-                e.title = card_title
+            card_title = card_title or fields_title
+        if e.title == '':
+            e.title = card_title
 
-        mblob = media.mrss_scan(e.content)
-        e.mblob = media.mrss_gen_json(mblob)
+        e.mblob = media.mrss_gen_json(media.mrss_scan(e.content))
+        return e
+
+    def share(self, args: dict[str, Any] | None = None) -> Entry | None:
+        if args is None:
+            args = {}
+        files = args.get('files', MultiValueDict())
+        e = self.build(args)
+        mblob = media.mrss_init(e.mblob)
 
         try:
             _insert(e)
@@ -354,6 +369,30 @@ class SelfpostsService(BaseService):
             return e
         except Exception as exc:
             logger.error(exc)
+
+
+def edited_content(entry: Entry, content: str) -> tuple[str, str | None]:
+    """The content and the Media RSS of a post the owner edited.
+
+    As when it was posted, a video address becomes its player, every player
+    shows a thumbnail of its own, and a music card is made again from what
+    it shows.
+    """
+    content = players.render(expand.videolinks(content), public=entry.service.public)
+    content, _title = music.render_cards(content)
+    return content, media.mrss_with_videos(entry.mblob, content)
+
+
+def class_service(entry: Entry, sid: str | None) -> Service | None:
+    """The posts service of another class that `sid` names for a post, or
+    None. The composer names each class by the first service of it, so a
+    service of the post's own class leaves it where it is."""
+    if entry.service.api != 'selfposts' or not sid or not str(sid).isdigit():
+        return None
+    target = Service.objects.filter(pk=int(sid), api='selfposts').first()
+    if target is None or target.cls == entry.service.cls:
+        return None
+    return target
 
 
 def filter_title(entry):

@@ -23,6 +23,7 @@ where the card would download it.
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -30,6 +31,7 @@ from django.conf import settings
 from PIL import Image
 from playwright.sync_api import Page, expect
 
+from glifestream.filters import music
 from glifestream.stream.models import Entry, Service
 
 pytestmark = [pytest.mark.e2e, pytest.mark.django_db(transaction=True)]
@@ -162,3 +164,64 @@ def test_upgrade_an_old_music_post(
     assert 'thesixtyone' not in entry.content
     assert 'data-id="youtube-e2eTrack01"' in entry.content
     assert entry.date_published == published
+
+
+def test_edit_a_music_post_with_its_fields_and_class(
+    page: Page,
+    app_base_url: str,
+    ensure_admin_session,
+    stub_external_requests,
+    notes_service: Service,
+    make_entry,
+):
+    _image(OLD_COVER, (160, 160))
+    Service.objects.filter(pk=notes_service.pk).update(public=True)
+    music_service = Service.objects.create(
+        name='Music', api='selfposts', cls='music', public=True
+    )
+    track = music.Track(
+        'The E2e Band', 'E2e Song', music.Cover('[GLS-THUMBS]/%s' % OLD_COVER, 160, 160)
+    )
+    entry = make_entry('E2e Song – The E2e Band', music.card_html(track))
+    Entry.objects.filter(pk=entry.pk).update(service=music_service)
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+    article = page.locator(f'#entry-{entry.pk}')
+
+    article.locator('.entry-controls-switch').click()
+    article.locator('.entry-controls .edit-control').click()
+
+    # The editor shows the card, its fields edit it, and the post is in its class.
+    card = page.locator('#status-editor .editor-music-card')
+    expect(card.locator('.music-title')).to_have_text('E2e Song')
+    expect(card.locator('img')).to_have_attribute('src', f'/media/thumbs/c/{OLD_COVER}')
+    fields = page.locator('#music-track')
+    expect(fields).to_have_attribute('open', '')
+    expect(fields.get_by_label('Artist')).to_have_value('The E2e Band')
+    expect(fields.get_by_label('Cover image')).to_have_value(
+        f'/media/thumbs/c/{OLD_COVER}'
+    )
+    expect(page.locator('#status-class option:checked')).to_have_text('music')
+
+    preview = page.locator('#stream > article.entry-preview')
+    expect(preview).to_have_class(re.compile(r'\be-music\b'))
+    page.locator('#status-class').select_option(label=notes_service.cls)
+    fields.get_by_label('Title').fill('E2e Song (live)')
+    expect(card.locator('.music-title')).to_have_text('E2e Song (live)')
+    expect(preview).to_have_class(re.compile(rf'\be-{notes_service.cls}\b'))
+    expect(preview.locator('.music-title')).to_have_text('E2e Song (live)')
+
+    page.locator('#update').click()
+
+    saved = page.locator(f'#entry-{entry.pk}')
+    expect(saved).to_have_class(re.compile(rf'\be-{notes_service.cls}\b'))
+    expect(saved.locator('.music-title')).to_have_text('E2e Song (live)')
+    entry.refresh_from_db()
+    assert entry.service == notes_service
+    assert entry.content.startswith('<div class="music-card">')
+    assert '[GLS-THUMBS]/%s' % OLD_COVER in entry.content
+
+    # Taking the card out of the editor empties its fields.
+    card.click()
+    page.keyboard.press('Delete')
+    expect(fields.get_by_label('Artist')).to_have_value('')

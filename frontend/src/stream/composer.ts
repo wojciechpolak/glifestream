@@ -15,10 +15,10 @@
  *  with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import type { SelfpostsClass } from '../api-types';
+import type { EditContent, SelfpostsClass } from '../api-types';
 import { config } from '../config';
-import type { GlsEditor } from '../editor/create';
-import { get_json, post_text } from '../http';
+import type { GlsEditor, MusicTrack } from '../editor/create';
+import { get_json, post_json, post_text } from '../http';
 import {
     fade_in,
     hide,
@@ -36,6 +36,7 @@ import { scroll_to_top } from '../util/scroll';
 import { $M } from './entry-actions';
 import { scaledown_images } from './images';
 import { render_maps } from './maps';
+import { clear_preview, refresh_preview, schedule_preview } from './preview';
 
 /** The selfpost composer at the top of the stream. */
 const composer = {
@@ -47,6 +48,10 @@ const composer = {
     gsc_done: false,
     /** The entry being edited, or 0 for a new post. */
     editor_id: 0 as number | string,
+    /** Whether the entry being edited is a post, whose class may change. */
+    editor_post: false,
+    /** Whether the music fields are writing to the editor's card. */
+    syncing: false,
 };
 
 function by_id(id: string): HTMLElement {
@@ -56,6 +61,63 @@ function by_id(id: string): HTMLElement {
 /** The plain textarea, which the rich editor replaces when the page loads it. */
 function status_field(): HTMLTextAreaElement {
     return by_id('status') as HTMLTextAreaElement;
+}
+
+function class_select(): HTMLSelectElement | null {
+    return document.getElementById('status-class') as HTMLSelectElement | null;
+}
+
+/**
+ * Locks the class of an entry that is no post, saying why on hover. The
+ * option that only named its class goes once the lock does.
+ */
+function lock_class(select: HTMLSelectElement, locked: boolean): void {
+    select.disabled = locked;
+    select.title = locked ? _('An imported entry keeps the class of its service.') : '';
+    if (!locked) {
+        for (const option of select.querySelectorAll('option[data-entry-class]')) {
+            option.remove();
+        }
+    }
+}
+
+/**
+ * Shows the class `cls` of the entry being edited. Only a post's may
+ * change; another entry's is locked, shown also when no post has it.
+ */
+function select_class(cls: string, post: boolean): void {
+    const select = class_select();
+    if (!select) {
+        return;
+    }
+    lock_class(select, false);
+    let option = [...select.options].find((o) => o.text === cls);
+    if (!option && !post) {
+        option = new Option(cls, '');
+        option.dataset['entryClass'] = '';
+        select.add(option);
+    }
+    if (option) {
+        select.value = option.value;
+    }
+    lock_class(select, !post);
+}
+
+/** Ticks the draft and friends-only checkboxes, showing them when ticked. */
+function set_flags(draft: boolean, friends_only: boolean): void {
+    for (const [id, value] of [
+        ['draft', draft],
+        ['friends-only', friends_only],
+    ] as const) {
+        const box = document.getElementById(id) as HTMLInputElement | null;
+        if (box) {
+            box.checked = value;
+        }
+    }
+    const more = document.getElementById('expand-sharing');
+    if ((draft || friends_only) && more && is_visible(more)) {
+        open_more_sharing_options(more);
+    }
 }
 
 function fieldset(): HTMLElement | null {
@@ -71,7 +133,16 @@ function set_share_expanded(expanded: boolean): void {
 
 /** Opens or closes the composer. */
 export function open_sharing(): boolean {
+    if (composer.editor_id) {
+        // A new post starts without the checkboxes of the entry edited.
+        set_flags(false, false);
+    }
     composer.editor_id = 0;
+    composer.editor_post = false;
+    const select = class_select();
+    if (select) {
+        lock_class(select, false);
+    }
     hide(by_id('update'));
     show(by_id('post'));
     const fs = fieldset();
@@ -92,7 +163,9 @@ export function open_sharing(): boolean {
                 void get_selfposts_classes();
             }
         });
+        update_preview();
     } else {
+        clear_preview();
         void slide_up(fs).then(function () {
             set_share_expanded(false);
         });
@@ -135,9 +208,19 @@ function music_field(name: string): HTMLInputElement | null {
     return document.getElementById('music-' + name) as HTMLInputElement | null;
 }
 
-/** The music card fields that are filled in, as share parameters. */
+function music_value(name: string): string {
+    return music_field(name)?.value.trim() ?? '';
+}
+
+/**
+ * The music card fields that are filled in, as share parameters. Only the
+ * plain composer sends them: the rich editor holds the card itself.
+ */
 function music_params(): Record<string, string> {
     const params: Record<string, string> = {};
+    if (composer.editor) {
+        return params;
+    }
     for (const name of MUSIC_FIELDS) {
         const value = music_field(name)?.value.trim();
         if (value) {
@@ -147,10 +230,98 @@ function music_params(): Record<string, string> {
     return params;
 }
 
+/** Fills the music card fields, and opens them when there is a card. */
+function fill_music(track: MusicTrack | null): void {
+    for (const name of MUSIC_FIELDS) {
+        const input = music_field(name);
+        const value = track ? track[name as keyof MusicTrack] : '';
+        // Left alone when it says the same, to keep the caret of the writer.
+        if (input && input.value !== value) {
+            input.value = value;
+        }
+    }
+    document.getElementById('music-track')?.toggleAttribute('open', !!track);
+    // The fields are among the more options, which a card opens.
+    const more = document.getElementById('expand-sharing');
+    if (track && more && is_visible(more)) {
+        open_more_sharing_options(more);
+    }
+}
+
+/** The editor's card follows its fields: made once they name the track. */
+function card_from_fields(): void {
+    if (!composer.editor) {
+        return;
+    }
+    const track: MusicTrack = {
+        artist: music_value('artist'),
+        title: music_value('title'),
+        youtube: music_value('youtube'),
+        cover: music_value('cover'),
+    };
+    composer.syncing = true;
+    composer.editor.set_music_card(track.artist || track.title ? track : null);
+    composer.syncing = false;
+}
+
+/** The fields follow the editor's card, which the writer may also remove. */
+function fields_from_card(): void {
+    if (composer.editor && !composer.syncing) {
+        fill_music(composer.editor.music_card());
+    }
+}
+
 /** Whether the composer describes a track, which makes a post of its own. */
 function has_music(): boolean {
     const params = music_params();
     return !!(params['music_artist'] && params['music_title']);
+}
+
+/** What the composer holds: its content and whether that is empty. */
+function composer_content(): { content: string; empty: boolean } {
+    if (composer.editor) {
+        return { content: composer.editor.html(), empty: composer.editor.is_empty() };
+    }
+    const content = status_field().value;
+    return { content, empty: content.trim() === '' };
+}
+
+/** What saving the edited entry sends: its HTML and, for a post, its class. */
+function edit_params(content: string): Record<string, string | number> {
+    const params: Record<string, string | number> = {
+        entry: composer.editor_id,
+        content,
+    };
+    if (composer.editor_post) {
+        params['sid'] = class_select()?.value ?? '';
+    }
+    params['draft'] = checked('draft');
+    params['friends_only'] = checked('friends-only');
+    return params;
+}
+
+/** The request for the preview of what the composer holds, or null. */
+function preview_params(): Record<string, string | number> | null {
+    const { content, empty } = composer_content();
+    if (empty && !has_music()) {
+        return null;
+    }
+    if (composer.editor_id) {
+        return edit_params(content);
+    }
+    const sid = class_select()?.value;
+    return {
+        content,
+        ...(sid ? { sid } : {}),
+        draft: checked('draft'),
+        friends_only: checked('friends-only'),
+        ...music_params(),
+    };
+}
+
+/** Lets the preview follow the composer. */
+function update_preview(): void {
+    schedule_preview(preview_params);
 }
 
 function checked(id: string): 1 | 0 {
@@ -160,12 +331,22 @@ function checked(id: string): 1 | 0 {
 async function send(button: HTMLInputElement, content: string): Promise<void> {
     if (composer.editor_id) {
         const html = await post_text(config.baseurl + 'api/putcontent', {
-            entry: composer.editor_id,
-            content: content,
+            ...edit_params(content),
+            article: 1,
         });
         if (html !== null) {
             hide_spinner();
             button.disabled = false;
+            // The entry as saved: its thumbnails, its card, the icon of its class.
+            const article = document.getElementById('entry-' + composer.editor_id);
+            if (article) {
+                article.outerHTML = html.trim();
+                const saved = document.getElementById('entry-' + composer.editor_id);
+                render_maps(saved);
+                if (saved) {
+                    scaledown_images(saved.querySelectorAll('img'));
+                }
+            }
         }
         return;
     }
@@ -180,6 +361,8 @@ async function send(button: HTMLInputElement, content: string): Promise<void> {
         return;
     }
     hide_spinner();
+    // The post itself takes the place of its preview.
+    clear_preview();
     document
         .querySelector('#stream article.hentry')
         ?.insertAdjacentHTML('beforebegin', html);
@@ -206,16 +389,9 @@ export function share(target: HTMLElement): boolean {
     }
     const button = target as HTMLInputElement;
     button.disabled = true;
-    let content: string;
-    let isEmptyContent = false;
-    if (composer.editor) {
-        content = composer.editor.html();
-        isEmptyContent = composer.editor.is_empty();
-    } else {
-        content = status_field().value;
-        isEmptyContent = content.trim() === '';
-    }
-    if (isEmptyContent && (composer.editor_id || !has_music())) {
+    const { content, empty } = composer_content();
+    // A track alone is a post, also once it is edited.
+    if (empty && !has_music()) {
         button.disabled = false;
         return false;
     }
@@ -225,18 +401,13 @@ export function share(target: HTMLElement): boolean {
 }
 
 function editor_clear(): void {
+    clear_preview();
     if (composer.editor) {
         composer.editor.clear();
     } else {
         status_field().value = '';
     }
-    for (const name of MUSIC_FIELDS) {
-        const input = music_field(name);
-        if (input) {
-            input.value = '';
-        }
-    }
-    document.getElementById('music-track')?.removeAttribute('open');
+    fill_music(null);
 }
 
 /** Opens an entry's stored HTML in the composer for editing. */
@@ -253,25 +424,33 @@ export function edit_entry(control: HTMLElement, e?: Event): void {
     if (fs) {
         show(fs);
     }
-    if (!composer.gsc_done) {
-        void get_selfposts_classes();
-    }
+    const classes = composer.gsc_done ? Promise.resolve() : get_selfposts_classes();
 
     const id = control.id.split('-')[1] as string;
     show_spinner($M(control));
-    void post_text(config.baseurl + 'api/getcontent', { entry: id, raw: 1 }).then(
-        (html) => {
-            if (html === null) {
-                return;
-            }
-            hide_spinner();
-            composer.editor_id = id;
-            composer.editor?.load(html);
-            toggle(by_id('update'));
-            toggle(by_id('post'));
-            scroll_to_top();
-        },
-    );
+    void Promise.all([
+        post_json<EditContent>(config.baseurl + 'api/editcontent', { entry: id }),
+        classes,
+    ]).then(([data]) => {
+        if (data === null) {
+            return;
+        }
+        hide_spinner();
+        composer.editor_id = id;
+        composer.editor_post = data.post;
+        if (composer.editor) {
+            composer.editor.load(data.content);
+        } else {
+            status_field().value = data.content;
+        }
+        select_class(data.cls, data.post);
+        set_flags(data.draft, data.friends_only);
+        fill_music(composer.editor ? composer.editor.music_card() : null);
+        void refresh_preview(preview_params());
+        toggle(by_id('update'));
+        toggle(by_id('post'));
+        scroll_to_top();
+    });
 }
 
 /** Replaces the plain textarea with the rich editor, when the page loaded it. */
@@ -280,6 +459,26 @@ export function init_editor(): void {
     if (create) {
         hide(status_field());
         composer.editor = create(by_id('status-editor'), _);
+        composer.editor.on_change(() => {
+            fields_from_card();
+            update_preview();
+        });
+    } else {
+        // Not on a page without the composer.
+        document.getElementById('status')?.addEventListener('input', update_preview);
+    }
+    // Whatever else changes the post: its flags, its class and its music
+    // card, which the editor shows as it will be.
+    for (const id of ['draft', 'friends-only']) {
+        document.getElementById(id)?.addEventListener('change', update_preview);
+    }
+    for (const id of ['status-class', ...MUSIC_FIELDS.map((name) => 'music-' + name)]) {
+        for (const type of ['input', 'change']) {
+            document.getElementById(id)?.addEventListener(type, () => {
+                card_from_fields();
+                update_preview();
+            });
+        }
     }
 }
 

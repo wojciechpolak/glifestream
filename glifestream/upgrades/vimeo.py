@@ -24,7 +24,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_noop
 
 from glifestream.apis import vimeo
-from glifestream.filters.expand import vimeo_video_id
+from glifestream.filters.players import vimeo_video_id
 from glifestream.stream.models import Entry
 from glifestream.upgrades.types import (
     Field,
