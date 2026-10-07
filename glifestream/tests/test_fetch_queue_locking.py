@@ -14,7 +14,7 @@ and never waits for `timeout`, so each test gets its own file instead.
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
 from contextlib import contextmanager
 from datetime import timedelta
 from pathlib import Path
@@ -46,7 +46,7 @@ HOLD_SEC = 0.3
 
 
 @contextmanager
-def database_file(path: Path) -> Iterator[None]:
+def database_file(path: Path) -> Generator[None]:
     """Point the default database at `path`, in this thread and new ones.
 
     The current connection is set aside rather than closed: closing the

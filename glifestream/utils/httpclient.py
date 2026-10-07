@@ -142,11 +142,13 @@ class _PublicHTTPSConnection(HTTPSConnection):
 
 
 class _PublicHTTPConnectionPool(HTTPConnectionPool):
-    ConnectionCls = _PublicHTTPConnection
+    # urllib3 marks HTTPConnection.default_socket_options Final, which its own
+    # BaseHTTPConnection protocol does not allow; the class is the stock one.
+    ConnectionCls = _PublicHTTPConnection  # ty: ignore[invalid-assignment]
 
 
 class _PublicHTTPSConnectionPool(HTTPSConnectionPool):
-    ConnectionCls = _PublicHTTPSConnection
+    ConnectionCls = _PublicHTTPSConnection  # ty: ignore[invalid-assignment]
 
 
 class _PublicOnlyAdapter(HTTPAdapter):
