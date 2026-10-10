@@ -10,6 +10,8 @@ from the Git history and are intentionally high-level.
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-10-10
+
 ### Added
 
 - An Upgrades tab in settings brings old entries up to today's markup. It
