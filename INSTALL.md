@@ -174,6 +174,46 @@ These settings matter most for a hardened deployment:
 - `GLIFESTREAM_VALIDATE_SETTINGS_SECRETS`
   Leave enabled in production so placeholder secrets fail fast at startup.
 
+### Themes
+
+gLifestream ships five themes, each following the system's light or dark
+mode: `default`, `broadsheet` (a newspaper front page), `phosphor` (a green
+terminal, printed on green-bar paper in light mode), `riso` (a
+risograph-printed zine) and `dotfiles` (a riced terminal: tmux's status line,
+entries as vim buffers). They load nothing from other sites: the text is set
+in system fonts, and the one font a theme carries, `riso`'s Anton for its
+headings (SIL Open Font License, with its licence in `themes/riso/fonts/`),
+is a WOFF2 among the static files. A visitor switches between the themes on offer with "Change theme" in
+the sidebar; the choice is kept in the `gls-theme` cookie.
+
+- `THEMES`
+  The themes to offer, separated by commas, in the order "Change theme" goes
+  through them. Defaults to all five,
+  `default,broadsheet,phosphor,riso,dotfiles`. Set
+  `THEMES=default` to offer none to switch to, or `THEMES=default,riso` for
+  only those two.
+- `DEFAULT_THEME`
+  The theme of a visitor who has not chosen one. Defaults to the first of
+  `THEMES`. It must be one of them; `manage.py check` reports one that is not.
+
+A theme of your own is a `style.scss` in `RUN_DIR/static/themes/<name>/`
+(a lowercase name of letters, digits, `-` and `_`); adding `<name>` to
+`THEMES` is all it takes to build and offer it. It can start from a bundled
+theme and change its colours and fonts:
+
+```scss
+@import '../../../../glifestream/static/themes/riso/style';
+
+:root {
+  --rs-yellow: oklch(0.86 0.15 160);
+}
+```
+
+or from the kit the bundled themes share, `themes/_kit/_kit.scss`, whose
+header lists the tokens a theme sets. Run `manage.py collectstatic` after
+changing a theme. A `settings_local.py` that sets `THEMES` itself takes the
+place of the environment variable.
+
 ### Background worker settings
 
 The fetch worker (`./worker.py --daemon` or `manage.py run_worker`) reads:

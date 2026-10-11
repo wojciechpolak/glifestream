@@ -1,4 +1,4 @@
-{% load i18n media static pipeline gls_page %}<!DOCTYPE html>
+{% load i18n media static pipeline gls_page gls_nav %}<!DOCTYPE html>
 <html lang="{{ page.lang | default:'en' }}">
 
 <head>
@@ -25,6 +25,9 @@
 <div id="main" class="{% block mainClass %}default{% endblock mainClass %}">
 
 <header id="head">
+  <h1 class="tb">
+    <a href="{% url 'index' %}" accesskey="1">{% trans "The Stream" %}</a>
+  </h1>
   <nav id="navtop" class="tb">
     <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display:none;">
       {% csrf_token %}
@@ -42,18 +45,18 @@
             <b class="email">{{ user.email }}</b>
           </span>
           <span class="vb">|</span>
-          <a href="{% url 'index' %}" title="{% trans "My private stream" %}">
+          <a href="{% url 'index' %}" title="{% trans "My private stream" %}"{% nav_current 'home' %}>
             <i class="fas fa-home"></i>
             <span class="text">{% trans "Home" %}</span>
           </a>
           <span class="vb">|</span>
-          <a href="{% url 'public' %}" title="{% trans "My publicly visible stream" %}" accesskey="2">
+          <a href="{% url 'public' %}" title="{% trans "My publicly visible stream" %}" accesskey="2"{% nav_current 'public' %}>
             <i class="fas fa-bullhorn"></i>
             <span class="text">{% trans "Public" %}</span>
           </a>
           <span class="vb">|</span>
           {% if user.is_staff %}
-            <a href="{% url 'settings' %}">
+            <a href="{% url 'settings' %}"{% nav_current 'settings' %}>
               <i class="fas fa-cog"></i>
               <span class="text">{% trans "Settings" %}</span>
             </a>
@@ -79,9 +82,6 @@
       <a href="{% url 'login' %}" rel="nofollow">{% trans "Login" %}</a>
     {% endif %}
   </nav>
-  <h1 class="tb">
-    <a href="{% url 'index' %}" accesskey="1">{% trans "The Stream" %}</a>
-  </h1>
 </header>
 
 {% block sidebar %}{% endblock sidebar %}

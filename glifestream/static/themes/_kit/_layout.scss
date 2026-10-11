@@ -1,0 +1,121 @@
+// The page: its width, the stream page's grid, the top bar and the footer.
+// The narrow widths are in _mechanics.scss.
+
+#main {
+  position: relative;
+  max-width: var(--kit-page-width);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: var(--kit-page-pad);
+}
+
+#main.stream {
+  display: grid;
+  grid-template-columns: var(--kit-grid-columns);
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: var(--kit-grid-areas);
+  gap: var(--kit-grid-gap);
+  align-items: start;
+}
+
+#head {
+  grid-area: header;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  min-width: 0;
+
+  h1 {
+    min-width: 0;
+    font-size: clamp(1.6rem, calc(1rem + 2.4vw), 2.8rem);
+    overflow-wrap: anywhere;
+
+    a:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+#main:not(.stream) #head {
+  margin-bottom: 24px;
+}
+
+#navtop {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.8rem;
+  min-width: 0;
+
+  i {
+    display: none;
+  }
+
+  .vb {
+    color: var(--kit-rule);
+  }
+
+  .hello {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.3em;
+    min-width: 0;
+  }
+
+  .email {
+    overflow-wrap: anywhere;
+  }
+}
+
+#sidebar {
+  grid-area: sidebar;
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  container-type: inline-size;
+
+  > section,
+  > nav,
+  > footer {
+    margin-bottom: 20px;
+  }
+
+  h2 {
+    margin: 0 0 0.6em;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--kit-ink-muted);
+  }
+}
+
+#stream {
+  grid-area: stream;
+  min-width: 0;
+}
+
+#foot {
+  grid-area: footer;
+  min-width: 0;
+  color: var(--kit-ink-muted);
+  font-size: 0.9rem;
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+// Forced colours replace a page's colours but keep a border-image's, so a
+// bar drawn with kit-full-bleed would stand out of its own segments.
+@media (forced-colors: active) {
+  body #head,
+  body #foot {
+    border-image: none;
+  }
+}

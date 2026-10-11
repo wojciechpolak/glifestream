@@ -21,9 +21,24 @@ function behavior(): ScrollBehavior {
     return reduced_motion() ? 'instant' : 'smooth';
 }
 
-/** Scrolls the page until `el` is `offset` pixels below the top. */
+/** How much of the window's top a pinned top bar covers: the themes pin
+ *  #head at narrow widths. */
+export function pinned_head_height(): number {
+    const head = document.getElementById('head');
+    if (!head || getComputedStyle(head).position !== 'fixed') {
+        return 0;
+    }
+    return Math.max(0, head.getBoundingClientRect().bottom);
+}
+
+/** Scrolls the page until `el` is `offset` pixels below the top, or below
+ *  a pinned top bar. */
 export function scroll_to_element(el: Element, offset = 16): void {
-    const top = el.getBoundingClientRect().top + window.scrollY - (offset || 16);
+    const top =
+        el.getBoundingClientRect().top +
+        window.scrollY -
+        (offset || 16) -
+        pinned_head_height();
     window.scrollTo({ top, behavior: behavior() });
 }
 

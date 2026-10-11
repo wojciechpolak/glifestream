@@ -19,6 +19,7 @@ import { config } from '../config';
 import { Lightbox } from '../ui/lightbox';
 import { fade_in, fade_out } from '../ui/fx';
 import { init_pull_to_refresh } from '../ui/pull-to-refresh';
+import { init_sidebar_height } from '../ui/sidebar-height';
 import { delegate, listen } from '../util/dom';
 import { _ } from '../util/i18n';
 import { follow_href } from '../util/navigation';
@@ -53,7 +54,7 @@ import {
 } from './media';
 import { DEFAULT_SHARING_SITES, share_state, shareit_entry } from './share';
 import { init_shortcuts } from './shortcuts';
-import { change_theme, toggle_reblogs } from './sidebar';
+import { change_theme, init_theme_menu, toggle_reblogs } from './sidebar';
 import { stream_state } from './state';
 
 /** The clicks on the entries of the stream, listened for once on it. */
@@ -114,6 +115,7 @@ export function init_stream(): void {
         init_folding(stream);
     }
 
+    init_sidebar_height();
     listen('#sidebar-toggle', 'click', function (toggle) {
         const expanded = !!document
             .getElementById('sidebar')
@@ -123,6 +125,7 @@ export function init_stream(): void {
 
     listen('#toggle-reblogs', 'click', toggle_reblogs);
     listen('#change-theme', 'click', change_theme);
+    init_theme_menu();
     listen('div.lists select', 'change', function (select) {
         const value = (select as HTMLSelectElement).value;
         window.location.href =

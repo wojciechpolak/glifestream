@@ -102,7 +102,7 @@ def page_internal_error(request: HttpRequest) -> HttpResponseNotFound:
         'base_url': settings.BASE_URL,
         'favicon': common.static_url(settings.FAVICON),
         'apple_touch_icon': common.static_url(settings.APPLE_TOUCH_ICON),
-        'theme': 'default',
+        'theme': common.default_theme(),
     }
     t = render(request, '500.html', {'page': page})
     return HttpResponseNotFound(t.content)

@@ -1,0 +1,212 @@
+// The elements themselves: box model, text, links, fields and buttons.
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  color: var(--kit-ink);
+  background: var(--kit-paper);
+  font-family: var(--kit-font-body);
+  font-size: 100%;
+  line-height: 1.6;
+  overflow-y: scroll;
+}
+
+header,
+footer,
+aside,
+nav,
+section,
+article,
+main {
+  display: block;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: var(--kit-font-display);
+  line-height: 1.2;
+}
+
+h1 a {
+  color: inherit;
+}
+
+p,
+ul,
+ol,
+dl {
+  margin: 0 0 1em;
+}
+
+img {
+  border-style: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+img,
+video,
+iframe,
+embed,
+object {
+  max-width: 100%;
+}
+
+pre,
+code,
+kbd,
+samp {
+  font-family: var(--kit-font-mono);
+}
+
+a {
+  color: var(--kit-link);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--kit-link-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+  }
+}
+
+span.link {
+  color: var(--kit-link);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--kit-link-hover);
+    text-decoration: underline;
+    text-underline-offset: 0.16em;
+  }
+}
+
+a:focus-visible,
+span.link:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--kit-focus);
+  outline-offset: 2px;
+}
+
+select,
+input,
+textarea,
+button {
+  color: inherit;
+  font-family: inherit;
+  font-size: 100%;
+}
+
+input[type='text'],
+input[type='number'],
+input[type='password'],
+input[type='search'],
+input[type='email'],
+input[type='url'],
+textarea,
+select {
+  max-width: 100%;
+  padding: 0.55em 0.7em;
+  color: var(--kit-ink);
+  background: var(--kit-surface);
+  border: var(--kit-border) solid var(--kit-rule);
+  border-radius: var(--kit-radius);
+}
+
+input[type='search'] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--kit-accent);
+}
+
+textarea {
+  min-height: 7rem;
+  resize: vertical;
+}
+
+input[type='submit'],
+input[type='button'],
+button {
+  padding: 0.55em 1.1em;
+  color: var(--kit-on-accent);
+  background: var(--kit-accent);
+  border: var(--kit-border) solid var(--kit-accent);
+  border-radius: var(--kit-radius);
+  cursor: pointer;
+}
+
+input[type='file'] {
+  max-width: 100%;
+  cursor: pointer;
+
+  &::file-selector-button {
+    margin-right: 10px;
+    padding: 0.45em 0.9em;
+    color: var(--kit-ink);
+    background: var(--kit-surface);
+    border: var(--kit-border) solid var(--kit-rule);
+    border-radius: var(--kit-radius);
+    font: inherit;
+    cursor: pointer;
+  }
+}
+
+::placeholder {
+  color: var(--kit-ink-muted);
+  opacity: 1;
+}
+
+::selection {
+  color: var(--kit-on-accent);
+  background: var(--kit-accent);
+}
+
+details > summary {
+  cursor: pointer;
+}
+
+hr {
+  height: 0;
+  border: 0;
+  border-top: var(--kit-border) solid var(--kit-rule-soft);
+}

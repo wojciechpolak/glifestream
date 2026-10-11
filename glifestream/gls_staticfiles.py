@@ -26,6 +26,8 @@ from django.core.checks import CheckMessage, Error, Tags, register
 from pipeline.compilers.sass import SASSCompiler
 from pipeline.conf import settings as pipeline_settings
 
+from glifestream.settings_themes import THEME_NAME
+
 
 class GlsStaticFilesConfig(StaticFilesConfig):
     ignore_patterns = [
@@ -37,6 +39,7 @@ class GlsStaticFilesConfig(StaticFilesConfig):
     def ready(self) -> None:
         super().ready()
         register(check_pipeline_sources, Tags.staticfiles)
+        register(check_themes)
 
 
 class GlsSASSCompiler(SASSCompiler):
@@ -79,10 +82,51 @@ def check_pipeline_sources(
                     Error(
                         f'The pipeline bundle {name!r} lists {path}, which no '
                         'static files finder can find.',
-                        hint='Build it with `npm ci && npm run build`.'
-                        if path.startswith('js/dist/')
-                        else None,
+                        hint=_missing_source_hint(path),
                         id='glifestream.E001',
                     )
                 )
+    return errors
+
+
+def _missing_source_hint(path: str) -> str | None:
+    if path.startswith('js/dist/'):
+        return 'Build it with `npm ci && npm run build`.'
+    if path.startswith('themes/'):
+        return (
+            'Put the theme in RUN_DIR/static/themes/<name>/, or take it out of THEMES.'
+        )
+    return None
+
+
+def check_themes(app_configs: Any = None, **kwargs: Any) -> list[CheckMessage]:
+    """THEMES names at least one theme, each by a name it can go by, and
+    DEFAULT_THEME, when set, is one of them."""
+    themes = tuple(settings.THEMES)
+    default = getattr(settings, 'DEFAULT_THEME', '')
+    if not themes:
+        return [
+            Error(
+                'THEMES names no theme.',
+                hint="Leave THEMES unset, or name one, such as 'default'.",
+                id='glifestream.E002',
+            )
+        ]
+    errors: list[CheckMessage] = [
+        Error(
+            f'The theme name {name!r} is not one a theme can go by.',
+            hint='Use lowercase letters, digits, "-" and "_".',
+            id='glifestream.E003',
+        )
+        for name in themes
+        if not isinstance(name, str) or not THEME_NAME.match(name)
+    ]
+    if default and default not in themes:
+        errors.append(
+            Error(
+                f'DEFAULT_THEME is {default!r}, which THEMES does not name.',
+                hint=f'Pick one of {", ".join(map(str, themes))}, or add it to THEMES.',
+                id='glifestream.E004',
+            )
+        )
     return errors

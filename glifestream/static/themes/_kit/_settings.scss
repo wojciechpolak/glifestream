@@ -1,0 +1,315 @@
+// The settings: tabs, forms of rows, the service and list editors, tables.
+
+#settings {
+  min-width: 0;
+
+  ul {
+    padding-inline-start: 0;
+    list-style: none;
+  }
+
+  form {
+    clear: both;
+    margin: 0 0 12px;
+    padding-top: 10px;
+  }
+
+  fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 12px;
+    border: var(--kit-border) solid var(--kit-rule-soft);
+    border-radius: var(--kit-radius);
+  }
+
+  fieldset input,
+  fieldset textarea,
+  fieldset select {
+    font-size: 95%;
+  }
+
+  fieldset input[type='button'],
+  fieldset input[type='submit'] {
+    margin-right: 4px;
+  }
+
+  fieldset a,
+  #edit-service li {
+    line-height: 1.6;
+  }
+
+  #add-service,
+  #list-picker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+  }
+
+  span.service {
+    display: inline-block;
+    width: 1.25em;
+    margin: 1px 4px 0 0;
+    font-size: 2rem;
+    text-align: center;
+  }
+
+  #id_services {
+    min-width: #{'min(20em, 100%)'};
+  }
+
+  #list-form {
+    .form-row {
+      display: grid;
+      grid-template-columns: 8em minmax(0, 1fr);
+      align-items: baseline;
+      gap: 8px 12px;
+    }
+
+    #id_name {
+      width: 24em;
+      max-width: 100%;
+    }
+  }
+
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+  }
+
+  #list-form .form-actions button.delete,
+  #service-form .form-actions a.delete {
+    margin-left: auto;
+    color: var(--kit-danger);
+    background: transparent;
+    border: var(--kit-border) solid var(--kit-danger);
+  }
+
+  #service-form .form-actions a.delete {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 16px;
+    text-decoration: none;
+  }
+
+  #list-services {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(#{'min(13em, 100%)'}, 1fr));
+    gap: 6px;
+    margin: 0;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 6px 10px;
+      border: var(--kit-border) solid var(--kit-rule-soft);
+      border-radius: var(--kit-radius);
+      cursor: pointer;
+
+      &:has(input:checked) {
+        border-color: var(--kit-accent);
+      }
+    }
+
+    input {
+      margin: 0;
+    }
+
+    span.service {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  #opml-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    margin-top: 18px;
+    padding: 12px;
+    border: var(--kit-border) solid var(--kit-rule-soft);
+  }
+
+  .msg {
+    padding: 10px 12px;
+    border-left: 4px solid var(--kit-accent);
+  }
+
+  // The status, WebSub and upgrades tables scroll inside the page.
+  table {
+    max-width: 100%;
+  }
+}
+
+ul.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  width: 100%;
+  margin: 0 0 20px;
+  padding: 0 0 12px;
+  list-style: none;
+  border-bottom: var(--kit-border) solid var(--kit-rule-soft);
+
+  li {
+    margin: 0;
+    padding: 0;
+  }
+
+  li a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0 14px;
+    text-decoration: none;
+
+    &.active {
+      color: var(--kit-on-accent);
+      background: var(--kit-accent);
+    }
+  }
+}
+
+ul.errorlist {
+  color: var(--kit-danger);
+  font-weight: 700;
+}
+
+fieldset.aligned label {
+  display: block;
+  float: left;
+  width: 8em;
+  padding: 3px 10px 0 0;
+}
+
+fieldset.aligned label.missing {
+  color: var(--kit-danger);
+  font-weight: 700;
+}
+
+fieldset .hint {
+  display: none;
+}
+
+fieldset .form-notice {
+  margin: 10px 12px;
+  font-weight: 700;
+}
+
+// One column of fields, each as wide as the others.
+#preferences-form select,
+#preferences-form input[type='number'] {
+  width: 15rem;
+  max-width: 100%;
+}
+
+.form-row {
+  position: relative;
+  // Holds the floated label without clipping the hint that pops over it.
+  display: flow-root;
+  padding: 10px 12px;
+
+  &:hover {
+    background: var(--kit-surface-2);
+  }
+}
+
+.form-row:hover > span.hint {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 1;
+  display: block;
+  max-width: #{'min(320px, 70%)'};
+  padding: 8px 10px;
+  color: var(--kit-ink);
+  background: var(--kit-surface);
+  border: var(--kit-border) solid var(--kit-rule);
+  border-radius: var(--kit-radius);
+  box-shadow: var(--kit-shadow);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+#websub-subs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 95%;
+
+  th,
+  td {
+    padding: 8px 10px;
+    text-align: left;
+  }
+
+  th {
+    color: var(--kit-ink-muted);
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .odd {
+    background: var(--kit-surface-2);
+  }
+}
+
+// The services to add carry their brands' colours; elsewhere their icons
+// keep to the theme's.
+#add-service {
+  span.selfposts {
+    color: #2e8b57;
+  }
+
+  span.atproto {
+    color: #0085ff;
+  }
+
+  span.fb {
+    color: #4267b2;
+  }
+
+  span.flickr {
+    color: #ff0084;
+  }
+
+  span.mastodon,
+  span.pixelfed {
+    color: #6364ff;
+  }
+
+  span.twitter,
+  span.github {
+    color: var(--kit-ink);
+  }
+
+  span.vimeo {
+    color: #1ab7ea;
+  }
+
+  span.webfeed {
+    color: #f69537;
+  }
+
+  span.youtube {
+    color: #f00;
+  }
+
+  span.friendfeed,
+  span.pocket {
+    color: #2e8b57;
+  }
+}

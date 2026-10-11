@@ -91,5 +91,5 @@ document.
 - Share entries to Mastodon, Bluesky and X, or through Web Share
 - Installable as a Progressive Web App
 - Keyboard shortcuts for navigation
-- Customizable themes, including a dark mode
+- Five themes, each with a light and a dark mode, and room for your own
 - Localization

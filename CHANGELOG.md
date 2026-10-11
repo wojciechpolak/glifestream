@@ -12,6 +12,28 @@ from the Git history and are intentionally high-level.
 
 ### Added
 
+- Four new themes, each following the system's light or dark mode:
+  `broadsheet`, the front page of a newspaper; `phosphor`, a green terminal
+  that prints on green-bar paper in light mode; `riso`, a
+  risograph-printed zine; and `dotfiles`, a riced terminal, with tmux's
+  status line on top and the entries as vim buffers. They load nothing from
+  other sites: their text is set in system fonts, and `riso` carries Anton
+  (SIL Open Font License) for its headings as a WOFF2 of its own. On a wide
+  screen `broadsheet` lays the stream out as a front page: the lead story
+  across, the others in two ruled columns. `default` stays the theme a site
+  starts with.
+- With more than two themes, "Change theme" opens a small list of them, with
+  the one in use checked, instead of stepping to the next theme on each
+  click. With two, it still switches to the other one.
+- The top bar marks its link to the page shown, Home, Public or Settings,
+  with `aria-current="page"`, which a screen reader announces and a theme
+  can draw.
+- `THEMES` picks the themes a visitor can switch between, and
+  `DEFAULT_THEME` the one a visitor starts with, from the environment. A theme
+  of your own in `RUN_DIR/static/themes/<name>/` needs only its name in
+  `THEMES`: its pipeline bundle is made for it. `manage.py check` reports an
+  empty `THEMES`, a name a theme cannot go by and a `DEFAULT_THEME` that
+  `THEMES` lacks.
 - An entry can fold to lines of its own: "Fold long entries" among the
   composer's more options, for a new post or an edited entry, overrides the
   reader's preference and the site default. 0 never folds the entry; empty
@@ -19,6 +41,12 @@ from the Git history and are intentionally high-level.
 
 ### Fixed
 
+- On a phone, where the top bar is pinned, the keys j and k, and the other
+  jumps to an entry or a form, no longer leave it under the bar.
+- In the `default` theme, a sidebar taller than the window, as one with many
+  services and lists is, hid its bottom, "Change theme" among it, until the
+  stream ended. It is now pinned by its bottom, so all of it scrolls into
+  view; one that fits stays pinned by its top as before.
 - Behind a proxy that ends TLS, such as Cloudflare, links to the site itself
   started with `http://`: in the Atom and JSON feeds, in the friends' login
   and in the OAuth redirect URI shown in settings. `SECURE_PROXY_SSL_HEADER=1`

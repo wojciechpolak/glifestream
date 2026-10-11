@@ -261,6 +261,15 @@ def test_every_page_sends_its_config(client, settings):
 
 
 @pytest.mark.django_db
+def test_page_config_cycles_the_themes_from_the_default(client, settings):
+    settings.THEMES = ('default', 'dark')
+    settings.DEFAULT_THEME = 'dark'
+
+    config = json_scripts(client.get(reverse('index')).text)['gls-config']
+    assert config['themes'] == ['dark', 'default']
+
+
+@pytest.mark.django_db
 def test_page_config_translates_the_messages(client):
     config = json_scripts(client.get(reverse('index'), HTTP_ACCEPT_LANGUAGE='pl').text)
 

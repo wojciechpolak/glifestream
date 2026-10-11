@@ -1,0 +1,1216 @@
+/*
+ *  "dotfiles" theme for gLifestream: a riced terminal.
+ *
+ *  tmux's status line on top: the session, the windows (the page shown is
+ *  the current one, marked *), who is in and a detach on the right. The
+ *  entries are vim buffers: a number column, the filetype's tab, the text
+ *  and a statusline; only the buffer the keys j and k are on is the active
+ *  window, in NORMAL mode, and a post being written is in INSERT. The
+ *  sidebar is a file tree; the stream ends in vim's tildes, and the foot is
+ *  the command line, with the file's line count. A warm, retro palette
+ *  after gruvbox, dark and light. Monospaced system fonts only; the
+ *  powerline arrows are cut by clip-path, not drawn in a patched font.
+ *
+ *  What is drawn for its look only says nothing to a screen reader
+ *  (df-says).
+ */
+
+@import '../_kit/kit';
+
+:root {
+  color-scheme: light;
+
+  --kit-font-body: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Cascadia Code',
+    Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+  --kit-font-display: var(--kit-font-body);
+  --kit-font-mono: var(--kit-font-body);
+
+  // Light keeps gruvbox's inks on a paper barely warm, not its yellow.
+  --kit-paper: #f6f3ec;
+  --kit-surface: #fbf9f4;
+  --kit-surface-2: #e8e3d8;
+  --kit-ink: #3c3836;
+  --kit-ink-soft: #504945;
+  --kit-ink-muted: #665c54;
+  --kit-rule: #a39a8a;
+  --kit-rule-soft: #d6cfc2;
+  --kit-accent: #af3a03;
+  --kit-on-accent: var(--kit-paper);
+  --kit-link: #076678;
+  --kit-link-hover: #8f3f71;
+  --kit-focus: #076678;
+  --kit-danger: #9d0006;
+
+  --kit-radius: 0;
+  --kit-border: 1px;
+  --kit-shadow: none;
+
+  --kit-page-width: 1260px;
+  --kit-page-pad: 0 24px 0;
+  --kit-grid-columns: minmax(0, 1fr) minmax(240px, 290px);
+  --kit-grid-areas: 'header header' 'stream sidebar' 'footer footer';
+  --kit-grid-gap: 24px 28px;
+
+  --kit-head-height-m: 52px;
+  --kit-head-bg-m: var(--df-bar);
+  --kit-drawer-bg: var(--kit-paper);
+  --kit-drawer-shadow: 0 -1px 0 var(--kit-rule);
+
+  // tmux's status line, and the segments drawn on it; text on a segment
+  // is the paper's colour.
+  --df-bar: var(--kit-surface-2);
+  --df-on-bar: var(--kit-ink);
+  --df-session: var(--kit-accent);
+  --df-green: #66620d;
+  --df-blue: #076678;
+  --df-purple: #8f3f71;
+  --df-on-segment: var(--kit-paper);
+  // The windows' numbers, and the dim segments on the bar's right.
+  --df-window-number: var(--kit-ink-muted);
+  --df-dim: var(--kit-rule-soft);
+  // vim's Visual mode, for a selection and the month shown.
+  --df-visual: var(--kit-rule-soft);
+  // The number column: its colour, its width and its gap to the text.
+  --df-number: var(--kit-ink-muted);
+  --df-gutter: 3.3rem;
+  --df-gutter-gap: 0.85rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --kit-paper: #282828;
+    --kit-surface: #32302f;
+    --kit-surface-2: #3c3836;
+    --kit-ink: #ebdbb2;
+    --kit-ink-soft: #d5c4a1;
+    --kit-ink-muted: #a89984;
+    --kit-rule: #7c6f64;
+    --kit-rule-soft: #504945;
+    // gruvbox's orange in both modes, so the theme keeps its colour.
+    --kit-accent: #fe8019;
+    --kit-link: #8ec07c;
+    --kit-link-hover: #b8bb26;
+    --kit-focus: #fabd2f;
+    --kit-danger: #fe6550;
+
+    --df-window-number: var(--kit-ink-soft);
+    --df-green: #b8bb26;
+    --df-blue: #83a598;
+    --df-purple: #d3869b;
+    --df-visual: #504945;
+  }
+}
+
+// More contrast asked for: the segments in plain ink.
+@media (prefers-contrast: more) {
+  :root {
+    --df-bar: var(--kit-paper);
+    --df-on-bar: var(--kit-ink);
+    --df-session: var(--kit-ink);
+    --df-green: var(--kit-ink);
+    --df-blue: var(--kit-ink);
+    --df-purple: var(--kit-ink);
+    --df-number: var(--kit-ink-soft);
+  }
+
+  // A rule under the bar instead of its fill, which would cover it.
+  body #head {
+    border-bottom: 1px solid var(--kit-ink);
+    border-image: none;
+  }
+}
+
+// Generated text for the look only: shown, but silent to a screen reader.
+@mixin df-says($text...) {
+  content: $text;
+  content: $text #{'/'} '';
+}
+
+// A powerline segment, cut to an arrow pointing right...
+@mixin df-arrow($depth: 0.6em) {
+  padding-right: calc(1ch + #{$depth});
+  clip-path: polygon(
+    0 0,
+    calc(100% - #{$depth}) 0,
+    100% 50%,
+    calc(100% - #{$depth}) 100%,
+    0 100%
+  );
+}
+
+// ...or, on the right of the bar, pointing left.
+@mixin df-arrow-left($depth: 0.6em) {
+  padding-left: calc(1ch + #{$depth});
+  clip-path: polygon(#{$depth} 0, 100% 0, 100% 100%, #{$depth} 100%, 0 50%);
+}
+
+body {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  font-variant-ligatures: none;
+  scrollbar-color: var(--kit-rule) var(--kit-paper);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 700;
+}
+
+a {
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+
+::selection {
+  color: var(--kit-ink);
+  background: var(--df-visual);
+}
+
+input,
+textarea,
+select {
+  caret-color: var(--kit-accent);
+}
+
+input[type='text'],
+input[type='number'],
+input[type='password'],
+input[type='search'],
+input[type='email'],
+input[type='url'],
+textarea,
+select {
+  background: var(--kit-surface);
+  border-color: var(--kit-rule);
+
+  &:focus {
+    border-color: var(--kit-focus);
+  }
+}
+
+a:focus-visible,
+span.link:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--kit-focus);
+  outline-offset: 2px;
+}
+
+input[type='submit'],
+input[type='button'],
+button {
+  color: var(--kit-ink);
+  background: var(--kit-surface-2);
+  border: 1px solid var(--kit-rule);
+  font-weight: 700;
+
+  &:hover {
+    color: var(--kit-on-accent);
+    background: var(--kit-accent);
+    border-color: var(--kit-accent);
+  }
+}
+
+// tmux's status line.
+
+#head {
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 0 1ch;
+  min-height: 44px;
+  margin-bottom: 8px;
+  padding: 0;
+  color: var(--df-on-bar);
+  background: var(--df-bar);
+  // As wide as the window, without widening the page or hiding the menu.
+  @include kit-full-bleed(var(--df-bar));
+
+  // The session.
+  h1 {
+    order: 0;
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    padding-left: 1ch;
+    color: var(--df-on-segment);
+    background: var(--df-session);
+    font-size: 1rem;
+    white-space: nowrap;
+    @include df-arrow;
+
+    &::before {
+      @include df-says('[');
+    }
+
+    &::after {
+      @include df-says(']');
+    }
+  }
+
+  h1 a {
+    min-width: 0;
+    overflow: hidden;
+    color: inherit;
+    text-overflow: ellipsis;
+
+    &:hover {
+      text-decoration: none;
+    }
+
+    // The focus ring in the segment's text colour, inside it.
+    &:focus-visible {
+      outline: 2px solid var(--df-on-segment);
+      outline-offset: 1px;
+    }
+  }
+}
+
+#navtop {
+  order: 1;
+  flex: 1 1 auto;
+  align-items: stretch;
+  gap: 0;
+  font-size: 0.875rem;
+  counter-reset: df-window;
+
+  .vb {
+    display: none;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    color: inherit;
+  }
+
+  // The windows; inline-flex drops the space around the hidden icon.
+  .navtop-menu a:not([data-submit-form]) {
+    padding: 0 1ch;
+    counter-increment: df-window;
+
+    &::before {
+      @include df-says(counter(df-window) ':');
+      color: var(--df-window-number);
+    }
+
+    &:hover {
+      background: var(--df-dim);
+      text-decoration: none;
+    }
+
+    // The current window.
+    &[aria-current='page'] {
+      color: var(--df-on-segment);
+      background: var(--df-blue);
+      font-weight: 700;
+
+      &::before {
+        color: inherit;
+      }
+
+      &::after {
+        @include df-says('*');
+      }
+    }
+  }
+
+  // Logging in or out is no window: the session's attach and detach, on
+  // the right.
+  // Dim, as tmux keeps the right of its bar; lit under the pointer and
+  // the keyboard, for the arrow's cut would clip a focus ring.
+  > a,
+  a[data-submit-form] {
+    order: 10;
+    margin-left: auto;
+    padding-right: 1ch;
+    color: var(--kit-ink);
+    background: var(--df-dim);
+    @include df-arrow-left;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--kit-on-accent);
+      background: var(--kit-accent);
+      text-decoration: underline;
+      text-underline-offset: 0.2em;
+    }
+
+    &:focus-visible {
+      outline: 0;
+    }
+  }
+
+  .navtop-toggle {
+    align-self: stretch;
+    width: auto;
+    padding: 0 1.4ch;
+    color: inherit;
+    background: none;
+    border: 0;
+
+    &::before {
+      @include df-says('\2261');
+      font-size: 1.7rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    &:hover,
+    &[aria-expanded='true'] {
+      color: var(--df-on-segment);
+      background: var(--df-blue);
+    }
+  }
+}
+
+// Wide, who is in sits on the right, a segment before the detach.
+@media screen and (min-width: 921px) {
+  #navtop .hello {
+    order: 9;
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.6ch;
+    max-width: 36ch;
+    margin-left: auto;
+    padding-right: 1ch;
+    overflow: hidden;
+    color: var(--df-on-segment);
+    background: var(--df-purple);
+    white-space: nowrap;
+    @include df-arrow-left;
+
+    ~ a[data-submit-form] {
+      margin-left: 0;
+    }
+
+    .text {
+      flex: none;
+    }
+
+    .email {
+      min-width: 0;
+      overflow: hidden;
+      overflow-wrap: normal;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .email:empty {
+      display: none;
+    }
+  }
+}
+
+// At 920px and below the links open from the menu button as a pane, a
+// list of windows: no icons, the number against the name.
+@media screen and (max-width: 920px) {
+  body #navtop .navtop-toggle i {
+    display: none;
+  }
+
+  body #navtop.open .navtop-menu {
+    padding: 4px;
+    color: var(--kit-ink);
+    background: var(--kit-surface);
+
+    i {
+      display: none;
+    }
+
+    .email:empty {
+      display: none;
+    }
+
+    a {
+      gap: 0;
+      min-height: 44px;
+      padding: 0 1.4ch;
+    }
+
+    a[data-submit-form] {
+      margin: 4px 0 0;
+      color: var(--kit-ink);
+      background: none;
+      border-top: 1px solid var(--kit-rule-soft);
+      clip-path: none;
+    }
+
+    a:hover {
+      color: var(--kit-on-accent);
+      background: var(--kit-accent);
+    }
+  }
+}
+
+// A month, a list or a search: what vim says on the message line, from
+// the content's column.
+
+p.subtitle {
+  padding-left: calc(var(--df-gutter) + var(--df-gutter-gap));
+  color: var(--kit-ink-muted);
+}
+
+// The stream: vim buffers.
+
+#stream {
+  display: flex;
+  flex-direction: column;
+  counter-reset: df-buffer;
+
+  // The tildes go before the links to more pages.
+  > .pagination-bottom {
+    order: 2;
+  }
+
+  // Margins add up in a flex column; the composer's is enough.
+  > .pagination-top {
+    margin-top: 0;
+  }
+}
+
+.hentry {
+  margin: 0 0 1.6em;
+  padding: 0.6em 0 0 calc(var(--df-gutter) + var(--df-gutter-gap));
+  counter-increment: df-buffer;
+
+  // The number column.
+  &::before {
+    @include df-says(counter(df-buffer));
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--df-gutter);
+    padding: 0.6em 1ch 0 0;
+    color: var(--df-number);
+    border-right: 1px solid var(--kit-rule-soft);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+}
+
+// The buffer the keys j and k move to: the active window. Its number is
+// lit, as the cursor's line.
+#stream .entry-highlight {
+  outline: 0;
+
+  &::before {
+    color: var(--kit-accent);
+    border-right-color: var(--kit-accent);
+    font-weight: 700;
+  }
+}
+
+// A post being written: a buffer not saved yet, out of the count.
+#stream > article.entry-preview {
+  counter-increment: none;
+  outline: 0;
+
+  &::before {
+    @include df-says('+');
+    color: var(--df-green);
+    border-right-color: var(--df-green);
+    font-weight: 700;
+  }
+}
+
+// What stands in for an entry just hidden: vim's message line.
+#stream .entry-hidden {
+  margin: 0 0 1.6em;
+  padding-left: calc(var(--df-gutter) + var(--df-gutter-gap));
+  color: var(--kit-ink-muted);
+  font-size: 0.85rem;
+  opacity: 1;
+
+  em {
+    font-style: normal;
+
+    &::before {
+      @include df-says('--\00a0');
+    }
+  }
+}
+
+// The service: the buffer's tab, with its filetype; a private entry's
+// shows who wrote it, as they write their name.
+#stream > article > a:first-child {
+  float: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8ch;
+  max-width: 100%;
+  margin: 0 0 0.7em;
+  padding: 0 1ch;
+  overflow: hidden;
+  color: var(--kit-ink);
+  background: var(--kit-surface-2);
+  font-size: 0.8rem;
+  line-height: 1.9;
+  white-space: nowrap;
+
+  &::after {
+    content: attr(title);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &:hover {
+    color: var(--kit-on-accent);
+    background: var(--kit-accent);
+    text-decoration: none;
+  }
+}
+
+#stream > article:not(.private) > a:first-child::after {
+  text-transform: lowercase;
+}
+
+.entry-icon {
+  width: auto;
+  height: auto;
+}
+
+div.entry-icon {
+  font-size: 0.85rem;
+}
+
+img.entry-icon {
+  width: 22px;
+  height: 22px;
+  margin-left: -0.6ch;
+}
+
+#stream .entry-title,
+#stream .entry-content,
+#stream .entry-info,
+#stream .show-more {
+  margin-left: 0;
+}
+
+// A title that wraps keeps clear of its ##.
+#stream .entry-title {
+  padding-left: 3ch;
+  color: var(--kit-ink);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-indent: -3ch;
+
+  &::before {
+    @include df-says('##\00a0');
+    color: var(--kit-accent);
+  }
+}
+
+#stream .entry-content {
+  margin-top: 0.6em;
+  color: var(--kit-ink-soft);
+
+  > p,
+  > ul,
+  > ol,
+  > blockquote,
+  > dl,
+  > h2,
+  > h3,
+  > h4 {
+    max-width: 76ch;
+  }
+
+  blockquote {
+    padding: 0.2em 0 0.2em 2ch;
+    color: var(--kit-ink-muted);
+    border-left: 2px solid var(--kit-rule);
+    font-style: italic;
+  }
+
+  code {
+    color: var(--df-purple);
+  }
+
+  pre {
+    color: var(--kit-ink);
+    background: var(--kit-surface-2);
+
+    code {
+      color: inherit;
+    }
+  }
+
+  th,
+  td {
+    padding: 2px 2ch 2px 0;
+  }
+
+  th {
+    border-bottom: 1px solid var(--kit-rule);
+    text-align: left;
+  }
+}
+
+// The buffer's statusline, under the number column too; its text keeps to
+// the content's column.
+#stream .entry-info {
+  gap: 2px 1.5ch;
+  margin: 1em 0 0 calc(-1 * (var(--df-gutter) + var(--df-gutter-gap)));
+  padding: 0 1ch 0 calc(var(--df-gutter) + var(--df-gutter-gap));
+  color: var(--kit-ink-soft);
+  background: var(--kit-surface-2);
+  font-size: 0.8rem;
+  line-height: 1.9;
+
+  .entry-published {
+    order: -1;
+  }
+}
+
+// A visitor reads, never writes: vim's read-only flag.
+body:not(:has(#share)) #stream .entry-info::after {
+  @include df-says('[RO]');
+  order: -1;
+}
+
+// The active window's statusline, and the one of a post being written,
+// open on their mode, as wide as the number column and its gap.
+#stream .entry-highlight .entry-info,
+#stream .entry-preview .entry-info {
+  padding-left: 0;
+  color: var(--kit-ink);
+  background: var(--kit-rule-soft);
+
+  &::before {
+    @include df-says('NORMAL');
+    order: -2;
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    width: calc(var(--df-gutter) + var(--df-gutter-gap) - 0.35rem);
+    margin-right: calc(0.35rem - 1.5ch);
+    padding-right: 0.5em;
+    color: var(--df-on-segment);
+    background: var(--df-session);
+    font-weight: 700;
+    clip-path: polygon(
+      0 0,
+      calc(100% - 0.5em) 0,
+      100% 50%,
+      calc(100% - 0.5em) 100%,
+      0 100%
+    );
+  }
+}
+
+#stream .entry-preview .entry-info::before {
+  @include df-says('INSERT');
+  background: var(--df-green);
+}
+
+span.entry-controls-switch {
+  min-height: 32px;
+  font-weight: 400;
+}
+
+.entry-published .bookmark {
+  font-weight: 400;
+}
+
+// A fold, as vim marks one.
+#stream .show-more {
+  margin-top: 0.6em;
+  color: var(--kit-link);
+  font-size: 0.85rem;
+
+  &::before {
+    @include df-says('+--\00a0');
+  }
+
+  &[aria-expanded='true']::before {
+    @include df-says('---\00a0');
+  }
+}
+
+// The end of the buffer.
+#stream::after {
+  @include df-says('~\A~\A~');
+  order: 1;
+  display: block;
+  margin-top: 0.4em;
+  color: var(--kit-rule);
+  white-space: pre;
+}
+
+.favorite::before,
+.friends-only-lock::before {
+  color: var(--kit-accent);
+}
+
+.photo img,
+.gallery img,
+.thumbnails img,
+.play-video img,
+.music-card .music-cover img {
+  border: 1px solid var(--kit-rule-soft);
+}
+
+.playbutton,
+.stopbutton {
+  color: var(--kit-on-accent);
+  background: var(--kit-accent);
+}
+
+.music-card {
+  padding: 0.8em 1ch;
+  background: var(--kit-surface);
+  border: 1px solid var(--kit-rule-soft);
+}
+
+.pagination-top a.prev,
+.pagination-top a.next,
+.pagination-bottom a.prev,
+.pagination-bottom a.next {
+  padding: 0 1ch;
+  background: var(--kit-surface-2);
+}
+
+// The sidebar: a file tree. ~/stream/ is its root, and a trunk runs down
+// from it, a branch to each of the services, the links, the lists, the
+// archives and the search. The tree drawn is open; it does not fold.
+
+#sidebar {
+  padding: 2px 0 12px 2ch;
+  border-left: 1px solid var(--kit-rule-soft);
+  font-size: 0.875rem;
+
+  // A directory, in ink: blue is for links.
+  h2 {
+    color: var(--kit-ink);
+    font-size: 0.875rem;
+    letter-spacing: 0;
+    text-transform: lowercase;
+
+    &::after {
+      @include df-says('/');
+    }
+  }
+}
+
+#sidebar > nav {
+  --df-branch: 2.6ch;
+  position: relative;
+  padding-left: var(--df-branch);
+
+  // The root.
+  &::before {
+    @include df-says('~/stream/');
+    display: block;
+    margin: 0 0 0.6em calc(-1 * var(--df-branch));
+    color: var(--kit-ink);
+    font-weight: 700;
+  }
+
+  // The trunk, down from the root.
+  &::after {
+    content: '';
+    position: absolute;
+    top: 1.5em;
+    bottom: 0;
+    left: 0.5ch;
+    border-left: 1px solid var(--kit-rule);
+  }
+
+  // The branches: from the trunk to each node's first line.
+  > .services,
+  > .lists,
+  > .archives,
+  > .search,
+  > .links li {
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: var(--df-branch-at, 0.75em);
+      left: calc(0.5ch - var(--df-branch));
+      width: calc(var(--df-branch) - 0.9ch);
+      border-top: 1px solid var(--kit-rule);
+    }
+  }
+
+  // The row of icons and the search field branch at their middle.
+  > .services {
+    --df-branch-at: 22px;
+  }
+
+  > .search {
+    --df-branch-at: 50%;
+  }
+
+  > .links li {
+    --df-branch-at: 50%;
+  }
+
+  // Under the last branch the trunk ends: the last node covers it, over
+  // the trunk, which comes later.
+  > :last-child::after {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: calc(var(--df-branch-at, 0.75em) + 1px);
+    bottom: -12px;
+    left: calc(0.5ch - var(--df-branch) - 1px);
+    width: 3px;
+    background: var(--kit-paper);
+  }
+}
+
+.services {
+  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  gap: 4px;
+
+  a {
+    color: var(--kit-ink-soft);
+    border: 1px solid var(--kit-rule-soft);
+    font-size: 1rem;
+
+    &:hover {
+      color: var(--kit-on-accent);
+      background: var(--kit-accent);
+      border-color: var(--kit-accent);
+    }
+  }
+}
+
+.links {
+  gap: 0;
+}
+
+#search-submit {
+  color: var(--kit-ink);
+  background: var(--kit-surface-2);
+  border-color: var(--kit-rule);
+}
+
+#calendar {
+  .prev,
+  .next {
+    color: var(--kit-ink);
+    border: 1px solid var(--kit-rule-soft);
+  }
+
+  .calendar-grid {
+    gap: 2px;
+  }
+
+  .month-item {
+    font-size: 0.8rem;
+    text-transform: lowercase;
+  }
+
+  a.month-item {
+    color: var(--kit-link);
+  }
+
+  .view-month,
+  a.view-month {
+    color: var(--kit-ink);
+    background: var(--df-visual);
+  }
+}
+
+#sidebar-foot {
+  color: var(--kit-ink-muted);
+  font-size: 0.8rem;
+}
+
+// The composer and the boxes: panes.
+
+#share,
+#entry-editor {
+  padding: 0.8em 1.4ch;
+  background: var(--kit-surface);
+  border: 1px solid var(--kit-rule-soft);
+}
+
+#ashare::before {
+  color: var(--kit-accent);
+}
+
+.share-summary {
+  color: var(--kit-ink-muted);
+}
+
+#shortcuts-help kbd {
+  color: var(--kit-ink);
+  background: var(--kit-surface-2);
+  border: 1px solid var(--kit-rule);
+}
+
+// The foot: vim's command line, with what vim says on opening the file,
+// from the count of the stream's buffers (the foot follows the stream, so
+// the count reaches it).
+
+#foot {
+  padding: 0 0 8px;
+  color: var(--kit-ink-muted);
+  text-align: left;
+
+  p {
+    display: inline;
+  }
+}
+
+#main.stream #foot::before {
+  @include df-says('"stream"\00a0' counter(df-buffer) 'L\00a0\00a0');
+  color: var(--kit-ink);
+}
+
+// The settings and the login have no file open.
+#main:not(.stream) #foot {
+  display: none;
+}
+
+.scroll-to-top {
+  color: var(--kit-on-accent);
+  background: var(--kit-accent);
+}
+
+// Login, settings, errors.
+
+#loginbox form {
+  padding: 1.6em 2ch;
+  background: var(--kit-surface);
+  border: 1px solid var(--kit-rule);
+
+  // Typing into it: vim's mode line under the fields.
+  &::after {
+    @include df-says('-- INSERT --');
+    grid-column: 1 / -1;
+    margin-top: 1em;
+    color: var(--kit-ink-muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+}
+
+ul.tabs {
+  counter-reset: df-window;
+
+  li a {
+    color: var(--kit-ink);
+    background: var(--kit-surface-2);
+    counter-increment: df-window;
+
+    &::before {
+      @include df-says(counter(df-window) ':');
+      color: var(--df-window-number);
+    }
+
+    // The current window, as in the top bar.
+    &.active {
+      color: var(--df-on-segment);
+      background: var(--df-blue);
+
+      &::before {
+        color: inherit;
+      }
+
+      &::after {
+        @include df-says('*');
+      }
+    }
+  }
+}
+
+#settings fieldset {
+  background: var(--kit-surface);
+}
+
+.http-error::before {
+  @include df-says('E:\00a0');
+}
+
+// The highlight in colour only goes in forced colours; an outline stays.
+@media (forced-colors: active) {
+  #stream .entry-highlight {
+    outline: 2px solid Highlight;
+    outline-offset: 4px;
+  }
+}
+
+// Narrower widths.
+
+@media screen and (max-width: 1099px) {
+  :root {
+    --kit-grid-columns: minmax(0, 1fr) minmax(210px, 240px);
+    --kit-grid-gap: 24px;
+  }
+}
+
+@media screen and (max-width: 820px) {
+  #sidebar {
+    padding: 18px 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--kit-rule-soft);
+  }
+}
+
+@media screen and (max-width: 640px) {
+  :root {
+    --df-gutter: 2rem;
+    --df-gutter-gap: 0.6rem;
+  }
+
+  body #head {
+    margin: 0;
+    border-image: none;
+
+    h1 {
+      flex: 0 1 auto;
+      font-size: 1rem;
+    }
+  }
+
+  body #main {
+    padding-top: calc(var(--kit-head-height-m) + 18px);
+  }
+
+  // The closed drawer is the status line at the bottom, its handle a
+  // window.
+  body #sidebar {
+    padding-top: 6px;
+    border-left: 0;
+    border-top: 1px solid var(--kit-rule);
+
+    &:not(.expanded) {
+      background: var(--df-bar);
+    }
+  }
+
+  body #sidebar-toggle {
+    color: var(--df-on-bar);
+    font-weight: 400;
+
+    .grip {
+      display: none;
+    }
+
+    .label {
+      padding: 0 1ch;
+      line-height: 2.2;
+    }
+
+    .label::before {
+      @include df-says('0:');
+      color: var(--kit-ink-muted);
+    }
+  }
+
+  body #sidebar.expanded #sidebar-toggle .label {
+    color: var(--df-on-segment);
+    background: var(--df-blue);
+    font-weight: 700;
+
+    &::before {
+      color: inherit;
+    }
+
+    &::after {
+      @include df-says('*');
+    }
+  }
+
+  .hentry::before {
+    padding-right: 0.6ch;
+  }
+
+  // The statusline in two rows at most: the mode and the menu, then the
+  // date.
+  body #stream .entry-info {
+    flex-wrap: wrap;
+    margin-left: calc(-1 * (var(--df-gutter) + var(--df-gutter-gap)));
+
+    .entry-published {
+      order: 9;
+      flex: 1 1 100%;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // A visitor has no menu to put on a row of its own: the date, [RO] and
+  // the share link keep to one.
+  body:not(:has(#share)) #stream .entry-info .entry-published {
+    order: -1;
+    flex: 1 1 0;
+    min-width: 0;
+    padding-left: 0;
+  }
+
+  // The mode no longer fits the narrow number column; the date under it
+  // keeps to the content's.
+  #stream .entry-highlight .entry-info,
+  #stream .entry-preview .entry-info {
+    &::before {
+      width: auto;
+      margin-right: 0;
+      padding: 0 calc(1ch + 0.5em) 0 1ch;
+    }
+
+    .entry-published {
+      padding-left: calc(var(--df-gutter) + var(--df-gutter-gap));
+    }
+  }
+
+  span.entry-controls-switch,
+  #stream .entry-info .shareit {
+    min-height: 44px;
+  }
+
+  body #stream > article > a:first-child {
+    margin-bottom: 0.7em;
+  }
+}
+
+@media screen and (max-width: 380px) {
+  body {
+    font-size: 0.875rem;
+  }
+}
+
+// On paper: no bars, no segments, the statusline a plain line.
+@media print {
+  #head,
+  #head h1 {
+    color: var(--kit-ink);
+    background: none;
+    border-image: none;
+    clip-path: none;
+  }
+
+  #stream .entry-info {
+    margin-left: 0;
+    padding-left: 0;
+    background: none;
+  }
+
+  #stream .entry-info::before,
+  body:not(:has(#share)) #stream .entry-info::after,
+  #stream::after {
+    content: none;
+  }
+}

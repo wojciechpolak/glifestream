@@ -31,16 +31,31 @@ handler500 = 'glifestream.stream.views.page_internal_error'
 
 urlpatterns = [
     re_path(r'^$', sv.index, name='index'),
-    re_path(r'^(?P<year>\d{4})/$', sv.index),
-    re_path(r'^(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index),
-    re_path(r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$', sv.index),
+    re_path(r'^(?P<year>\d{4})/$', sv.index, name='archive'),
+    re_path(r'^(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index, name='archive'),
+    re_path(
+        r'^(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
+        sv.index,
+        name='archive',
+    ),
     re_path(r'^public/$', sv.index, {'ctx': 'public'}, name='public'),
-    re_path(r'^public/(?P<year>\d{4})/$', sv.index, {'ctx': 'public'}),
-    re_path(r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$', sv.index, {'ctx': 'public'}),
+    re_path(
+        r'^public/(?P<year>\d{4})/$',
+        sv.index,
+        {'ctx': 'public'},
+        name='public-archive',
+    ),
+    re_path(
+        r'^public/(?P<year>\d{4})/(?P<month>\d{2})/$',
+        sv.index,
+        {'ctx': 'public'},
+        name='public-archive',
+    ),
     re_path(
         r'^public/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/$',
         sv.index,
         {'ctx': 'public'},
+        name='public-archive',
     ),
     re_path(r'^share$', sv.index, name='share'),
     re_path(r'^entry/(?P<entry>\d+)(/.*)?$', sv.index, {}, name='entry'),

@@ -55,6 +55,7 @@ class Page(TypedDict, total=False):
     taguri: str
     theme: str
     themes: list[str] | tuple[str, ...]
+    themes_menu: bool
     themes_more: bool
     title: str
     updated: Any

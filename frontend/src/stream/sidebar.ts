@@ -17,6 +17,7 @@
 
 import { config } from '../config';
 import { read_cookie, write_cookie } from '../util/cookies';
+import { delegate } from '../util/dom';
 import { reload_page } from '../util/navigation';
 import { jump_to_top } from '../util/scroll';
 
@@ -30,24 +31,70 @@ export function toggle_reblogs(): boolean {
     return false;
 }
 
-/** Switches to the next theme, through the gls-theme cookie. */
-export function change_theme(): boolean {
-    const cookie_name = 'gls-theme';
-    let cs = read_cookie(cookie_name);
-    let idx = config.themes.indexOf(cs as string);
+/** The list of themes over "Change theme", when there are more than two. */
+function theme_menu(): HTMLElement | null {
+    return document.getElementById('theme-menu');
+}
 
-    if (!cs || idx === -1) {
-        idx = 0;
-        cs = config.themes[idx] as string;
-    }
-    if (idx < config.themes.length - 1) {
-        idx++;
-    } else {
-        idx = 0;
-    }
-    cs = config.themes[idx] as string;
-    write_cookie(cookie_name, cs, 365, config.baseurl);
+function set_theme_menu_open(open: boolean): void {
+    theme_menu()?.classList.toggle('menu-expanded', open);
+    document
+        .getElementById('change-theme')
+        ?.setAttribute('aria-expanded', String(open));
+}
+
+/** Switches to the theme `name`, through the gls-theme cookie. */
+function use_theme(name: string): void {
+    write_cookie('gls-theme', name, 365, config.baseurl);
     jump_to_top();
     reload_page();
+}
+
+/** Opens or closes the list of themes, or with no list, switches to the
+ * next theme. */
+export function change_theme(): boolean {
+    const menu = theme_menu();
+    if (menu) {
+        set_theme_menu_open(!menu.classList.contains('menu-expanded'));
+        return false;
+    }
+    const current = config.themes.indexOf(read_cookie('gls-theme') as string);
+    // A visitor without the cookie is on the first theme.
+    const next = (Math.max(current, 0) + 1) % config.themes.length;
+    use_theme(config.themes[next] as string);
     return false;
+}
+
+/** Makes the list of themes pick one, and close on a click elsewhere or on
+ * Escape. */
+export function init_theme_menu(): void {
+    const menu = theme_menu();
+    if (!menu) {
+        return;
+    }
+    delegate(menu, 'click', '[data-theme]', function (choice) {
+        set_theme_menu_open(false);
+        if (choice.getAttribute('aria-current') === 'true') {
+            document.getElementById('change-theme')?.focus();
+        } else {
+            use_theme(choice.dataset['theme'] as string);
+        }
+        return false;
+    });
+    document.addEventListener('click', function (event) {
+        const wrapper = menu.parentElement;
+        if (
+            menu.classList.contains('menu-expanded') &&
+            event.target instanceof Node &&
+            !wrapper?.contains(event.target)
+        ) {
+            set_theme_menu_open(false);
+        }
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && menu.classList.contains('menu-expanded')) {
+            set_theme_menu_open(false);
+            document.getElementById('change-theme')?.focus();
+        }
+    });
 }

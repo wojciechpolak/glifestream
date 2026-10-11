@@ -34,6 +34,8 @@ from django.utils.html import json_script
 from django.utils.safestring import SafeString
 from django.utils.translation import get_language, gettext, gettext_noop
 
+from glifestream.utils import common
+
 register = Library()
 
 # Every message the page script translates with _().
@@ -109,7 +111,7 @@ def page_config(user: Any = None) -> dict[str, Any]:
     return {
         'baseurl': reverse('index'),
         'maps_engine': settings.MAPS_ENGINE,
-        'themes': list(settings.THEMES),
+        'themes': common.theme_cycle(),
         'lang': get_language() or settings.LANGUAGE_CODE,
         'messages': {message: gettext(message) for message in MESSAGES},
         'fold_lines': fold_lines(user),

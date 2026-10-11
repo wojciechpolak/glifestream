@@ -1,0 +1,202 @@
+// Icons: the markup leaves them empty, and Font Awesome draws them on a
+// ::before or ::after through `kit-glyph`, which a theme can use as well.
+
+@mixin kit-glyph($name, $brand: false) {
+  $map: if($brand, $fa-brand-icons, $fa-icons);
+  content: unquote('"#{ map-get($map, $name) }"');
+  font-family: if($brand, 'Font Awesome 6 Brands', 'Font Awesome 6 Free');
+  font-style: normal;
+  font-variant: normal;
+  font-weight: if($brand, 400, 900);
+  line-height: 1;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// The classes of services (stream/models.py), each with its icon; any other
+// gets the globe. The names of the APIs are there for services whose class
+// is the API's.
+$kit-class-glyphs: (
+  selfposts: (house, false),
+  blog: (pencil, false),
+  code: (code, false),
+  links: (earth-americas, false),
+  music: (music, false),
+  photos: (camera, false),
+  reviews: (star-half-stroke, false),
+  sms: (comment-dots, false),
+  videos: (film, false),
+  webfeed: (square-rss, false),
+  atproto: (bluesky, true),
+  flickr: (flickr, true),
+  github: (github, true),
+  mastodon: (mastodon, true),
+  pixelfed: (image, false),
+  twitter: (x-twitter, true),
+  vimeo: (vimeo-v, true),
+  youtube: (youtube, true),
+);
+
+.services a::before,
+div.entry-icon::before {
+  @include kit-glyph(earth-americas);
+}
+
+@each $cls, $glyph in $kit-class-glyphs {
+  .services .e-#{$cls}::before,
+  .e-#{$cls} div.entry-icon::before {
+    @include kit-glyph(nth($glyph, 1), nth($glyph, 2));
+  }
+}
+
+// The services in the settings, by API.
+$kit-api-glyphs: (
+  selfposts: (house, false),
+  atproto: (bluesky, true),
+  fb: (square-facebook, true),
+  flickr: (flickr, true),
+  github: (github, true),
+  mastodon: (mastodon, true),
+  pixelfed: (image, false),
+  twitter: (x-twitter, true),
+  vimeo: (vimeo-v, true),
+  webfeed: (square-rss, false),
+  youtube: (youtube, true),
+  friendfeed: (square-pied-piper, true),
+  pocket: (square-pied-piper, true),
+);
+
+@each $api, $glyph in $kit-api-glyphs {
+  span.#{$api}::before {
+    @include kit-glyph(nth($glyph, 1), nth($glyph, 2));
+  }
+}
+
+#search-submit::before {
+  @include kit-glyph(magnifying-glass);
+}
+
+#calendar .prev::before {
+  @include kit-glyph(arrow-left);
+}
+
+#calendar .next::before {
+  @include kit-glyph(arrow-right);
+}
+
+#change-theme::before {
+  @include kit-glyph(swatchbook);
+}
+
+#theme-menu span.link[aria-current]::before {
+  @include kit-glyph(check);
+}
+
+p.subtitle a.show-all::before {
+  @include kit-glyph(xmark);
+}
+
+p.subtitle a.next::before {
+  @include kit-glyph(arrow-right);
+}
+
+span.entry-controls-switch::after {
+  @include kit-glyph(angle-down);
+}
+
+.shareit::before {
+  @include kit-glyph(share-nodes);
+}
+
+.favorite::before {
+  @include kit-glyph(heart);
+}
+
+.friends-only-lock::before,
+.friends-only-entry::before {
+  @include kit-glyph(lock);
+}
+
+.expand-content::after,
+#expand-sharing::after {
+  @include kit-glyph(caret-down);
+}
+
+.video-inline::before {
+  @include kit-glyph(film);
+}
+
+.play-audio::before,
+.music-card .music-links::before,
+#music-track summary::before {
+  @include kit-glyph(music);
+}
+
+.playbutton::before {
+  @include kit-glyph(circle-play);
+}
+
+.stopbutton::before {
+  @include kit-glyph(circle-stop);
+}
+
+.pagination-top a.prev::before,
+.pagination-bottom a.prev::before {
+  @include kit-glyph(arrow-left);
+}
+
+.pagination-top a.next::after,
+.pagination-bottom a.next::after {
+  @include kit-glyph(arrow-right);
+}
+
+.more::after {
+  @include kit-glyph(arrow-up-right-from-square);
+}
+
+#ashare::before {
+  @include kit-glyph(circle-plus);
+}
+
+.geo::before {
+  @include kit-glyph(location-dot);
+}
+
+#spinner::before {
+  @include kit-glyph(spinner);
+  display: inline-block;
+  animation: fa-spin 2s linear infinite;
+}
+
+#shareitbox {
+  .share-email::before {
+    @include kit-glyph(envelope);
+  }
+
+  .share-facebook::before {
+    @include kit-glyph(facebook, true);
+  }
+
+  .share-reddit::before {
+    @include kit-glyph(reddit, true);
+  }
+
+  .share-mastodon::before {
+    @include kit-glyph(mastodon, true);
+  }
+
+  .share-bluesky::before {
+    @include kit-glyph(bluesky, true);
+  }
+
+  // share-twitter is kept for social_sharing_sites set in user-scripts.js.
+  .share-x::before,
+  .share-twitter::before {
+    @include kit-glyph(x-twitter, true);
+  }
+
+  .share-webshare::before {
+    @include kit-glyph(share-nodes);
+  }
+}

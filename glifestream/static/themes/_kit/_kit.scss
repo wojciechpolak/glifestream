@@ -1,0 +1,64 @@
+/*
+ *  The kit of the bundled themes (broadsheet, phosphor, riso, dotfiles).
+ *
+ *  It makes the pages work: the top bar's menu, the sidebar's drawer, the
+ *  folded entries, the entry menu, the composer, the settings, the lightbox,
+ *  print. It draws them plainly, from the tokens below, and leaves the look
+ *  to the theme. A theme imports it first:
+ *
+ *    @import '../_kit/kit';
+ *
+ *  and then sets the tokens in :root, again in
+ *  @media (prefers-color-scheme: dark), and draws the rest on top.
+ *
+ *  Tokens (each has a plain default in _tokens.scss):
+ *
+ *    --kit-font-body, --kit-font-display, --kit-font-mono
+ *    --kit-paper          the page
+ *    --kit-surface        panels, menus, the drawer, fields
+ *    --kit-surface-2      a quieter fill: code, stripes, hover
+ *    --kit-ink            text, at least 4.5:1 on paper and surface
+ *    --kit-ink-soft       secondary text, too
+ *    --kit-ink-muted      dates and hints, too
+ *    --kit-rule           borders and rules
+ *    --kit-rule-soft      hairlines
+ *    --kit-accent         the theme's colour; --kit-on-accent, text on it
+ *    --kit-link, --kit-link-hover
+ *    --kit-focus          the focus ring
+ *    --kit-danger
+ *    --kit-radius, --kit-border (a width), --kit-shadow
+ *    --kit-page-width, --kit-page-pad
+ *    --kit-grid-columns, --kit-grid-areas, --kit-grid-gap
+ *                         the stream page wider than 820px
+ *    --kit-sidebar-gap    how far the pinned sidebar keeps from the
+ *                         window's edge, wider than 820px
+ *    --kit-head-height-m  the pinned top bar at 640px and below
+ *    --kit-head-bg-m      its background
+ *    --kit-drawer-peek    the closed drawer's height at 640px and below
+ *    --kit-drawer-bg, --kit-drawer-radius, --kit-drawer-shadow
+ *
+ *  The widths the page script counts on: 920px and below, the top bar folds
+ *  its links into a menu (frontend/src/ui/navtop.ts); 640px and below, the
+ *  sidebar is a drawer and the page pulls to refresh
+ *  (frontend/src/ui/pull-to-refresh.ts). Between, at 820px and below, the
+ *  stream page is one column.
+ *
+ *  What the page script needs is in _mechanics.scss, under `body`, so that
+ *  a theme's own rules for #head or #sidebar leave it be. Nothing here is
+ *  scoped to body.style-<name>: a theme of your own can import a bundled
+ *  one and change its tokens.
+ *
+ *  _mixins.scss holds what a theme can draw with, such as kit-full-bleed
+ *  for a bar as wide as the window.
+ */
+
+@import 'mixins';
+@import 'fontawesome';
+@import 'tokens';
+@import 'reset';
+@import 'layout';
+@import 'components';
+@import 'stream';
+@import 'settings';
+@import 'glyphs';
+@import 'mechanics';

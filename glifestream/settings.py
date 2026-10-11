@@ -21,6 +21,7 @@ from glifestream.settings_magic_sso import (
     validate_secret_value,
 )
 from glifestream.settings_csp import csp_settings
+from glifestream.settings_themes import BUNDLED_THEMES, add_theme_bundles
 from glifestream.worker.config import DEFAULT_WORKER_MAINTENANCE_JOBS
 
 SITE_ROOT = os.path.dirname(os.path.realpath(__file__))
@@ -383,7 +384,7 @@ LOGGING = {
     },
 }
 
-PIPELINE = {
+PIPELINE: dict[str, Any] = {
     'DISABLE_WRAPPER': True,
     'JS_COMPRESSOR': None,
     'CSS_COMPRESSOR': None,
@@ -411,16 +412,11 @@ PIPELINE = {
             'source_filenames': ('js/dist/editor.css',),
             'output_filename': 'css/editor.css',
         },
-        'default': {
-            'source_filenames': (
-                # The stylesheets of frontend/, such as PhotoSwipe's.
-                'js/dist/glifestream.css',
-                'themes/default/style.scss',
-            ),
-            'output_filename': 'themes/default/style.css',
-        },
+        # Each theme, added below: every bundled one, so that THEMES can
+        # change without another collectstatic, and then those of THEMES.
     },
 }
+add_theme_bundles(PIPELINE['STYLESHEETS'], BUNDLED_THEMES)
 
 #
 # PWA
@@ -450,7 +446,11 @@ FAVICON = 'favicon.ico'
 # The icon iOS shows for a page added to the home screen.
 APPLE_TOUCH_ICON = 'apple-touch-icon.png'
 
-THEMES = ('default',)
+# The themes a visitor can switch between with "Change theme", in its order:
+# the bundled ones (settings_themes.py) and any in RUN_DIR/static/themes/.
+THEMES = tuple(get_list(ENV, 'THEMES', default=list(BUNDLED_THEMES)))
+# The theme of a visitor who has not chosen one; empty, the first of THEMES.
+DEFAULT_THEME = get_env(ENV, 'DEFAULT_THEME', default='') or ''
 
 STREAM_TITLE = get_env(ENV, 'STREAM_TITLE', default='Stream') or 'Stream'
 STREAM_TITLE_SUFFIX = (
@@ -554,6 +554,10 @@ if LOAD_SETTINGS_LOCAL and SETTINGS_LOCAL_PATH.is_file():
         globals(),
     )
     apply_sqlite_options(DATABASES, SQLITE_OPTIONS)
+
+# A theme of THEMES without a bundle of its own, as settings_local.py may
+# give one, is built from themes/<name>/style.scss.
+add_theme_bundles(PIPELINE['STYLESHEETS'], THEMES)
 
 if VALIDATE_SETTINGS_SECRETS:
     validate_secret_value(

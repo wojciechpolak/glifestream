@@ -240,8 +240,8 @@ into `glifestream/static/js/dist/`, which is not in Git, for django-pipeline:
 
 - `glifestream.js`, from `main.ts`, is the `main` bundle every page loads.
 - `glifestream.css` holds the stylesheets the modules import, such as
-  PhotoSwipe's for the lightbox; the `default` theme bundle puts it in front
-  of the theme.
+  PhotoSwipe's for the lightbox; every theme bundle puts it in front of the
+  theme.
 - `editor.js` and `editor.css`, from `editor.ts`, are the `editor` bundle:
   the rich editor (Tiptap, in `editor/`), which only the signed-in owner
   loads. It sets `window.create_gls_editor`, where the composer finds it; the
@@ -329,3 +329,17 @@ http.ts          fetch with the CSRF token, and the error report
   tell it something), and register it in `upgrades.service.UPGRADERS`.
 - **A new top-level package**: add it to the layers in `pyproject.toml`, or
   `lint-imports` will not check it.
+- **A theme**: `glifestream/static/themes/<name>/style.scss`, named in
+  `settings_themes.BUNDLED_THEMES`, which builds its pipeline bundle. The
+  bundled themes other than `default` import `themes/_kit/`, which holds what
+  the page script counts on (the narrow top bar's menu, the sidebar's drawer,
+  folded entries, the entry menu) under `body`, so that a theme draws the
+  parts without undoing it; the theme sets the kit's tokens, light and dark,
+  and draws the rest. A font it carries is a WOFF2 in its own `fonts/`, with
+  the font's licence. `tests/test_themes.py` checks each one compiles,
+  styles what the markup needs and loads nothing from other sites, and
+  `tests/e2e/test_themes_browser.py` that it fits every width and keeps its
+  text legible.
+- **Markup the themes draw**: style it in every bundled theme, in `_kit` for
+  the kit's three, and add its selector to `CONTRACT_SELECTORS` in
+  `tests/test_themes.py`.

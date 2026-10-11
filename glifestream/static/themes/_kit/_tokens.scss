@@ -1,0 +1,65 @@
+// Plain defaults of the tokens _kit.scss lists, light and dark. A theme
+// sets its own after the kit.
+
+:root {
+  color-scheme: light dark;
+
+  --kit-font-body: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --kit-font-display: var(--kit-font-body);
+  --kit-font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas,
+    'DejaVu Sans Mono', 'Liberation Mono', monospace;
+
+  --kit-paper: #fafafa;
+  --kit-surface: #fff;
+  --kit-surface-2: #f0f0f0;
+  --kit-ink: #1c1c1c;
+  --kit-ink-soft: #3a3a3a;
+  --kit-ink-muted: #5f5f5f;
+  --kit-rule: #8a8a8a;
+  --kit-rule-soft: #d6d6d6;
+  --kit-accent: #2a5db0;
+  --kit-on-accent: #fff;
+  --kit-link: #1f4f9c;
+  --kit-link-hover: #133566;
+  --kit-focus: #2a5db0;
+  --kit-danger: #b3261e;
+
+  --kit-radius: 0;
+  --kit-border: 1px;
+  --kit-shadow: none;
+
+  --kit-page-width: 1240px;
+  --kit-page-pad: 24px;
+  --kit-grid-columns: minmax(0, 1fr) minmax(240px, 300px);
+  --kit-grid-areas: 'header header' 'stream sidebar' 'footer footer';
+  --kit-grid-gap: 24px 32px;
+  // How far a pinned sidebar keeps from the window's edge.
+  --kit-sidebar-gap: 24px;
+
+  --kit-head-height-m: 64px;
+  --kit-head-bg-m: var(--kit-paper);
+  --kit-drawer-peek: 78px;
+  --kit-drawer-bg: var(--kit-surface);
+  --kit-drawer-radius: 0;
+  --kit-drawer-shadow: 0 -8px 24px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --kit-paper: #161616;
+    --kit-surface: #202020;
+    --kit-surface-2: #2a2a2a;
+    --kit-ink: #ececec;
+    --kit-ink-soft: #cfcfcf;
+    --kit-ink-muted: #a5a5a5;
+    --kit-rule: #777;
+    --kit-rule-soft: #3a3a3a;
+    --kit-accent: #8fb3ff;
+    --kit-on-accent: #111;
+    --kit-link: #9dbcff;
+    --kit-link-hover: #cfdcff;
+    --kit-focus: #8fb3ff;
+    --kit-danger: #ff8a80;
+    --kit-drawer-shadow: 0 -8px 24px rgba(0, 0, 0, 0.5);
+  }
+}

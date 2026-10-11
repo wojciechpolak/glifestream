@@ -810,7 +810,8 @@ input[placeholder].blur,
     color: var(--text-muted);
     font-size: 0.9rem;
 
-    p {
+    p,
+    .change-theme-wrapper {
       margin: 0 0 12px;
     }
 
@@ -1110,6 +1111,7 @@ input[placeholder].blur,
 }
 
 .change-theme-wrapper {
+  position: relative;
   display: flex;
 }
 
@@ -1509,7 +1511,8 @@ span.entry-controls-switch {
   }
 }
 
-#stream .entry-controls {
+#stream .entry-controls,
+#theme-menu {
   display: none;
   position: absolute;
   right: 0;
@@ -1536,6 +1539,40 @@ span.entry-controls-switch {
       color: var(--text-strong);
       background: var(--accent-soft);
       text-decoration: none;
+    }
+  }
+}
+
+// More than two themes: the list opens over "Change theme", at the foot of
+// the sidebar (stream/sidebar.ts).
+#theme-menu {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + 8px);
+  left: 0;
+  width: auto;
+  min-width: 11rem;
+
+  span.link {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+
+    &::before {
+      content: '';
+      width: 1em;
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      color: var(--accent-strong);
+    }
+  }
+
+  span.link[aria-current] {
+    color: var(--text-strong);
+    font-weight: 700;
+
+    &::before {
+      content: '\f00c';
     }
   }
 }
@@ -3317,9 +3354,13 @@ img.noborder {
 }
 
 @media screen and (min-width: 641px) {
+  // Pinned by its top while it fits the window, and a taller one by its
+  // bottom, so that all of it scrolls into view; the page script gives its
+  // height (ui/sidebar-height.ts).
   #sidebar {
     position: sticky;
     top: 24px;
+    top: #{'min(24px, calc(100vh - var(--sidebar-height, 0px) - 24px))'};
     align-self: start;
   }
 }

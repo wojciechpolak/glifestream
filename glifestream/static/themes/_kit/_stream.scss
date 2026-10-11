@@ -1,0 +1,627 @@
+// The entries and what they carry: pictures, players, music, files.
+
+.hentry,
+.entry-hidden {
+  position: relative;
+  min-width: 0;
+  margin-bottom: 18px;
+}
+
+// What stands in for an entry its owner has just hidden, with an Undo link
+// (stream/entry-actions.ts).
+.entry-hidden {
+  opacity: 0.7;
+}
+
+// The entry the keys j and k move to (stream/shortcuts.ts).
+#stream .entry-highlight {
+  outline: 2px solid var(--kit-accent);
+  outline-offset: 6px;
+}
+
+// The live preview of a post, under the composer (stream/preview.ts).
+#stream > article.entry-preview {
+  outline: 2px dashed var(--kit-accent);
+  outline-offset: 4px;
+}
+
+.entry-preview-label {
+  position: absolute;
+  top: -0.8em;
+  right: 16px;
+  z-index: 1;
+  padding: 0.1rem 0.6rem;
+  color: var(--kit-on-accent);
+  background: var(--kit-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+// The service's icon, or the author's picture, and its link.
+#stream > article > a:first-child {
+  float: left;
+  margin-right: 14px;
+  text-decoration: none;
+}
+
+.entry-icon {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+}
+
+div.entry-icon {
+  font-size: 20px;
+}
+
+div.entry-icon::before {
+  display: block;
+}
+
+img.entry-icon {
+  object-fit: cover;
+}
+
+#stream .entry-title,
+#stream .entry-content,
+#stream .entry-info,
+#stream .show-more {
+  margin-left: 58px;
+}
+
+#stream .entry-title {
+  font-family: var(--kit-font-display);
+  font-size: 1.25rem;
+  line-height: 1.3;
+  // A title of one long word breaks rather than widen the page.
+  overflow-wrap: anywhere;
+
+  a {
+    color: inherit;
+  }
+}
+
+#stream .entry-content {
+  min-width: 0;
+  margin-top: 8px;
+  overflow-wrap: break-word;
+
+  a {
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin-bottom: 0.7em;
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  img {
+    height: auto;
+  }
+
+  iframe {
+    max-width: 100%;
+  }
+
+  pre {
+    margin: 1em 0;
+    padding: 12px 14px;
+    overflow-x: auto;
+    background: var(--kit-surface-2);
+    line-height: 1.5;
+  }
+
+  table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 1em 0;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+
+  th,
+  td {
+    min-width: 0;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+  }
+
+  blockquote {
+    margin: 1em 0;
+    padding: 0.3em 0 0.3em 1em;
+    border-left: 3px solid var(--kit-rule-soft);
+  }
+
+  .fb-caption,
+  .fb-description {
+    font-size: 0.9rem;
+  }
+}
+
+#stream .entry-info {
+  position: relative;
+  clear: left;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: 14px;
+  color: var(--kit-ink-muted);
+  font-size: 0.85rem;
+
+  a,
+  span.link {
+    color: inherit;
+  }
+}
+
+.entry-published {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.45rem;
+
+  .bookmark {
+    font-weight: 700;
+  }
+}
+
+span.entry-controls-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 32px;
+  font-weight: 700;
+
+  &::after {
+    font-size: 0.75rem;
+  }
+}
+
+// The entry's menu, which the page script places by its switch, and the
+// list of themes over "Change theme" (_components.scss).
+#stream .entry-controls,
+#theme-menu {
+  display: none;
+  position: absolute;
+  z-index: 50;
+  width: 13rem;
+  max-width: calc(100vw - 28px);
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  text-align: left;
+  background: var(--kit-surface);
+  border: var(--kit-border) solid var(--kit-rule);
+  border-radius: var(--kit-radius);
+  box-shadow: var(--kit-shadow);
+
+  a,
+  span.link {
+    display: block;
+    padding: 8px 10px;
+    color: var(--kit-ink);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--kit-surface-2);
+    }
+  }
+}
+
+// More than two themes: the list opens up from "Change theme", at the foot
+// of the sidebar (.change-theme-wrapper; stream/sidebar.ts).
+#theme-menu {
+  bottom: calc(100% + 4px);
+  left: 0;
+  width: auto;
+  min-width: 11rem;
+
+  span.link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    &::before {
+      width: 1em;
+      content: '';
+    }
+  }
+
+  [aria-current] {
+    font-weight: 700;
+  }
+}
+
+.shareit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  margin-left: auto;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: none;
+  }
+
+  span {
+    display: none;
+  }
+}
+
+.favorite,
+.friends-only-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.friends-only-lock {
+  cursor: help;
+}
+
+.expand-content {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.4rem;
+  text-decoration: none;
+}
+
+.friends-only-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: var(--kit-border) solid var(--kit-rule-soft);
+
+  &::before {
+    font-size: 20px;
+  }
+
+  p {
+    margin: 0;
+    font-weight: 700;
+  }
+}
+
+.main {
+  padding: 20px;
+  background: var(--kit-surface);
+  border: var(--kit-border) solid var(--kit-rule-soft);
+}
+
+// Pictures.
+
+// Pictures stand at the start of the text's column, as videos do.
+.photo,
+.gallery {
+  margin-top: 1em;
+  margin-bottom: 4px;
+
+  img {
+    display: block;
+  }
+}
+
+.photo img,
+.gallery img,
+.play-video img,
+.thumbnails img,
+.screenshot img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 425px;
+}
+
+img.max100px {
+  max-width: 100px;
+}
+
+img.max200px {
+  max-width: 200px;
+}
+
+img.max300px {
+  max-width: 300px;
+}
+
+img.max400px {
+  max-width: #{'min(400px, 100%)'};
+}
+
+img.max500px {
+  max-width: #{'min(500px, 100%)'};
+}
+
+img.max600px {
+  max-width: #{'min(600px, 100%)'};
+}
+
+img.max700px {
+  max-width: #{'min(700px, 100%)'};
+}
+
+img.noborder {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+table.vc {
+  border-spacing: 0;
+
+  td {
+    padding: 0;
+  }
+}
+
+.thumbnails {
+  margin: 8px 0 0 !important;
+
+  img {
+    margin: 3px 6px 3px 0;
+    vertical-align: top;
+  }
+}
+
+// A Bluesky gallery: a grid of square crops instead of a row of thumbnails.
+.thumbnails.atproto-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  max-width: 600px;
+
+  // Five pictures and more fit three to a row.
+  &:has(> a:nth-child(5)) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  > a {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+  }
+
+  // Of three pictures, the first is as tall as the other two, as on Bluesky.
+  &:has(> a:nth-child(3)):not(:has(> a:nth-child(4))) > a:first-child {
+    grid-row: span 2;
+    aspect-ratio: auto;
+  }
+
+  > a:only-child {
+    grid-column: 1 / -1;
+    aspect-ratio: 4 / 3;
+  }
+
+  // Out of the flow, so a picture never stretches its row; under #stream,
+  // to win over the entry's own pictures' height.
+  #stream & img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    object-fit: cover;
+  }
+}
+
+ul.files {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.files span.size {
+  padding-left: 3px;
+  color: var(--kit-ink-muted);
+  font-size: 75%;
+}
+
+.geo {
+  margin-top: 1em;
+
+  &::before {
+    margin-right: 4px;
+  }
+}
+
+.latitude,
+.longitude {
+  display: none;
+}
+
+@media screen and (max-width: 640px) {
+  // The date gives way, so that the share link keeps to its line.
+  #stream .entry-info {
+    flex-wrap: nowrap;
+  }
+
+  #stream .entry-info .entry-published {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #stream .entry-info .shareit {
+    flex: none;
+  }
+
+  // Code wraps rather than run off a narrow screen.
+  #stream .entry-content pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+}
+
+// Videos and sound.
+
+.play-video {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  vertical-align: top;
+
+  img {
+    display: block;
+  }
+}
+
+.video-inline::before,
+.play-audio::before {
+  margin-right: 8px;
+}
+
+.play-audio {
+  cursor: pointer;
+}
+
+.playbutton,
+.stopbutton {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  margin: -29px 0 0 -29px;
+  color: var(--kit-on-accent);
+  background: var(--kit-accent);
+  border-radius: 50%;
+  font-size: 40px;
+  cursor: pointer;
+}
+
+div.player {
+  margin-top: 0.9em;
+
+  &.video {
+    position: relative;
+    height: 0;
+    max-width: 900px;
+    padding-top: 0;
+    padding-bottom: 56.25%;
+    overflow: hidden;
+
+    iframe,
+    video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    video {
+      display: block;
+      background: #000;
+    }
+  }
+
+  &.w43 {
+    padding-bottom: 67.5%;
+  }
+
+  &.vimeo {
+    padding-top: 0;
+  }
+}
+
+// A post about a track: its cover, which plays its video, then its title,
+// artist and searches on the music services. The player opens below.
+.music-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4em 1.1em;
+  margin: 0.6em 0;
+
+  &:has(> .play-video, > .music-cover) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  // Placed by row, as the player goes in right after the cover.
+  > .play-video,
+  > .music-cover {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+    align-self: start;
+  }
+
+  .play-video img,
+  .music-cover img {
+    display: block;
+    width: auto;
+    max-width: 160px;
+    max-height: 160px;
+  }
+
+  .music-track,
+  .music-links {
+    grid-column: -2;
+    margin: 0;
+  }
+
+  .music-track {
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .music-title {
+    display: block;
+    font-size: 1.15em;
+    font-weight: 700;
+  }
+
+  .music-artist {
+    display: block;
+    color: var(--kit-ink-soft);
+  }
+
+  .music-links {
+    grid-row: 2;
+    align-self: start;
+    color: var(--kit-ink-muted);
+    font-size: 0.9em;
+    line-height: 1.7;
+
+    &::before {
+      margin-right: 8px;
+    }
+
+    a {
+      white-space: nowrap;
+    }
+  }
+
+  > div.player {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    width: 100%;
+    margin-top: 0.3em;
+  }
+
+  @media only screen and (max-width: 460px) {
+    .play-video img,
+    .music-cover img {
+      max-width: 112px;
+      max-height: 112px;
+    }
+  }
+}

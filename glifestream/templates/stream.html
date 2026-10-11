@@ -51,9 +51,12 @@
     </search>{% endif %}
   </nav>
   <footer id="sidebar-foot">
-    <p class="change-theme-wrapper">
-      {% if page.themes_more %}<span tabindex="0" id="change-theme" class="link">{% trans "Change theme" %}</span>{% endif %}
-    </p>
+    <div class="change-theme-wrapper">
+      {% if page.themes_more %}<span tabindex="0" id="change-theme" class="link"{% if page.themes_menu %} aria-haspopup="true" aria-expanded="false" aria-controls="theme-menu"{% endif %}>{% trans "Change theme" %}</span>{% endif %}
+      {% if page.themes_menu %}<ul id="theme-menu" aria-labelledby="change-theme">
+        {% for name in page.themes %}<li><span tabindex="0" class="link" data-theme="{{ name }}"{% if name == page.theme %} aria-current="true"{% endif %}>{{ name|capfirst }}</span></li>
+        {% endfor %}</ul>{% endif %}
+    </div>
     <p id="poweredby">
       {% trans "Powered by" %} <a href="https://github.com/wojciechpolak/glifestream" title="{% trans "A free and open source lifestream platform and social activity reader" %}">gLifestream</a>
     </p>

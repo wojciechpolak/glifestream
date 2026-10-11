@@ -1,0 +1,12 @@
+// Mixins a theme can use after importing the kit. They output nothing by
+// themselves.
+
+// Paints `$color` behind a box and on out to the window's edges, as a bar
+// across the page: the paint overflows the box without widening the page
+// and without clipping what hangs out of it, such as the top bar's menu.
+// The box keeps its borders out of it, for border-image draws them, and
+// its inset shadows, which the fill paints over; _layout.scss drops it in
+// forced colours.
+@mixin kit-full-bleed($color) {
+  border-image: conic-gradient($color 0 0) fill #{'0 / 0 / 0 100vmax'};
+}

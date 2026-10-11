@@ -458,6 +458,8 @@ def finalize_page(
 
     query.page['themes'] = settings.THEMES
     query.page['themes_more'] = len(settings.THEMES) > 1
+    # More than two: "Change theme" opens a list of them.
+    query.page['themes_menu'] = len(settings.THEMES) > 2
     query.page['theme'] = common.get_theme(state.request)
 
     if 'title' in query.page and query.page['title'] != '':

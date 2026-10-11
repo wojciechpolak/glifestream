@@ -1,0 +1,492 @@
+// What the page script counts on. The rules start at `body`, so that a
+// theme's own rules for the same parts draw them without undoing these.
+
+// Long entries fold on the timeline to --fold-lines lines (the reader's
+// preference, or the entry's own), fading out, until "Show more" unfolds
+// them. An entry on its own page, or alone on the timeline, never folds: the
+// page script folds only what this rule would hide (stream/folding.ts).
+body #stream:not(.single-entry) .entry-content.folded {
+  max-height: calc(var(--fold-lines, 20) * 1.6em);
+  max-height: calc(var(--fold-lines, 20) * 1lh);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+
+body #stream .show-more {
+  display: block;
+  min-height: 0;
+  margin-top: 4px;
+  padding: 0;
+  color: var(--kit-link);
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--kit-link-hover);
+    text-decoration: underline;
+  }
+}
+
+// The entry's menu and other boxes the page script opens.
+body .menu-expanded {
+  display: block !important;
+}
+
+// The composer, folded to its link until opened (stream/composer.ts).
+body #share.share-collapsed {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+
+  > form {
+    display: none;
+  }
+}
+
+body #share:not(.share-collapsed) .share-summary {
+  display: none;
+}
+
+// The top bar's menu button, and the drawer's handle, wait for narrow
+// screens.
+body #navtop .navtop-toggle,
+body #sidebar-toggle {
+  display: none;
+}
+
+body #navtop .navtop-menu {
+  display: contents;
+}
+
+@media screen and (min-width: 821px) {
+  // Wide, the stream page has its theme's columns, and the drawer handle
+  // stays out of them.
+  body #main.stream {
+    grid-template-columns: var(--kit-grid-columns);
+    grid-template-areas: var(--kit-grid-areas);
+  }
+
+  // The sidebar stays in view as the stream scrolls: pinned by its top
+  // while it fits the window, and a taller one by its bottom, so that all
+  // of it scrolls into view; the page script gives its height
+  // (ui/sidebar-height.ts).
+  body #sidebar {
+    position: sticky;
+    top: var(--kit-sidebar-gap);
+    top: #{'min(var(--kit-sidebar-gap), calc(100vh - var(--sidebar-height, 0px) - var(--kit-sidebar-gap)))'};
+    align-self: start;
+  }
+}
+
+// At 820px and below the stream page is one column, the sidebar under it.
+@media screen and (max-width: 820px) {
+  body #main.stream {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'header' 'stream' 'sidebar' 'footer';
+  }
+
+  body #sidebar {
+    position: relative;
+    top: auto;
+    max-height: none;
+    overflow: visible;
+    transform: none;
+  }
+
+  body #settings #list-form .form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// At 920px and below the top bar keeps the title and a menu button; the
+// greeting and the links open from it as a panel (ui/navtop.ts, whose
+// WIDE_SCREEN is the width above this one).
+@media screen and (max-width: 920px) {
+  body #head {
+    flex-wrap: nowrap;
+    overflow: visible;
+  }
+
+  body #navtop {
+    position: relative;
+    flex: 0 0 auto;
+    margin-left: auto;
+
+    .navtop-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      padding: 0;
+      font-size: 1.1rem;
+      cursor: pointer;
+
+      i {
+        display: inline-block;
+      }
+    }
+
+    .navtop-menu {
+      display: none;
+    }
+
+    &.open .navtop-menu {
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 2px;
+      width: max-content;
+      min-width: 230px;
+      max-width: calc(100vw - 28px);
+      padding: 8px;
+      color: var(--kit-ink);
+      background: var(--kit-surface);
+      border: var(--kit-border) solid var(--kit-rule);
+      border-radius: var(--kit-radius);
+      box-shadow: var(--kit-shadow);
+      font-size: 0.95rem;
+      text-align: left;
+
+      .vb {
+        display: none;
+      }
+
+      .hello {
+        display: block;
+        margin-bottom: 6px;
+        padding: 8px 12px 12px;
+        border-bottom: var(--kit-border) solid var(--kit-rule-soft);
+        white-space: normal;
+      }
+
+      .hello .text,
+      .email {
+        display: block;
+      }
+
+      a {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 12px;
+        min-height: 44px;
+        padding: 0 12px;
+      }
+
+      i {
+        display: inline-block;
+        width: 1.2em;
+        text-align: center;
+      }
+    }
+  }
+}
+
+// At 640px and below the top bar is pinned, and the sidebar is a drawer at
+// the bottom, which its handle opens (stream/init.ts); the page pulls to
+// refresh (ui/pull-to-refresh.ts).
+@media screen and (max-width: 640px) {
+  body #main {
+    padding: calc(var(--kit-head-height-m) + 14px) 14px 16px;
+  }
+
+  body #main.stream {
+    display: block;
+  }
+
+  body #head {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    height: var(--kit-head-height-m);
+    min-height: 0;
+    margin: 0;
+    padding: 0 #{'max(12px, env(safe-area-inset-right))'} 0
+      #{'max(12px, env(safe-area-inset-left))'};
+    background: var(--kit-head-bg-m);
+
+    h1 {
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      font-size: clamp(1.15rem, 5vw, 1.5rem);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  body #sidebar {
+    position: fixed;
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 100%;
+    height: calc(var(--kit-drawer-peek) + env(safe-area-inset-bottom));
+    max-height: none;
+    margin: 0;
+    padding: 10px 14px calc(12px + env(safe-area-inset-bottom));
+    overflow: hidden;
+    background: var(--kit-drawer-bg);
+    border-radius: var(--kit-drawer-radius) var(--kit-drawer-radius) 0 0;
+    box-shadow: var(--kit-drawer-shadow);
+    transform: none;
+    transition: height 0.18s ease-out;
+
+    > section,
+    > nav,
+    > footer {
+      display: none;
+    }
+
+    &.expanded {
+      height: calc(100vh - env(safe-area-inset-top) - 12px);
+      max-height: 78svh;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+
+      > section,
+      > nav,
+      > footer {
+        display: block;
+      }
+    }
+  }
+
+  @supports (height: 100dvh) {
+    body #sidebar.expanded {
+      height: calc(100dvh - env(safe-area-inset-top) - 12px);
+    }
+  }
+
+  // The whole closed drawer is its handle: a grip and a label show it can
+  // be pulled up; it keeps off the look a theme gives to its buttons.
+  body #sidebar-toggle {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    padding: 0 0 6px;
+    color: var(--kit-ink-soft);
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    text-shadow: none;
+    transform: none;
+    font-size: 0.95rem;
+    font-weight: 700;
+    touch-action: manipulation;
+
+    &:hover,
+    &:active {
+      color: var(--kit-ink);
+      background: none;
+      border: 0;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .grip {
+      width: 44px;
+      height: 5px;
+      background: currentColor;
+      border-radius: 999px;
+      opacity: 0.55;
+    }
+  }
+
+  body #sidebar.expanded #sidebar-toggle {
+    margin-bottom: 12px;
+  }
+
+  body #foot {
+    margin-bottom: calc(var(--kit-drawer-peek) + 16px);
+  }
+
+  body .scroll-to-top {
+    right: 14px;
+    bottom: calc(var(--kit-drawer-peek) + 14px + env(safe-area-inset-bottom));
+    width: 46px;
+    height: 46px;
+
+    i {
+      line-height: 46px;
+    }
+  }
+
+  body #pull-to-refresh {
+    position: fixed;
+    top: calc(var(--kit-head-height-m) + 10px);
+    left: 50%;
+    z-index: 45;
+    display: block;
+    min-width: 148px;
+    padding: 8px 14px;
+    color: var(--kit-ink-soft);
+    background: var(--kit-surface);
+    border: var(--kit-border) solid var(--kit-rule);
+    border-radius: 999px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -16px);
+    transition:
+      opacity 0.18s ease-out,
+      transform 0.18s ease-out;
+  }
+
+  body.pull-refresh-active #pull-to-refresh {
+    opacity: 1;
+    transform: translate(-50%, calc(-16px + var(--pull-refresh-offset, 0px)));
+  }
+
+  body.pull-refresh-armed #pull-to-refresh,
+  body.pull-refresh-refreshing #pull-to-refresh {
+    color: var(--kit-on-accent);
+    background: var(--kit-accent);
+    border-color: var(--kit-accent);
+  }
+
+  body.pull-refresh-refreshing #pull-to-refresh {
+    transform: translate(-50%, 0);
+  }
+
+  body #stream .entry-title,
+  body #stream .entry-content,
+  body #stream .entry-info,
+  body #stream .show-more {
+    margin-left: 0;
+  }
+
+  body #stream > article > a:first-child {
+    margin-bottom: 6px;
+  }
+
+  body .pagination-top,
+  body .pagination-bottom {
+    flex-direction: column;
+    align-items: stretch;
+
+    a.prev,
+    a.next {
+      justify-content: center;
+      margin: 0;
+    }
+  }
+
+  body #loginbox form {
+    grid-template-columns: minmax(0, 1fr);
+
+    .submit {
+      grid-column: 1;
+      justify-self: stretch;
+      margin-top: 14px;
+
+      input[type='submit'] {
+        width: 100%;
+      }
+    }
+  }
+
+  body .form-row:hover > span.hint {
+    position: static;
+    max-width: none;
+    margin-top: 8px;
+  }
+
+  body #settings #list-services {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  body fieldset.aligned label {
+    float: none;
+    width: auto;
+    padding: 0 0 4px;
+  }
+
+  // Fields big enough for a finger, and for iOS not to zoom into.
+  body input[type='text'],
+  body input[type='number'],
+  body input[type='password'],
+  body input[type='search'],
+  body select,
+  body textarea {
+    min-height: 44px;
+    font-size: #{'max(16px, 1rem)'};
+  }
+}
+
+@media print {
+  body #sidebar,
+  body #foot,
+  body #share,
+  body #entry-editor,
+  body #navtop,
+  body .scroll-to-top,
+  body #stream span.entry-controls-switch,
+  body .playbutton,
+  body .stopbutton,
+  body .shareit {
+    display: none !important;
+  }
+
+  body #main.stream {
+    display: block;
+  }
+
+  body #head {
+    position: static;
+  }
+
+  body #stream:not(.single-entry) .entry-content.folded {
+    max-height: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  body #stream .show-more {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.3s;
+}

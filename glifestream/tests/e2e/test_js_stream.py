@@ -1382,17 +1382,57 @@ def _cookie(page: Page, name: str) -> str | None:
     return None
 
 
-def test_change_theme_cycles_through_themes(
+def test_change_theme_switches_between_two_themes(
+    page: Page, app_base_url: str, ensure_admin_session, reload_spy, settings
+):
+    settings.THEMES = ('default', 'dark')
+    ensure_admin_session()
+    page.goto(f'{app_base_url}/')
+    expect(page.locator('#theme-menu')).to_have_count(0)
+
+    for expected, reloads in (('dark', 1), ('default', 2)):
+        page.locator('#change-theme').click()
+        assert _cookie(page, 'gls-theme') == expected
+        assert reload_spy() == reloads
+
+
+def test_change_theme_lists_more_than_two_themes(
     page: Page, app_base_url: str, ensure_admin_session, reload_spy, settings
 ):
     settings.THEMES = ('default', 'dark', 'sepia')
     ensure_admin_session()
     page.goto(f'{app_base_url}/')
+    switch = page.locator('#change-theme')
+    menu = page.locator('#theme-menu')
+    expect(menu).to_be_hidden()
 
-    for expected, reloads in (('dark', 1), ('sepia', 2), ('default', 3)):
-        page.locator('#change-theme').click()
-        assert _cookie(page, 'gls-theme') == expected
-        assert reload_spy() == reloads
+    switch.click()
+    expect(menu).to_be_visible()
+    expect(switch).to_have_attribute('aria-expanded', 'true')
+    expect(menu.locator('[data-theme]')).to_have_text(['Default', 'Dark', 'Sepia'])
+    expect(menu.locator('[aria-current="true"]')).to_have_text('Default')
+
+    # Escape closes it and gives the focus back to the switch.
+    menu.locator('[data-theme="dark"]').focus()
+    page.keyboard.press('Escape')
+    expect(menu).to_be_hidden()
+    expect(switch).to_be_focused()
+    expect(switch).to_have_attribute('aria-expanded', 'false')
+
+    # So does a click elsewhere, and a click on the theme in use.
+    switch.click()
+    page.locator('#stream').click(position={'x': 5, 'y': 5})
+    expect(menu).to_be_hidden()
+    switch.click()
+    menu.locator('[data-theme="default"]').click()
+    expect(menu).to_be_hidden()
+    assert reload_spy() == 0
+
+    # Enter on another one switches to it.
+    switch.press('Enter')
+    menu.locator('[data-theme="sepia"]').press('Enter')
+    assert _cookie(page, 'gls-theme') == 'sepia'
+    assert reload_spy() == 1
 
 
 def test_toggle_reblogs_flips_cookie(

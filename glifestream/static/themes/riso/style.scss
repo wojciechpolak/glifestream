@@ -1,0 +1,999 @@
+/*
+ *  "riso" theme for gLifestream: a risograph-printed zine.
+ *
+ *  A few flat inks on cream paper, a halftone screen, a poster title printed
+ *  slightly off register, thick borders and hard shadows, entries stuck on
+ *  with a sticker of their class's ink, notes taped to the sidebar. Dark
+ *  prints the same inks on black paper. The poster face, Anton, comes with
+ *  the theme (fonts/); the text is set in system fonts.
+ */
+
+@import '../_kit/kit';
+
+// Anton (SIL Open Font License 1.1, fonts/OFL.txt), the poster face, from
+// this theme's own files: the Latin letters, and the rest of Europe's, such
+// as Polish, only when a page has them.
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/anton-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Anton';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/anton-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  color-scheme: light;
+
+  --rs-poster: Anton, Impact, Haettenschweiler, 'Arial Narrow Bold',
+    'Avenir Next Condensed', 'Franklin Gothic Heavy', 'Liberation Sans Narrow',
+    'Roboto Condensed', 'DejaVu Sans Condensed', 'Arial Black', sans-serif;
+  --kit-font-body: 'Avenir Next', 'Segoe UI', system-ui, -apple-system,
+    'Helvetica Neue', Arial, sans-serif;
+  --kit-font-display: var(--kit-font-body);
+
+  // The inks.
+  --rs-pink: oklch(0.68 0.25 355);
+  --rs-blue: oklch(0.52 0.17 255);
+  --rs-yellow: oklch(0.9 0.17 100);
+  --rs-teal: oklch(0.56 0.1 200);
+  --rs-orange: oklch(0.72 0.18 48);
+  --rs-violet: oklch(0.52 0.17 300);
+  // Pink deep enough for small type on the paper.
+  --rs-stamp: oklch(0.5 0.21 358);
+
+  --kit-paper: oklch(0.965 0.018 90);
+  --kit-surface: oklch(0.993 0.006 90);
+  --kit-surface-2: oklch(0.93 0.03 95);
+  --kit-ink: oklch(0.27 0.06 265);
+  --kit-ink-soft: oklch(0.35 0.06 265);
+  --kit-ink-muted: oklch(0.44 0.05 265);
+  --kit-rule: var(--kit-ink);
+  --kit-rule-soft: oklch(0.27 0.06 265 / 0.25);
+  --kit-accent: var(--rs-pink);
+  --kit-on-accent: var(--kit-ink);
+  --kit-link: var(--rs-blue);
+  --kit-link-hover: var(--kit-ink);
+  --kit-focus: var(--rs-pink);
+  --kit-danger: oklch(0.52 0.2 25);
+
+  --kit-radius: 0;
+  --kit-border: 3px;
+  --rs-shadow-ink: var(--kit-ink);
+  --rs-lift: 6px;
+  --kit-shadow: var(--rs-lift) var(--rs-lift) 0 var(--rs-shadow-ink);
+
+  --kit-page-width: 1240px;
+  --kit-page-pad: 28px;
+  --kit-grid-columns: minmax(0, 1fr) minmax(250px, 300px);
+  --kit-grid-areas: 'header header' 'stream sidebar' 'footer footer';
+  --kit-grid-gap: 36px 40px;
+
+  --kit-head-height-m: 62px;
+  --kit-head-bg-m: var(--rs-banner);
+  --kit-drawer-bg: var(--kit-paper);
+  --kit-drawer-shadow: 0 -3px 0 var(--kit-ink);
+
+  --rs-banner: var(--rs-yellow);
+  --rs-banner-ink: var(--kit-ink);
+  --rs-title: var(--rs-blue);
+  --rs-dots: oklch(0.52 0.17 255 / 0.17);
+  --rs-banner-dots: var(--rs-pink);
+  --rs-marker: var(--rs-yellow);
+  --rs-tape: oklch(0.9 0.17 100 / 0.78);
+  --rs-pre-bg: var(--kit-ink);
+  --rs-pre-ink: oklch(0.95 0.03 95);
+  --rs-on-dark-ink: oklch(0.99 0.006 90);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --rs-pink: oklch(0.74 0.22 355);
+    --rs-blue: oklch(0.72 0.14 245);
+    --rs-yellow: oklch(0.9 0.16 100);
+    --rs-teal: oklch(0.76 0.11 195);
+    --rs-orange: oklch(0.79 0.15 52);
+    --rs-violet: oklch(0.73 0.14 300);
+    --rs-stamp: var(--rs-pink);
+
+    --kit-paper: oklch(0.18 0.03 280);
+    --kit-surface: oklch(0.225 0.035 280);
+    --kit-surface-2: oklch(0.28 0.04 280);
+    --kit-ink: oklch(0.95 0.02 90);
+    --kit-ink-soft: oklch(0.87 0.02 90);
+    --kit-ink-muted: oklch(0.77 0.03 90);
+    --kit-rule-soft: oklch(0.95 0.02 90 / 0.25);
+    --kit-on-accent: oklch(0.18 0.03 280);
+    --kit-link: var(--rs-yellow);
+    --kit-link-hover: var(--rs-pink);
+    --kit-danger: oklch(0.74 0.17 28);
+
+    --rs-shadow-ink: var(--rs-pink);
+    --rs-banner: oklch(0.26 0.06 290);
+    --rs-banner-ink: var(--kit-ink);
+    --rs-title: var(--rs-yellow);
+    --rs-dots: oklch(0.74 0.22 355 / 0.14);
+    --rs-marker: oklch(0.74 0.22 355 / 0.45);
+    --rs-tape: oklch(0.74 0.22 355 / 0.5);
+    --rs-pre-bg: oklch(0.13 0.025 280);
+    --rs-pre-ink: var(--rs-yellow);
+    --rs-on-dark-ink: oklch(0.18 0.03 280);
+  }
+}
+
+// Anton, like Impact after it, has one weight, which a browser must not
+// thicken; a stand-in for them takes its heaviest.
+@mixin poster {
+  font-family: var(--rs-poster);
+  font-weight: 900;
+  font-synthesis: none;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+@mixin halftone($color, $size: 7px, $dot: 1px) {
+  background-image: radial-gradient(circle, $color $dot, transparent calc(#{$dot} + 0.6px));
+  background-size: $size $size;
+}
+
+@mixin card($lift: var(--rs-lift)) {
+  background-color: var(--kit-surface);
+  border: 3px solid var(--kit-rule);
+  box-shadow: $lift $lift 0 var(--rs-shadow-ink);
+}
+
+// A sheet askew behind a block, drawn by its ::after, so that the block's
+// text and fields stay square and sharp.
+@mixin askew-sheet($lift: var(--rs-lift)) {
+  position: relative;
+  isolation: isolate;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    transform: rotate(var(--rs-tilt, 0deg));
+    pointer-events: none;
+    @include card($lift);
+  }
+}
+
+// A strip of tape across the top of a note.
+@mixin tape($rotate: -3deg) {
+  content: '';
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  width: 92px;
+  height: 24px;
+  background: var(--rs-tape);
+  transform: translateX(-50%) rotate($rotate);
+  pointer-events: none;
+}
+
+body {
+  background-color: var(--kit-paper);
+  @include halftone(var(--rs-dots));
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+a {
+  text-decoration: underline;
+  text-decoration-color: var(--rs-pink);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+
+  &:hover {
+    color: var(--kit-ink);
+    background: var(--rs-marker);
+    text-decoration: none;
+  }
+}
+
+::selection {
+  color: var(--kit-on-accent);
+  background: var(--rs-pink);
+}
+
+input[type='text'],
+input[type='number'],
+input[type='password'],
+input[type='search'],
+input[type='email'],
+input[type='url'],
+textarea,
+select {
+  background: var(--kit-surface);
+  border: 3px solid var(--kit-rule);
+}
+
+a:focus-visible,
+span.link:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible {
+  outline: 3px solid var(--rs-pink);
+  outline-offset: 2px;
+}
+
+// Buttons are chunky, and sink into their shadow when pressed.
+input[type='submit'],
+input[type='button'],
+button {
+  color: oklch(0.27 0.06 265);
+  background: var(--rs-yellow);
+  border: 3px solid var(--kit-rule);
+  box-shadow: 4px 4px 0 var(--rs-shadow-ink);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+  &:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--rs-shadow-ink);
+  }
+
+  &:active {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 var(--rs-shadow-ink);
+  }
+}
+
+// The banner: a block of yellow, a halftone of pink, the title off register.
+
+#head {
+  padding: 18px 24px;
+  color: var(--rs-banner-ink);
+  @include card;
+  background-color: var(--rs-banner);
+
+  // The halftone fades in towards the right.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    @include halftone(var(--rs-banner-dots), 9px, 1.8px);
+    -webkit-mask-image: linear-gradient(100deg, transparent 25%, #000 90%);
+    mask-image: linear-gradient(100deg, transparent 25%, #000 90%);
+    pointer-events: none;
+  }
+
+  > * {
+    position: relative;
+  }
+
+  h1 {
+    @include poster;
+    color: var(--rs-title);
+    font-size: clamp(2.3rem, calc(1rem + 4.6vw), 4.6rem);
+    line-height: 0.92;
+    text-shadow: 0.05em 0.04em 0 var(--rs-pink);
+  }
+
+  h1 a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover {
+      background: none;
+    }
+  }
+}
+
+#navtop {
+  order: 1;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+
+  .vb {
+    display: none;
+  }
+
+  .hello {
+    margin-right: 4px;
+    font-weight: 600;
+    text-transform: none;
+  }
+
+  > a,
+  .navtop-menu > a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 12px;
+    color: var(--kit-ink);
+    background: var(--kit-surface);
+    border: 3px solid var(--kit-rule);
+    box-shadow: 3px 3px 0 var(--rs-shadow-ink);
+    text-decoration: none;
+    transition: transform 0.12s ease;
+
+    &:hover {
+      color: oklch(0.27 0.06 265);
+      background: var(--rs-pink);
+      transform: rotate(-2deg);
+    }
+  }
+
+  .navtop-toggle {
+    color: var(--kit-ink);
+    background: var(--kit-surface);
+    box-shadow: 3px 3px 0 var(--rs-shadow-ink);
+
+    &[aria-expanded='true'] {
+      background: var(--rs-pink);
+    }
+  }
+}
+
+// The open menu of narrow screens lists its links plainly.
+@media screen and (max-width: 920px) {
+  body #navtop.open .navtop-menu {
+    border-width: 3px;
+
+    > a {
+      min-height: 44px;
+      border: 0;
+      box-shadow: none;
+      transform: none;
+    }
+  }
+}
+
+// The sidebar: notes, taped on, a little askew.
+
+#sidebar {
+  > section,
+  > nav,
+  > footer {
+    margin-bottom: 30px;
+    padding: 22px 18px 16px;
+    @include askew-sheet(5px);
+
+    &::before {
+      @include tape;
+    }
+  }
+
+  > section {
+    --rs-tilt: -0.8deg;
+  }
+
+  > nav {
+    --rs-tilt: 0.5deg;
+  }
+
+  > footer {
+    --rs-tilt: -0.5deg;
+
+    &::before {
+      @include tape(2deg);
+    }
+  }
+
+  h2 {
+    display: inline-block;
+    color: var(--kit-ink);
+    @include poster;
+    font-size: 1.25rem;
+    background: linear-gradient(transparent 58%, var(--rs-marker) 58%);
+  }
+}
+
+.services {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+
+  a {
+    border: 3px solid var(--kit-rule);
+    box-shadow: 3px 3px 0 var(--rs-shadow-ink);
+    transition: transform 0.12s ease;
+
+    &:hover {
+      background-color: var(--rs-pink);
+      transform: rotate(0) scale(1.08);
+    }
+  }
+
+  li:nth-child(odd) a {
+    transform: rotate(-3deg);
+  }
+
+  li:nth-child(even) a {
+    transform: rotate(2deg);
+  }
+}
+
+.links a {
+  font-weight: 800;
+  text-decoration: none;
+
+  &::after {
+    content: '\2197';
+    margin-left: 0.4em;
+    color: var(--rs-pink);
+  }
+}
+
+#search-submit {
+  color: oklch(0.27 0.06 265);
+  background: var(--rs-yellow);
+  border: 3px solid var(--kit-rule);
+  border-left: 0;
+}
+
+#calendar {
+  .year {
+    @include poster;
+    font-size: 1.6rem;
+  }
+
+  .prev,
+  .next {
+    color: var(--kit-ink);
+    border: 3px solid var(--kit-rule);
+    text-decoration: none;
+  }
+
+  .month-item {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+  }
+
+  a.month-item {
+    color: var(--kit-ink);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  // The month on view, ringed by hand; the ring askew, the month square.
+  .view-month,
+  a.view-month {
+    position: relative;
+    color: var(--kit-ink);
+    background: none;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 3px solid var(--rs-pink);
+      border-radius: 50% 42% 55% 45% / 48% 55% 42% 52%;
+      transform: rotate(-4deg);
+      pointer-events: none;
+    }
+  }
+}
+
+#change-theme {
+  font-weight: 800;
+  text-decoration: none;
+}
+
+// The stream: cards stuck on with stickers.
+
+p.subtitle {
+  padding: 10px 16px;
+  @include card(4px);
+  @include poster;
+  font-size: 1.2rem;
+}
+
+// A card stays put under the pointer, for the text on it to be read.
+.hentry,
+.entry-hidden {
+  margin: 0 0 34px;
+  padding: 36px 26px 18px;
+  @include card;
+}
+
+#stream .entry-highlight {
+  box-shadow: var(--rs-lift) var(--rs-lift) 0 var(--rs-yellow);
+  outline: 3px solid var(--rs-pink);
+  outline-offset: 3px;
+}
+
+// The sticker: the class's icon, and its name on a chip.
+#stream > article > a:first-child {
+  position: absolute;
+  top: -18px;
+  left: -14px;
+  z-index: 2;
+  float: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  text-decoration: none;
+  transform: rotate(-6deg);
+
+  &:hover {
+    background: none;
+  }
+
+  &::after {
+    content: attr(title);
+    padding: 3px 9px;
+    color: var(--kit-paper);
+    background: var(--kit-ink);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transform: rotate(4deg);
+  }
+}
+
+.entry-icon {
+  width: 46px;
+  height: 46px;
+  border: 3px solid oklch(0.27 0.06 265);
+  border-radius: 12px;
+  box-shadow: 3px 3px 0 var(--rs-shadow-ink);
+}
+
+div.entry-icon {
+  font-size: 19px;
+}
+
+#stream .entry-title,
+#stream .entry-content,
+#stream .entry-info,
+#stream .show-more {
+  margin-left: 0;
+}
+
+#stream .entry-title {
+  font-size: clamp(1.35rem, calc(1rem + 1vw), 1.75rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  text-wrap: balance;
+
+  a {
+    text-decoration: none;
+  }
+}
+
+// The text set a little heavier, to hold its own against the borders.
+#stream .entry-content {
+  margin-top: 10px;
+  font-size: 1.0625rem;
+  font-weight: 500;
+
+  // A quote on a slip of its own, askew; the quote itself square.
+  blockquote {
+    position: relative;
+    isolation: isolate;
+    margin: 1.4em 0.4em;
+    padding: 0.9em 1.1em 0.9em 3.2em;
+    color: var(--kit-ink);
+    font-size: 1.1em;
+    font-weight: 700;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border: 3px solid var(--kit-rule);
+      background-color: var(--kit-surface-2);
+      @include halftone(var(--rs-dots), 6px);
+      transform: rotate(-0.6deg);
+      pointer-events: none;
+    }
+
+    &::before {
+      content: '\201C';
+      position: absolute;
+      top: 0.05em;
+      left: 0.2em;
+      color: var(--rs-pink);
+      font-family: var(--rs-poster);
+      font-size: 3.4em;
+      line-height: 1;
+    }
+  }
+
+  pre {
+    color: var(--rs-pre-ink);
+    background: var(--rs-pre-bg);
+    border: 3px solid var(--kit-rule);
+  }
+
+  th {
+    text-transform: uppercase;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    border-bottom: 3px solid var(--kit-rule);
+  }
+
+  th,
+  td {
+    padding: 6px 14px 6px 0;
+  }
+}
+
+// The date, stamped.
+#stream .entry-info {
+  gap: 8px 14px;
+  margin-top: 18px;
+
+  .entry-published {
+    order: -1;
+  }
+}
+
+.entry-published .bookmark {
+  display: inline-block;
+  padding: 1px 8px;
+  color: var(--rs-stamp) !important;
+  border: 2px solid currentColor;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+
+  &:hover {
+    background: none;
+  }
+}
+
+span.entry-controls-switch {
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
+#stream .entry-controls,
+#theme-menu {
+  border-width: 3px;
+  box-shadow: 5px 5px 0 var(--rs-shadow-ink);
+}
+
+#stream .show-more {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 4px 12px;
+  color: oklch(0.27 0.06 265);
+  background: var(--rs-yellow);
+  border: 3px solid var(--kit-rule);
+  box-shadow: 3px 3px 0 var(--rs-shadow-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+
+  &:hover {
+    color: oklch(0.27 0.06 265);
+    background: var(--rs-pink);
+    text-decoration: none;
+  }
+}
+
+.favorite::before,
+.friends-only-lock::before {
+  color: var(--rs-stamp);
+}
+
+.photo img,
+.gallery img,
+.thumbnails img,
+.play-video,
+.music-card .music-cover img {
+  border: 3px solid var(--kit-rule);
+  box-shadow: 4px 4px 0 var(--rs-pink);
+}
+
+// A video's frame is its box's, whose overflow would cut a picture's shadow.
+.play-video img {
+  border: 0;
+}
+
+.thumbnails.atproto-gallery {
+  gap: 10px;
+
+  img {
+    box-shadow: none;
+  }
+}
+
+.playbutton,
+.stopbutton {
+  color: oklch(0.27 0.06 265);
+  background: var(--rs-yellow);
+  border: 3px solid oklch(0.27 0.06 265);
+}
+
+.music-card {
+  padding: 14px;
+  border: 3px dashed var(--kit-rule-soft);
+
+  .music-title {
+    @include poster;
+    font-size: 1.5em;
+  }
+}
+
+.friends-only-entry {
+  border: 3px dashed var(--kit-rule);
+}
+
+.pagination-top a.prev,
+.pagination-top a.next,
+.pagination-bottom a.prev,
+.pagination-bottom a.next {
+  color: oklch(0.27 0.06 265);
+  background: var(--rs-yellow);
+  border: 3px solid var(--kit-rule);
+  box-shadow: 4px 4px 0 var(--rs-shadow-ink);
+  font-weight: 800;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+// The composer: another taped note.
+
+#share {
+  position: relative;
+  padding: 22px 22px 18px;
+  @include card;
+
+  &::before {
+    @include tape(2deg);
+  }
+}
+
+#ashare {
+  text-decoration: none;
+  text-transform: uppercase;
+
+  &::before {
+    color: var(--rs-pink);
+  }
+}
+
+#entry-editor {
+  padding: 18px;
+  @include card(4px);
+}
+
+#shareitbox,
+#shortcuts-help {
+  border-width: 3px;
+  box-shadow: 6px 6px 0 var(--rs-shadow-ink);
+}
+
+#shortcuts-help kbd {
+  border-width: 2px 2px 4px;
+}
+
+#foot {
+  margin-top: 6px;
+  color: var(--kit-ink-soft);
+  font-weight: 700;
+
+  a {
+    color: inherit;
+  }
+}
+
+.scroll-to-top {
+  color: oklch(0.27 0.06 265);
+  background: var(--rs-yellow);
+  border: 3px solid var(--kit-rule);
+  box-shadow: 4px 4px 0 var(--rs-shadow-ink);
+}
+
+// Login, settings, errors.
+
+#loginbox form {
+  position: relative;
+  padding: 30px 26px;
+  @include card;
+
+  &::before {
+    @include tape;
+  }
+}
+
+#loginbox label {
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+
+#settings fieldset {
+  @include card(4px);
+}
+
+ul.tabs {
+  gap: 10px;
+  border-bottom: 3px solid var(--kit-rule);
+
+  li a {
+    color: var(--kit-ink);
+    border: 3px solid var(--kit-rule);
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+
+    &:hover {
+      background: var(--rs-marker);
+    }
+
+    &.active {
+      color: oklch(0.27 0.06 265);
+      background: var(--rs-pink);
+      box-shadow: 3px 3px 0 var(--rs-shadow-ink);
+    }
+  }
+}
+
+.http-error {
+  @include card;
+  border-color: var(--kit-danger);
+  @include poster;
+  font-size: 1.6rem;
+}
+
+// The inks of the classes, on their stickers and in their cards' shadows.
+// A light ink takes dark type; yellow, too pale for a shadow on the paper,
+// casts orange.
+
+$rs-class-inks: (
+  selfposts: (pink, dark),
+  blog: (violet, light),
+  code: (teal, light),
+  links: (blue, light),
+  music: (violet, light),
+  photos: (yellow, dark),
+  reviews: (orange, dark),
+  sms: (blue, light),
+  videos: (pink, dark),
+  webfeed: (orange, dark),
+  atproto: (blue, light),
+  flickr: (pink, dark),
+  github: (teal, light),
+  mastodon: (violet, light),
+  pixelfed: (violet, light),
+  twitter: (blue, light),
+  vimeo: (teal, light),
+  youtube: (pink, dark),
+);
+
+.services a,
+div.entry-icon {
+  color: oklch(0.27 0.06 265);
+  background-color: var(--rs-yellow);
+}
+
+@each $cls, $ink in $rs-class-inks {
+  .services .e-#{$cls},
+  .e-#{$cls} div.entry-icon {
+    background-color: var(--rs-#{nth($ink, 1)});
+    @if nth($ink, 2) == light {
+      color: var(--rs-on-dark-ink);
+    }
+  }
+
+  #stream > article.e-#{$cls} {
+    @if nth($ink, 1) == yellow {
+      --rs-shadow-ink: var(--rs-orange);
+    } @else {
+      --rs-shadow-ink: var(--rs-#{nth($ink, 1)});
+    }
+  }
+}
+
+// Narrower widths.
+
+@media screen and (max-width: 1099px) {
+  :root {
+    --kit-grid-columns: minmax(0, 1fr) minmax(220px, 260px);
+    --kit-grid-gap: 30px;
+  }
+}
+
+// One column: the notes side by side under the stream.
+@media screen and (min-width: 641px) and (max-width: 820px) {
+  #sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    align-items: start;
+    gap: 34px 28px;
+    margin-top: 10px;
+
+    > section,
+    > nav,
+    > footer {
+      margin: 0;
+    }
+  }
+}
+
+@media screen and (max-width: 640px) {
+  :root {
+    --rs-lift: 4px;
+  }
+
+  body #head {
+    padding: 0 12px;
+    border-width: 0 0 3px;
+    box-shadow: none;
+
+    h1 {
+      font-size: clamp(1.45rem, 7vw, 1.9rem);
+      line-height: 1;
+    }
+  }
+
+  body #sidebar {
+    border-top: 3px solid var(--kit-rule);
+
+    > section,
+    > nav,
+    > footer {
+      --rs-tilt: 0deg;
+      margin: 18px 4px 24px;
+    }
+  }
+
+  .hentry,
+  .entry-hidden {
+    padding: 34px 16px 16px;
+  }
+
+  #stream > article > a:first-child {
+    top: -14px;
+    left: -6px;
+  }
+
+  .entry-icon {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media screen and (max-width: 380px) {
+  .services li a,
+  #stream > article > a:first-child,
+  #stream > article > a:first-child::after,
+  #calendar .view-month::after,
+  .entry-published .bookmark,
+  #stream .entry-content blockquote::after {
+    transform: none !important;
+  }
+}

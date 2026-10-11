@@ -21,11 +21,28 @@ from django.http import HttpRequest
 from django.templatetags.static import static
 
 
+def default_theme() -> str:
+    """The theme of a visitor who has not chosen one: DEFAULT_THEME, or else
+    the first of THEMES."""
+    themes = settings.THEMES
+    chosen = getattr(settings, 'DEFAULT_THEME', '')
+    return chosen if chosen in themes else themes[0]
+
+
 def get_theme(request: HttpRequest) -> str:
-    theme: str = request.COOKIES.get('gls-theme', settings.THEMES[0])
-    if theme not in settings.THEMES:
-        theme = settings.THEMES[0]
-    return theme
+    """The theme of the gls-theme cookie, while THEMES has it."""
+    theme = request.COOKIES.get('gls-theme', '')
+    return theme if theme in settings.THEMES else default_theme()
+
+
+def theme_cycle() -> list[str]:
+    """THEMES in the order "Change theme" goes, from the default one.
+
+    The page script takes a visitor without the cookie for one on the first.
+    """
+    themes = list(settings.THEMES)
+    start = themes.index(default_theme())
+    return themes[start:] + themes[:start]
 
 
 def static_url(path: str) -> str:

@@ -1,0 +1,9 @@
+// Font Awesome, from the static files. The path is the compiled
+// stylesheet's, themes/<name>/style.css.
+
+$fa-font-path: '../../fontawesome/webfonts' !default;
+
+@import '../../fontawesome/scss/fontawesome.scss';
+@import '../../fontawesome/scss/brands.scss';
+@import '../../fontawesome/scss/solid.scss';
+@import '../../fontawesome/scss/regular.scss';

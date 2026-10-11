@@ -1,0 +1,707 @@
+// The parts of the page around the entries: the sidebar's, the composer,
+// the share box, the shortcuts, the login and the errors.
+
+// The sidebar.
+
+#about p:last-child {
+  margin-bottom: 0;
+}
+
+// An about box with nothing in it but its heading, as the site comes
+// (templates/user-about.html), stays out of the way, in the opened drawer
+// too (_mechanics.scss).
+body #sidebar #about:not(:has(> :not(h2))) {
+  display: none;
+}
+
+.services {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    margin: 0;
+    padding: 0;
+  }
+
+  // The name is the link's title.
+  li span {
+    display: none;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    font-size: 1.2rem;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+.links {
+  display: grid;
+  gap: 4px;
+  margin: 0 0 1em;
+  padding: 0;
+  list-style: none;
+
+  li {
+    margin: 0;
+  }
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+  }
+}
+
+.lists,
+.archives,
+.search {
+  margin-top: 18px;
+}
+
+.lists select {
+  width: 100%;
+}
+
+.search form {
+  display: flex;
+  align-items: stretch;
+}
+
+.search input[name='s'] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+#search-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  padding: 0 12px;
+  border: var(--kit-border) solid var(--kit-rule);
+  border-left: 0;
+  cursor: pointer;
+}
+
+#calendar {
+  -webkit-user-select: none;
+  user-select: none;
+
+  .calendar-head {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr) 2.25rem;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 8px;
+  }
+
+  .nav-prev {
+    justify-self: start;
+  }
+
+  .nav-next {
+    justify-self: end;
+  }
+
+  .nav-year {
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .year {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+  }
+
+  // An arrow is an icon; its text is a space for the screen reader's label.
+  .prev,
+  .next,
+  .prev-disabled,
+  .next-disabled {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0;
+    text-decoration: none;
+  }
+
+  .prev::before,
+  .next::before {
+    font-size: 0.9rem;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .month-cell {
+    display: flex;
+    min-width: 0;
+  }
+
+  .month-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 2rem;
+    padding: 2px 0;
+    color: var(--kit-ink-muted);
+  }
+
+  a.month-item {
+    color: var(--kit-link);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .view-month {
+    color: var(--kit-on-accent);
+    background: var(--kit-accent);
+  }
+
+  .month-label {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+  }
+}
+
+.change-theme-wrapper {
+  position: relative;
+  display: flex;
+  margin: 0 0 0.8em;
+}
+
+#change-theme {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+}
+
+#poweredby {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+// The heading of a month, a list or a search, over the entries.
+
+p.subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 0 0 18px;
+
+  a:hover {
+    text-decoration: none;
+  }
+
+  a.show-all {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  a.next {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+}
+
+.pagination-top,
+.pagination-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0;
+
+  a.prev,
+  a.next {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 14px;
+  }
+
+  a.prev {
+    margin-right: auto;
+  }
+
+  a.next {
+    margin-left: auto;
+  }
+
+  .next-disabled {
+    display: inline-block;
+    width: 25px;
+  }
+}
+
+.more::after {
+  margin-left: 0.4em;
+  font-size: smaller;
+}
+
+// The composer.
+
+#ashare {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  font-weight: 700;
+}
+
+#share {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 22px;
+
+  > form {
+    min-width: 0;
+  }
+
+  h3 {
+    margin: 0 0 0.6rem;
+    font-size: 1.15rem;
+  }
+
+  .fieldset {
+    margin-top: 12px;
+  }
+
+  textarea {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  select {
+    max-width: 100%;
+  }
+}
+
+.share-summary {
+  margin: 0;
+  color: var(--kit-ink-muted);
+  font-size: 0.92rem;
+}
+
+#entry-editor {
+  margin-bottom: 18px;
+
+  textarea {
+    width: 100%;
+    height: 110px;
+    font-family: var(--kit-font-mono);
+    font-size: 0.95rem;
+  }
+}
+
+#expand-sharing {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 6px;
+}
+
+#more-sharing-options {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: var(--kit-border) solid var(--kit-rule-soft);
+
+  p {
+    margin-bottom: 10px;
+  }
+
+  #fold-lines {
+    width: 6em;
+  }
+}
+
+#music-track {
+  margin: 4px 0 0;
+
+  summary {
+    margin-bottom: 8px;
+    font-weight: 700;
+
+    &::before {
+      margin-right: 8px;
+    }
+  }
+
+  p {
+    display: grid;
+    grid-template-columns: 8.5rem minmax(0, 1fr);
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  input {
+    width: 100%;
+  }
+
+  @media only screen and (max-width: 460px) {
+    p {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2px;
+    }
+  }
+}
+
+#update,
+#post {
+  float: right;
+  font-weight: 700;
+}
+
+#spinner {
+  margin-left: 4px;
+}
+
+// The box of places to share an entry at, which the page script places.
+
+#shareitbox {
+  z-index: 9999;
+  display: grid;
+  gap: 12px;
+  width: calc(100vw - 28px);
+  max-width: 356px;
+  max-height: 72vh;
+  padding: 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  color: var(--kit-ink);
+  background: var(--kit-surface);
+  border: var(--kit-border) solid var(--kit-rule);
+  border-radius: var(--kit-radius);
+  box-shadow: var(--kit-shadow);
+  font-size: 0.92rem;
+  text-align: left;
+
+  .reshare {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  a.img {
+    float: left;
+  }
+
+  > div:last-child {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 8px;
+  }
+
+  .item {
+    width: auto !important;
+    margin: 0;
+    padding: 0;
+    float: none;
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 44px;
+      padding: 6px 10px;
+      border: var(--kit-border) solid var(--kit-rule-soft);
+      border-radius: var(--kit-radius);
+      text-decoration: none;
+    }
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 16px;
+    }
+  }
+
+  @media only screen and (max-width: 460px) {
+    > div:last-child {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// The keyboard shortcuts, which "?" opens.
+
+#shortcuts-help {
+  // The body carries the padding, so that a click on the dialog itself is
+  // one on the backdrop.
+  width: calc(100vw - 28px);
+  max-width: 420px;
+  padding: 0;
+  color: var(--kit-ink);
+  background: var(--kit-surface);
+  border: var(--kit-border) solid var(--kit-rule);
+  border-radius: var(--kit-radius);
+  box-shadow: var(--kit-shadow);
+
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .shortcuts-help-body {
+    padding: 20px 22px;
+  }
+
+  h2 {
+    margin: 0 0 14px;
+    font-size: 1.1rem;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 10px 14px;
+    margin: 0 0 18px;
+  }
+
+  dt,
+  dd {
+    margin: 0;
+  }
+
+  kbd {
+    display: inline-block;
+    min-width: 1.8em;
+    padding: 2px 7px;
+    background: var(--kit-surface-2);
+    border: var(--kit-border) solid var(--kit-rule);
+    border-bottom-width: calc(var(--kit-border) + 1px);
+    border-radius: var(--kit-radius);
+    font-size: 0.9rem;
+    text-align: center;
+  }
+
+  form {
+    text-align: right;
+  }
+}
+
+// The login page, and the errors.
+
+#login {
+  display: grid;
+  place-items: center;
+  min-height: calc(100vh - 260px);
+  padding: 18px 0 42px;
+}
+
+#loginbox {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+
+  h2 {
+    margin-bottom: 0.45em;
+  }
+
+  form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    column-gap: 16px;
+
+    p {
+      margin: 0;
+    }
+
+    label {
+      display: block;
+    }
+  }
+
+  form > p:not(.rememberme):not(.submit) {
+    grid-column: 1 / -1;
+    margin-bottom: 18px;
+  }
+
+  .rememberme {
+    align-self: center;
+  }
+
+  .submit {
+    grid-column: 2;
+    justify-self: end;
+  }
+}
+
+#username,
+#password,
+#new_password1,
+#new_password2 {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 1.05rem;
+}
+
+#login_error,
+.error {
+  padding: 12px 14px;
+  color: var(--kit-danger);
+  border: var(--kit-border) solid var(--kit-danger);
+  border-radius: var(--kit-radius);
+}
+
+#login_error {
+  margin: 0 0 16px;
+}
+
+.http-error {
+  margin: 0;
+  padding: 24px;
+  color: var(--kit-danger);
+  border: var(--kit-border) solid var(--kit-danger);
+  border-radius: var(--kit-radius);
+  font-weight: 700;
+}
+
+// The button back to the top, which the page script shows.
+
+.scroll-to-top {
+  display: none;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 30;
+  width: 48px;
+  height: 48px;
+  color: var(--kit-on-accent);
+  background: var(--kit-accent);
+  border-radius: var(--kit-radius);
+  text-align: center;
+  cursor: pointer;
+
+  i {
+    line-height: 48px;
+  }
+}
+
+#pull-to-refresh {
+  display: none;
+}
+
+// Helpers the markup and the posts use.
+
+.fleft {
+  float: left;
+}
+
+.fright {
+  float: right;
+}
+
+.center {
+  text-align: center;
+}
+
+.justify {
+  text-align: justify;
+}
+
+.clear {
+  clear: both;
+}
+
+.smaller {
+  font-size: smaller;
+}
+
+.small {
+  font-size: 10pt;
+}
+
+.bpadding {
+  padding-bottom: 1em;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+.feedflare {
+  display: none;
+}
+
+// The lightbox, PhotoSwipe. It draws its own icons on bare buttons, so the
+// look a theme gives to buttons stays off them.
+.pswp {
+  --pswp-bg: #111;
+}
+
+.pswp .pswp__button {
+  &,
+  &:hover,
+  &:active,
+  &:focus {
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    text-shadow: none;
+    transform: none;
+  }
+}
+
+// The composer's rich editor (frontend/src/editor/editor.css lays it out).
+
+#status-editor {
+  height: 150px;
+}
+
+.editor-toolbar,
+#status-editor {
+  color: var(--kit-ink);
+  background: var(--kit-surface);
+  border-color: var(--kit-rule);
+}
+
+.editor-toolbar .editor-toolbar-group button {
+  min-height: 0;
+}
+
+#status-editor .ProseMirror {
+  color: var(--kit-ink);
+  font-family: var(--kit-font-body);
+  line-height: 1.6;
+}
