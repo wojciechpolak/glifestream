@@ -10,6 +10,13 @@ from the Git history and are intentionally high-level.
 
 ## [Unreleased]
 
+### Added
+
+- An entry can fold to lines of its own: "Fold long entries" among the
+  composer's more options, for a new post or an edited entry, overrides the
+  reader's preference and the site default. 0 never folds the entry; empty
+  leaves it to them.
+
 ### Fixed
 
 - Behind a proxy that ends TLS, such as Cloudflare, links to the site itself

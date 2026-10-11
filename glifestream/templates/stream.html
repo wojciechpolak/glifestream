@@ -91,6 +91,10 @@
               <label for="friends-only">{% trans "Only visible to friends" %}</label>
             </p>
             <p>
+              <label for="fold-lines">{% trans "Fold long entries" %}</label>
+              <input type="number" id="fold-lines" name="fold_lines" min="0" max="500" inputmode="numeric" autocomplete="off" />
+            </p>
+            <p>
               <label for="gls-docs">{% trans "Add files:" %}</label>
               <input type="file" id="gls-docs" name="docs" multiple="" />
             </p>

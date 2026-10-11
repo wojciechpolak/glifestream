@@ -95,6 +95,45 @@ describe('fold_long_contents', () => {
         expect(root.style.getPropertyValue('--fold-lines')).toBe('8');
     });
 
+    it('leaves unfolded an entry that chose 0 lines', () => {
+        const article = entry('entry-1', 400);
+        article.dataset['foldLines'] = '0';
+        const root = stream(article);
+
+        fold_long_contents(root);
+
+        expect(root.querySelector('.entry-content')?.classList.contains('folded')).toBe(
+            false,
+        );
+        expect(root.querySelectorAll('button.show-more')).toHaveLength(0);
+    });
+
+    it('folds an entry to its own lines, over the reader who never folds', () => {
+        config.fold_lines = 0;
+        const article = entry('entry-1', 400);
+        article.dataset['foldLines'] = '5';
+        const root = stream(article, entry('entry-2', 400));
+
+        fold_long_contents(root);
+
+        const [own, other] = root.querySelectorAll<HTMLElement>('.entry-content');
+        expect(own?.classList.contains('folded')).toBe(true);
+        expect(own?.style.getPropertyValue('--fold-lines')).toBe('5');
+        expect(other?.classList.contains('folded')).toBe(false);
+    });
+
+    it("takes the reader's lines for an entry whose own are not a number", () => {
+        const article = entry('entry-1', 400);
+        article.dataset['foldLines'] = 'many';
+        const root = stream(article);
+
+        fold_long_contents(root);
+
+        const content = root.querySelector<HTMLElement>('.entry-content');
+        expect(content?.classList.contains('folded')).toBe(true);
+        expect(content?.style.getPropertyValue('--fold-lines')).toBe('');
+    });
+
     it('adds one toggle however often it runs', () => {
         const root = stream(entry('entry-1', 400));
 

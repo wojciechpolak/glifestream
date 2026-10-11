@@ -109,6 +109,7 @@ def _post_args(request: HttpRequest) -> dict[str, Any]:
         'sid': request.POST.get('sid', None),
         'draft': request.POST.get('draft', False),
         'friends_only': request.POST.get('friends_only', False),
+        'fold_lines': request.POST.get('fold_lines', ''),
         'link': request.POST.get('link', None),
         'images': _shared_images(request),
         'files': request.FILES,
@@ -234,20 +235,24 @@ def _cmd_editcontent(ctx: ApiContext) -> HttpResponse | None:
             'post': entry.service.api == 'selfposts',
             'draft': entry.draft,
             'friends_only': entry.friends_only,
+            'fold_lines': entry.fold_lines,
         }
     )
 
 
 def _edited_fields(entry: Entry, post: Any) -> dict[str, Any]:
     """The fields of `entry` once what the composer sends in `post` is saved:
-    its HTML, and for a post the class the rich composer sends too."""
+    its HTML, its flags and folding, and for a post the class the rich
+    composer sends too."""
     # What getcontent gave the editor, back as entries store it.
     content = media.unset_media_urls(post.get('content', ''))
     fields: dict[str, Any] = {'content': content}
-    # The rich composer's checkboxes; the raw editor has none.
+    # The rich composer's more options; the raw editor has none.
     for flag in ('draft', 'friends_only'):
         if flag in post:
             fields[flag] = post.get(flag) in ('1', 'true', 'on')
+    if 'fold_lines' in post:
+        fields['fold_lines'] = selfposts.parse_fold_lines(post.get('fold_lines'))
     if entry.service.api == 'selfposts':
         fields['content'], fields['mblob'] = selfposts.edited_content(entry, content)
         service = selfposts.class_service(entry, post.get('sid'))

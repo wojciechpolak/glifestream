@@ -20,8 +20,8 @@ import { delegate, h } from '../util/dom';
 import { _ } from '../util/i18n';
 
 /**
- * The class that folds an entry's content to `config.fold_lines` lines,
- * which the theme reads as --fold-lines. The theme is the one place that
+ * The class that folds an entry's content to its lines (`lines_of`), which
+ * the theme reads as --fold-lines. The theme is the one place that
  * says how tall is too tall: a content folds when, folded, it hides some of
  * itself; on a page of one entry nothing does.
  */
@@ -40,10 +40,25 @@ function update_toggle(toggle: HTMLElement, folded: boolean): void {
     toggle.setAttribute('aria-expanded', String(!folded));
 }
 
+/**
+ * The lines `content` shows folded: those its entry chose in the composer,
+ * over the reader's preference, or else that preference; 0 never folds.
+ */
+function lines_of(content: HTMLElement): number {
+    const chosen = content.closest('article')?.dataset['foldLines'];
+    const lines = chosen ? Number(chosen) : NaN;
+    return Number.isInteger(lines) && lines >= 0 ? lines : config.fold_lines;
+}
+
 /** Folds `content` if it is too tall, and gives it a toggle to unfold. */
 function fold(content: HTMLElement): void {
-    if (config.fold_lines <= 0 || toggles.has(content)) {
+    const lines = lines_of(content);
+    if (lines <= 0 || toggles.has(content)) {
         return;
+    }
+    if (lines !== config.fold_lines) {
+        // Over the stream's own, which init_folding sets.
+        content.style.setProperty('--fold-lines', String(lines));
     }
     content.classList.add(FOLDED);
     if (content.scrollHeight <= content.clientHeight + 1) {

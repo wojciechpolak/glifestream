@@ -144,6 +144,17 @@ def test_share_falls_back_to_the_raw_text_for_a_title(selfposts):
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ('sent', 'stored'),
+    [('12', 12), (' 0 ', 0), ('', None), (None, None), ('-1', None), ('x', None)],
+)
+def test_build_takes_the_lines_a_post_folds_to(selfposts, sent, stored):
+    entry = selfposts.build({'content': 'A post', 'fold_lines': sent})
+
+    assert entry.fold_lines == stored
+
+
+@pytest.mark.django_db
 def test_share_uses_the_configured_link_or_the_site_root(selfposts):
     linked = selfposts.share({'content': 'A', 'link': 'https://elsewhere.example/'})
     default = selfposts.share({'content': 'B'})

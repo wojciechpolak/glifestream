@@ -64,6 +64,8 @@ export interface EditContent {
     post: boolean;
     draft: boolean;
     friends_only: boolean;
+    /** The lines it shows before "Show more", or null for the reader's. */
+    fold_lines: number | null;
 }
 
 /** A stream page requested with format=html-pure (stream/index_view.py). */

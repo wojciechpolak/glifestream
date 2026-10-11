@@ -321,6 +321,20 @@ def test_api_share_returns_a_stream_fragment_for_xhr(
 
 
 @pytest.mark.django_db
+def test_api_share_gives_the_post_the_lines_it_folds_to(
+    admin_client, selfposts_service, hubs
+):
+    response = admin_client.post(
+        api_url('share'),
+        {'content': 'Long post', 'fold_lines': '5'},
+        headers={'x-requested-with': 'XMLHttpRequest'},
+    )
+
+    assert Entry.objects.get(service=selfposts_service).fold_lines == 5
+    assert ' data-fold-lines="5"' in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_api_share_redirects_a_plain_form_post(admin_client, selfposts_service, hubs):
     response = admin_client.post(api_url('share'), {'content': 'Posted by form'})
 
@@ -670,6 +684,7 @@ def test_api_editcontent_gives_the_composer_the_post_and_its_class(
         'post': True,
         'draft': False,
         'friends_only': False,
+        'fold_lines': None,
     }
     # An imported entry has the class of its service, which stays.
     other = admin_client.post(api_url('editcontent'), {'entry': entry.pk}).json()
@@ -777,3 +792,43 @@ def test_api_putcontent_saves_the_checkboxes_of_the_composer(admin_client, music
     )
     music_post.refresh_from_db()
     assert music_post.friends_only
+
+
+@pytest.mark.django_db
+def test_api_putcontent_saves_the_lines_the_entry_folds_to(admin_client, music_post):
+    def put(**fields):
+        admin_client.post(
+            api_url('putcontent'),
+            {'entry': music_post.pk, 'content': '<p>Long.</p>', **fields},
+        )
+        music_post.refresh_from_db()
+        return music_post.fold_lines
+
+    assert put(fold_lines='8') == 8
+    assert (
+        admin_client.post(api_url('editcontent'), {'entry': music_post.pk}).json()[
+            'fold_lines'
+        ]
+        == 8
+    )
+    # The raw editor sends no folding, and leaves it.
+    assert put() == 8
+    assert put(fold_lines='0') == 0
+    # Empty, or what no preference allows either, leaves the reader's.
+    assert put(fold_lines='') is None
+    assert put(fold_lines='8') == 8
+    assert put(fold_lines='-3') is None
+    assert put(fold_lines='501') is None
+    assert put(fold_lines='many') is None
+
+
+@pytest.mark.django_db
+def test_an_entry_without_lines_of_its_own_has_no_data_fold_lines(
+    admin_client, music_post
+):
+    body = admin_client.post(
+        api_url('putcontent'),
+        {'entry': music_post.pk, 'content': '<p>Long.</p>', 'article': '1'},
+    ).content.decode()
+
+    assert 'data-fold-lines' not in body

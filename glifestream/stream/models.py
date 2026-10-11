@@ -23,6 +23,7 @@ import posixpath
 import secrets
 from typing import Any
 
+from django.core.validators import MaxValueValidator
 from django.db import models
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.contrib.auth.models import User
@@ -109,6 +110,10 @@ class PageQuerySet(models.QuerySet):
         if rows:
             page_cache.invalidate()
         return rows
+
+
+# The most lines an entry may show folded, as UserProfile.fold_lines allows.
+FOLD_LINES_MAX = 500
 
 
 # The fields of a service its pages show. Saving only others, as every
@@ -280,6 +285,18 @@ class Entry(models.Model):
         _('Friends-only'),
         default=False,
         help_text=_('Entry will only be visible to you and your friends.'),
+    )
+    # The lines of this entry the timeline shows before "Show more", over
+    # the reader's preference and the site default; None leaves them.
+    fold_lines = models.PositiveSmallIntegerField(
+        _('Fold long entries'),
+        null=True,
+        blank=True,
+        validators=[MaxValueValidator(FOLD_LINES_MAX)],
+        help_text=_(
+            'Lines of an entry the timeline shows before "Show more". '
+            '0 never folds. Empty uses the site default.'
+        ),
     )
     reblog = models.BooleanField(
         _('Reblog'), default=False, help_text=_('Reblogged post.')

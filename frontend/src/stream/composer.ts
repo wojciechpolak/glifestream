@@ -34,6 +34,7 @@ import { h } from '../util/dom';
 import { _ } from '../util/i18n';
 import { scroll_to_top } from '../util/scroll';
 import { $M } from './entry-actions';
+import { fold_long_contents } from './folding';
 import { scaledown_images } from './images';
 import { render_maps } from './maps';
 import { clear_preview, refresh_preview, schedule_preview } from './preview';
@@ -103,8 +104,15 @@ function select_class(cls: string, post: boolean): void {
     lock_class(select, !post);
 }
 
-/** Ticks the draft and friends-only checkboxes, showing them when ticked. */
-function set_flags(draft: boolean, friends_only: boolean): void {
+/**
+ * Ticks the draft and friends-only checkboxes and fills the lines the entry
+ * folds to, showing them when any is set.
+ */
+function set_flags(
+    draft: boolean,
+    friends_only: boolean,
+    fold_lines: number | null,
+): void {
     for (const [id, value] of [
         ['draft', draft],
         ['friends-only', friends_only],
@@ -114,8 +122,9 @@ function set_flags(draft: boolean, friends_only: boolean): void {
             box.checked = value;
         }
     }
+    fold_lines_field().value = fold_lines === null ? '' : String(fold_lines);
     const more = document.getElementById('expand-sharing');
-    if ((draft || friends_only) && more && is_visible(more)) {
+    if ((draft || friends_only || fold_lines !== null) && more && is_visible(more)) {
         open_more_sharing_options(more);
     }
 }
@@ -134,8 +143,8 @@ function set_share_expanded(expanded: boolean): void {
 /** Opens or closes the composer. */
 export function open_sharing(): boolean {
     if (composer.editor_id) {
-        // A new post starts without the checkboxes of the entry edited.
-        set_flags(false, false);
+        // A new post starts without the more options of the entry edited.
+        set_flags(false, false, null);
     }
     composer.editor_id = 0;
     composer.editor_post = false;
@@ -297,6 +306,7 @@ function edit_params(content: string): Record<string, string | number> {
     }
     params['draft'] = checked('draft');
     params['friends_only'] = checked('friends-only');
+    params['fold_lines'] = fold_lines_field().value.trim();
     return params;
 }
 
@@ -328,6 +338,11 @@ function checked(id: string): 1 | 0 {
     return (by_id(id) as HTMLInputElement).checked ? 1 : 0;
 }
 
+/** The lines the entry folds to; empty leaves the reader's. */
+function fold_lines_field(): HTMLInputElement {
+    return by_id('fold-lines') as HTMLInputElement;
+}
+
 async function send(button: HTMLInputElement, content: string): Promise<void> {
     if (composer.editor_id) {
         const html = await post_text(config.baseurl + 'api/putcontent', {
@@ -345,6 +360,8 @@ async function send(button: HTMLInputElement, content: string): Promise<void> {
                 render_maps(saved);
                 if (saved) {
                     scaledown_images(saved.querySelectorAll('img'));
+                    // Its folding may have changed with it.
+                    fold_long_contents(saved);
                 }
             }
         }
@@ -355,6 +372,7 @@ async function send(button: HTMLInputElement, content: string): Promise<void> {
         content: content,
         draft: checked('draft'),
         friends_only: checked('friends-only'),
+        fold_lines: fold_lines_field().value.trim(),
         ...music_params(),
     });
     if (html === null) {
@@ -378,6 +396,7 @@ async function send(button: HTMLInputElement, content: string): Promise<void> {
     editor_clear();
     if (first) {
         scaledown_images(first.querySelectorAll('img'));
+        fold_long_contents(first);
     }
 }
 
@@ -408,6 +427,7 @@ function editor_clear(): void {
         status_field().value = '';
     }
     fill_music(null);
+    fold_lines_field().value = '';
 }
 
 /** Opens an entry's stored HTML in the composer for editing. */
@@ -444,7 +464,7 @@ export function edit_entry(control: HTMLElement, e?: Event): void {
             status_field().value = data.content;
         }
         select_class(data.cls, data.post);
-        set_flags(data.draft, data.friends_only);
+        set_flags(data.draft, data.friends_only, data.fold_lines);
         fill_music(composer.editor ? composer.editor.music_card() : null);
         void refresh_preview(preview_params());
         toggle(by_id('update'));
@@ -467,6 +487,10 @@ export function init_editor(): void {
         // Not on a page without the composer.
         document.getElementById('status')?.addEventListener('input', update_preview);
     }
+    // What the field leaves: the lines folding shows this reader.
+    document
+        .getElementById('fold-lines')
+        ?.setAttribute('placeholder', String(config.fold_lines));
     // Whatever else changes the post: its flags, its class and its music
     // card, which the editor shows as it will be.
     for (const id of ['draft', 'friends-only']) {

@@ -208,7 +208,14 @@ def test_editcontent_sends_a_post_to_edit(admin_client):
     # EditContent
     assert_fields(
         response.json(),
-        {'content': str, 'cls': str, 'post': bool, 'draft': bool, 'friends_only': bool},
+        {
+            'content': str,
+            'cls': str,
+            'post': bool,
+            'draft': bool,
+            'friends_only': bool,
+            'fold_lines': (int, type(None)),
+        },
     )
 
 

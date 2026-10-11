@@ -29,7 +29,7 @@ from django.utils.datastructures import MultiValueDict
 from glifestream.apis.base import BaseService
 from glifestream.utils.time import utcnow
 from glifestream.utils.html import strip_script, bytes_to_human, urlize
-from glifestream.stream.models import Service, Entry, Media
+from glifestream.stream.models import FOLD_LINES_MAX, Service, Entry, Media
 from glifestream.stream import media
 from glifestream.filters import expand, music, players, truncate
 
@@ -45,6 +45,16 @@ def _parse_form_bool(value: Any) -> bool:
     if isinstance(value, str):
         return value.strip().lower() in {'1', 'true', 'on', 'yes'}
     return bool(value)
+
+
+def parse_fold_lines(value: Any) -> int | None:
+    """The lines a post shows before "Show more", as the composer sends
+    them; None, for what is empty or out of range, leaves the reader's."""
+    try:
+        lines = int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+    return lines if 0 <= lines <= FOLD_LINES_MAX else None
 
 
 # Extension tables for uploaded files. Anything unlisted keeps the fallbacks
@@ -246,6 +256,7 @@ class SelfpostsService(BaseService):
         e.date_updated = un
         e.draft = _parse_form_bool(args.get('draft', False))
         e.friends_only = _parse_form_bool(args.get('friends_only', False))
+        e.fold_lines = parse_fold_lines(args.get('fold_lines'))
 
         if user and user.first_name and user.last_name:
             e.author_name = user.first_name + ' ' + user.last_name
