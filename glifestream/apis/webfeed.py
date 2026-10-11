@@ -18,6 +18,7 @@
 from functools import partial
 
 import feedparser
+from django.utils.html import escape
 
 from glifestream.apis.base import BaseService
 from glifestream.ingestion import Candidate, NormalizedEntry
@@ -183,7 +184,7 @@ class WebfeedService(BaseService):
 
 
 def filter_title(entry: Entry) -> str:
-    return entry.title
+    return str(escape(entry.title))
 
 
 def filter_content(entry: Entry) -> str:

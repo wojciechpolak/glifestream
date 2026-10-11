@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 
-from glifestream.apis.youtube import YoutubeService
+from glifestream.apis.youtube import YoutubeService, filter_title
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
 
@@ -146,15 +146,18 @@ def test_parse_published_accepts_milliseconds():
 @pytest.mark.parametrize(
     'available, expected',
     [
-        (('default', 'high', 'medium'), ('medium.png', 320, 180)),
-        (('default', 'high'), ('high.png', 200, 150)),
-        (('default',), ('default.png', 200, 150)),
+        (
+            ('default', 'high', 'medium'),
+            ('https://img.example/medium.png', 320, 180),
+        ),
+        (('default', 'high'), ('https://img.example/high.png', 200, 150)),
+        (('default',), ('https://img.example/default.png', 200, 150)),
     ],
 )
 def testpick_thumbnail_prefers_the_largest_listed(available, expected):
     from glifestream.apis.youtube import pick_thumbnail
 
-    thumbnails = {key: {'url': '%s.png' % key} for key in available}
+    thumbnails = {key: {'url': 'https://img.example/%s.png' % key} for key in available}
     tn = pick_thumbnail(thumbnails)
 
     assert tn is not None
@@ -178,6 +181,57 @@ def test_youtube_without_thumbnails_links_the_video(service, youtube_json):
     e = run_with(service, youtube_json)
 
     assert e.content == (
+        '<a href="https://www.youtube.com/watch?v=vid-123">Test Video</a>'
+    )
+
+
+@pytest.mark.django_db
+def test_youtube_escapes_provider_title_in_stored_and_filtered_markup(
+    service, youtube_json
+):
+    service.url = 'https://provider.example/youtube.json'
+    service.save()
+    youtube_json['items'][0]['snippet']['title'] = '<img src=x onerror=alert(1)>'
+    youtube_json['items'][0]['snippet']['thumbnails'] = {}
+
+    entry = run_with(service, youtube_json)
+
+    assert '<img' not in entry.content
+    assert '&lt;img src=x onerror=alert(1)&gt;' in entry.content
+    assert '<img' not in filter_title(entry)
+    assert '&lt;img src=x onerror=alert(1)&gt;' in filter_title(entry)
+
+
+@pytest.mark.django_db
+def test_youtube_rejects_invalid_video_ids(service, youtube_json):
+    service.url = 'https://provider.example/youtube.json'
+    service.save()
+    youtube_json['items'][0]['contentDetails']['videoId'] = 'bad" onmouseover="x'
+
+    with patch('glifestream.apis.youtube.httpclient.get') as mock_get:
+        response = MagicMock()
+        response.json.return_value = youtube_json
+        mock_get.return_value = response
+        YoutubeService(service).run()
+
+    assert not Entry.objects.exists()
+
+
+@pytest.mark.django_db
+def test_youtube_rejects_active_thumbnail_urls(service, youtube_json):
+    service.url = 'https://provider.example/youtube.json'
+    service.public = True
+    service.save()
+    youtube_json['items'][0]['snippet']['thumbnails']['default']['url'] = (
+        'javascript:alert(1)'
+    )
+
+    with patch('glifestream.apis.youtube.media.save_image') as save_image:
+        entry = run_with(service, youtube_json)
+
+    save_image.assert_not_called()
+    assert 'javascript:' not in entry.content
+    assert entry.content == (
         '<a href="https://www.youtube.com/watch?v=vid-123">Test Video</a>'
     )
 
@@ -228,3 +282,9 @@ def test_thumbnails_of_lists_what_pick_thumbnail_prefers():
         'width': 320,
         'height': 180,
     }
+
+
+def test_thumbnails_of_rejects_an_invalid_video_id():
+    from glifestream.apis.youtube import thumbnails_of
+
+    assert thumbnails_of('bad" onerror="alert(1)') == {}

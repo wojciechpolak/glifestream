@@ -35,8 +35,10 @@ favorites and settings need a sign-in.
 curl -fsSL https://raw.githubusercontent.com/wojciechpolak/glifestream/master/docker-compose.yml | APP_SECRET_KEY=$(openssl rand -hex 32) docker compose -f - up
 ```
 
-Then open <http://localhost:8080/> and sign in as `admin` / `admin`. The
-database and media are kept in `run/` in the current directory.
+Then open <http://localhost:8080/> and sign in as `admin` with the password
+the first start prints in the log (`Generated password for "admin": …`); you
+will be asked to choose a new one. The database and media are kept in `run/`
+in the current directory.
 
 ## Getting started
 

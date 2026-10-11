@@ -23,6 +23,7 @@ from unittest.mock import patch
 import feedparser
 
 from glifestream.apis.flickr import FlickrService, filter_title
+from glifestream.stream import media
 from glifestream.stream.models import Entry
 
 UTC = datetime.timezone.utc
@@ -122,6 +123,83 @@ def test_process_collects_media_content_into_the_mblob(flickr):
     flickr.process([photo('1', media_content=media_content)])
 
     assert 'flickr.example/big.jpg' in Entry.objects.get().mblob
+
+
+@pytest.mark.django_db
+def test_flickr_escapes_thumbnail_attributes_and_validates_dimensions(flickr):
+    ent = photo(
+        '1',
+        media_thumbnail=thumbnail(
+            'https://flickr.example/t.jpg?a="quoted"',
+            width='" onerror="alert(1)',
+            height='75',
+        ),
+    )
+    ent['link'] = 'https://flickr.example/photo?a="quoted"'
+
+    flickr.service.public = False
+    flickr.service.save(update_fields=['public'])
+    flickr.process([ent])
+
+    content = Entry.objects.get().content
+    assert '"quoted"' not in content
+    assert '&quot;quoted&quot;' in content
+    assert 'onerror' not in content
+    assert ' width=' not in content
+    assert ' height=' not in content
+
+
+@pytest.mark.django_db
+def test_flickr_rejects_active_media_url_schemes(flickr):
+    flickr.fp.feed = feedparser.FeedParserDict(
+        image=feedparser.FeedParserDict(href='javascript:alert(1)')
+    )
+    ent = photo(
+        '1',
+        media_thumbnail=thumbnail('data:text/html,bad'),
+        media_content=[
+            {'url': 'javascript:alert(3)', 'medium': 'image'},
+            {'url': 'https://flickr.example/safe.jpg', 'medium': 'image'},
+        ],
+    )
+    ent['link'] = 'javascript:alert(2)'
+    ent['links'] = [SimpleNamespace(rel='image', href='vbscript:alert(4)')]
+
+    with patch('glifestream.apis.flickr.media.save_image') as save_image:
+        flickr.process([ent])
+
+    entry = Entry.objects.get()
+    save_image.assert_not_called()
+    assert 'javascript:' not in entry.content
+    assert 'data:text/html' not in entry.content
+    assert 'javascript:' not in entry.mblob
+    assert 'https://flickr.example/safe.jpg' in entry.mblob
+    assert entry.link_image == ''
+
+
+def test_mrss_drops_untrusted_attribute_names_from_flickr_data():
+    entry = Entry(
+        mblob=media.mrss_gen_json(
+            {
+                'content': [
+                    [
+                        {
+                            'url': 'https://flickr.example/a.jpg',
+                            'medium': 'image',
+                            'x" onmouseover="alert(1)': 'bad',
+                            'unknown': 'also dropped',
+                        }
+                    ]
+                ]
+            }
+        )
+    )
+
+    xml = media.mrss_gen_xml(entry)
+
+    assert 'onmouseover' not in xml
+    assert 'unknown' not in xml
+    assert 'url="https://flickr.example/a.jpg"' in xml
 
 
 @pytest.mark.django_db

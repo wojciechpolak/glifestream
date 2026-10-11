@@ -23,6 +23,7 @@ import hashlib
 import tempfile
 import time
 import shutil
+import warnings
 from typing import Match, cast
 from xml.sax.saxutils import escape as xml_escape
 
@@ -92,6 +93,10 @@ _THUMB_SUFFIXES = {
 # A cached thumbnail of a page (rather than of an image URL) is refetched
 # once it is older than this.
 _PAGE_THUMB_MAX_AGE_SEC = 7 * 24 * 3600
+
+# A remote image larger than this is not decoded: 25 megapixels take about
+# 100 MB of memory as RGBA, well past any thumbnail's needs.
+MAX_IMAGE_PIXELS = 25_000_000
 
 
 def thumb_suffix() -> str:
@@ -196,8 +201,13 @@ def _verify_image(path: str, url: str, resp, *, force: bool) -> None:
             logger.warning('Pillow unavailable while validating remote media: %s', url)
         return
     try:
-        with Image.open(path) as image:
-            image.verify()
+        with warnings.catch_warnings():
+            warnings.simplefilter('error', Image.DecompressionBombWarning)
+            with Image.open(path) as image:
+                _validate_image_budget(image, url, resp)
+                image.verify()
+    except httpclient.FetchError:
+        raise
     except Exception as exc:
         raise httpclient.build_fetch_error(
             category='invalid_response',
@@ -207,6 +217,23 @@ def _verify_image(path: str, url: str, resp, *, force: bool) -> None:
             status_code=resp.status_code,
             url=resp.url,
         ) from exc
+
+
+def _validate_image_budget(image, url: str, resp) -> None:
+    """Refuse an image too large to decode before Pillow decodes it."""
+    width, height = image.size
+    if width <= 0 or height <= 0 or width * height > MAX_IMAGE_PIXELS:
+        raise httpclient.build_fetch_error(
+            category='invalid_response',
+            detail=(
+                'Media download from %s has dimensions %dx%d, exceeding the '
+                '%d-pixel limit.'
+            )
+            % (url, width, height, MAX_IMAGE_PIXELS),
+            retryable=False,
+            status_code=resp.status_code,
+            url=resp.url,
+        )
 
 
 def _log_rejected_media(url: str, exc: Exception) -> None:
@@ -340,6 +367,22 @@ def mrss_gen_json(mblob) -> str | None:
 
 # Lower-case keys stored in mblobs that Media RSS spells in camel case.
 _MRSS_ATTR_RENAMES = {'isdefault': 'isDefault', 'filesize': 'fileSize'}
+_MRSS_CONTENT_ATTRIBUTES = {
+    'bitrate',
+    'channels',
+    'duration',
+    'expression',
+    'filesize',
+    'framerate',
+    'height',
+    'isdefault',
+    'lang',
+    'medium',
+    'samplingrate',
+    'type',
+    'url',
+    'width',
+}
 
 
 def mrss_gen_xml(entry: Entry) -> str:
@@ -363,7 +406,9 @@ def _mrss_attrs(item: dict) -> str:
     Renamed keys are emitted last, the order this function has always used.
     """
     plain = [
-        (k, v) for k, v in item.items() if ':' not in k and k not in _MRSS_ATTR_RENAMES
+        (k, v)
+        for k, v in item.items()
+        if k in _MRSS_CONTENT_ATTRIBUTES and k not in _MRSS_ATTR_RENAMES
     ]
     renamed = [
         (_MRSS_ATTR_RENAMES[k], v) for k, v in item.items() if k in _MRSS_ATTR_RENAMES

@@ -20,6 +20,25 @@ from the Git history and are intentionally high-level.
   passes that header on, and `docker-compose.yml` passes the setting to the
   app.
 
+### Security
+
+- The initial administrator no longer gets the password `admin`.
+  `create_initial_user` takes it from `INITIAL_ADMIN_PASSWORD` or generates
+  one and prints it once, so a Docker Compose start still needs no setup. An existing account that still has `admin` gets a new password the
+  same way at the next start. Until the forced password change is done, the
+  admin site is closed too.
+- Markup from remote services is escaped or sanitized where it was stored or
+  shown as it came: Mastodon and PixelFed statuses and their repost
+  attribution, Bluesky facets and embeds, Flickr and YouTube media, web feed
+  titles, and links whose scheme is not HTTP(S). Video and audio players are
+  built through DOM APIs, not from markup with the media ID put in.
+- A remote image of more than 25 megapixels is not decoded.
+- The WebSub challenge is answered as plain text, and only for a subscribe or
+  an unsubscribe.
+- A search keeps the stream's own filters. An anonymous visitor's search
+  found drafts, inactive entries and entries of services kept off the home
+  stream.
+
 ## [2.1.0] - 2026-10-10
 
 ### Added

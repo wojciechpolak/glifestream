@@ -392,11 +392,8 @@ def run_search_query(
 def build_search_queryset(
     state: IndexRequestState, query: IndexQueryState, search_filters: dict[str, Any]
 ) -> Any:
-    if query.page['public']:
-        search_filters['service__public'] = True
-
     return search_entries(
-        query.entries,
+        query.entries.filter(**query.filters),
         query.search_query,
         search_filters,
     ).select_related('service')

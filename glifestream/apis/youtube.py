@@ -18,6 +18,7 @@
 import datetime
 from functools import partial
 
+from django.utils.html import escape, format_html
 from django.utils.translation import gettext as _
 
 from glifestream.apis.base import BaseService
@@ -26,6 +27,7 @@ from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.stream import media
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
+from glifestream.utils.html import is_safe_http_url
 from glifestream.utils.time import mtime, now
 
 
@@ -78,6 +80,10 @@ class YoutubeService(BaseService):
         for ent in self.json.get('items', ()):
             snippet = ent.get('snippet', {})
             vid = ent['contentDetails']['videoId']
+            if not players.valid_youtube_id(vid):
+                if self.verbose:
+                    print('Skipping invalid YouTube video ID')
+                continue
             if kind == 'favorite':
                 guid = 'tag:youtube.com,2008:favorite:%s' % ent.get('id')
             else:
@@ -113,7 +119,7 @@ class YoutubeService(BaseService):
     ) -> str:
         player = render_player(vid, e.link, thumbnails, public=self.service.public)
         if player is None:
-            return '<a href="%s">%s</a>' % (e.link, e.title)
+            return str(format_html('<a href="{}">{}</a>', e.link, e.title))
         return player
 
 
@@ -129,6 +135,8 @@ def localize_thumbnail(tn: dict, *, public: bool, strict: bool = False) -> str:
     copy for a public service, the remote image for a private one. `strict`
     raises when the local copy cannot be made."""
     url: str = tn['url']
+    if not is_safe_http_url(url):
+        raise ValueError('YouTube thumbnail URL must use HTTP or HTTPS.')
     if not public:
         return url
     return media.save_image(
@@ -161,6 +169,8 @@ THUMBNAIL_URL = 'https://i.ytimg.com/vi/%s/%s.jpg'
 
 def thumbnails_of(vid: str) -> dict:
     """The thumbnails of a video, as the Data API would list them."""
+    if not players.valid_youtube_id(vid):
+        return {}
     return {
         'default': {'url': THUMBNAIL_URL % (vid, 'default')},
         'medium': {'url': THUMBNAIL_URL % (vid, 'mqdefault')},
@@ -176,8 +186,13 @@ def pick_thumbnail(thumbnails: dict) -> dict | None:
     if 'default' not in thumbnails:
         return None
     for key, width, height in _THUMBNAIL_SIZES:
-        if thumbnails.get(key):
-            return {**thumbnails[key], 'width': width, 'height': height}
+        thumbnail = thumbnails.get(key)
+        if (
+            isinstance(thumbnail, dict)
+            and isinstance(thumbnail.get('url'), str)
+            and is_safe_http_url(thumbnail['url'])
+        ):
+            return {**thumbnail, 'width': width, 'height': height}
     return None
 
 
@@ -191,7 +206,8 @@ def _parse_published(value: str) -> datetime.datetime:
 
 
 def filter_title(entry: Entry) -> str:
+    title = '<em>' + str(escape(entry.title)) + '</em>'
     if 'favorite' in entry.guid:
-        return _('Favorited %s') % ('<em>' + entry.title + '</em>')
+        return _('Favorited %s') % title
     else:
-        return _('Published %s') % ('<em>' + entry.title + '</em>')
+        return _('Published %s') % title

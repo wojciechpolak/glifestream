@@ -25,7 +25,7 @@
 /** What a video provider puts in the player it opens under an entry. */
 interface GlsVideoEmbed {
     html?: string;
-    node?: Element;
+    node?: Node;
     /** Inline style of the player, such as an aspect-ratio padding. */
     style?: string;
     onMount?: (player: HTMLElement) => void;

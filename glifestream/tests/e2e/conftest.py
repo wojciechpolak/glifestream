@@ -952,7 +952,11 @@ def e2e_runtime_settings(
 
 @pytest.fixture
 def seeded_e2e_state(transactional_db) -> None:
-    call_command('create_initial_user', '--force')
+    call_command(
+        'create_initial_user',
+        '--force',
+        '--password=e2e initial administrator password',
+    )
     call_command('seed_e2e')
 
 
@@ -960,7 +964,7 @@ def seeded_e2e_state(transactional_db) -> None:
 def admin_credentials() -> dict[str, str]:
     return {
         'username': 'admin',
-        'password': 'admin',
+        'password': 'e2e initial administrator password',
         'new_password': 'admin-pass-123',
     }
 

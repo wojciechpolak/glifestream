@@ -108,7 +108,12 @@ Local configuration notes:
 - `glifestream.settings` is the default local settings module.
 - `.env` is loaded automatically when `GLIFESTREAM_LOAD_DOTENV=1` or unset.
 - `glifestream/settings_local.py` is optional and is loaded automatically when `GLIFESTREAM_ENABLE_SETTINGS_LOCAL=1` or unset.
-- `create_initial_user` creates `admin` / `admin` by default and forces a password change on first login.
+- `create_initial_user` takes the password from `--password` or
+  `INITIAL_ADMIN_PASSWORD` and checks it with Django's password validators;
+  without either it generates one and prints it once. The first login asks
+  for a new password. An existing account is left alone unless
+  `--force` is given, or unless it still has the `admin` password that older
+  releases created it with: then its password is replaced the same way.
 
 
 ## Production Deployment and Hardening
@@ -338,6 +343,12 @@ directory. The database and media go to `run/` in it:
 ```shell
 curl -fsSL https://raw.githubusercontent.com/wojciechpolak/glifestream/master/docker-compose.yml | APP_SECRET_KEY=$(openssl rand -hex 32) docker compose -f - up
 ```
+
+The first start creates the `admin` account and prints its password in the
+log, once: look for `Generated password for "admin"`. To choose it yourself,
+set `INITIAL_ADMIN_PASSWORD` before that start. If the password is lost
+before the first login, print a new one with
+`docker compose exec app python manage.py create_initial_user --force`.
 
 From a checkout, create or update your `.env` and then start the stack:
 

@@ -22,7 +22,7 @@ from glifestream.stream.index_view import (
     run_index_query,
     validate_exact_entry_request,
 )
-from glifestream.stream.models import Entry, List
+from glifestream.stream.models import Entry, List, Service
 
 UTC = datetime.timezone.utc
 
@@ -341,6 +341,47 @@ def test_run_index_query_search_matches_title_without_search_engine_setting(
     result = run_index_query(state, query)
 
     assert [entry.title for entry in result.entries] == ['Python Headlines']
+
+
+@override_settings(SEARCH_ENABLE=True, ENTRIES_ON_PAGE=20)
+@pytest.mark.django_db
+def test_anonymous_search_uses_normal_stream_visibility_filters(request_factory):
+    visible_service = Service.objects.create(
+        name='Visible', api='selfposts', public=True, home=True
+    )
+    hidden_service = Service.objects.create(
+        name='Hidden from home', api='selfposts', public=True, home=False
+    )
+    private_service = Service.objects.create(
+        name='Private', api='selfposts', public=False, home=True
+    )
+    cases = (
+        (visible_service, 'Visible result', {}),
+        (visible_service, 'Draft result', {'draft': True}),
+        (visible_service, 'Inactive result', {'active': False}),
+        (hidden_service, 'Non-home result', {}),
+        (private_service, 'Private result', {}),
+    )
+    for index, (entry_service, title, fields) in enumerate(cases):
+        Entry.objects.create(
+            service=entry_service,
+            title=title,
+            guid=f'visibility-search-{index}',
+            content='shared search needle',
+            **fields,
+        )
+
+    request = request_factory.get('/?s=shared+search+needle')
+    request.user = AnonymousUser()
+    state = _build_state(request, {})
+    query = build_index_query_state(state)
+    apply_archive_filters(query)
+    apply_context_filters(state, query)
+    apply_query_string_filters(state, query)
+
+    result = run_index_query(state, query)
+
+    assert [entry.title for entry in result.entries] == ['Visible result']
 
 
 @override_settings(MAGICSSO_ENABLED=True)

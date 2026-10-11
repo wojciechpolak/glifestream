@@ -48,7 +48,9 @@ def websub_dispatcher(request: HttpRequest, **args: Any) -> HttpResponse:
     if request.method == 'GET':
         res = websub.verify(args['id'], request.GET)
         if res:
-            return HttpResponse(res)
+            response = HttpResponse(res, content_type='text/plain; charset=utf-8')
+            response['X-Content-Type-Options'] = 'nosniff'
+            return response
     elif request.method == 'POST':
         websub.accept_payload(args['id'], request.body, request.META)
         return HttpResponse()

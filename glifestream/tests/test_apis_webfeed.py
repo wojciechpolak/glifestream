@@ -4,11 +4,21 @@ from unittest.mock import patch, MagicMock
 
 import feedparser
 
-from glifestream.apis.webfeed import WebfeedService
+from glifestream.apis.webfeed import WebfeedService, filter_title
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
 
 UTC = datetime.timezone.utc
+
+
+def test_filter_title_escapes_feed_markup_as_text():
+    entry = Entry(title='<img src=x onerror=alert(1)> & news')
+
+    assert filter_title(entry) == ('&lt;img src=x onerror=alert(1)&gt; &amp; news')
+
+
+def test_filter_title_preserves_an_ordinary_title():
+    assert filter_title(Entry(title='A plain headline')) == 'A plain headline'
 
 
 @pytest.fixture

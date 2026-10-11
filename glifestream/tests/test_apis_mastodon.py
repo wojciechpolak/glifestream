@@ -2,7 +2,12 @@ import json
 import pytest
 from unittest.mock import patch, MagicMock
 
-from glifestream.apis.mastodon import MastodonService, _render_status_reference
+from glifestream.apis.mastodon import (
+    MastodonService,
+    _render_status_reference,
+    filter_content as mastodon_filter_content,
+)
+from glifestream.apis.pixelfed import filter_content as pixelfed_filter_content
 from glifestream.stream.models import Entry
 from glifestream.utils import httpclient
 
@@ -49,6 +54,54 @@ def test_mastodon_fetch_basic(service, mastodon_json):
 
 
 @pytest.mark.django_db
+def test_mastodon_sanitizes_remote_status_html(service, mastodon_json):
+    service.user_id = '123'
+    service.save()
+    malicious = mastodon_json[0].copy()
+    malicious['content'] = (
+        '<p onclick="alert(1)">Hello <strong>world</strong>'
+        '<script>alert(2)</script>'
+        '<a href="javascript:alert(3)" onmouseover="alert(4)">bad link</a>'
+        '<img class="custom-emoji attacker" src="https://cdn.example/e.png" '
+        'onerror="alert(5)" alt=":wave:"></p>'
+    )
+
+    with patch('glifestream.apis.mastodon.httpclient.get') as mock_get:
+        response = MagicMock()
+        response.json.return_value = [malicious]
+        mock_get.return_value = response
+        MastodonService(service).run()
+
+    content = Entry.objects.get(guid=malicious['url']).content
+    assert '<p>Hello <strong>world</strong>' in content
+    assert '<script' not in content
+    assert 'onclick' not in content
+    assert 'javascript:' not in content
+    assert 'onmouseover' not in content
+    assert 'onerror' not in content
+    assert '<a>bad link</a>' in content
+    assert 'class="custom-emoji"' in content
+    assert 'src="https://cdn.example/e.png"' in content
+
+
+@pytest.mark.django_db
+def test_mastodon_rejects_an_active_status_link(service, mastodon_json):
+    service.user_id = '123'
+    service.save()
+    malicious = mastodon_json[0].copy()
+    malicious['url'] = 'javascript:alert(document.domain)'
+
+    with patch('glifestream.apis.mastodon.httpclient.get') as mock_get:
+        response = MagicMock()
+        response.json.return_value = [malicious]
+        mock_get.return_value = response
+        MastodonService(service).run()
+
+    entry = Entry.objects.get(guid=malicious['url'])
+    assert entry.link == ''
+
+
+@pytest.mark.django_db
 def test_mastodon_reblog(service, mastodon_json):
     service.user_id = '123'
     service.save()
@@ -76,6 +129,22 @@ def test_mastodon_reblog(service, mastodon_json):
         e = Entry.objects.get(guid='https://mastodon.social/@other/2')
         assert e.reblog is True
         assert e.reblog_by == 'Test User'
+
+
+@pytest.mark.parametrize(
+    'content_filter', [mastodon_filter_content, pixelfed_filter_content]
+)
+def test_mastodon_compatible_reblog_display_name_is_escaped(content_filter):
+    entry = Entry(
+        reblog=True,
+        reblog_by='<svg onload=alert(1)>',
+        content='<p>Original post</p>',
+    )
+
+    rendered = content_filter(entry)
+
+    assert rendered.startswith('&lt;svg onload=alert(1)&gt; reblogged\n\n')
+    assert '<svg' not in rendered
 
 
 @pytest.mark.django_db
@@ -442,6 +511,26 @@ def test_status_reference_escapes_the_author_name_and_link():
     assert 'https://m.example/?a=1&amp;b=2' in html
 
 
+def test_status_reference_sanitizes_quoted_provider_html():
+    html = _render_status_reference(
+        {
+            'account': {'display_name': 'Mallory'},
+            'content': (
+                '<blockquote><p>Quoted <em>text</em></p>'
+                '<svg onload="alert(1)"><script>alert(2)</script></svg>'
+                '<a href="data:text/html,bad">bad</a></blockquote>'
+            ),
+        },
+        label='Quoted post',
+    )
+
+    assert '<blockquote><p>Quoted <em>text</em></p>' in html
+    assert '<svg' not in html
+    assert '<script' not in html
+    assert 'onload' not in html
+    assert 'data:text/html' not in html
+
+
 def test_render_video_attachment_full():
     from glifestream.apis.mastodon import _render_video_attachment
 
@@ -502,6 +591,44 @@ def test_render_video_attachment_private_keeps_the_remote_poster():
 
     save.assert_not_called()
     assert 'data-poster="https://m.example/p.jpg"' in html
+
+
+def test_render_image_attachment_escapes_remote_attributes():
+    from glifestream.apis.mastodon import _render_image_attachment
+
+    attachment = {
+        'type': 'image',
+        'preview_url': 'https://m.example/preview?a="quoted"',
+        'url': 'https://m.example/large?a="quoted"',
+        'remote_url': 'https://m.example/post?a="quoted"',
+    }
+
+    html = _render_image_attachment(attachment, is_public=False)
+
+    assert '"quoted"' not in html
+    assert '&quot;quoted&quot;' in html
+
+
+def test_mastodon_renderers_reject_active_url_schemes():
+    from glifestream.apis.mastodon import (
+        _render_card,
+        _render_image_attachment,
+        _render_video_attachment,
+    )
+
+    assert _render_card({'url': 'javascript:alert(1)'}, is_public=False) == ''
+    assert _render_video_attachment({'url': 'data:text/html,bad'}, False) == ''
+    assert (
+        _render_image_attachment(
+            {
+                'preview_url': 'https://m.example/p.jpg',
+                'url': 'https://m.example/a.jpg',
+                'remote_url': 'javascript:alert(1)',
+            },
+            False,
+        )
+        == ''
+    )
 
 
 def test_render_card():

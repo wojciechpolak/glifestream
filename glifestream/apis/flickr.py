@@ -17,11 +17,13 @@
 
 from functools import partial
 from itertools import groupby
+from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
 from glifestream.apis.webfeed import WebfeedService
 from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.stream import media
+from glifestream.utils.html import is_safe_http_url
 
 
 class FlickrService(WebfeedService):
@@ -85,27 +87,67 @@ class FlickrService(WebfeedService):
 
             if 'media_thumbnail' in ent:
                 tn = ent.media_thumbnail[0]
-                if self.service.public:
-                    tn['url'] = media.save_image(tn['url'])
-                content += (
-                    """  <a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="thumbnail" /></a>\n"""
-                    % (ent.link, tn['url'], tn['width'], tn['height'])
-                )
+                link = ent.get('link')
+                thumbnail_url = tn.get('url')
+                if (
+                    isinstance(link, str)
+                    and is_safe_http_url(link)
+                    and isinstance(thumbnail_url, str)
+                    and is_safe_http_url(thumbnail_url)
+                ):
+                    if self.service.public:
+                        thumbnail_url = media.save_image(thumbnail_url)
+                    dimensions = _thumbnail_dimensions(tn)
+                    if dimensions:
+                        thumbnail = format_html(
+                            '<img src="{}" width="{}" height="{}" alt="thumbnail" />',
+                            thumbnail_url,
+                            dimensions[0],
+                            dimensions[1],
+                        )
+                    else:
+                        thumbnail = format_html(
+                            '<img src="{}" alt="thumbnail" />', thumbnail_url
+                        )
+                    content += str(
+                        format_html(
+                            '  <a href="{}" rel="nofollow">{}</a>\n', link, thumbnail
+                        )
+                    )
 
             if 'media_content' in ent:
-                mblob['content'].append(ent.media_content)
+                safe_media = [
+                    item
+                    for item in ent.media_content
+                    if isinstance(item, dict)
+                    and isinstance(item.get('url'), str)
+                    and is_safe_http_url(item['url'])
+                ]
+                if safe_media:
+                    mblob['content'].append(safe_media)
 
         return content + '</p>', mblob, first, count
 
     def _resolve_link_image(self, ent):
         """The feed's own image, else the last image the entry links to."""
-        if 'image' in self.fp.feed:
+        if 'image' in self.fp.feed and is_safe_http_url(self.fp.feed.image.href):
             return media.save_image(self.fp.feed.image.href)
         found = None
         for link in ent.links:
-            if link.rel == 'image':
+            if link.rel == 'image' and is_safe_http_url(link.href):
                 found = media.save_image(link.href)
         return found
+
+
+def _thumbnail_dimensions(thumbnail) -> tuple[int, int] | None:
+    try:
+        width = int(thumbnail['width'])
+        height = int(thumbnail['height'])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if width <= 0 or height <= 0:
+        return None
+    return width, height
 
 
 def filter_title(entry):

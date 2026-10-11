@@ -14,6 +14,7 @@ services:
         # 1 behind a proxy that ends TLS, such as Cloudflare. See INSTALL.md.
         - SECURE_PROXY_SSL_HEADER=${SECURE_PROXY_SSL_HEADER:-0}
         - APP_SECRET_KEY
+        - INITIAL_ADMIN_PASSWORD
         # Instead of the 'YOUR NAME' placeholder under the welcome entry.
         - FEED_AUTHOR_NAME=${FEED_AUTHOR_NAME:-gLifestream}
     # Nginx waits for this, so check early and often until the first success.

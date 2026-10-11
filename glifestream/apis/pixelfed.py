@@ -15,6 +15,7 @@
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from django.utils.html import escape
 from django.utils.translation import gettext as _
 from glifestream.stream.models import Entry
 from .mastodon import MastodonService
@@ -29,7 +30,7 @@ class PixelFedService(MastodonService):
 def filter_content(entry: Entry) -> str:
     if entry.reblog:
         if entry.reblog_by:
-            return _('%s reblogged') % entry.reblog_by + '\n\n' + entry.content
+            return _('%s reblogged') % escape(entry.reblog_by) + '\n\n' + entry.content
         else:
             return _('Reblogged') + '\n\n' + entry.content
     return entry.content

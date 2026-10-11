@@ -29,13 +29,15 @@ def test_websub_dispatcher_verify(client, service):
         url,
         {
             'hub.mode': 'subscribe',
-            'hub.challenge': 'hello-challenge',
+            'hub.challenge': '<script>alert(1)</script>',
             'hub.lease_seconds': '3600',
         },
     )
 
     assert response.status_code == 200
-    assert response.content == b'hello-challenge'
+    assert response.content == b'<script>alert(1)</script>'
+    assert response['Content-Type'] == 'text/plain; charset=utf-8'
+    assert response['X-Content-Type-Options'] == 'nosniff'
     ws.refresh_from_db()
     assert ws.verified is True
 
@@ -333,6 +335,18 @@ def test_publish_reports_a_failed_ping(capsys):
 def test_verify_rejects_an_unknown_subscription():
     assert websub.verify('f' * 20, {'hub.mode': 'subscribe'}) is False
     assert websub.verify('f' * 20, {'hub.mode': 'unsubscribe'}) is False
+
+
+@pytest.mark.django_db
+def test_websub_dispatcher_rejects_challenge_for_unknown_mode(client, service):
+    ws = WebSub.objects.create(hash='e' * 20, service=service, hub='http://hub.com')
+
+    response = client.get(
+        reverse('websub', kwargs={'id': ws.hash}),
+        {'hub.mode': 'unexpected', 'hub.challenge': '<script>alert(1)</script>'},
+    )
+
+    assert response.status_code == 404
 
 
 @pytest.mark.django_db

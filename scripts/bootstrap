@@ -22,9 +22,10 @@ It installs the Python and Node dependencies, builds the page script from
 frontend/, writes a `.env` with random secrets, migrates the database,
 loads the starting services and a welcome entry into an empty one,
 compiles translations, creates the media directories and the initial
-admin/admin user. Every step is safe to repeat, so running it again
-after a pull brings an existing checkout up to date. An existing `.env` is
-never touched, and neither is a database that has any service.
+administrator with a generated password. Every step is safe to repeat,
+so running it again after a pull brings an existing checkout up to date.
+An existing `.env` is never touched, and neither is a database that has
+any service.
 
 With `--no-welcome`, only the services are loaded, so that your first own
 entry gets ID 1.
@@ -129,8 +130,9 @@ Ready. Start the site and the fetch worker in two terminals:
 When you change anything under frontend/, rebuild with `npm run build`, or
 keep `npm run watch` running in a third terminal.
 
-On a first run, sign in at http://127.0.0.1:8000/ as admin / admin; you
-will be asked to choose a new password. Settings live in .env."""
+On a first run, sign in at http://127.0.0.1:8000/ as admin with the
+password printed above; you will be asked to choose a new one. Settings
+live in .env."""
     )
     return 0
 

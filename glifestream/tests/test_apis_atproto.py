@@ -4,7 +4,13 @@ from unittest.mock import MagicMock, patch
 from types import SimpleNamespace
 from typing import cast
 from django.utils import timezone
-from glifestream.apis.atproto import AtProtoService, filter_content
+from glifestream.apis.atproto import (
+    AtProtoService,
+    _build_video_mblob,
+    _render_image_thumbnails,
+    _render_video_thumbnail,
+    filter_content,
+)
 from atproto_client.exceptions import UnauthorizedError
 from atproto_client.models.app.bsky.feed.defs import FeedViewPost
 from atproto_client.models.common import XrpcError
@@ -294,6 +300,47 @@ def test_atproto_process_image_embed_still_renders_thumbnails(service):
         assert entry.mblob is None
 
 
+def test_atproto_image_thumbnails_validate_and_escape_remote_urls():
+    images = [
+        SimpleNamespace(
+            thumb='https://cdn.example/thumb.jpg?name=" onerror="alert(1)',
+            fullsize='https://cdn.example/full.jpg?name=" onclick="alert(2)',
+            aspect_ratio=None,
+        ),
+        SimpleNamespace(
+            thumb='https://cdn.example/ignored.jpg',
+            fullsize='javascript:alert(3)',
+            aspect_ratio=None,
+        ),
+    ]
+
+    content = _render_image_thumbnails(images, is_public=False)
+
+    assert content.count('<img ') == 1
+    assert '&quot; onerror=&quot;' in content
+    assert '&quot; onclick=&quot;' in content
+    assert 'javascript:' not in content
+    assert ' onerror="alert(1)"' not in content
+
+
+def test_atproto_video_thumbnail_and_mrss_reject_active_remote_urls():
+    video = {
+        'thumbnail': 'data:image/svg+xml,<svg onload=alert(1)>',
+        'playlist': 'javascript:alert(2)',
+    }
+
+    assert (
+        _render_video_thumbnail(
+            video,
+            'https://bsky.app/profile/example/post/1',
+            'guid',
+            is_public=False,
+        )
+        == ''
+    )
+    assert _build_video_mblob(video) is None
+
+
 @pytest.mark.django_db
 def test_atproto_process_marks_reposts_with_reposter_context(service):
     service.api = 'atproto'
@@ -335,6 +382,20 @@ def test_atproto_process_marks_reposts_with_reposter_context(service):
         )
         assert entry.date_published.isoformat() == '2025-01-02T15:30:00+00:00'
         assert filter_content(entry).startswith('Followed Reposter reblogged')
+
+
+def test_atproto_repost_display_name_is_escaped_in_content():
+    entry = Entry(
+        reblog=True,
+        reblog_by='<img src=x onerror=alert(1)>',
+        content='<p>Original post</p>',
+    )
+
+    rendered = filter_content(entry)
+
+    assert rendered.startswith('&lt;img src=x onerror=alert(1)&gt; reblogged\n\n')
+    assert '<img src=x' not in rendered
+    assert rendered.endswith('<p>Original post</p>')
 
 
 @pytest.mark.django_db
@@ -412,6 +473,45 @@ def test_atproto_process_renders_facets_and_mentions_tags(service):
         assert 'href="https://bsky.app/hashtag/python"' in entry.content
         assert '>#python</a>' in entry.content
         assert '<br/>' in entry.content
+
+
+@pytest.mark.django_db
+def test_atproto_process_renders_unsafe_remote_uris_as_plain_text(service):
+    service.api = 'atproto'
+    service.save()
+
+    with patch('glifestream.apis.atproto.Client'):
+        api = AtProtoService(service)
+        text = 'Open the unsafe link'
+        mock_post = _make_post(
+            'unsafe-uri-cid',
+            text,
+            embed=SimpleNamespace(
+                external=SimpleNamespace(
+                    uri='data:text/html,<script>alert(1)</script>',
+                    title='<Unsafe card>',
+                    description='Not clickable.',
+                    thumb='javascript:alert(2)',
+                )
+            ),
+        )
+        mock_post.record.facets = [
+            _make_facet(
+                text,
+                'unsafe link',
+                SimpleNamespace(uri=' JaVaScRiPt:alert(1)'),
+            )
+        ]
+
+        api.process([_make_feed_view_post(mock_post)])
+
+        entry = Entry.objects.get(guid='unsafe-uri-cid')
+        assert 'unsafe link' in entry.content
+        assert '&lt;Unsafe card&gt;' in entry.content
+        assert 'href=' not in entry.content
+        assert 'src=' not in entry.content
+        assert 'javascript:' not in entry.content.lower()
+        assert 'data:text/html' not in entry.content.lower()
 
 
 @pytest.mark.django_db

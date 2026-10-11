@@ -34,14 +34,11 @@ class ForcePasswordChangeMiddleware:
                 profile = getattr(request.user, 'userprofile', None)
                 if profile and profile.must_change_password:
                     change_password_url = reverse('change-password')
-                    exempt_paths = (
-                        change_password_url,
-                        reverse('logout'),
-                        '/static/',
-                        '/media/',
-                        '/admin/',
-                    )
-                    if not any(request.path.startswith(p) for p in exempt_paths):
+                    exact_exempt_paths = (change_password_url, reverse('logout'))
+                    public_asset_paths = ('/static/', '/media/')
+                    if request.path not in exact_exempt_paths and not any(
+                        request.path.startswith(path) for path in public_asset_paths
+                    ):
                         return HttpResponseRedirect(change_password_url)
             except AttributeError:
                 pass

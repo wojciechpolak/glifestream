@@ -120,6 +120,7 @@ def test_save_image_flow(mock_isfile, mock_move, mock_retrieve):
         # Mock Image if it exists or override downscale_image
         with patch('glifestream.stream.media.downscale_image'):
             image = MagicMock()
+            image.size = (100, 100)
             image.verify.return_value = None
             image_open = MagicMock()
             image_open.return_value.__enter__.return_value = image
@@ -165,6 +166,7 @@ def test_save_image_applies_file_upload_permissions(tmp_path):
                     side_effect=fake_retrieve,
                 ):
                     image = MagicMock()
+                    image.size = (100, 100)
                     image.verify.return_value = None
                     image_open = MagicMock()
                     image_open.return_value.__enter__.return_value = image
@@ -259,6 +261,40 @@ def test_save_image_returns_original_url_when_media_limit_is_hit(tmp_path):
     assert res == 'http://remote.com/img.jpg'
 
 
+def test_verify_image_rejects_pixel_budget_before_decoding(monkeypatch):
+    monkeypatch.setattr(media, 'MAX_IMAGE_PIXELS', 9_999)
+    image = MagicMock(size=(100, 100), mode='RGB')
+    opened = MagicMock()
+    opened.__enter__.return_value = image
+    response = MagicMock(status_code=200, url='https://images.example/large.png')
+
+    with patch('glifestream.stream.media.Image.open', return_value=opened):
+        with pytest.raises(httpclient.FetchError) as excinfo:
+            media._verify_image(
+                '/tmp/not-opened-by-the-mock', response.url, response, force=False
+            )
+
+    assert excinfo.value.category == 'invalid_response'
+    assert '100x100' in excinfo.value.detail
+    assert 'pixel limit' in excinfo.value.detail
+    image.verify.assert_not_called()
+
+
+def test_verify_image_accepts_an_image_within_the_pixel_budget(monkeypatch):
+    monkeypatch.setattr(media, 'MAX_IMAGE_PIXELS', 10_000)
+    image = MagicMock(size=(100, 100), mode='RGB')
+    opened = MagicMock()
+    opened.__enter__.return_value = image
+    response = MagicMock(status_code=200, url='https://images.example/safe.png')
+
+    with patch('glifestream.stream.media.Image.open', return_value=opened):
+        media._verify_image(
+            '/tmp/not-opened-by-the-mock', response.url, response, force=False
+        )
+
+    image.verify.assert_called_once_with()
+
+
 def test_save_image_keeps_stale_cached_thumb_when_refresh_fails(tmp_path):
     target = tmp_path / 'thumb.webp'
     target.write_bytes(b'stale')
@@ -316,6 +352,7 @@ def test_save_image_accepts_ambiguous_content_type_when_image_validation_succeed
         )
 
     image = MagicMock()
+    image.size = (100, 100)
     image.verify.return_value = None
     image_open = MagicMock()
     image_open.return_value.__enter__.return_value = image
@@ -579,6 +616,29 @@ def test_mrss_gen_xml_escapes_attribute_values():
 
     assert media.mrss_gen_xml(e) == (
         '    <media:content url="https://e/x?a=1&amp;b=&quot;2&quot;&lt;"/>\n'
+    )
+
+
+def test_mrss_gen_xml_allows_only_media_content_attribute_names():
+    e = MagicMock(
+        mblob=json.dumps(
+            {
+                'content': [
+                    [
+                        {
+                            'url': 'https://e/image.jpg',
+                            'width': 640,
+                            'bad name': 'drop',
+                            'x" onclick="alert(1)': 'drop',
+                        }
+                    ]
+                ]
+            }
+        )
+    )
+
+    assert media.mrss_gen_xml(e) == (
+        '    <media:content url="https://e/image.jpg" width="640"/>\n'
     )
 
 

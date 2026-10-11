@@ -29,6 +29,7 @@ from glifestream.filters import expand
 from glifestream.gauth import gls_oauth2
 from glifestream.ingestion import Candidate, NormalizedEntry
 from glifestream.utils import httpclient
+from glifestream.utils.html import is_safe_http_url, sanitize_html_fragment
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
@@ -128,7 +129,8 @@ class MastodonService(BaseService):
         e = NormalizedEntry(guid=guid)
         e.title = post_title(entry['content'])
 
-        e.link = entry['url']
+        status_url = entry['url']
+        e.link = status_url if is_safe_http_url(status_url) else ''
         image_url = entry['account']['avatar_static']
         e.link_image = media.save_image(image_url, direct_image=False)
 
@@ -213,14 +215,14 @@ class MastodonService(BaseService):
 
 def filter_content(entry: Entry) -> str:
     if entry.reblog:
-        return _('%s reblogged') % entry.reblog_by + '\n\n' + entry.content
+        return _('%s reblogged') % escape(entry.reblog_by) + '\n\n' + entry.content
     return entry.content
 
 
 def _render_status_body(content: str, *, strip_quote_inline: bool) -> str:
     if strip_quote_inline:
         content = QUOTE_INLINE_RE.sub('', content, count=1)
-    return content
+    return sanitize_html_fragment(content)
 
 
 def _render_card(card: dict | None, is_public: bool) -> str:
@@ -230,7 +232,7 @@ def _render_card(card: dict | None, is_public: bool) -> str:
     url = card.get('url')
     title = card.get('title') or url
     description = card.get('description') or ''
-    if not isinstance(url, str) or not url:
+    if not isinstance(url, str) or not is_safe_http_url(url):
         return ''
 
     card_markup = (
@@ -242,7 +244,7 @@ def _render_card(card: dict | None, is_public: bool) -> str:
         card_markup += '<p>%s</p>' % escape(cast(str, description))
 
     image = card.get('image')
-    if isinstance(image, str) and image:
+    if isinstance(image, str) and is_safe_http_url(image):
         image_url = media.save_image(image) if is_public else image
         card_markup += (
             '<p class="thumbnails"><a href="%s" rel="nofollow">'
@@ -257,6 +259,8 @@ def _render_status_reference(status: dict, *, label: str) -> str:
     account = cast(dict, status.get('account') or {})
     author_name = cast(str, account.get('display_name') or account.get('acct') or '')
     author_link = cast(str, account.get('url') or status.get('url') or '#')
+    if author_link != '#' and not is_safe_http_url(author_link):
+        author_link = '#'
     body = cast(str, status.get('content') or '')
     if not body:
         text = status.get('text')
@@ -264,6 +268,8 @@ def _render_status_reference(status: dict, *, label: str) -> str:
             body = '<p>%s</p>' % escape(text)
         else:
             body = '<p>%s</p>' % escape(_('No text content.'))
+    else:
+        body = sanitize_html_fragment(body)
 
     return (
         ' <blockquote class="mastodon-card mastodon-reference">'
@@ -291,6 +297,8 @@ def _render_quote_placeholder(quote: dict, base_url: str) -> str:
 
 
 def _render_unavailable_reference(url: str, label: str, message: str) -> str:
+    if not is_safe_http_url(url):
+        url = '#'
     return (
         ' <blockquote class="mastodon-card mastodon-reference unavailable">'
         '<p>%s</p><p><a href="%s" rel="nofollow">%s</a></p></blockquote>'
@@ -331,6 +339,8 @@ def _render_image_attachment(attachment: dict, is_public: bool) -> str:
     image_url = cast(str, attachment['preview_url'])
     large_url = cast(str, attachment['url'])
     link = cast(str, attachment.get('remote_url') or attachment['url'])
+    if not all(is_safe_http_url(url) for url in (image_url, large_url, link)):
+        return ''
     if is_public:
         image_url = media.save_image(image_url)
     sizes = _attachment_meta_sizes(attachment, 'small')
@@ -340,16 +350,18 @@ def _render_image_attachment(attachment: dict, is_public: bool) -> str:
         iwh = ''
     return (
         '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> '
-        % (link, large_url, image_url, iwh)
+        % (escape(link), escape(large_url), escape(image_url), iwh)
     )
 
 
 def _render_video_attachment(attachment: dict, is_public: bool) -> str:
     source_url = cast(str | None, attachment.get('url'))
-    if not source_url:
+    if not source_url or not is_safe_http_url(source_url):
         return ''
 
     poster_url = cast(str | None, attachment.get('preview_url'))
+    if poster_url and not is_safe_http_url(poster_url):
+        poster_url = None
     if is_public and poster_url:
         poster_url = media.save_image(poster_url)
 
@@ -390,7 +402,7 @@ def _build_video_mblob(entry: dict) -> str | None:
         if attachment.get('type') not in ('gifv', 'video'):
             continue
         source_url = attachment.get('url')
-        if not isinstance(source_url, str) or not source_url:
+        if not isinstance(source_url, str) or not is_safe_http_url(source_url):
             continue
 
         media_content = {

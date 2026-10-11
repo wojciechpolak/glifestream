@@ -144,6 +144,9 @@ def verify(id_sub, req_get):
     mode = req_get.get('hub.mode', None)
     lease_seconds = req_get.get('hub.lease_seconds', None)
 
+    if mode not in ('subscribe', 'unsubscribe'):
+        return False
+
     if mode == 'subscribe':
         try:
             db = WebSub.objects.get(hash=id_sub)
@@ -153,7 +156,7 @@ def verify(id_sub, req_get):
             db.save()
         except WebSub.DoesNotExist:
             return False
-    elif mode == 'unsubscribe':
+    else:
         try:
             WebSub.objects.get(hash=id_sub).delete()
         except WebSub.DoesNotExist:

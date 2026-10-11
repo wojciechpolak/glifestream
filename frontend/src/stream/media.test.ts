@@ -17,11 +17,20 @@
 
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { alter_html, play_audio, toggle_video } from './media';
+import { h } from '../util/dom';
+import {
+    alter_html,
+    audio_embeds,
+    play_audio,
+    toggle_video,
+    video_embeds,
+} from './media';
 
 afterEach(() => {
     vi.restoreAllMocks();
     delete window.user_alter_html;
+    delete audio_embeds['custom'];
+    delete video_embeds['custom'];
     document.body.innerHTML = '';
 });
 
@@ -109,10 +118,31 @@ describe('play_audio', () => {
             true,
         );
     });
+
+    it('does not reparse custom template ids as markup or executable URLs', () => {
+        audio_embeds['custom'] =
+            '<iframe src="{ID}" title="track-{ID}"></iframe><span>{ID}</span>';
+        const root = stream(
+            '<span class="play-audio" data-id="custom-javascript:alert(1)">' +
+                '<a href="#">a</a></span>',
+        );
+
+        expect(play_audio(root.querySelector('span') as HTMLElement, click())).toBe(
+            false,
+        );
+
+        const player = root.querySelector('.player.audio') as HTMLElement;
+        expect(player.querySelector('iframe')?.hasAttribute('src')).toBe(false);
+        expect(player.querySelector('iframe')?.getAttribute('title')).toBe(
+            'track-javascript:alert(1)',
+        );
+        expect(player.querySelector('span')?.textContent).toBe('javascript:alert(1)');
+        expect(player.querySelector('script')).toBeNull();
+    });
 });
 
 describe('toggle_video', () => {
-    it('plays a provider template after the block, then stops it', () => {
+    it('plays a built-in provider after the block, then stops it', () => {
         // Out of the document, so that happy-dom does not load the player.
         const root = document.createElement('section');
         root.innerHTML =
@@ -133,6 +163,49 @@ describe('toggle_video', () => {
         toggle_video(block);
         expect(root.querySelector('.player')).toBeNull();
         expect(block.querySelector('.playbutton')).not.toBeNull();
+    });
+
+    it('never reparses a DOM-decoded built-in video id as markup', () => {
+        const root = document.createElement('section');
+        const block = document.createElement('div');
+        block.className = 'play-video';
+        block.dataset['id'] =
+            'youtube-abc"><img class="injected" src=x onerror="alert(1)">';
+        block.append(h('a'), h('div', { className: 'playbutton' }));
+        root.append(block);
+
+        expect(toggle_video(block)).toBe(false);
+
+        const player = block.nextElementSibling as HTMLElement;
+        expect(player.querySelector('.injected')).toBeNull();
+        expect(player.children).toHaveLength(1);
+        expect(player.firstElementChild?.tagName).toBe('IFRAME');
+        expect(player.querySelector('iframe')?.getAttribute('src')).toBe(
+            'https://www.youtube.com/embed/abc%22%3E%3Cimg%20class%3D%22injected%22%20src%3Dx%20onerror%3D%22alert(1)%22%3E?autoplay=1&rel=0',
+        );
+    });
+
+    it('does not reparse a DOM-decoded custom template id as markup', () => {
+        video_embeds['custom'] =
+            '<iframe src="https://video.example/{ID}" title="{ID}"></iframe>' +
+            '<p>{ID}</p>';
+        const root = document.createElement('section');
+        const block = document.createElement('div');
+        block.className = 'play-video';
+        block.dataset['id'] =
+            'custom-abc"><img class="injected" src=x onerror="alert(1)">';
+        block.append(h('a'), h('div', { className: 'playbutton' }));
+        root.append(block);
+
+        expect(toggle_video(block)).toBe(false);
+
+        const player = block.nextElementSibling as HTMLElement;
+        expect(player.querySelector('.injected')).toBeNull();
+        expect(player.children).toHaveLength(2);
+        expect(player.querySelector('iframe')?.getAttribute('title')).toBe(
+            'abc"><img class="injected" src=x onerror="alert(1)">',
+        );
+        expect(player.querySelector('p')?.textContent).toContain('<img');
     });
 
     it('plays a mastodon gifv looped and muted, keeping its aspect ratio', () => {

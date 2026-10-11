@@ -22,9 +22,109 @@ from django.utils.encoding import force_str
 from django.utils.safestring import mark_safe, SafeData
 
 try:
-    from bs4 import BeautifulSoup
+    from bs4 import BeautifulSoup, Comment
 except ImportError:
     BeautifulSoup = None  # type: ignore[assignment,misc]
+    Comment = None  # type: ignore[assignment,misc]
+
+
+SAFE_HTML_TAGS = {
+    'a',
+    'b',
+    'blockquote',
+    'br',
+    'code',
+    'del',
+    'em',
+    'i',
+    'img',
+    'li',
+    'ol',
+    'p',
+    'pre',
+    's',
+    'span',
+    'strong',
+    'u',
+    'ul',
+}
+SAFE_HTML_ATTRIBUTES = {
+    'a': {'class', 'href', 'title'},
+    'img': {'alt', 'class', 'height', 'loading', 'src', 'title', 'width'},
+    'span': {'class'},
+}
+SAFE_HTML_CLASSES = {
+    'custom-emoji',
+    'ellipsis',
+    'emojione',
+    'h-card',
+    'hashtag',
+    'invisible',
+    'mention',
+    'u-url',
+}
+SAFE_HTTP_SCHEMES = ('http', 'https')
+
+
+def is_safe_http_url(value: str) -> bool:
+    """Whether a remote URL is absolute HTTP(S), never an active URI scheme."""
+    try:
+        parsed = urlsplit(value.strip())
+    except ValueError:
+        return False
+    return parsed.scheme.lower() in SAFE_HTTP_SCHEMES and bool(parsed.netloc)
+
+
+def sanitize_html_fragment(value: str) -> str:
+    """Keep a small Mastodon-compatible HTML subset and safe remote URLs."""
+    if BeautifulSoup is None:
+        return str(escape(value))
+
+    soup = BeautifulSoup(value, features='html.parser')
+    comment_type = Comment
+    if comment_type is not None:
+        for comment in soup.find_all(
+            string=lambda text: isinstance(text, comment_type)
+        ):
+            comment.extract()
+
+    for tag in list(soup.find_all(True)):
+        if tag.name is None:
+            continue
+        name = tag.name.lower()
+        if name not in SAFE_HTML_TAGS:
+            if name in {'script', 'style', 'template'}:
+                tag.decompose()
+            else:
+                tag.unwrap()
+            continue
+
+        allowed = SAFE_HTML_ATTRIBUTES.get(name, set())
+        for attribute in list(tag.attrs):
+            if attribute not in allowed:
+                del tag.attrs[attribute]
+
+        classes = tag.get('class')
+        if classes is not None:
+            safe_classes = [item for item in classes if item in SAFE_HTML_CLASSES]
+            if safe_classes:
+                tag['class'] = safe_classes
+            else:
+                del tag.attrs['class']
+
+        url_attribute = 'src' if name == 'img' else 'href' if name == 'a' else None
+        if url_attribute and tag.has_attr(url_attribute):
+            url = str(tag[url_attribute]).strip()
+            if is_safe_http_url(url):
+                tag[url_attribute] = url
+                if name == 'a':
+                    tag['rel'] = 'nofollow'
+            elif name == 'img':
+                tag.replace_with(str(tag.get('alt') or ''))
+            else:
+                del tag.attrs[url_attribute]
+
+    return str(soup)
 
 
 def strip_script(s: str) -> str:
@@ -124,10 +224,10 @@ def _split_punctuation(word: str) -> tuple[str, str, str]:
 
 
 def _resolve_link(middle: str, nofollow: bool) -> tuple[str | None, str, bool]:
-    """(url, rel attribute, leave-this-word-alone) for one candidate word.
+    """Return the URL, rel attribute, and whether link recognition failed.
 
-    The third element is the original's ``continue``: an e-mail address whose
-    domain will not encode as IDNA is passed through untouched, unescaped.
+    An e-mail address whose domain will not encode as IDNA is ordinary text,
+    but the third element records why it was not linked for compatibility.
     """
     nofollow_attr = ' rel="nofollow"' if nofollow else ''
 
@@ -179,9 +279,7 @@ def urlize(
     for i, word in enumerate(words):
         if '.' in word or '@' in word or ':' in word:
             lead, middle, trail = _split_punctuation(word)
-            url, nofollow_attr, skip = _resolve_link(middle, nofollow)
-            if skip:
-                continue
+            url, nofollow_attr, _skip = _resolve_link(middle, nofollow)
 
             if url:
                 trimmed = trim_url(middle)

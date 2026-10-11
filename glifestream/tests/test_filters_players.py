@@ -125,6 +125,20 @@ def test_render_keeps_the_title_a_vimeo_player_named(media_root):
     assert 'alt="Vimeo Video"' in replaced
 
 
+def test_player_markup_escapes_every_dynamic_attribute():
+    html = players.youtube_html(
+        'bad" onmouseover="alert(1)',
+        'https://youtube.example/watch?v="quoted"',
+        'https://img.example/a.jpg?x="quoted"',
+        320,
+        180,
+    )
+
+    assert '"quoted"' not in html
+    assert 'onmouseover="alert(1)' not in html
+    assert '&quot;' in html
+
+
 def test_render_with_its_own_thumbnails_and_a_private_service():
     seen = []
 

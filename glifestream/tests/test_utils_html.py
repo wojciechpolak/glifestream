@@ -1,6 +1,8 @@
 from django.utils.safestring import mark_safe
 
 from glifestream.utils.html import (
+    is_safe_http_url,
+    sanitize_html_fragment,
     _resolve_link,
     _split_punctuation,
     bytes_to_human,
@@ -8,6 +10,30 @@ from glifestream.utils.html import (
     strip_script,
     urlize,
 )
+
+
+def test_sanitize_html_fragment_keeps_only_safe_markup_and_urls():
+    rendered = sanitize_html_fragment(
+        '<p style="color:red">Hello <strong>world</strong>'
+        '<a href="https://example.com/a" onclick="bad()">safe</a>'
+        '<a href="javascript:bad()">unsafe</a>'
+        '<iframe src="https://example.com/"></iframe>'
+        '<script>alert(1)</script></p>'
+    )
+
+    assert rendered == (
+        '<p>Hello <strong>world</strong>'
+        '<a href="https://example.com/a" rel="nofollow">safe</a>'
+        '<a>unsafe</a></p>'
+    )
+
+
+def test_is_safe_http_url_requires_an_absolute_http_destination():
+    assert is_safe_http_url(' https://example.com/path ')
+    assert is_safe_http_url('HTTP://example.com/path')
+    assert not is_safe_http_url('javascript:alert(1)')
+    assert not is_safe_http_url('//example.com/path')
+    assert not is_safe_http_url('/relative')
 
 
 def test_bytes_to_human():
@@ -149,9 +175,23 @@ def test_urlize_escapes_the_lead_and_trail_around_a_link():
     )
 
 
-def test_urlize_passes_an_unencodable_email_through_untouched():
+def test_urlize_treats_an_unencodable_email_as_ordinary_text():
     address = 'bob@' + 'x' * 70 + '.com'
 
     assert urlize('write to %s & wait' % address, autoescape=True) == (
         'write to %s &amp; wait' % address
     )
+
+
+def test_urlize_escapes_markup_in_an_unencodable_email():
+    address = '<img/src=x/onerror=alert(1)>@' + 'x' * 70 + '.com'
+
+    assert urlize(address, autoescape=True) == (
+        '&lt;img/src=x/onerror=alert(1)&gt;@' + 'x' * 70 + '.com'
+    )
+
+
+def test_urlize_preserves_explicitly_safe_unencodable_email_markup():
+    address = '<b>@' + 'x' * 70 + '.com'
+
+    assert urlize(mark_safe(address), autoescape=True) == address

@@ -8,7 +8,7 @@ from glifestream.stream.models import Entry, List, Service
 
 @pytest.mark.django_db
 def test_seed_e2e_creates_expected_data():
-    call_command('create_initial_user')
+    call_command('create_initial_user', '--password=correct horse battery staple')
     call_command('seed_e2e')
 
     admin_user = User.objects.get(username='admin')
@@ -24,7 +24,7 @@ def test_seed_e2e_creates_expected_data():
 
 @pytest.mark.django_db
 def test_seed_e2e_is_idempotent():
-    call_command('create_initial_user')
+    call_command('create_initial_user', '--password=correct horse battery staple')
     call_command('seed_e2e')
     call_command('seed_e2e')
 

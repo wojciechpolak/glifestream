@@ -29,7 +29,7 @@ from django.utils.translation import gettext as _
 from glifestream.apis.base import BaseService, post_title, set_reblog
 from glifestream.filters import expand
 from glifestream.ingestion import Candidate, NormalizedEntry
-from glifestream.utils.html import urlize
+from glifestream.utils.html import is_safe_http_url, urlize
 from glifestream.utils.time import mtime
 from glifestream.stream.models import Entry, Service
 from glifestream.stream import media
@@ -239,7 +239,7 @@ def filter_title(entry: Entry) -> str:
 
 def filter_content(entry: Entry) -> str:
     if entry.reblog:
-        return _('%s reblogged') % entry.reblog_by + '\n\n' + entry.content
+        return _('%s reblogged') % escape(entry.reblog_by) + '\n\n' + entry.content
     return entry.content
 
 
@@ -282,8 +282,8 @@ def _render_facet_text(text: str, facets: list[Any]) -> str:
             uri = getattr(feature, 'uri', None)
             did = getattr(feature, 'did', None)
             tag = getattr(feature, 'tag', None)
-            if uri:
-                target = cast(str, uri)
+            if isinstance(uri, str) and is_safe_http_url(uri):
+                target = uri.strip()
                 break
             if did:
                 target = 'https://bsky.app/profile/%s' % did
@@ -330,15 +330,15 @@ def collect_post_media_urls(record: Any, post_embed: Any) -> list[str]:
     for facet in cast(list[Any], getattr(record, 'facets', None) or []):
         for feature in getattr(facet, 'features', []):
             uri = getattr(feature, 'uri', None)
-            if uri:
-                urls.append(cast(str, uri))
+            if isinstance(uri, str) and is_safe_http_url(uri):
+                urls.append(uri.strip())
 
     urls.extend(_iter_text_urls(text))
 
     external = _extract_external_embed(post_embed)
     external_uri = getattr(external, 'uri', None)
-    if external_uri:
-        urls.append(cast(str, external_uri))
+    if isinstance(external_uri, str) and is_safe_http_url(external_uri):
+        urls.append(external_uri.strip())
 
     return list(dict.fromkeys(urls))
 
@@ -576,8 +576,21 @@ def _render_external_embed_card(external: Any, is_public: bool) -> str:
     if not isinstance(uri, str) or not uri:
         return ''
 
+    summary_markup = ''
+    if isinstance(description, str) and description:
+        summary_markup = '<p>%s</p>' % _replace_newlines(escape(description))
+
+    link_label = cast(str, title or uri)
+    if not is_safe_http_url(uri):
+        return (
+            ' <blockquote class="atproto-card atproto-external">'
+            '<p>%s</p>%s</blockquote>' % (escape(link_label), summary_markup)
+        )
+    uri = uri.strip()
+
     thumbnail_markup = ''
-    if isinstance(thumb, str) and thumb:
+    if isinstance(thumb, str) and is_safe_http_url(thumb):
+        thumb = thumb.strip()
         image_url = media.save_image(thumb) if is_public else thumb
         thumbnail_markup = (
             '<p class="thumbnails"><a href="%s" rel="nofollow">'
@@ -589,11 +602,6 @@ def _render_external_embed_card(external: Any, is_public: bool) -> str:
             )
         )
 
-    summary_markup = ''
-    if isinstance(description, str) and description:
-        summary_markup = '<p>%s</p>' % _replace_newlines(escape(description))
-
-    link_label = cast(str, title or uri)
     return (
         ' <blockquote class="atproto-card atproto-external">'
         '<p><a href="%s" rel="nofollow">%s</a></p>%s%s</blockquote>'
@@ -681,48 +689,70 @@ def _normalize_embedded_record_text(record: Any) -> str:
     return _render_text_fallback(text)
 
 
+def _safe_remote_url(value: Any) -> str | None:
+    if isinstance(value, str) and is_safe_http_url(value):
+        return value.strip()
+    return None
+
+
 def _render_image_thumbnails(
     images: list[Any], is_public: bool, *, gallery: bool = False
 ) -> str:
     if not images:
         return ''
 
-    # A gallery is laid out as a grid; photos attached the usual way stay a row.
-    if gallery:
-        content = ' <p class="thumbnails atproto-gallery">'
-    else:
-        content = ' <p class="thumbnails">'
+    thumbnails: list[str] = []
     for view_image in images:
+        large_url = _safe_remote_url(getattr(view_image, 'fullsize', None))
+        if large_url is None:
+            continue
         # An images#view item names its thumbnail "thumb", a gallery item "thumbnail".
-        image_url = (
-            getattr(view_image, 'thumb', None)
-            or getattr(view_image, 'thumbnail', None)
-            or view_image.fullsize
+        image_url = next(
+            (
+                url
+                for url in (
+                    _safe_remote_url(getattr(view_image, 'thumb', None)),
+                    _safe_remote_url(getattr(view_image, 'thumbnail', None)),
+                    large_url,
+                )
+                if url is not None
+            ),
+            large_url,
         )
-        large_url = view_image.fullsize
-        link = large_url
         if is_public:
             image_url = media.save_image(image_url)
         iwh = _aspect_ratio_attrs(getattr(view_image, 'aspect_ratio', None))
-        content += (
+        thumbnails.append(
             '<a href="%s" rel="nofollow" data-imgurl="%s"><img src="%s"%s alt="thumbnail" /></a> '
-            % (link, large_url, image_url, iwh)
+            % (escape(large_url), escape(large_url), escape(image_url), iwh)
         )
-    content += '</p>'
-    return content
+    if not thumbnails:
+        return ''
+
+    # A gallery is laid out as a grid; photos attached the usual way stay a row.
+    css_class = 'thumbnails atproto-gallery' if gallery else 'thumbnails'
+    return ' <p class="%s">%s</p>' % (css_class, ''.join(thumbnails))
 
 
 def _render_video_thumbnail(
     video: dict[str, Any], link: str, guid: str, is_public: bool
 ) -> str:
-    thumbnail = cast(str | None, video.get('thumbnail'))
-    playlist = cast(str | None, video.get('playlist'))
+    safe_link = _safe_remote_url(link)
+    if safe_link is None:
+        return ''
+    thumbnail = _safe_remote_url(video.get('thumbnail'))
+    playlist = _safe_remote_url(video.get('playlist'))
+    if thumbnail is None and playlist is None:
+        return ''
     if is_public:
         if thumbnail:
             thumbnail = media.save_image(thumbnail)
 
     alt = cast(str, video.get('alt') or 'video thumbnail')
-    data_attrs = ' data-id="atproto-%s" data-link="%s"' % (escape(guid), escape(link))
+    data_attrs = ' data-id="atproto-%s" data-link="%s"' % (
+        escape(guid),
+        escape(safe_link),
+    )
     if playlist:
         data_attrs += ' data-playlist="%s"' % escape(playlist)
     if thumbnail:
@@ -734,18 +764,21 @@ def _render_video_thumbnail(
         data_attrs += ' data-width="%d" data-height="%d"' % (width, height)
 
     if thumbnail:
-        thumb_markup = '<img src="%s" alt="%s" />' % (thumbnail, escape(alt))
+        thumb_markup = '<img src="%s" alt="%s" />' % (
+            escape(thumbnail),
+            escape(alt),
+        )
     else:
         thumb_markup = escape(alt)
 
     return (
         ' <div%s class="play-video"><a href="%s" rel="nofollow">%s</a><div class="playbutton"></div></div>'
-        % (data_attrs, escape(link), thumb_markup)
+        % (data_attrs, escape(safe_link), thumb_markup)
     )
 
 
 def _build_video_mblob(video: dict[str, Any]) -> str | None:
-    playlist = cast(str | None, video.get('playlist'))
+    playlist = _safe_remote_url(video.get('playlist'))
     if not playlist:
         return None
 

@@ -28,14 +28,52 @@ export const audio_embeds: Record<string, string> = {};
 export const video_embeds: Record<string, GlsVideoProvider> = {
     // YouTube refuses to play (error 153) without a Referer, which the page's
     // same-origin Referrer-Policy withholds; send it the origin only.
-    youtube:
-        '<iframe width="560" height="349" src="https://www.youtube.com/embed/{ID}?autoplay=1&rel=0" referrerpolicy="strict-origin-when-cross-origin" frameborder="0" allowfullscreen></iframe>',
-    vimeo: '<iframe width="560" height="315" src="https://player.vimeo.com/video/{ID}?autoplay=1" frameborder="0" allowfullscreen></iframe>',
-    dailymotion:
-        '<iframe width="560" height="315" src="https://www.dailymotion.com/embed/video/{ID}?autoplay=1" frameborder="0"></iframe>',
+    youtube: (_wrapper, id) =>
+        iframe_video(
+            'https://www.youtube.com/embed/' +
+                encodeURIComponent(id) +
+                '?autoplay=1&rel=0',
+            560,
+            349,
+            true,
+        ),
+    vimeo: (_wrapper, id) =>
+        iframe_video(
+            'https://player.vimeo.com/video/' + encodeURIComponent(id) + '?autoplay=1',
+            560,
+            315,
+            true,
+        ),
+    dailymotion: (_wrapper, id) =>
+        iframe_video(
+            'https://www.dailymotion.com/embed/video/' +
+                encodeURIComponent(id) +
+                '?autoplay=1',
+            560,
+            315,
+            false,
+        ),
     atproto: render_atproto_video,
     mastodon: render_mastodon_video,
 };
+
+function iframe_video(
+    src: string,
+    width: number,
+    height: number,
+    allowFullscreen: boolean,
+): GlsVideoEmbed {
+    const iframe = document.createElement('iframe');
+    iframe.width = String(width);
+    iframe.height = String(height);
+    iframe.src = src;
+    iframe.frameBorder = '0';
+    iframe.allowFullscreen = allowFullscreen;
+    if (src.startsWith('https://www.youtube.com/')) {
+        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
+    }
+    return { node: iframe };
+}
 
 function can_play_hls(video: HTMLVideoElement): boolean {
     return !!(
@@ -101,6 +139,80 @@ function render_mastodon_video(wrapper: HTMLElement): GlsVideoEmbed | null {
     return mount(video, wrapper);
 }
 
+const template_url_attributes = new Set([
+    'action',
+    'cite',
+    'data',
+    'formaction',
+    'href',
+    'poster',
+    'src',
+    'xlink:href',
+]);
+
+function is_safe_template_url(value: string): boolean {
+    try {
+        const protocol = new URL(value, document.baseURI).protocol;
+        return protocol === 'http:' || protocol === 'https:';
+    } catch {
+        return false;
+    }
+}
+
+/** Whether `{ID}` put into this attribute could run script or load a page. */
+function is_unsafe_template_attribute(name: string, value: string): boolean {
+    return (
+        name.startsWith('on') ||
+        name === 'style' ||
+        name === 'srcdoc' ||
+        name === 'srcset' ||
+        (template_url_attributes.has(name) && !is_safe_template_url(value))
+    );
+}
+
+function substitute_text(node: Node, value: string): void {
+    const owner = node.parentElement?.tagName.toLowerCase();
+    const replacement = owner === 'script' || owner === 'style' ? '' : value;
+    node.textContent = (node.textContent || '').replace(/{ID}/g, replacement);
+}
+
+function substitute_attributes(element: Element, value: string): void {
+    for (const attribute of Array.from(element.attributes)) {
+        if (!attribute.value.includes('{ID}')) {
+            continue;
+        }
+        const replaced = attribute.value.replace(/{ID}/g, value);
+        if (is_unsafe_template_attribute(attribute.name.toLowerCase(), replaced)) {
+            element.removeAttribute(attribute.name);
+        } else {
+            element.setAttribute(attribute.name, replaced);
+        }
+    }
+}
+
+function substitute_placeholders(parent: ParentNode, value: string): void {
+    for (const child of Array.from(parent.childNodes)) {
+        if (child.nodeType === Node.TEXT_NODE) {
+            substitute_text(child, value);
+        } else if (child instanceof Element) {
+            substitute_attributes(child, value);
+            substitute_placeholders(child, value);
+        }
+    }
+}
+
+/**
+ * Parses an administrator-owned embed template before inserting untrusted
+ * provider data. Placeholders are then assigned through DOM text/attribute
+ * APIs, so a DOM-decoded media id is never reparsed as markup.
+ */
+function render_embed_template(source: string, value: string): DocumentFragment {
+    const template = document.createElement('template');
+    template.innerHTML = source;
+    substitute_placeholders(template.content, value);
+    return template.content;
+}
+
 function render_video_embed(
     wrapper: HTMLElement,
     type: string,
@@ -109,7 +221,7 @@ function render_video_embed(
     const provider = video_embeds[type];
     if (typeof provider == 'string') {
         return {
-            html: provider.replace(/{ID}/g, id),
+            node: render_embed_template(provider, id),
         };
     }
     if (typeof provider == 'function') {
@@ -217,7 +329,7 @@ function audio_player(type: string, href: string, id: string): HTMLElement | boo
         );
     } else if (type in audio_embeds) {
         const embed = audio_embeds[type] as string;
-        player.innerHTML = embed.replace(/{ID}/g, type === 'mp3' ? href : id);
+        player.append(render_embed_template(embed, type === 'mp3' ? href : id));
     } else {
         return type !== 'thesixtyone'; // prevent navigating to a defunct site
     }

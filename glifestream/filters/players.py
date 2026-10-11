@@ -28,10 +28,10 @@ import os
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from urllib.parse import parse_qsl, urlparse
+from urllib.parse import parse_qsl, quote, urlparse
 
 from django.conf import settings
-from django.utils.html import escape
+from django.utils.html import format_html
 
 from glifestream.stream import media
 from glifestream.utils import oembed
@@ -48,27 +48,47 @@ _ALT = {'youtube': 'YouTube Video', 'vimeo': 'Vimeo Video'}
 
 
 def youtube_link(vid: str) -> str:
-    return 'https://www.youtube.com/watch?v=%s' % vid
+    return 'https://www.youtube.com/watch?v=%s' % quote(str(vid), safe='-_')
 
 
 def vimeo_link(vid: str | int) -> str:
-    return 'https://vimeo.com/%s' % vid
+    return 'https://vimeo.com/%s' % quote(str(vid), safe='')
 
 
 def youtube_html(vid: str, link: str, src: str, width: int, height: int) -> str:
     """The stored markup of a YouTube video, its thumbnail already in place."""
-    return (
-        """<div data-id="youtube-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="YouTube Video" /></a><div class="playbutton"></div></div>"""
-        % (vid, link, src, width, height)
+    return str(
+        format_html(
+            '<div data-id="youtube-{}" class="play-video"><a href="{}" '
+            'rel="nofollow"><img src="{}" width="{}" height="{}" '
+            'alt="YouTube Video" /></a><div class="playbutton"></div></div>',
+            vid,
+            link,
+            src,
+            width,
+            height,
+        )
     )
 
 
 def vimeo_html(vid: str | int, link: str, title: str, src: str) -> str:
     """The stored markup of a Vimeo video, its thumbnail already in place."""
-    return (
-        """<div data-id="vimeo-%s" class="play-video"><a href="%s" rel="nofollow"><img src="%s" width="%s" height="%s" alt="%s" /></a><div class="playbutton"></div></div>"""
-        % (vid, link, src, *THUMBNAIL_SIZE, escape(title))
+    return str(
+        format_html(
+            '<div data-id="vimeo-{}" class="play-video"><a href="{}" '
+            'rel="nofollow"><img src="{}" width="{}" height="{}" alt="{}" />'
+            '</a><div class="playbutton"></div></div>',
+            vid,
+            link,
+            src,
+            *THUMBNAIL_SIZE,
+            title,
+        )
     )
+
+
+def valid_youtube_id(value: object) -> bool:
+    return isinstance(value, str) and re.fullmatch(r'[A-Za-z0-9_-]+', value) is not None
 
 
 def link_of(provider: str, vid: str) -> str:
@@ -124,7 +144,7 @@ def normalize_youtube_url(url: str) -> str | None:
     path = parsed.path.rstrip('/')
     parts = [part for part in path.split('/') if part]
     video_id = extract(parts, dict(parse_qsl(parsed.query)), path)
-    if not video_id or not re.fullmatch(r'[\-\w]+', video_id):
+    if not valid_youtube_id(video_id):
         return None
     return 'https://www.youtube.com/watch?v=%s' % video_id
 
