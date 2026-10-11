@@ -175,6 +175,57 @@ describe('init_pull_to_refresh', () => {
         expect(body_classes()).toEqual([]);
     });
 
+    it('leaves a swipe down the closed drawer to it', () => {
+        document.body.insertAdjacentHTML(
+            'beforeend',
+            '<aside id="sidebar"><p id="drawer-bar">Menu</p></aside>',
+        );
+        init_pull_to_refresh();
+
+        const bar = document.getElementById('drawer-bar') as HTMLElement;
+        touch('touchstart', [10, 0], bar);
+        const move = touch('touchmove', [10, 200], bar);
+        touch('touchend', null, bar);
+
+        expect(move.defaultPrevented).toBe(false);
+        expect(body_classes()).toEqual([]);
+        expect(reload).not.toHaveBeenCalled();
+    });
+
+    it('leaves a swipe down the open drawer to it', () => {
+        document.body.insertAdjacentHTML(
+            'beforeend',
+            '<aside id="sidebar" class="expanded"><p id="drawer-text">About</p></aside>',
+        );
+        init_pull_to_refresh();
+
+        for (const target of [
+            document.getElementById('drawer-text') as HTMLElement,
+            document.getElementById('stream') as HTMLElement,
+        ]) {
+            touch('touchstart', [10, 0], target);
+            touch('touchmove', [10, 200], target);
+            touch('touchend', null, target);
+        }
+
+        expect(body_classes()).toEqual([]);
+        expect(reload).not.toHaveBeenCalled();
+    });
+
+    it('lets go of a pull once the drawer is being swiped', () => {
+        document.body.insertAdjacentHTML('beforeend', '<aside id="sidebar"></aside>');
+        init_pull_to_refresh();
+
+        touch('touchstart', [10, 0]);
+        touch('touchmove', [10, 100]);
+        document.getElementById('sidebar')?.classList.add('dragging');
+        touch('touchmove', [10, 200]);
+        touch('touchend', null);
+
+        expect(body_classes()).toEqual([]);
+        expect(reload).not.toHaveBeenCalled();
+    });
+
     it('lets go of a cancelled pull', () => {
         init_pull_to_refresh();
 

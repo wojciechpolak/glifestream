@@ -44,9 +44,10 @@ CONTRACT_SELECTORS = (
     # The top bar folds its links into a menu at 920px and below (navtop.ts).
     '.navtop-toggle',
     '#navtop.open .navtop-menu',
-    # The sidebar is a drawer at 640px and below (stream/init.ts).
+    # The sidebar is a drawer at 640px and below (ui/drawer.ts).
     '#sidebar-toggle',
     '#sidebar.expanded',
+    '#sidebar.dragging',
     '#pull-to-refresh',
     'body.pull-refresh-active',
     # Long entries fold to --fold-lines lines (folding.ts).

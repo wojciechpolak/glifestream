@@ -194,8 +194,8 @@ body #navtop .navtop-menu {
 }
 
 // At 640px and below the top bar is pinned, and the sidebar is a drawer at
-// the bottom, which its handle opens (stream/init.ts); the page pulls to
-// refresh (ui/pull-to-refresh.ts).
+// the bottom, which a tap on its handle or a swipe opens (ui/drawer.ts); the
+// page pulls to refresh (ui/pull-to-refresh.ts).
 @media screen and (max-width: 640px) {
   body #main {
     padding: calc(var(--kit-head-height-m) + 14px) 14px 16px;
@@ -246,6 +246,8 @@ body #navtop .navtop-menu {
     box-shadow: var(--kit-drawer-shadow);
     transform: none;
     transition: height 0.18s ease-out;
+    // Closed, it is all handle: a swipe on it moves the drawer, not the page.
+    touch-action: pinch-zoom;
 
     > section,
     > nav,
@@ -260,6 +262,19 @@ body #navtop .navtop-menu {
       overflow-y: auto;
       overscroll-behavior-y: contain;
       -webkit-overflow-scrolling: touch;
+      touch-action: pan-y pinch-zoom;
+
+      > section,
+      > nav,
+      > footer {
+        display: block;
+      }
+    }
+
+    // While a finger moves it, its height is the finger's.
+    &.dragging {
+      overflow: hidden;
+      transition: none;
 
       > section,
       > nav,
@@ -295,7 +310,7 @@ body #navtop .navtop-menu {
     transform: none;
     font-size: 0.95rem;
     font-weight: 700;
-    touch-action: manipulation;
+    touch-action: pinch-zoom;
 
     &:hover,
     &:active {

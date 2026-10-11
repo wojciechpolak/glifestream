@@ -27,17 +27,20 @@ function is_at_top(): boolean {
     return window.scrollY <= 0 && bodyScrollTop <= 0 && docScrollTop <= 0;
 }
 
-function is_sidebar_expanded(): boolean {
-    return !!document.getElementById('sidebar')?.classList.contains('expanded');
+/** Whether the sidebar's drawer is open or being swiped (ui/drawer.ts). */
+function is_drawer_in_use(): boolean {
+    const classes = document.getElementById('sidebar')?.classList;
+    return !!classes && (classes.contains('expanded') || classes.contains('dragging'));
 }
 
+/** A touch in the drawer is the drawer's, whether it is open or closed. */
 function should_ignore_target(target: EventTarget | null): boolean {
     const el = target as Partial<Element> | null;
     return !!(
         el &&
         el.closest &&
         el.closest(
-            '#sidebar.expanded, input, textarea, select, button, [contenteditable="true"]',
+            '#sidebar, input, textarea, select, button, [contenteditable="true"]',
         )
     );
 }
@@ -47,14 +50,14 @@ function can_start_pull(event: TouchEvent): boolean {
     return (
         event.touches.length === 1 &&
         is_at_top() &&
-        !is_sidebar_expanded() &&
+        !is_drawer_in_use() &&
         !should_ignore_target(event.target)
     );
 }
 
 /** Whether a pull turned back up, went sideways or left the top of the page. */
 function pull_broken(deltaX: number, deltaY: number): boolean {
-    return deltaY <= 0 || deltaX > 48 || !is_at_top() || is_sidebar_expanded();
+    return deltaY <= 0 || deltaX > 48 || !is_at_top() || is_drawer_in_use();
 }
 
 /** On a phone-sized screen, pulling the top of the stream down reloads it. */

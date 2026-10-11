@@ -255,6 +255,81 @@ def test_mobile_sidebar_expands_and_scrolls_to_footer(
     assert scrolled_state['footerBottom'] <= scrolled_state['sidebarBottom']
 
 
+def test_mobile_sidebar_opens_and_closes_by_swipe(
+    page: Page,
+    app_base_url: str,
+    login_as_initial_admin,
+    finish_forced_password_change,
+):
+    """A swipe moves the drawer; one down it is never a pull to refresh."""
+    login_as_initial_admin()
+    finish_forced_password_change()
+
+    page.set_viewport_size({'width': 390, 'height': 680})
+    page.goto(f'{app_base_url}/')
+
+    sidebar = page.locator('#sidebar')
+    toggle = page.locator('#sidebar-toggle')
+    page.evaluate(
+        """
+        () => {
+            window.__glsReloadCount = 0;
+            window.__glsReloadHandler = function() {
+                window.__glsReloadCount += 1;
+            };
+            window.__glsSwipe = (selector, from, to) => {
+                const target = document.querySelector(selector);
+                const box = target.getBoundingClientRect();
+                const x = box.left + box.width / 2;
+                const y0 = box.top + Math.min(from, box.height - 1);
+                const dispatch = (type, y) => {
+                    const event = new Event(type, {bubbles: true, cancelable: true});
+                    const touches = (
+                        type === 'touchend' || type === 'touchcancel'
+                    ) ? [] : [{clientX: x, clientY: y}];
+                    Object.defineProperty(event, 'touches', {value: touches});
+                    target.dispatchEvent(event);
+                };
+                dispatch('touchstart', y0);
+                const step = to > 0 ? 20 : -20;
+                for (let d = step; Math.abs(d) <= Math.abs(to); d += step) {
+                    dispatch('touchmove', y0 + d);
+                }
+                dispatch('touchend', y0 + to);
+                return {
+                    expanded: document.getElementById('sidebar')
+                        .classList.contains('expanded'),
+                    pulling: document.body.classList.contains('pull-refresh-active'),
+                };
+            };
+        }
+        """
+    )
+
+    # A long swipe down the closed drawer, at the top of the page.
+    state = page.evaluate("window.__glsSwipe('#sidebar-toggle', 10, 300)")
+    assert state == {'expanded': False, 'pulling': False}
+
+    state = page.evaluate("window.__glsSwipe('#sidebar-toggle', 10, -400)")
+    assert state['expanded'] is True
+    expect(sidebar).to_have_class(re.compile(r'\bexpanded\b'))
+    expect(toggle).to_have_attribute('aria-expanded', 'true')
+
+    # Down the open drawer's content, and down its handle: it closes.
+    state = page.evaluate("window.__glsSwipe('#about', 10, 400)")
+    assert state == {'expanded': False, 'pulling': False}
+    page.evaluate("window.__glsSwipe('#sidebar-toggle', 10, -400)")
+    state = page.evaluate("window.__glsSwipe('#sidebar-toggle', 10, 400)")
+    assert state == {'expanded': False, 'pulling': False}
+    expect(toggle).to_have_attribute('aria-expanded', 'false')
+    expect(sidebar).not_to_have_class(re.compile(r'\b(expanded|dragging)\b'))
+    assert page.evaluate('window.__glsReloadCount') == 0
+
+    # The stream still pulls to refresh.
+    page.evaluate("window.__glsSwipe('#stream', 10, 200)")
+    wait_for(page, 'window.__glsReloadCount === 1')
+
+
 @pytest.mark.parametrize('width', [390, 800])
 def test_narrow_top_bar_folds_links_into_a_menu(
     page: Page,

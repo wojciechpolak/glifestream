@@ -17,6 +17,7 @@
 
 import { config } from '../config';
 import { Lightbox } from '../ui/lightbox';
+import { init_drawer } from '../ui/drawer';
 import { fade_in, fade_out } from '../ui/fx';
 import { init_pull_to_refresh } from '../ui/pull-to-refresh';
 import { init_sidebar_height } from '../ui/sidebar-height';
@@ -116,12 +117,7 @@ export function init_stream(): void {
     }
 
     init_sidebar_height();
-    listen('#sidebar-toggle', 'click', function (toggle) {
-        const expanded = !!document
-            .getElementById('sidebar')
-            ?.classList.toggle('expanded');
-        toggle.setAttribute('aria-expanded', String(expanded));
-    });
+    init_drawer();
 
     listen('#toggle-reblogs', 'click', toggle_reblogs);
     listen('#change-theme', 'click', change_theme);

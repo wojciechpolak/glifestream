@@ -3699,6 +3699,8 @@ img.noborder {
     backdrop-filter: blur(14px);
     overflow: hidden;
     z-index: 5;
+    /* Closed, it is all handle: a swipe on it moves the drawer, not the page. */
+    touch-action: pinch-zoom;
 
     > section,
     > nav,
@@ -3717,6 +3719,21 @@ img.noborder {
       opacity: 1;
       overscroll-behavior-y: contain;
       -webkit-overflow-scrolling: touch;
+      touch-action: pan-y pinch-zoom;
+      z-index: 6;
+
+      > section,
+      > nav,
+      > footer {
+        display: block;
+      }
+    }
+
+    /* While a finger moves it (ui/drawer.ts), its height is the finger's. */
+    &.dragging {
+      overflow: hidden;
+      opacity: 1;
+      transition: none;
       z-index: 6;
 
       > section,
@@ -3734,8 +3751,8 @@ img.noborder {
   }
 
   /*
-   * The whole collapsed bar opens the drawer. A grip and a label show it
-   * can be pulled up; it keeps off the look a theme gives to its buttons.
+   * The whole collapsed bar opens the drawer, by a tap or a swipe. A grip and
+   * a label show it can be pulled up; it keeps off the look a theme gives to its buttons.
    */
   #sidebar-toggle {
     display: flex;
@@ -3753,7 +3770,7 @@ img.noborder {
     font-weight: 700;
     box-shadow: none;
     text-shadow: none;
-    touch-action: manipulation;
+    touch-action: pinch-zoom;
 
     &:hover,
     &:active {
