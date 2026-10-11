@@ -22,21 +22,25 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def docker_settings(**env: str) -> dict[str, str]:
+def docker_settings(**env: str) -> dict[str, Any]:
     """Some values of glifestream.settings_docker, loaded in a clean process."""
     code = (
         'import json; from glifestream import settings_docker as s; '
         'print(json.dumps({"BASE_URL": s.BASE_URL, "LOGIN_URL": s.LOGIN_URL, '
-        '"FEED_AUTHOR_URI": s.FEED_AUTHOR_URI}))'
+        '"FEED_AUTHOR_URI": s.FEED_AUTHOR_URI, '
+        '"SECURE_PROXY_SSL_HEADER": s.SECURE_PROXY_SSL_HEADER}))'
     )
     clean = {
         name: value
         for name, value in os.environ.items()
-        if not name.startswith(('APP_', 'BASE_URL', 'FEED_', 'VIRTUAL_', 'DJANGO_'))
+        if not name.startswith(
+            ('APP_', 'BASE_URL', 'FEED_', 'VIRTUAL_', 'DJANGO_', 'SECURE_')
+        )
     }
     clean.update(
         GLIFESTREAM_LOAD_DOTENV='0',
@@ -52,7 +56,7 @@ def docker_settings(**env: str) -> dict[str, str]:
         text=True,
         check=True,
     )
-    values: dict[str, str] = json.loads(result.stdout.splitlines()[-1])
+    values: dict[str, Any] = json.loads(result.stdout.splitlines()[-1])
     return values
 
 
@@ -70,3 +74,11 @@ def test_author_uri_follows_the_path_prefix_and_an_explicit_value() -> None:
     assert docker_settings(FEED_AUTHOR_URI='https://example.com/')[
         'FEED_AUTHOR_URI'
     ] == ('https://example.com/')
+
+
+def test_the_proxy_https_header_is_trusted_only_when_turned_on() -> None:
+    assert docker_settings()['SECURE_PROXY_SSL_HEADER'] is None
+    assert docker_settings(SECURE_PROXY_SSL_HEADER='1')['SECURE_PROXY_SSL_HEADER'] == [
+        'HTTP_X_FORWARDED_PROTO',
+        'https',
+    ]

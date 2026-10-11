@@ -147,6 +147,11 @@ These settings matter most for a hardened deployment:
   Persistent media storage location for uploads and generated thumbnails.
 - `SESSION_COOKIE_SECURE`, `CSRF_COOKIE_SECURE`
   Keep these enabled in production. `glifestream.settings_docker` defaults both to `True`.
+- `SECURE_PROXY_SSL_HEADER`
+  `1` behind a proxy that ends TLS, such as Cloudflare: Django then takes a
+  request with `X-Forwarded-Proto: https` for an HTTPS one. Defaults to `0`.
+  Turn it on only when every request comes through such a proxy, because a
+  client that reaches Django past it could send the header itself.
 - `CONTENT_SECURITY_POLICY`
   `report-only` (the default), `enforce` or `off`. The policy runs scripts only
   from the static files, and from an inline script that carries the request's
@@ -261,6 +266,12 @@ gLifestream is typically served behind a reverse proxy. Keep these rules in mind
 
 - Set `BASE_URL` to the public URL that browsers use to reach the site.
 - Use an `https://` `BASE_URL` when TLS terminates before the Django process.
+- Behind a proxy that ends TLS, Django sees plain HTTP, and the links to the
+  site itself that it builds from the request, in the feeds, the friends'
+  login and the OAuth redirect URI, start with `http://`. Set
+  `SECURE_PROXY_SSL_HEADER=1` and have each proxy pass `X-Forwarded-Proto`
+  on. The bundled nginx template passes on the one it receives, or sends its
+  own scheme when there is none.
 - In Docker, `glifestream.settings_docker` derives path-prefix-aware URLs from `FORCE_SCRIPT_NAME` or `VIRTUAL_PATH`.
 - When `VIRTUAL_PATH` is not `/`, Docker rewrites `STATIC_URL`, `MEDIA_URL`, and `LOGIN_URL` to include that prefix. `FAVICON`, `APPLE_TOUCH_ICON` and `PWA_APP_ICONS` name static files relative to `STATIC_URL`, so they follow it.
 - The current Docker `HEALTHCHECK` only performs `curl -f http://localhost/`.
@@ -518,6 +529,9 @@ and point the `backend` upstream at `127.0.0.1:8000`.
   one that applies the limit, configure the real client address there
   (`set_real_ip_from` and `real_ip_header` in nginx). Otherwise all clients
   share one limit.
+- With `SECURE_PROXY_SSL_HEADER=1`, send the client's scheme to Django:
+  `proxy_set_header X-Forwarded-Proto $scheme;` in nginx, when it is the
+  proxy that ends TLS.
 - Keep the worker process running continuously so scheduled imports and cleanup jobs continue to execute.
 
 

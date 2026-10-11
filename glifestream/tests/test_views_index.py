@@ -381,3 +381,26 @@ def test_entry_page_lists_only_the_months_its_viewer_can_see(
         '2022/05',
         '2020/07',
     ]
+
+
+@override_settings(SECURE_PROXY_SSL_HEADER=('HTTP_X_FORWARDED_PROTO', 'https'))
+@pytest.mark.django_db
+@pytest.mark.parametrize('fmt', ['atom', 'json'])
+def test_feeds_trust_the_proxy_https_header_when_turned_on(client, service, fmt):
+    # Behind a proxy that ends TLS, the request arrives over plain HTTP.
+    entry = Entry.objects.create(
+        service=service,
+        title='Hello Feed',
+        guid='feed-proxy',
+        date_published=datetime.datetime(2023, 11, 1, 10, 0, tzinfo=UTC),
+    )
+
+    content = client.get(
+        reverse('index') + f'?format={fmt}',
+        HTTP_HOST='testserver',
+        HTTP_X_FORWARDED_PROTO='https',
+    ).content.decode()
+
+    assert f'https://testserver/?format={fmt}' in content
+    assert f'https://testserver/entry/{entry.pk}/hello-feed' in content
+    assert 'http://testserver' not in content

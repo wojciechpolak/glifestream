@@ -191,6 +191,16 @@ SESSION_ENGINE = (
 SESSION_COOKIE_SECURE = get_bool(ENV, 'SESSION_COOKIE_SECURE', default=not DEBUG)
 CSRF_COOKIE_SECURE = get_bool(ENV, 'CSRF_COOKIE_SECURE', default=not DEBUG)
 
+# Behind a proxy that ends TLS, such as Cloudflare, requests reach Django
+# over plain HTTP. On, this trusts the proxy's X-Forwarded-Proto to say that
+# a request came over HTTPS. Turn it on only when every request comes through
+# such a proxy: a client that reaches Django past it could send the header.
+SECURE_PROXY_SSL_HEADER = (
+    ('HTTP_X_FORWARDED_PROTO', 'https')
+    if get_bool(ENV, 'SECURE_PROXY_SSL_HEADER', default=False)
+    else None
+)
+
 apply_magic_sso_defaults(globals(), ENV)
 
 # Caching, see https://docs.djangoproject.com/en/dev/topics/cache/#topics-cache

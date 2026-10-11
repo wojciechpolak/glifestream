@@ -10,6 +10,16 @@ from the Git history and are intentionally high-level.
 
 ## [Unreleased]
 
+### Fixed
+
+- Behind a proxy that ends TLS, such as Cloudflare, links to the site itself
+  started with `http://`: in the Atom and JSON feeds, in the friends' login
+  and in the OAuth redirect URI shown in settings. `SECURE_PROXY_SSL_HEADER=1`
+  makes Django take a request that the proxy marks with
+  `X-Forwarded-Proto: https` for an HTTPS one. The bundled nginx template
+  passes that header on, and `docker-compose.yml` passes the setting to the
+  app.
+
 ## [2.1.0] - 2026-10-10
 
 ### Added

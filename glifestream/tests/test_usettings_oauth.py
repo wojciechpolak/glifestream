@@ -344,6 +344,24 @@ def test_oauth2_page_revisited_mid_flow_just_renders(
     patched_oauth2_client.get_access_token.assert_not_called()
 
 
+@pytest.mark.django_db
+def test_oauth2_redirect_uri_trusts_the_proxy_https_header_when_turned_on(
+    staff_client, oauth2_service, patched_oauth2_client, settings
+):
+    # Behind a proxy that ends TLS, the request arrives over plain HTTP.
+    settings.SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    response = staff_client.get(
+        oauth2_url(oauth2_service),
+        HTTP_HOST='testserver',
+        HTTP_X_FORWARDED_PROTO='https',
+    )
+
+    assert response.context['callback_url'] == (
+        'https://testserver' + oauth2_url(oauth2_service)
+    )
+
+
 def test_help_table_covers_twitter():
     assert 'twitter' in oauth_settings.OAUTH1_APIS_HELP
     assert oauth_settings.OAUTH1_DEFAULT_HELP.startswith('http')

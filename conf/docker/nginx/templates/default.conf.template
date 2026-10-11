@@ -16,6 +16,14 @@ map $sent_http_content_type $media_disposition {
     ~*^application/pdf        "";
 }
 
+# The scheme the client used, for Django's SECURE_PROXY_SSL_HEADER. Behind
+# another proxy that ends TLS, such as Cloudflare, its X-Forwarded-Proto
+# says it; without one, nginx's own scheme does.
+map $http_x_forwarded_proto $forwarded_proto {
+    default $http_x_forwarded_proto;
+    ''      $scheme;
+}
+
 # Password guessing: each client may POST 6 logins a minute, after a burst
 # of 5. GET requests have an empty key, which nginx does not count.
 map $request_method $login_limit_key {
@@ -71,6 +79,7 @@ server {
         limit_req_status 429;
         proxy_pass http://backend/login;
         proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
     }
 
     location ^~ ${VIRTUAL_PATH}admin/login/ {
@@ -78,10 +87,12 @@ server {
         limit_req_status 429;
         proxy_pass http://backend/admin/login/;
         proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
     }
 
     location ${VIRTUAL_PATH} {
         proxy_pass http://backend/; # keep the trailing slash
         proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-Proto $forwarded_proto;
     }
 }
