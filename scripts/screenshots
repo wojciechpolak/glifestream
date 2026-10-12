@@ -16,16 +16,20 @@
 #  You should have received a copy of the GNU General Public License along
 #  with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-Take the README screenshots of the stream, in a light and a dark version.
+Take the screenshots of the stream in every bundled theme, in a light and a
+dark version: the README shows the default theme's, docs/THEMES.md all of them.
 
 It builds the page script, sets up a throwaway instance the way a fresh
 installation starts -- the starting services and the welcome entry, in a
 database in a temporary directory, plus a GitHub service so that the sidebar
 shows the code class too, and without the copyright footer -- serves it with
 `runserver`, and has
-Chromium photograph the home page once per colour scheme. The results are
-written as WebP to docs/screenshots/. Neither `.env` nor `settings_local.py`
-is read, so your own instance and its data never show up in them.
+Chromium photograph the home page once per theme and colour scheme, the theme
+picked with the `gls-theme` cookie as "Change theme" does. The results are
+written as WebP to docs/screenshots/: stream-<scheme>.webp for the default
+theme, stream-<theme>-<scheme>.webp for the others. Neither `.env` nor
+`settings_local.py` is read, so your own instance, its data and its own themes
+never show up in them.
 
 The welcome entry's video thumbnail comes from YouTube, so this needs the
 network. It needs the `dev` dependency group and Playwright's Chromium
@@ -35,6 +39,7 @@ network. It needs the `dev` dependency group and Playwright's Chromium
 from __future__ import annotations
 
 import argparse
+import itertools
 import os
 import secrets
 import socket
@@ -130,7 +135,14 @@ def wait_for_server(url: str, server: subprocess.Popen[bytes]) -> None:
     raise SystemExit(f'screenshots: no answer from {url} in time')
 
 
-def photograph(url: str, output_dir: Path) -> list[Path]:
+def image_name(theme: str, scheme: str) -> str:
+    # The default theme's keep the names the README has always shown.
+    if theme == 'default':
+        return f'stream-{scheme}.webp'
+    return f'stream-{theme}-{scheme}.webp'
+
+
+def photograph(url: str, output_dir: Path, themes: list[str]) -> list[Path]:
     from PIL import Image
     from playwright.sync_api import sync_playwright
 
@@ -138,7 +150,7 @@ def photograph(url: str, output_dir: Path) -> list[Path]:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch()
         try:
-            for scheme in SCHEMES:
+            for theme, scheme in itertools.product(themes, SCHEMES):
                 context = browser.new_context(
                     viewport=VIEWPORT,  # type: ignore[arg-type]
                     device_scale_factor=SCALE,
@@ -147,6 +159,7 @@ def photograph(url: str, output_dir: Path) -> list[Path]:
                     timezone_id='UTC',
                     reduced_motion='reduce',
                 )
+                context.add_cookies([{'name': 'gls-theme', 'value': theme, 'url': url}])
                 page = context.new_page()
                 page.goto(url, wait_until='networkidle')
                 page.evaluate('document.fonts.ready')
@@ -156,6 +169,10 @@ def photograph(url: str, output_dir: Path) -> list[Path]:
                     raise SystemExit(
                         'screenshots: the page shows a static-file error:\n'
                         + page.locator('.django-pipeline-error').first.inner_text()
+                    )
+                if not page.locator(f'body.style-{theme}').count():
+                    raise SystemExit(
+                        f'screenshots: the page is not in the {theme!r} theme'
                     )
                 missing = page.evaluate(
                     """
@@ -173,7 +190,7 @@ def photograph(url: str, output_dir: Path) -> list[Path]:
                 )
                 context.close()
 
-                target = output_dir / f'stream-{scheme}.webp'
+                target = output_dir / image_name(theme, scheme)
                 with Image.open(BytesIO(png)) as image:
                     image.save(target, 'WEBP', quality=WEBP_QUALITY, method=6)
                 written.append(target)
@@ -183,8 +200,13 @@ def photograph(url: str, output_dir: Path) -> list[Path]:
 
 
 def main() -> int:
+    ensure_venv()
+    sys.path.insert(0, str(ROOT))
+    from glifestream.settings_themes import BUNDLED_THEMES
+
     parser = argparse.ArgumentParser(
-        description='Take the light and dark README screenshots of the stream.'
+        description='Take the light and dark screenshots of the stream '
+        'in every bundled theme.'
     )
     parser.add_argument(
         '--output-dir',
@@ -192,8 +214,15 @@ def main() -> int:
         default=OUTPUT_DIR,
         help=f'where to write the images (default: {OUTPUT_DIR.relative_to(ROOT)})',
     )
+    parser.add_argument(
+        '--theme',
+        action='append',
+        choices=BUNDLED_THEMES,
+        dest='themes',
+        help='photograph only this theme; may be repeated (default: all of them)',
+    )
     args = parser.parse_args()
-    ensure_venv()
+    themes: list[str] = args.themes or list(BUNDLED_THEMES)
 
     run(['npm', 'run', '--silent', 'build'])
 
@@ -226,7 +255,7 @@ def main() -> int:
             )
             try:
                 wait_for_server(url, server)
-                written = photograph(url, output_dir)
+                written = photograph(url, output_dir, themes)
             except BaseException:
                 log.flush()
                 sys.stderr.write(log_path.read_text(errors='replace'))

@@ -184,7 +184,8 @@ entries as vim buffers). They load nothing from other sites: the text is set
 in system fonts, and the one font a theme carries, `riso`'s Anton for its
 headings (SIL Open Font License, with its licence in `themes/riso/fonts/`),
 is a WOFF2 among the static files. A visitor switches between the themes on offer with "Change theme" in
-the sidebar; the choice is kept in the `gls-theme` cookie.
+the sidebar; the choice is kept in the `gls-theme` cookie. Screenshots of
+each, light and dark, are in [docs/THEMES.md](docs/THEMES.md).
 
 - `THEMES`
   The themes to offer, separated by commas, in the order "Change theme" goes
