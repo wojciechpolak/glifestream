@@ -10,6 +10,8 @@ from the Git history and are intentionally high-level.
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-10-14
+
 ### Added
 
 - Four new themes, each following the system's light or dark mode:
