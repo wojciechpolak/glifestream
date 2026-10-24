@@ -17,6 +17,7 @@
 
 import datetime
 from urllib.parse import urlsplit
+from uuid import uuid4
 
 import jwt
 from django.conf import settings
@@ -30,10 +31,9 @@ def make_magic_sso_token(
     scope: str = 'friends',
     site_id: str = 'test-site',
 ) -> str:
+    issued_at = datetime.datetime.now(datetime.timezone.utc)
     if expires_at is None:
-        expires_at = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
-            minutes=5
-        )
+        expires_at = issued_at + datetime.timedelta(minutes=5)
 
     server_url = urlsplit(
         getattr(settings, 'MAGICSSO_SERVER_URL', 'http://localhost:3000')
@@ -46,7 +46,9 @@ def make_magic_sso_token(
         'aud': audience,
         'email': email,
         'exp': expires_at,
+        'iat': issued_at,
         'iss': issuer,
+        'jti': str(uuid4()),
         'scope': scope,
         'siteId': site_id,
     }
