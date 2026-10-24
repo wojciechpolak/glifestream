@@ -11,7 +11,7 @@ dependencies = [
     "feedparser>=6.0,<7",
     "libsasscompiler==0.1.8",
     "markdown>=3,<4",
-    "pillow>=12,<13",
+    "pillow>=13,<14",
     "requests-oauthlib==2.0.0",
     "gunicorn>=25,<26",
     "pymemcache>=4.0.0,<5",
